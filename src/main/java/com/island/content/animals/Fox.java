@@ -4,6 +4,7 @@ import com.island.content.Animal;
 import com.island.content.Predator;
 import com.island.content.SpeciesConfig;
 
+//todo improve flyweight optimization of Animals
 public class Fox extends Animal implements Predator {
     
     public Fox() {
