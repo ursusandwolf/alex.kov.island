@@ -74,14 +74,14 @@ public final class SpeciesConfig {
     }
     
     // Storage for species characteristics
-    private final Map<String, SpeciesCharacteristics> speciesData;
+    private Map<String, SpeciesCharacteristics> speciesData;
     
     // =========================================================================
     // HUNTING PROBABILITY MATRIX
     // predatorKey -> preyKey -> probability (0-100)
     // =========================================================================
     
-    private final Map<String, Map<String, Integer>> huntProbabilities;
+    private Map<String, Map<String, Integer>> huntProbabilities;
     
     /**
      * Initialize species data from specification table.
