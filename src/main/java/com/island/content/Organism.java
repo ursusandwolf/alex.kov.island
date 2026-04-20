@@ -17,22 +17,22 @@ import java.util.UUID;
 public abstract class Organism implements OrganismBehavior {
     
     // Unique identifier for each organism instance
-    protected final String id;
+    private final String id;
     
     // Current energy level (0 to maxEnergy)
-    protected double currentEnergy;
+    private double currentEnergy;
     
     // Maximum energy capacity for this organism type
-    protected final double maxEnergy;
+    private final double maxEnergy;
     
     // Age in simulation ticks
-    protected int age;
+    private int age;
     
     // Maximum lifespan in ticks (0 means immortal)
-    protected final int maxLifespan;
+    private final int maxLifespan;
     
     // Whether organism is alive
-    protected boolean isAlive;
+    private boolean isAlive;
     
     /**
      * Constructor initializes organism with full energy.
@@ -66,7 +66,7 @@ public abstract class Organism implements OrganismBehavior {
     }
     
     /**
-     * Mark organism as dead.
+     * Mark organism as dead (protected - only subclasses can kill).
      */
     protected void die() {
         this.isAlive = false;
@@ -98,7 +98,7 @@ public abstract class Organism implements OrganismBehavior {
     
     /**
      * Get organism type name for display/statistics.
-     * TODO: Implement in subclasses to return specific type name
+     * Implemented by subclasses to return specific type name
      * @return type name
      */
     public abstract String getTypeName();
@@ -117,7 +117,7 @@ public abstract class Organism implements OrganismBehavior {
     
     /**
      * Consume energy for actions.
-     * TODO: This is a helper method - subclasses may override for different metabolism rates
+     * Subclasses can override for different metabolism rates.
      * 
      * @param amount energy to consume
      */
@@ -138,24 +138,23 @@ public abstract class Organism implements OrganismBehavior {
     }
     
     /**
-     * Increase age by one tick.
+     * Increase age by one tick and check for death by old age.
      */
     protected void ageOneTick() {
         age++;
-        // Check for death by old age
         if (maxLifespan > 0 && age >= maxLifespan) {
             die();
         }
     }
     
     /**
-     * Default checkState implementation - checks age and energy.
+     * Check if organism is alive and update state (age, hunger, etc.)
+     * Default implementation checks age and energy.
      * Subclasses can extend this with additional checks.
      */
     @Override
     public void checkState() {
         ageOneTick();
-        // Energy check already happens via consumeEnergy calls
         if (!isAlive) {
             System.out.println(getTypeName() + " " + id.substring(0, 8) + " died at age " + age);
         }
@@ -163,7 +162,7 @@ public abstract class Organism implements OrganismBehavior {
     
     /**
      * Get species configuration key for probability tables.
-     * TODO: Implement in subclasses
+     * Implemented by subclasses
      * 
      * @return species key
      */

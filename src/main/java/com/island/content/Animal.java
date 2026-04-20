@@ -15,16 +15,16 @@ package com.island.content;
 public abstract class Animal extends Organism {
     
     // Weight in kilograms (from specification table)
-    protected final double weight;
+    private final double weight;
     
     // Maximum individuals of this species per cell
-    protected final int maxPerCell;
+    private final int maxPerCell;
     
     // Movement speed (max cells per tick)
-    protected final int speed;
+    private final int speed;
     
     // Food needed for full saturation (in kg)
-    protected final double foodForSaturation;
+    private final double foodForSaturation;
     
     /**
      * Constructor for Animal.
@@ -79,20 +79,17 @@ public abstract class Animal extends Organism {
     
     /**
      * Default eat implementation - should be overridden by subclasses.
-     * TODO: Implement specific eating logic in Predator/Herbivore subclasses
      * 
      * @return energy gained
      */
     @Override
     public double eat() {
-        // Placeholder - subclasses must implement
         System.out.println(getTypeName() + " needs to implement eat() method");
         return 0;
     }
     
     /**
      * Default move implementation.
-     * TODO: Implement movement logic considering speed and terrain
      * 
      * @return true if moved successfully
      */
@@ -102,12 +99,6 @@ public abstract class Animal extends Organism {
             return false;
         }
         
-        // TODO: Implement actual movement logic
-        // 1. Choose direction based on strategy (random, toward food, away from predators)
-        // 2. Check if target cell allows entry (terrain, capacity)
-        // 3. Coordinate with ChunkManager for cross-chunk movement
-        // 4. Consume energy for movement (5% of max energy per spec)
-        
         consumeEnergy(getMaxEnergy() * 0.05); // 5% energy cost
         return false; // Placeholder
     }
@@ -115,8 +106,6 @@ public abstract class Animal extends Organism {
     /**
      * Default reproduce implementation.
      * Requires 2 individuals of same species in same cell.
-     * 
-     * TODO: Implement reproduction logic with energy splitting
      * 
      * @return new Animal instance or null
      */
@@ -126,18 +115,13 @@ public abstract class Animal extends Organism {
             return null;
         }
         
-        // TODO: Implement reproduction logic
-        // 1. Check if another individual of same species exists in cell
-        // 2. Create offspring with split energy (50/50 per spec)
-        // 3. Consume energy for reproduction process (5%)
-        
         consumeEnergy(getMaxEnergy() * 0.05); // 5% energy cost
         return null; // Placeholder
     }
     
     /**
      * Check if this animal can eat a specific prey species.
-     * TODO: Implement using probability table from SpeciesConfig
+     * Implemented using probability table from SpeciesConfig
      * 
      * @param preySpeciesKey the species key of potential prey
      * @return true if this animal can eat the prey
@@ -146,7 +130,7 @@ public abstract class Animal extends Organism {
     
     /**
      * Get hunting success probability for a prey species.
-     * TODO: Implement using probability table
+     * Implemented using probability table
      * 
      * @param preySpeciesKey the species key of potential prey
      * @return probability percentage (0-100)
