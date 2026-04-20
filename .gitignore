@@ -1,43 +1,14 @@
-```
-# Compiled and build artifacts
-*.class
-*.o
-*.obj
-*.exe
-*.dll
-*.so
-*.a
-*.out
+# Examples 
 
-# Dependencies
-lib/
-target/
-.gradle/
+    Input:
+    ### Added files:
+    [src/main.py, README.md, config.json]
 
-# Logs and temp files
-*.log
-*.tmp
-*.swp
-
-# Environment
-.env
-.env.local
-*.env.*
-
-# Editors
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Build and distribution
-dist/
-build/
-out/
-
-# Python specific (if applicable)
-__pycache__/
-*.pyc
-*.pyo
-.Python
-```
+    ### Deleted files:
+    [old/unused.py]
+    ### Modified files:
+    [utils.py]
+    ###current .gitignore Content
+    (empty)
+    Expected Output:
+    (empty — output nothing)
