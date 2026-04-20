@@ -1,13 +1,19 @@
-# Java build artifacts
+```
+# Java compiled files
 *.class
 *.jar
 *.war
 *.ear
 
-# Maven
+# Build directories
 target/
+build/
 
-# IDE
+# Dependencies
+lib/
+libs/
+
+# IDE files
 .idea/
 *.iml
 *.ipr
@@ -19,13 +25,13 @@ target/
 # Environment
 .env
 .env.local
-*.env.*
+.env.*
 
-# OS
+# OS generated files
 .DS_Store
 Thumbs.db
 
-# Temp files
+# Temporary files
 *.tmp
-*.swp
-*~
+*.temp
+```

@@ -2,6 +2,7 @@ package com.island.content.animals;
 
 import com.island.content.Animal;
 import com.island.content.Herbivore;
+import com.island.content.SpeciesConfig;
 
 /**
  * Caterpillar (Гусінь) - Small insect herbivore.
@@ -19,46 +20,26 @@ import com.island.content.Herbivore;
  * 
  * GOF Patterns:
  * - Template Method: implements Animal with stationary behavior
+ * - Flyweight: shares AnimalType with all other Caterpillar instances
  */
 public class Caterpillar extends Animal implements Herbivore {
     
     /**
      * Create a new Caterpillar instance.
+     * Uses flyweight AnimalType from SpeciesConfig.
      */
     public Caterpillar() {
-        super(
-            0.01,      // weight kg (10 grams)
-            1000,      // max per cell (very high population)
-            0,         // speed (stationary!)
-            0.0,       // food for saturation (eats continuously)
-            Integer.MAX_VALUE // no lifespan limit
-        );
+        super(SpeciesConfig.getInstance().getAnimalType("caterpillar"));
     }
     
     @Override
     public String getTypeName() {
-        return "Caterpillar";
+        return animalType.getTypeName();
     }
     
     @Override
     public String getSpeciesKey() {
-        return "caterpillar";
-    }
-    
-    /**
-     * Caterpillars cannot eat other animals.
-     */
-    @Override
-    public boolean canEat(String preySpeciesKey) {
-        return false;
-    }
-    
-    /**
-     * Caterpillars don't hunt.
-     */
-    @Override
-    public int getHuntProbability(String preySpeciesKey) {
-        return 0;
+        return animalType.getSpeciesKey();
     }
     
     /**
@@ -116,7 +97,7 @@ public class Caterpillar extends Animal implements Herbivore {
         // TODO: Find mate and create offspring
         // Offspring appears in same cell (parents don't move)
         
-        System.out.println("Caterpillar " + id.substring(0, 8) + " is reproducing...");
+        System.out.println("Caterpillar " + getId().substring(0, 8) + " is reproducing...");
         return null; // Placeholder
     }
 }

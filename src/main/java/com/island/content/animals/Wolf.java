@@ -2,6 +2,7 @@ package com.island.content.animals;
 
 import com.island.content.Animal;
 import com.island.content.SpeciesConfig;
+import com.island.content.AnimalType;
 
 /**
  * Wolf - Predator animal implementation.
@@ -17,47 +18,26 @@ import com.island.content.SpeciesConfig;
  * 
  * GOF Patterns:
  * - Template Method: implements abstract methods from Animal
+ * - Flyweight: shares AnimalType with all other Wolf instances
  */
 public class Wolf extends Animal {
     
     /**
      * Create a new Wolf instance.
+     * Uses flyweight AnimalType from SpeciesConfig.
      */
     public Wolf() {
-        super(
-            50.0,      // weight kg
-            30,        // max per cell
-            3,         // speed
-            8.0,       // food for saturation kg
-            10000      // max lifespan ticks
-        );
+        super(SpeciesConfig.getInstance().getAnimalType("wolf"));
     }
     
     @Override
     public String getTypeName() {
-        return "Wolf";
+        return animalType.getTypeName();
     }
     
     @Override
     public String getSpeciesKey() {
-        return "wolf";
-    }
-    
-    /**
-     * Check if wolf can eat specific prey.
-     * Delegates to SpeciesConfig for probability data.
-     */
-    @Override
-    public boolean canEat(String preySpeciesKey) {
-        return SpeciesConfig.getInstance().canEat("wolf", preySpeciesKey);
-    }
-    
-    /**
-     * Get hunting success probability.
-     */
-    @Override
-    public int getHuntProbability(String preySpeciesKey) {
-        return SpeciesConfig.getInstance().getHuntProbability("wolf", preySpeciesKey);
+        return animalType.getSpeciesKey();
     }
     
     /**

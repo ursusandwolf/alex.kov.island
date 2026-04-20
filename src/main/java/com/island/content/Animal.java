@@ -2,11 +2,11 @@ package com.island.content;
 
 /**
  * Abstract class for all animals (both predators and herbivores).
- * Extends Organism with animal-specific properties like speed and weight.
+ * Extends Organism with animal-specific properties.
  * 
  * GOF Patterns:
  * - Template Method: eat(), move(), reproduce() have default implementations
- *   that subclasses can override for specific behaviors
+ * - Flyweight: shares AnimalType instance across all animals of same species
  * 
  * GRASP Principles:
  * - Creator: Animals create other animals during reproduction
@@ -14,67 +14,58 @@ package com.island.content;
  */
 public abstract class Animal extends Organism {
     
-    // Weight in kilograms (from specification table)
-    private final double weight;
-    
-    // Maximum individuals of this species per cell
-    private final int maxPerCell;
-    
-    // Movement speed (max cells per tick)
-    private final int speed;
-    
-    // Food needed for full saturation (in kg)
-    private final double foodForSaturation;
+    // Flyweight reference - shared across all instances of this species
+    protected final AnimalType animalType;
     
     /**
-     * Constructor for Animal.
+     * Constructor for Animal using Flyweight pattern.
+     * All intrinsic state is stored in the shared AnimalType.
      * 
-     * @param weight weight in kg
-     * @param maxPerCell maximum individuals per cell
-     * @param speed movement speed (cells per tick)
-     * @param foodForSaturation kg of food for full saturation
-     * @param maxLifespan maximum lifespan in ticks
+     * @param animalType the flyweight containing species-specific data
      */
-    protected Animal(double weight, int maxPerCell, int speed, 
-                     double foodForSaturation, int maxLifespan) {
-        // Max energy is calculated as 100 * foodForSaturation (arbitrary scale)
-        super(foodForSaturation * 100, maxLifespan);
-        this.weight = weight;
-        this.maxPerCell = maxPerCell;
-        this.speed = speed;
-        this.foodForSaturation = foodForSaturation;
+    protected Animal(AnimalType animalType) {
+        super(animalType.getMaxEnergy(), animalType.getMaxLifespan());
+        this.animalType = animalType;
     }
     
     /**
-     * Get animal weight.
+     * Get animal weight from flyweight.
      * @return weight in kg
      */
     public double getWeight() {
-        return weight;
+        return animalType.getWeight();
     }
     
     /**
-     * Get maximum individuals per cell.
+     * Get maximum individuals per cell from flyweight.
      * @return max count
      */
     public int getMaxPerCell() {
-        return maxPerCell;
+        return animalType.getMaxPerCell();
     }
     
     /**
-     * Get movement speed.
+     * Get movement speed from flyweight.
      * @return cells per tick
      */
     public int getSpeed() {
-        return speed;
+        return animalType.getSpeed();
     }
     
     /**
-     * Get food needed for saturation.
+     * Get food needed for saturation from flyweight.
      * @return kg of food
      */
     public double getFoodForSaturation() {
-        return foodForSaturation;
+        return animalType.getFoodForSaturation();
+    }
+    
+    /**
+     * Get the flyweight AnimalType for this species.
+     * @return shared AnimalType instance
+     */
+    public AnimalType getAnimalType() {
+        return animalType;
     }
     
     /**
@@ -121,19 +112,23 @@ public abstract class Animal extends Organism {
     
     /**
      * Check if this animal can eat a specific prey species.
-     * Implemented using probability table from SpeciesConfig
+     * Delegates to flyweight AnimalType.
      * 
      * @param preySpeciesKey the species key of potential prey
      * @return true if this animal can eat the prey
      */
-    public abstract boolean canEat(String preySpeciesKey);
+    public boolean canEat(String preySpeciesKey) {
+        return animalType.canEat(preySpeciesKey);
+    }
     
     /**
      * Get hunting success probability for a prey species.
-     * Implemented using probability table
+     * Delegates to flyweight AnimalType.
      * 
      * @param preySpeciesKey the species key of potential prey
      * @return probability percentage (0-100)
      */
-    public abstract int getHuntProbability(String preySpeciesKey);
+    public int getHuntProbability(String preySpeciesKey) {
+        return animalType.getHuntProbability(preySpeciesKey);
+    }
 }

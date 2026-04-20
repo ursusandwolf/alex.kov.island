@@ -4,38 +4,40 @@ import com.island.content.Animal;
 import com.island.content.Predator;
 import com.island.content.SpeciesConfig;
 
-//todo improve flyweight optimization of Animals
-// move parameters into constants
+/**
+ * Fox - Predator animal implementation.
+ * 
+ * Characteristics:
+ * - Weight: 8 kg
+ * - Max per cell: 30
+ * - Speed: 2 cells/tick
+ * - Food for saturation: 2 kg
+ * - Lifespan: 10000 ticks
+ * 
+ * Diet: Hunts small animals (rabbits, mice, ducks, caterpillars)
+ * 
+ * GOF Patterns:
+ * - Template Method: implements abstract methods from Animal
+ * - Flyweight: shares AnimalType with all other Fox instances
+ */
 public class Fox extends Animal implements Predator {
     
+    /**
+     * Create a new Fox instance.
+     * Uses flyweight AnimalType from SpeciesConfig.
+     */
     public Fox() {
-        super(
-                8.0,      // weight kg
-                30,        // max per cell
-                2,         // speed
-                2.0,       // food for saturation kg
-                10000      // max lifespan ticks
-        );
+        super(SpeciesConfig.getInstance().getAnimalType("fox"));
     }
 
     @Override
     public String getTypeName() {
-        return "Fox";
+        return animalType.getTypeName();
     }
 
     @Override
     public String getSpeciesKey() {
-        return "fox";
-    }
-    
-    @Override
-    public boolean canEat(String preySpeciesKey) {
-        return SpeciesConfig.getInstance().canEat("fox", preySpeciesKey);
-    }
-    
-    @Override
-    public int getHuntProbability(String preySpeciesKey) {
-        return SpeciesConfig.getInstance().getHuntProbability("fox", preySpeciesKey);
+        return animalType.getSpeciesKey();
     }
     
     @Override

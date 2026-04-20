@@ -21,55 +21,26 @@ import com.island.content.SpeciesConfig;
  * 
  * GOF Patterns:
  * - Strategy: Uses different eating strategies for plants vs insects
+ * - Flyweight: shares AnimalType with all other Duck instances
  */
 public class Duck extends Animal implements Herbivore {
     
     /**
      * Create a new Duck instance.
+     * Uses flyweight AnimalType from SpeciesConfig.
      */
     public Duck() {
-        super(
-            1.0,       // weight kg
-            200,       // max per cell
-            4,         // speed (very fast!)
-            0.15,      // food for saturation kg
-            10000      // max lifespan ticks
-        );
+        super(SpeciesConfig.getInstance().getAnimalType("duck"));
     }
     
     @Override
     public String getTypeName() {
-        return "Duck";
+        return animalType.getTypeName();
     }
     
     @Override
     public String getSpeciesKey() {
-        return "duck";
-    }
-    
-    /**
-     * Check if duck can eat specific target.
-     * Ducks can eat caterpillars but not other animals.
-     */
-    @Override
-    public boolean canEat(String preySpeciesKey) {
-        // Ducks can eat caterpillars
-        if ("caterpillar".equals(preySpeciesKey)) {
-            return true;
-        }
-        // Note: Plants are handled separately in eat() method
-        return false;
-    }
-    
-    /**
-     * Get hunting success probability for caterpillars.
-     */
-    @Override
-    public int getHuntProbability(String preySpeciesKey) {
-        if ("caterpillar".equals(preySpeciesKey)) {
-            return 90; // 90% success rate from specification
-        }
-        return 0;
+        return animalType.getSpeciesKey();
     }
     
     /**
@@ -125,7 +96,7 @@ public class Duck extends Animal implements Herbivore {
         }
         */
         
-        System.out.println("Duck " + id.substring(0, 8) + " is looking for food (caterpillars or plants)...");
+        System.out.println("Duck " + getId().substring(0, 8) + " is looking for food (caterpillars or plants)...");
         return totalEaten; // Placeholder
     }
     
@@ -156,7 +127,7 @@ public class Duck extends Animal implements Herbivore {
         
         // TODO: Find mate and create offspring
         
-        System.out.println("Duck " + id.substring(0, 8) + " is looking for a mate...");
+        System.out.println("Duck " + getId().substring(0, 8) + " is looking for a mate...");
         return null; // Placeholder
     }
 }

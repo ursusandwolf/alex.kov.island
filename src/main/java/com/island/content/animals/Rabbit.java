@@ -17,46 +17,26 @@ import com.island.content.SpeciesConfig;
  * 
  * GOF Patterns:
  * - Template Method: implements abstract methods from Animal
+ * - Flyweight: shares AnimalType with all other Rabbit instances
  */
 public class Rabbit extends Animal {
     
     /**
      * Create a new Rabbit instance.
+     * Uses flyweight AnimalType from SpeciesConfig.
      */
     public Rabbit() {
-        super(
-            2.0,       // weight kg
-            150,       // max per cell
-            2,         // speed
-            0.45,      // food for saturation kg
-            10000      // max lifespan ticks
-        );
+        super(SpeciesConfig.getInstance().getAnimalType("rabbit"));
     }
     
     @Override
     public String getTypeName() {
-        return "Rabbit";
+        return animalType.getTypeName();
     }
     
     @Override
     public String getSpeciesKey() {
-        return "rabbit";
-    }
-    
-    /**
-     * Rabbits cannot eat other animals.
-     */
-    @Override
-    public boolean canEat(String preySpeciesKey) {
-        return false;
-    }
-    
-    /**
-     * Rabbits don't hunt - always return 0.
-     */
-    @Override
-    public int getHuntProbability(String preySpeciesKey) {
-        return 0;
+        return animalType.getSpeciesKey();
     }
     
     /**
