@@ -61,15 +61,7 @@ public class Wolf extends Animal {
     }
     
     /**
-     * Wolf eating behavior.
-     * TODO: Implement complete hunting logic:
-     * 1. Get list of potential prey in current cell
-     * 2. Sort by priority (highest probability first)
-     * 3. Attempt hunt using probability roll
-     * 4. If successful, consume prey and gain energy
-     * 5. Prey is marked as eaten (removed from simulation)
-     * 
-     * Note: Plants are not part of wolf's diet
+     * Wolf eating behavior - hunts other animals.
      */
     @Override
     public double eat() {
@@ -77,43 +69,18 @@ public class Wolf extends Animal {
             return 0;
         }
         
-        // TODO: Implement hunting logic
-        // Pseudocode:
-        // Cell currentCell = getCurrentCell(); // Need reference to cell
-        // for (Animal prey : currentCell.getAnimals()) {
-        //     if (canEat(prey.getSpeciesKey())) {
-        //         if (SpeciesConfig.getInstance().rollHuntSuccess("wolf", prey.getSpeciesKey())) {
-        //             // Successful hunt
-        //             prey.die();
-        //             double energyGained = prey.getWeight() * energyConversionRate;
-        //             addEnergy(energyGained);
-        //             return energyGained;
-        //         }
-        //     }
-        // }
-        
-        System.out.println("Wolf " + id.substring(0, 8) + " is looking for prey...");
-        return 0; // Placeholder
+        System.out.println("Wolf " + getId().substring(0, 8) + " is looking for prey...");
+        return 0; // Placeholder - needs Cell reference to implement hunting
     }
     
     /**
      * Wolf movement behavior.
-     * TODO: Implement pack hunting behavior (optional advanced feature):
-     * - Wolves may coordinate movement with other wolves in nearby cells
-     * - Move toward cells with high prey density
      */
     @Override
     public boolean move() {
-        // Call parent implementation for energy check
         if (!canPerformAction()) {
             return false;
         }
-        
-        // TODO: Implement wolf-specific movement strategy
-        // Options:
-        // 1. Random movement (simplest)
-        // 2. Move toward prey scent (advanced)
-        // 3. Pack coordination (very advanced)
         
         return super.move();
     }
@@ -121,12 +88,6 @@ public class Wolf extends Animal {
     /**
      * Wolf reproduction.
      * Creates new wolf offspring when conditions are met.
-     * 
-     * TODO: Complete implementation:
-     * 1. Find another wolf in same cell
-     * 2. Create offspring
-     * 3. Split energy: parent keeps 50%, offspring gets 50%
-     * 4. Add offspring to cell
      */
     @Override
     public Wolf reproduce() {
@@ -134,14 +95,7 @@ public class Wolf extends Animal {
             return null;
         }
         
-        // TODO: Find mate and create offspring
-        // Wolf offspring = new Wolf();
-        // double sharedEnergy = getCurrentEnergy() / 2;
-        // currentEnergy = sharedEnergy;
-        // offspring.addEnergy(sharedEnergy);
-        // return offspring;
-        
-        System.out.println("Wolf " + id.substring(0, 8) + " is looking for a mate...");
-        return null; // Placeholder
+        System.out.println("Wolf " + getId().substring(0, 8) + " is looking for a mate...");
+        return null; // Placeholder - needs Cell reference to find mate
     }
 }

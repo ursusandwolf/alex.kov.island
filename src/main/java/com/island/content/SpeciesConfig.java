@@ -1,5 +1,8 @@
 package com.island.content;
 
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -19,7 +22,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * - Information Expert: knows all species data
  * - Low Coupling: other classes depend on this config, not hardcoded values
  */
-public class SpeciesConfig {
+public final class SpeciesConfig {
     
     // Singleton instance
     private static final SpeciesConfig INSTANCE = new SpeciesConfig();
@@ -47,7 +50,7 @@ public class SpeciesConfig {
      * Inner class to hold species characteristics.
      * Immutable design for thread safety.
      */
-    public static class SpeciesCharacteristics {
+    public static final class SpeciesCharacteristics {
         private final double weight;
         private final int maxPerCell;
         private final int speed;
@@ -71,37 +74,37 @@ public class SpeciesConfig {
     }
     
     // Storage for species characteristics
-    // TODO: Initialize with actual data from specification table
-    private java.util.Map<String, SpeciesCharacteristics> speciesData;
+    private Map<String, SpeciesCharacteristics> speciesData;
     
     // =========================================================================
     // HUNTING PROBABILITY MATRIX
     // predatorKey -> preyKey -> probability (0-100)
     // =========================================================================
     
-    // TODO: Initialize with 16x16 probability matrix from specification
-    private java.util.Map<String, java.util.Map<String, Integer>> huntProbabilities;
+    private Map<String, Map<String, Integer>> huntProbabilities;
     
     /**
      * Initialize species data from specification table.
-     * TODO: Fill in all 15 animal species + plants
      */
     private void initializeSpeciesData() {
-        speciesData = new java.util.HashMap<>();
+        speciesData = new HashMap<>();
         
         // PREDATORS (5 species)
         // Wolf: 50kg, 30 per cell, speed 3, 8kg food, 10000 lifespan
         speciesData.put("wolf", new SpeciesCharacteristics(50, 30, 3, 8, 10000));
         
-        // TODO: Add remaining predators: python, fox, bear, eagle
-        // Use data from specification table
-        
         // HERBIVORES (10 species)
         // Horse: 400kg, 20 per cell, speed 4, 60kg food, 10000 lifespan
         speciesData.put("horse", new SpeciesCharacteristics(400, 20, 4, 60, 10000));
         
-        // TODO: Add remaining herbivores: deer, rabbit, mouse, goat, sheep,
-        // wild boar, buffalo, duck, caterpillar
+        // Rabbit: 2kg, 150 per cell, speed 2, 0.45kg food, 10000 lifespan
+        speciesData.put("rabbit", new SpeciesCharacteristics(2, 150, 2, 0.45, 10000));
+        
+        // Duck: 1kg, 200 per cell, speed 4, 0.15kg food, 10000 lifespan
+        speciesData.put("duck", new SpeciesCharacteristics(1, 200, 4, 0.15, 10000));
+        
+        // Caterpillar: 0.01kg, 1000 per cell, speed 0, 0kg food, immortal
+        speciesData.put("caterpillar", new SpeciesCharacteristics(0.01, 1000, 0, 0, Integer.MAX_VALUE));
         
         // PLANTS
         // Plants: 1kg biomass, 200 per cell, N/A speed, N/A food, immortal
@@ -110,13 +113,12 @@ public class SpeciesConfig {
     
     /**
      * Initialize hunting probability matrix.
-     * TODO: Fill complete 16x16 matrix from specification
      */
     private void initializeProbabilityMatrix() {
-        huntProbabilities = new java.util.HashMap<>();
+        huntProbabilities = new HashMap<>();
         
-        // Example: Wolf probabilities
-        java.util.Map<String, Integer> wolfPrefs = new java.util.HashMap<>();
+        // Wolf probabilities
+        Map<String, Integer> wolfPrefs = new HashMap<>();
         wolfPrefs.put("horse", 10);
         wolfPrefs.put("deer", 15);
         wolfPrefs.put("rabbit", 60);
@@ -126,12 +128,13 @@ public class SpeciesConfig {
         wolfPrefs.put("wild_boar", 15);
         wolfPrefs.put("buffalo", 10);
         wolfPrefs.put("duck", 40);
-        // Wolf cannot eat: other predators, caterpillar, plants
         
         huntProbabilities.put("wolf", wolfPrefs);
         
-        // TODO: Add probability maps for all other predators
-        // python, fox, bear, eagle
+        // Duck probabilities (can eat caterpillars)
+        Map<String, Integer> duckPrefs = new HashMap<>();
+        duckPrefs.put("caterpillar", 90);
+        huntProbabilities.put("duck", duckPrefs);
     }
     
     /**
@@ -152,7 +155,7 @@ public class SpeciesConfig {
      * @return probability percentage (0 if cannot eat)
      */
     public int getHuntProbability(String predatorKey, String preyKey) {
-        java.util.Map<String, Integer> prefs = huntProbabilities.get(predatorKey);
+        Map<String, Integer> prefs = huntProbabilities.get(predatorKey);
         if (prefs == null) {
             return 0;
         }
@@ -191,19 +194,17 @@ public class SpeciesConfig {
      * Get all species keys.
      * @return set of species keys
      */
-    public java.util.Set<String> getAllSpeciesKeys() {
+    public Set<String> getAllSpeciesKeys() {
         return speciesData.keySet();
     }
     
     /**
      * Check if species is a predator.
-     * TODO: Implement proper classification
      * 
      * @param speciesKey the species
      * @return true if predator
      */
     public boolean isPredator(String speciesKey) {
-        // Temporary implementation - will be improved
         return huntProbabilities.containsKey(speciesKey);
     }
 }

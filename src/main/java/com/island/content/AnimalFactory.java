@@ -1,7 +1,7 @@
 package com.island.content;
 
-import com.island.content.animals.Wolf;
-import com.island.content.animals.Rabbit;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  * Factory for creating animal instances.
@@ -15,7 +15,7 @@ import com.island.content.animals.Rabbit;
  * - Creator: responsible for creating objects
  * - Low Coupling: animal creation is centralized
  */
-public class AnimalFactory {
+public final class AnimalFactory {
     
     // Functional interface for animal creation
     @FunctionalInterface
@@ -24,18 +24,20 @@ public class AnimalFactory {
     }
     
     // Registry of animal creators
-    private static final java.util.Map<String, AnimalCreator> registry = new java.util.HashMap<>();
+    private static final Map<String, AnimalCreator> registry = new HashMap<>();
+    
+    // Private constructor to prevent instantiation
+    private AnimalFactory() {}
     
     // Static initialization block
     static {
         // Register all predator species
-        register("wolf", Wolf::new);
-        // TODO: Register remaining predators: python, fox, bear, eagle
+        register("wolf", com.island.content.animals.Wolf::new);
         
         // Register all herbivore species  
-        register("rabbit", Rabbit::new);
-        // TODO: Register remaining herbivores: horse, deer, mouse, goat, sheep,
-        // wild_boar, buffalo, duck, caterpillar
+        register("rabbit", com.island.content.animals.Rabbit::new);
+        register("duck", com.island.content.animals.Duck::new);
+        register("caterpillar", com.island.content.animals.Caterpillar::new);
     }
     
     /**

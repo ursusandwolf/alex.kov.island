@@ -1,4 +1,3 @@
-```
 # Java build artifacts
 *.class
 *.jar
@@ -30,4 +29,3 @@ Thumbs.db
 *.tmp
 *.swp
 *~
-```
