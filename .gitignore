@@ -1,6 +1,10 @@
+```
+# Dependencies
 target/
-.idea/
-*.iml
 
-.DS_Store
-logs/
+# IDE
+.idea/
+
+# Logs
+*.log
+```
