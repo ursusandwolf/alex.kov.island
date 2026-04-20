@@ -10,10 +10,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Represents the entire island map as a 2D grid of Cells.
- * The world is toroidal (wrap-around): moving off the right edge appears on the left,
- * moving off the top appears on the bottom, etc.
- * 
+ *
  * This class is responsible for:
  * - Storing the grid of cells
  * - Managing chunk-based multithreading
