@@ -2,7 +2,6 @@ package com.island.content.animals;
 
 import com.island.content.Animal;
 import com.island.content.SpeciesConfig;
-import com.island.content.Predator;
 
 /**
  * Wolf - Predator animal implementation.
@@ -19,7 +18,7 @@ import com.island.content.Predator;
  * GOF Patterns:
  * - Template Method: implements abstract methods from Animal
  */
-public class Wolf extends Animal implements Predator {
+public class Wolf extends Animal {
     
     /**
      * Create a new Wolf instance.

@@ -1,14 +1,31 @@
-# Examples 
+# Java build artifacts
+*.class
+*.jar
+*.war
+*.ear
 
-    Input:
-    ### Added files:
-    [src/main.py, README.md, config.json]
+# Maven
+target/
 
-    ### Deleted files:
-    [old/unused.py]
-    ### Modified files:
-    [utils.py]
-    ###current .gitignore Content
-    (empty)
-    Expected Output:
-    (empty — output nothing)
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp files
+*.tmp
+*.swp
+*~
