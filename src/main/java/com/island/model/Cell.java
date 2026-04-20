@@ -294,4 +294,49 @@ public class Cell {
         return String.format("Cell[%d,%d]: Animals=%d, Plants=%d, Biomass=%.2fkg",
             x, y, animals.size(), plants.size(), totalPlantBiomass);
     }
+    
+    /**
+     * Attempt to consume plant biomass from this cell.
+     * Multiple organisms can eat plants simultaneously until biomass is depleted.
+     * 
+     * TODO: Implement plant consumption logic
+     * - Iterate through plants list
+     * - Reduce plant biomass by requested amount (or until plant is fully eaten)
+     * - Update totalPlantBiomass cache
+     * - Return actual amount consumed
+     * 
+     * @param amount amount to consume in kg
+     * @param consumer the organism eating (for potential future logic)
+     * @return actual amount consumed
+     */
+    public double consumePlants(double amount, Object consumer) {
+        lock.lock();
+        try {
+            double consumed = 0.0;
+            double remaining = amount;
+            
+            // TODO: Loop through plants and consume biomass
+            // Hint: Plants should have a method like consumeFrom(double amount)
+            // that returns actual amount taken
+            /*
+            for (Plant plant : plants) {
+                if (remaining <= 0 || !plant.isAlive()) continue;
+                
+                double taken = plant.consumeFrom(remaining);
+                consumed += taken;
+                remaining -= taken;
+            }
+            */
+            
+            // Update cached total
+            totalPlantBiomass = plants.stream()
+                .filter(Plant::isAlive)
+                .mapToDouble(Plant::getBiomass)
+                .sum();
+                
+            return consumed;
+        } finally {
+            lock.unlock();
+        }
+    }
 }
