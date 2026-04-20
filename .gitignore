@@ -1,10 +1,14 @@
-```
-# Dependencies
-target/
+# Examples 
 
-# IDE
-.idea/
+    Input:
+    ### Added files:
+    [src/main.py, README.md, config.json]
 
-# Logs
-*.log
-```
+    ### Deleted files:
+    [old/unused.py]
+    ### Modified files:
+    [utils.py]
+    ###current .gitignore Content
+    (empty)
+    Expected Output:
+    (empty — output nothing)
