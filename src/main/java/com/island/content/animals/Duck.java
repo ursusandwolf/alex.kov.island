@@ -4,29 +4,8 @@ import com.island.content.Animal;
 import com.island.content.Herbivore;
 import com.island.content.SpeciesConfig;
 
-/**
- * Duck - Special herbivore that can eat both plants AND insects (caterpillars).
- * This demonstrates complex diet behavior where an herbivore can also consume small animals.
- * 
- * Characteristics (from specification):
- * - Weight: 1 kg
- * - Max per cell: 200
- * - Speed: 4 cells/tick (fast!)
- * - Food for saturation: 0.15 kg
- * - Lifespan: 10000 ticks
- * 
- * Diet: 
- * - Primary: Plants
- * - Secondary: Caterpillars (90% success rate)
- * 
- * GOF Patterns:
- * - Strategy: Uses different eating strategies for plants vs insects
- */
 public class Duck extends Animal implements Herbivore {
-    
-    /**
-     * Create a new Duck instance.
-     */
+
     public Duck() {
         super(
             1.0,       // weight kg
@@ -46,11 +25,7 @@ public class Duck extends Animal implements Herbivore {
     public String getSpeciesKey() {
         return "duck";
     }
-    
-    /**
-     * Check if duck can eat specific target.
-     * Ducks can eat caterpillars but not other animals.
-     */
+
     @Override
     public boolean canEat(String preySpeciesKey) {
         // Ducks can eat caterpillars
@@ -60,10 +35,7 @@ public class Duck extends Animal implements Herbivore {
         // Note: Plants are handled separately in eat() method
         return false;
     }
-    
-    /**
-     * Get hunting success probability for caterpillars.
-     */
+
     @Override
     public int getHuntProbability(String preySpeciesKey) {
         if ("caterpillar".equals(preySpeciesKey)) {
