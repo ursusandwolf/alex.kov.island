@@ -1,10 +1,33 @@
 ```
-# Dependencies
+# Java build artifacts
+*.class
+*.jar
+*.war
+*.ear
+
+# Maven
 target/
 
 # IDE
 .idea/
+*.iml
+*.ipr
+*.iws
 
 # Logs
 *.log
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp files
+*.tmp
+*.swp
+*~
 ```

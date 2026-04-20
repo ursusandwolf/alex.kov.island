@@ -2,7 +2,6 @@ package com.island.content.animals;
 
 import com.island.content.Animal;
 import com.island.content.SpeciesConfig;
-import com.island.content.Herbivore;
 
 /**
  * Rabbit - Herbivore animal implementation.
@@ -19,7 +18,7 @@ import com.island.content.Herbivore;
  * GOF Patterns:
  * - Template Method: implements abstract methods from Animal
  */
-public class Rabbit extends Animal implements Herbivore {
+public class Rabbit extends Animal {
     
     /**
      * Create a new Rabbit instance.
