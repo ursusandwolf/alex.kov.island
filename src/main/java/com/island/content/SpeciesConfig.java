@@ -1,103 +1,35 @@
 package com.island.content;
 
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
+import lombok.Getter;
+import java.util.*;
 
-/**
- * Central configuration class for all species parameters.
- * Uses Singleton pattern to ensure single source of truth.
- * Implements Flyweight pattern through AnimalType registry.
- * 
- * Contains:
- * - Species characteristics (weight, speed, capacity, food needs)
- * - Hunting probability matrix
- * - Lifespan settings
- * - Flyweight AnimalType instances
- * 
- * GOF Patterns:
- * - Singleton: single instance with global access
- * - Flyweight: shares AnimalType instances across all animals of same species
- * - Strategy: probability calculations could be swapped
- * 
- * GRASP Principles:
- * - Information Expert: knows all species data
- * - Low Coupling: other classes depend on this config, not hardcoded values
- */
+// Конфигуратор видов (Singleton)
+@Getter
 public final class SpeciesConfig {
-    
-    // Singleton instance
     private static final SpeciesConfig INSTANCE = new SpeciesConfig();
-    
-    /**
-     * Get singleton instance.
-     * @return the single SpeciesConfig instance
-     */
-    public static SpeciesConfig getInstance() {
-        return INSTANCE;
-    }
-    
-    // Private constructor prevents instantiation
+    private final Map<String, AnimalType> animalTypes = new HashMap<>();
+
+    public static SpeciesConfig getInstance() { return INSTANCE; }
+
     private SpeciesConfig() {
-        initializeAnimalTypes();
-        initializeProbabilityMatrix();
+        // Временно оставляем упрощенную инициализацию, избегая огромного конструктора
+        initPredators();
+        initHerbivores();
     }
-    
-    // =========================================================================
-    // FLYWEIGHT REGISTRY - AnimalType instances
-    // =========================================================================
-    
-    private Map<String, AnimalType> animalTypes;
-    
-    /**
-     * Initialize flyweight AnimalType registry.
-     * All animals of the same species share the same AnimalType instance.
-     */
-    private void initializeAnimalTypes() {
-        animalTypes = new HashMap<>();
-        
-        // PREDATORS
-        // Wolf: 50kg, 30 per cell, speed 3, 8kg food, 10000 lifespan
-        Map<String, Integer> wolfHunt = new HashMap<>();
-        wolfHunt.put("horse", 10);
-        wolfHunt.put("deer", 15);
-        wolfHunt.put("rabbit", 60);
-        wolfHunt.put("mouse", 80);
-        wolfHunt.put("goat", 60);
-        wolfHunt.put("sheep", 70);
-        wolfHunt.put("wild_boar", 15);
-        wolfHunt.put("buffalo", 10);
-        wolfHunt.put("duck", 40);
-        animalTypes.put("wolf", new AnimalType("wolf", "Wolf", 50, 30, 3, 8, 10000, wolfHunt));
-        
-        // Fox: 8kg, 30 per cell, speed 2, 2kg food, 10000 lifespan
-        Map<String, Integer> foxHunt = new HashMap<>();
-        foxHunt.put("rabbit", 70);
-        foxHunt.put("mouse", 90);
-        foxHunt.put("duck", 50);
-        foxHunt.put("caterpillar", 95);
-        animalTypes.put("fox", new AnimalType("fox", "Fox", 8, 30, 2, 2, 10000, foxHunt));
-        
-        // HERBIVORES
-        // Horse: 400kg, 20 per cell, speed 4, 60kg food, 10000 lifespan
-        animalTypes.put("horse", new AnimalType("horse", "Horse", 400, 20, 4, 60, 10000, null));
-        
-        // Rabbit: 2kg, 150 per cell, speed 2, 0.45kg food, 10000 lifespan
+
+    private void initPredators() {
+        animalTypes.put("wolf", new AnimalType("wolf", "Wolf", 50, 30, 3, 8, 10000, Map.of("rabbit", 60, "duck", 40)));
+        animalTypes.put("fox", new AnimalType("fox", "Fox", 8, 30, 2, 2, 10000, Map.of("rabbit", 70, "duck", 50)));
+    }
+
+    private void initHerbivores() {
         animalTypes.put("rabbit", new AnimalType("rabbit", "Rabbit", 2, 150, 2, 0.45, 10000, null));
-        
-        // Duck: 1kg, 200 per cell, speed 4, 0.15kg food, 10000 lifespan
-        // Special case: duck can eat caterpillars (handled separately)
-        Map<String, Integer> duckHunt = new HashMap<>();
-        duckHunt.put("caterpillar", 90);
-        animalTypes.put("duck", new AnimalType("duck", "Duck", 1, 200, 4, 0.15, 10000, duckHunt));
-        
-        // Caterpillar: 0.01kg, 1000 per cell, speed 0, 0kg food, immortal
+        animalTypes.put("duck", new AnimalType("duck", "Duck", 1, 200, 4, 0.15, 10000, Map.of("caterpillar", 90)));
         animalTypes.put("caterpillar", new AnimalType("caterpillar", "Caterpillar", 0.01, 1000, 0, 0, Integer.MAX_VALUE, null));
-        
-        // PLANTS
-        // Plants: 1kg biomass, 200 per cell, N/A speed, N/A food, immortal
-        animalTypes.put("plant", new AnimalType("plant", "Plant", 1, 200, 0, 0, 0, null));
+    }
+
+    public AnimalType getAnimalType(String key) { return animalTypes.get(key); }
+}
     }
     
     // =========================================================================
