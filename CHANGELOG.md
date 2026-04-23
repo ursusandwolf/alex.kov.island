@@ -10,8 +10,10 @@
 - Added per-species population statistics and a localized 10x5 map fragment for visual feedback.
 
 ### Ecosystem Diversity
+- Restructured animal packages: grouped species into `predators` and `herbivores` subpackages.
+- Introduced `Predator` and `Herbivore` marker interfaces to classify animal types.
+- Updated `AnimalFactory` to support the new package structure.
 - Expanded animal variety to full requirements (15 species: Wolf, Boa, Fox, Bear, Eagle, Horse, Deer, Rabbit, Mouse, Goat, Sheep, Boar, Buffalo, Duck, Caterpillar).
-- Automated `AnimalFactory` and `WorldInitializer` to support the full range of species from `species.properties`.
 
 ### Running the Application
 The simulation can be started from the project root using:
