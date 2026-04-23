@@ -1,13 +1,13 @@
-package com.island.content.animals;
+package com.island.content.animals.predators;
 
 import com.island.content.Animal;
 import com.island.content.SpeciesConfig;
 
-// Тип животного: Duck
-public class Duck extends Animal {
+// Тип животного: Fox
+public class Fox extends Animal implements Predator {
 
-    public Duck() {
-        super(SpeciesConfig.getInstance().getAnimalType("duck"));
+    public Fox() {
+        super(SpeciesConfig.getInstance().getAnimalType("fox"));
     }
 
     @Override
@@ -24,7 +24,7 @@ public class Duck extends Animal {
     }
 
     @Override
-    public Duck reproduce() {
+    public Fox reproduce() {
         if (!canPerformAction()) return null;
         return null; // TODO: реализация размножения
     }

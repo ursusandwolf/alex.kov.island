@@ -1,10 +1,10 @@
-package com.island.content.animals;
+package com.island.content.animals.herbivores;
 
 import com.island.content.Animal;
 import com.island.content.SpeciesConfig;
 
 // Тип животного: Caterpillar
-public class Caterpillar extends Animal {
+public class Caterpillar extends Animal implements Herbivore {
 
     public Caterpillar() {
         super(SpeciesConfig.getInstance().getAnimalType("caterpillar"));

@@ -1,13 +1,13 @@
-package com.island.content.animals;
+package com.island.content.animals.herbivores;
 
 import com.island.content.Animal;
 import com.island.content.SpeciesConfig;
 
-// Тип животного: Fox
-public class Fox extends Animal {
+// Тип животного: Rabbit
+public class Rabbit extends Animal implements Herbivore {
 
-    public Fox() {
-        super(SpeciesConfig.getInstance().getAnimalType("fox"));
+    public Rabbit() {
+        super(SpeciesConfig.getInstance().getAnimalType("rabbit"));
     }
 
     @Override
@@ -24,7 +24,7 @@ public class Fox extends Animal {
     }
 
     @Override
-    public Fox reproduce() {
+    public Rabbit reproduce() {
         if (!canPerformAction()) return null;
         return null; // TODO: реализация размножения
     }

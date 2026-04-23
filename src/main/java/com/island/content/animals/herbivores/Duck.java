@@ -1,13 +1,13 @@
-package com.island.content.animals;
+package com.island.content.animals.herbivores;
 
 import com.island.content.Animal;
 import com.island.content.SpeciesConfig;
 
-// Тип животного: Rabbit
-public class Rabbit extends Animal {
+// Тип животного: Duck
+public class Duck extends Animal implements Herbivore {
 
-    public Rabbit() {
-        super(SpeciesConfig.getInstance().getAnimalType("rabbit"));
+    public Duck() {
+        super(SpeciesConfig.getInstance().getAnimalType("duck"));
     }
 
     @Override
@@ -24,7 +24,7 @@ public class Rabbit extends Animal {
     }
 
     @Override
-    public Rabbit reproduce() {
+    public Duck reproduce() {
         if (!canPerformAction()) return null;
         return null; // TODO: реализация размножения
     }

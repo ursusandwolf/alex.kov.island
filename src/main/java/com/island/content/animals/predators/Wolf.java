@@ -1,10 +1,10 @@
-package com.island.content.animals;
+package com.island.content.animals.predators;
 
 import com.island.content.Animal;
 import com.island.content.SpeciesConfig;
 
 // Хищник: Волк
-public class Wolf extends Animal {
+public class Wolf extends Animal implements Predator {
 
     public Wolf() {
         super(SpeciesConfig.getInstance().getAnimalType("wolf"));

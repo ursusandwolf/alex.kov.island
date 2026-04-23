@@ -1,7 +1,8 @@
 package com.island.content;
 
 import java.util.*;
-import com.island.content.animals.*;
+import com.island.content.animals.predators.*;
+import com.island.content.animals.herbivores.*;
 
 public final class AnimalFactory {
     @FunctionalInterface
