@@ -51,7 +51,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.1.0</version>
                 <configuration>
-                    <mainClass>com.island.engine.SimulatorMain</mainClass>
+                    <mainClass>com.island.Main</mainClass>
                 </configuration>
             </plugin>
         </plugins>
