@@ -3,7 +3,6 @@ package com.island.content;
 import java.util.*;
 import com.island.content.animals.*;
 
-// Фабрика для создания животных (Factory Method)
 public final class AnimalFactory {
     @FunctionalInterface
     public interface AnimalCreator { Animal create(); }
@@ -16,18 +15,25 @@ public final class AnimalFactory {
         registry.put("duck", Duck::new);
         registry.put("caterpillar", Caterpillar::new);
         registry.put("fox", Fox::new);
+        registry.put("boa", Boa::new);
+        registry.put("bear", Bear::new);
+        registry.put("eagle", Eagle::new);
+        registry.put("horse", Horse::new);
+        registry.put("deer", Deer::new);
+        registry.put("mouse", Mouse::new);
+        registry.put("goat", Goat::new);
+        registry.put("sheep", Sheep::new);
+        registry.put("boar", Boar::new);
+        registry.put("buffalo", Buffalo::new);
     }
 
     private AnimalFactory() {}
 
-    public static void register(String key, AnimalCreator creator) { registry.put(key, creator); }
-
     public static Animal createAnimal(String key) {
-        AnimalCreator creator = registry.get(key);
-        if (creator == null) System.err.println("Неизвестный вид: " + key);
-        return (creator != null) ? creator.create() : null;
+        AnimalCreator creator = registry.get(key.toLowerCase());
+        if (creator == null) return null;
+        return creator.create();
     }
 
-    public static boolean isRegistered(String key) { return registry.containsKey(key); }
     public static Set<String> getRegisteredSpecies() { return registry.keySet(); }
 }

@@ -38,6 +38,7 @@ public class SimulatorMain {
 
         // 5. Настройка GameLoop
         GameLoop gameLoop = new GameLoop(config.getTickDurationMs());
+        com.island.view.ConsoleView consoleView = new com.island.view.ConsoleView();
         
         // Добавляем фазы
         gameLoop.addRecurringTask(new LifecycleService(island)); // Сначала учет возраста и энергии
@@ -46,11 +47,8 @@ public class SimulatorMain {
         gameLoop.addRecurringTask(new ReproductionService(island));
         gameLoop.addRecurringTask(new MovementService(island));
         
-        // Добавляем вывод статистики
-        gameLoop.addRecurringTask(() -> {
-            System.out.println("--------------------------------------------------");
-            System.out.println(island.getStatistics());
-        });
+        // Добавляем вывод статистики через вьюху
+        gameLoop.addRecurringTask(() -> consoleView.display(island));
 
         // 6. Запуск
         System.out.println("Запуск симуляции острова (MVP)...");
