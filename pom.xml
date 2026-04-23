@@ -26,6 +26,13 @@
             <version>5.9.3</version>
             <scope>test</scope>
         </dependency>
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.30</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -44,7 +51,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.1.0</version>
                 <configuration>
-                    <mainClass>com.island.engine.SimulatorMain</mainClass>
+                    <mainClass>com.island.Main</mainClass>
                 </configuration>
             </plugin>
         </plugins>

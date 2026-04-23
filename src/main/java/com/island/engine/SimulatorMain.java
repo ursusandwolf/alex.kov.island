@@ -1,0 +1,57 @@
+package com.island.engine;
+
+import com.island.config.Configuration;
+import com.island.content.SpeciesConfig;
+import com.island.model.Island;
+import com.island.service.*;
+
+public class SimulatorMain {
+    public static void main(String[] args) {
+        // 1. Загрузка конфигурации
+        Configuration config = Configuration.load();
+        
+        // 2. Инициализация матрицы взаимодействий
+        InteractionMatrix interactionMatrix = new InteractionMatrix();
+        SpeciesConfig speciesConfig = SpeciesConfig.getInstance();
+        
+        // Наполняем матрицу из SpeciesConfig
+        for (String predatorKey : speciesConfig.getAllSpeciesKeys()) {
+            for (String preyKey : speciesConfig.getAllSpeciesKeys()) {
+                int chance = speciesConfig.getHuntProbability(predatorKey, preyKey);
+                if (chance > 0) {
+                    interactionMatrix.setChance(predatorKey, preyKey, chance);
+                }
+            }
+            // Добавляем поедание растений (для всех, у кого в конфиге нет хищничества или явно)
+            // В данной упрощенной версии считаем, что кролики и т.д. едят траву со 100% вероятностью
+            if (predatorKey.equals("rabbit") || predatorKey.equals("duck")) {
+                interactionMatrix.setChance(predatorKey, "Plant", 100);
+            }
+        }
+
+        // 3. Создание острова
+        Island island = new Island(config.getIslandWidth(), config.getIslandHeight());
+
+        // 4. Инициализация мира
+        WorldInitializer initializer = new WorldInitializer();
+        initializer.initialize(island, speciesConfig);
+
+        // 5. Настройка GameLoop
+        GameLoop gameLoop = new GameLoop(config.getTickDurationMs());
+        com.island.view.ConsoleView consoleView = new com.island.view.ConsoleView();
+        
+        // Добавляем фазы
+        gameLoop.addRecurringTask(new LifecycleService(island)); // Сначала учет возраста и энергии
+        gameLoop.addRecurringTask(new PlantGrowthService(island));
+        gameLoop.addRecurringTask(new FeedingService(island, interactionMatrix));
+        gameLoop.addRecurringTask(new ReproductionService(island));
+        gameLoop.addRecurringTask(new MovementService(island));
+        
+        // Добавляем вывод статистики через вьюху
+        gameLoop.addRecurringTask(() -> consoleView.display(island));
+
+        // 6. Запуск
+        System.out.println("Запуск симуляции острова (MVP)...");
+        gameLoop.start();
+    }
+}
