@@ -1,37 +1,4 @@
 ```
-# Java compiled files
-*.class
-*.jar
-*.war
-*.ear
-
-# Build directories
-target/
-build/
-
-# Dependencies
-lib/
-libs/
-
-# IDE files
-.idea/
-*.iml
-*.ipr
-*.iws
-
-# Logs
-*.log
-
-# Environment
-.env
-.env.local
-.env.*
-
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# Temporary files
-*.tmp
-*.temp
+# Documentation
+CODE_REVIEW.md
 ```
