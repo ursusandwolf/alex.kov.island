@@ -1,9 +1,7 @@
 package com.island.content;
 
 // Базовое поведение организмов
-public interface OrganismBehavior {
-    double eat();
-    boolean move();
+public interface OrganismBehavior extends Moveable, Eatable {
     Organism reproduce();
     void checkState();
     double getEnergyPercentage();
