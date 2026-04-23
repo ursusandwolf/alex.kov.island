@@ -1,5 +1,6 @@
 package com.island.model;
 
+import com.island.content.Animal;
 import java.util.ArrayList;
 import java.util.List;
 
