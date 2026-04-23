@@ -22,7 +22,7 @@ public final class AnimalType {
         this.speed = speed;
         this.foodForSaturation = foodForSaturation;
         this.maxLifespan = maxLifespan;
-        this.maxEnergy = foodForSaturation * 100;
+        this.maxEnergy = foodForSaturation;
         this.huntProbabilities = (huntProbabilities != null) ? 
                 Collections.unmodifiableMap(new HashMap<>(huntProbabilities)) : Collections.emptyMap();
         this.isPredator = !this.huntProbabilities.isEmpty();

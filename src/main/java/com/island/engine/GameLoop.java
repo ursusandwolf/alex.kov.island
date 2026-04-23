@@ -2,37 +2,37 @@ package com.island.engine;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
-public class GameLoop implements Runnable {
+public class GameLoop {
     private final List<Runnable> recurringTasks = new ArrayList<>();
-    private volatile boolean running = false;
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private final int tickDurationMs;
+
+    public GameLoop(int tickDurationMs) {
+        this.tickDurationMs = tickDurationMs;
+    }
 
     public void addRecurringTask(Runnable task) {
         recurringTasks.add(task);
     }
 
     public void start() {
-        running = true;
-        new Thread(this).start();
+        scheduler.scheduleAtFixedRate(this::tick, 0, tickDurationMs, TimeUnit.MILLISECONDS);
     }
 
     public void stop() {
-        running = false;
-    }
-
-    @Override
-    public void run() {
-        while (running) {
-            tick();
-            try {
-                Thread.sleep(1000); // Базовый такт
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }
+        scheduler.shutdown();
     }
 
     private void tick() {
-        recurringTasks.forEach(Runnable::run);
+        try {
+            recurringTasks.forEach(Runnable::run);
+        } catch (Exception e) {
+            System.err.println("Ошибка во время такта симуляции: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

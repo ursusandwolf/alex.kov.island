@@ -34,12 +34,12 @@ public abstract class Organism implements OrganismBehavior {
         return (maxEnergy == 0) ? 0 : (currentEnergy / maxEnergy) * 100.0;
     }
 
-    protected void consumeEnergy(double amount) {
+    public void consumeEnergy(double amount) {
         currentEnergy = Math.max(0, currentEnergy - amount);
         if (currentEnergy <= 0) die();
     }
 
-    protected void addEnergy(double amount) {
+    public void addEnergy(double amount) {
         currentEnergy = Math.min(maxEnergy, currentEnergy + amount);
     }
 
@@ -51,7 +51,7 @@ public abstract class Organism implements OrganismBehavior {
     @Override
     public void checkState() {
         ageOneTick();
-        if (!isAlive) System.out.println(getTypeName() + " " + id.substring(0, 8) + " умер");
+        consumeEnergy(maxEnergy * 0.1); // Базовый метаболизм: 10% в такт
     }
 
     public abstract String getSpeciesKey();
