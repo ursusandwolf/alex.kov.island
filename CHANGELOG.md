@@ -1,5 +1,23 @@
 # Changelog
 
+## [2026-04-24]
+### Multithreading & Performance
+- **Island Partitioning**: Implemented 2x2 grid partitioning of the island into 4 Chunks for parallel processing.
+- **Parallel Services**: Refactored `LifecycleService`, `FeedingService`, `MovementService`, `ReproductionService`, and `WorldInitializer` to use `ExecutorService` for parallel execution by chunks.
+- **Thread-Safe Movement**: Implemented transactional move logic in `Island.moveOrganism` using ordered locking on cells to prevent deadlocks and race conditions.
+
+### Biological Model Improvements
+- **Trophic Hierarchy**: Implemented a priority system where predators act before their prey within a single tick.
+- **Escape Protection**: Prey now has a chance to hide after a failed hunt, becoming invisible to other predators for the remainder of the tick.
+- **Caterpillar Survival**: Added a "stealth mode" for caterpillars during the first tick of the simulation.
+- **Dynamic Energy Management**: Volatile energy and life status fields for better thread visibility.
+- **Offspring Scaling**: Implemented a per-pair reproduction model with mathematical progression based on animal weight and herbivore bonuses.
+
+### Quality Assurance
+- **TrophicFeedingTest**: Added specialized tests to verify hierarchical feeding, hiding mechanisms, and caterpillar protection logic.
+- **Bug Fixes**: Fixed an issue where eaten prey was not correctly marked as dead, and improved test robustness for random events.
+
+
 ## [2026-04-23]
 ### Git Cleanup
 - Deleted stale/merged local and remote branches (`feature/feeding-logic`, `feature/fox`, `optimization-to-flyweight-pattern-6fce0`, `feature/flyweight-optimization2`, and various `revert-` and non-English branches).

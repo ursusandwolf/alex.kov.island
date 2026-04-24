@@ -22,10 +22,4 @@ public class Rabbit extends Animal implements Herbivore {
         System.out.println("Животное " + getId().substring(0, 8) + " ищет еду...");
         return 0; // TODO: реализация поиска еды
     }
-
-    @Override
-    public Rabbit reproduce() {
-        if (!canPerformAction()) return null;
-        return null; // TODO: реализация размножения
-    }
 }

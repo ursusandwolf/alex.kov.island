@@ -5,6 +5,8 @@ import com.island.content.SpeciesConfig;
 import com.island.model.Island;
 import com.island.service.*;
 
+import java.util.Map;
+
 public class SimulatorMain {
     public static void main(String[] args) {
         // 1. Загрузка конфигурации
@@ -32,26 +34,60 @@ public class SimulatorMain {
         // 3. Создание острова
         Island island = new Island(config.getIslandWidth(), config.getIslandHeight());
 
-        // 4. Инициализация мира
-        WorldInitializer initializer = new WorldInitializer();
-        initializer.initialize(island, speciesConfig);
-
-        // 5. Настройка GameLoop
+        // 4. Настройка GameLoop (нужен для получения ExecutorService)
         GameLoop gameLoop = new GameLoop(config.getTickDurationMs());
         com.island.view.ConsoleView consoleView = new com.island.view.ConsoleView();
-        
-        // Добавляем фазы
-        gameLoop.addRecurringTask(new LifecycleService(island)); // Сначала учет возраста и энергии
-        gameLoop.addRecurringTask(new PlantGrowthService(island));
-        gameLoop.addRecurringTask(new FeedingService(island, interactionMatrix));
-        gameLoop.addRecurringTask(new ReproductionService(island));
-        gameLoop.addRecurringTask(new MovementService(island));
+
+        // 5. Инициализация мира (теперь параллельно через executor)
+        WorldInitializer initializer = new WorldInitializer();
+        initializer.initialize(island, speciesConfig, gameLoop.getTaskExecutor());
+
+        // 6. Добавляем фазы симуляции в правильном порядке
+        gameLoop.addRecurringTask(island::nextTick); // Инкремент такта в начале
+        gameLoop.addRecurringTask(new LifecycleService(island, gameLoop.getTaskExecutor())); // Старение и метаболизм
+        gameLoop.addRecurringTask(new FeedingService(island, interactionMatrix, gameLoop.getTaskExecutor())); // Питание
+        gameLoop.addRecurringTask(new MovementService(island, gameLoop.getTaskExecutor()));  // Перемещение
+        gameLoop.addRecurringTask(new ReproductionService(island, gameLoop.getTaskExecutor())); // Розмножение (животные + растения)
+        gameLoop.addRecurringTask(new CleanupService(island, gameLoop.getTaskExecutor()));   // Очистка трупов
         
         // Добавляем вывод статистики через вьюху
         gameLoop.addRecurringTask(() -> consoleView.display(island));
 
-        // 6. Запуск
-        System.out.println("Запуск симуляции острова (MVP)...");
+        // 7. Запуск
+        System.out.println("Запуск симуляции острова (параллельная инициализация и перемещение)...");
+        System.out.println("Лимит времени: 5 минут. Условие остановки: вымирание любого вида.");
         gameLoop.start();
+
+        // 8. Мониторинг завершения (в главном потоке)
+        long startTime = System.currentTimeMillis();
+        long maxDurationMs = 5 * 60 * 1000; // 5 минут
+
+        try {
+            while (gameLoop.isRunning()) {
+                Thread.sleep(2000); // Проверка каждые 2 секунды
+
+                // Проверка лимита времени
+                if (System.currentTimeMillis() - startTime > maxDurationMs) {
+                    System.out.println("\n⏳ Время вышло (5 минут). Остановка симуляции...");
+                    gameLoop.stop();
+                    break;
+                }
+
+                // Проверка вымирания видов
+                Map<String, Integer> counts = island.getSpeciesCounts();
+                // Проверяем все виды, которые были изначально (из конфига)
+                for (String species : speciesConfig.getAllSpeciesKeys()) {
+                    if (counts.getOrDefault(species, 0) == 0) {
+                        System.out.println("\n💀 Вид '" + species + "' вымер! Остановка симуляции...");
+                        gameLoop.stop();
+                        break;
+                    }
+                }
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        System.out.println("Симуляция завершена.");
     }
 }
