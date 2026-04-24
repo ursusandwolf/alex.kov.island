@@ -41,6 +41,7 @@ public class LifecycleService implements Runnable {
         List<Animal> animals = cell.getAnimals();
         for (Animal animal : animals) {
             if (animal.isAlive()) {
+                animal.setHiding(false); // Reset protection flag
                 animal.checkState();
             }
         }

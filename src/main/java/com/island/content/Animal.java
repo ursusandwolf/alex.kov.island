@@ -7,10 +7,18 @@ import static com.island.config.SimulationConstants.*;
 @Getter
 public abstract class Animal extends Organism {
     protected final AnimalType animalType; // Общие данные вида (Flyweight)
+    private volatile boolean isHiding = false;
 
     protected Animal(AnimalType animalType) {
         super(animalType.getMaxEnergy(), animalType.getMaxLifespan());
         this.animalType = animalType;
+    }
+
+    public void setHiding(boolean hiding) { this.isHiding = hiding; }
+
+    public boolean isProtected(int currentTick) {
+        if (currentTick == 1 && getSpeciesKey().equals("caterpillar")) return true;
+        return isHiding;
     }
 
     public double getWeight() { return animalType.getWeight(); }
@@ -49,4 +57,12 @@ public abstract class Animal extends Organism {
 
     public boolean canEat(String preyKey) { return animalType.canEat(preyKey); }
     public int getHuntProbability(String preyKey) { return animalType.getHuntProbability(preyKey); }
+
+    /**
+     * Checks if this animal eats other animals (anything except plants).
+     */
+    public boolean isAnimalPredator() {
+        return animalType.getHuntProbabilities().keySet().stream()
+                .anyMatch(key -> !key.equalsIgnoreCase("plant"));
+    }
 }

@@ -45,14 +45,26 @@ public class FeedingService implements Runnable {
 
     private void processCell(Cell cell) {
         List<Animal> animals = cell.getAnimals();
+        
+        // Trophic Hierarchy Sorting:
+        // 1. Predators of animals (isAnimalPredator == true) have higher priority.
+        // 2. Heavier animals have higher priority within their group.
+        animals.sort((a, b) -> {
+            if (a.isAnimalPredator() != b.isAnimalPredator()) {
+                return a.isAnimalPredator() ? -1 : 1; // Predators first
+            }
+            return Double.compare(b.getWeight(), a.getWeight()); // Then by weight descending
+        });
+
         for (Animal animal : animals) {
-            if (!animal.isAlive()) continue;
-            tryEat(animal, cell);
+            if (animal.isAlive()) {
+                tryEat(animal, cell);
+            }
         }
     }
 
     private void tryEat(Animal predator, Cell cell) {
-        // Base hunting cost: base % + predator speed step %
+        // Base hunting cost
         double huntEffortCost = predator.getMaxEnergy() * (BASE_HUNT_COST_PERCENT 
             + (predator.getSpeed() * PREDATOR_SPEED_HUNT_COST_STEP_PERCENT));
         predator.consumeEnergy(huntEffortCost);
@@ -63,28 +75,35 @@ public class FeedingService implements Runnable {
         List<Animal> potentialPrey = cell.getAnimals();
         for (Animal prey : potentialPrey) {
             if (predator == prey || !prey.isAlive()) continue;
-            
-            // Stealth for caterpillars on the first tick
-            if (island.getTickCount() == 1 && prey.getSpeciesKey().equals("caterpillar")) {
+
+            // Protection check: hides if escaped before or if it's a caterpillar on tick 1
+            if (prey.isProtected(island.getTickCount())) {
                 continue;
             }
 
             int chance = interactionMatrix.getChance(predator.getSpeciesKey(), prey.getSpeciesKey());
             if (chance > 0) {
-                // Relative speed logic: if predator is slower than prey, additional cost is applied
+                // Relative speed logic
                 int speedDifference = prey.getSpeed() - predator.getSpeed();
                 if (speedDifference > 0) {
                     double chaseCost = predator.getMaxEnergy() * (speedDifference * PREY_RELATIVE_SPEED_HUNT_COST_STEP_PERCENT);
                     predator.consumeEnergy(chaseCost);
-
-                    if (!predator.isAlive()) return; // Predator died from exhaustion
+                    if (!predator.isAlive()) return;
                 }
 
                 if (ThreadLocalRandom.current().nextInt(100) < chance) {
-                    // Successful hunt
-                    predator.addEnergy(prey.getWeight());
-                    cell.removeAnimal(prey);
-                    return;
+                    // ATOMIC CHECK: Successful hunt ONLY if we can actually remove the prey from the cell.
+                    // This prevents situations where two predators eat the same prey in the same tick.
+                    if (cell.removeAnimal(prey)) {
+                        prey.die(); // Ensure prey is marked as dead
+                        predator.addEnergy(prey.getWeight());
+                        return;
+                    }
+                } else {
+                    // Hunt failed! Prey escapes and HIDES for the rest of the tick.
+                    prey.setHiding(true);
+                    double escapeCost = prey.getMaxEnergy() * 0.05; // 5% energy to escape
+                    prey.consumeEnergy(escapeCost);
                 }
             }
         }

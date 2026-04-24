@@ -7,20 +7,16 @@
 - **Thread-Safe Movement**: Implemented transactional move logic in `Island.moveOrganism` using ordered locking on cells to prevent deadlocks and race conditions.
 
 ### Biological Model Improvements
-- **Energy Management**: Centralized all simulation parameters in `SimulationConstants` and implemented static imports for cleaner code.
-- **Dynamic Energy Costs**: 
-    - Movement cost now depends on animal speed (base + 1%/speed unit).
-    - Reproduction cost increased to a significant 30% of max energy.
-    - Hunting effort now costs energy (base + predator speed).
-- **Relative Speed Hunting**: Predators now consume additional energy when chasing prey faster than themselves (2% per speed difference unit).
-- **Unified Reproduction**: Merged plant growth into `ReproductionService` using polymorphic `reproduce()` calls.
+- **Trophic Hierarchy**: Implemented a priority system where predators act before their prey within a single tick.
+- **Escape Protection**: Prey now has a chance to hide after a failed hunt, becoming invisible to other predators for the remainder of the tick.
+- **Caterpillar Survival**: Added a "stealth mode" for caterpillars during the first tick of the simulation.
+- **Dynamic Energy Management**: Volatile energy and life status fields for better thread visibility.
+- **Offspring Scaling**: Implemented a per-pair reproduction model with mathematical progression based on animal weight and herbivore bonuses.
 
 ### Quality Assurance
-- **JUnit 5 Integration**: Added a comprehensive test suite covering core components.
-- **Critical Bug Fixes**:
-    - Fixed a Race Condition in `MovementService` that caused animal duplication.
-    - Fixed compilation errors in animal subclasses by centralizing behavior in the base `Animal` class.
-    - Resolved logic issues where animals were failing to reproduce due to incomplete method overrides.
+- **TrophicFeedingTest**: Added specialized tests to verify hierarchical feeding, hiding mechanisms, and caterpillar protection logic.
+- **Bug Fixes**: Fixed an issue where eaten prey was not correctly marked as dead, and improved test robustness for random events.
+
 
 ## [2026-04-23]
 ### Git Cleanup

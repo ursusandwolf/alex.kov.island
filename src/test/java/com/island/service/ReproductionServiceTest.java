@@ -22,7 +22,8 @@ class ReproductionServiceTest {
         ReproductionService service = new ReproductionService(island, java.util.concurrent.Executors.newSingleThreadExecutor());
         service.run();
         
-        // Should have 3 rabbits now (2 parents + 1 baby)
-        assertEquals(3, cell.getAnimalCount());
+        // New logic: 2 rabbits (1 pair) -> offspringCount = 2 (base) + 1 (herbivore) = 3 per pair.
+        // Total: 2 parents + 3 babies = 5
+        assertEquals(5, cell.getAnimalCount());
     }
 }

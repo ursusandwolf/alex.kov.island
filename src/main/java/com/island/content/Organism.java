@@ -6,11 +6,11 @@ import static com.island.config.SimulationConstants.*;
 // Базовый класс организмов (Template Method, Strategy, Information Expert)
 public abstract class Organism implements OrganismBehavior {
     private final String id; // Уникальный ID экземпляра
-    private double currentEnergy; // 0..maxEnergy
+    private volatile double currentEnergy; // 0..maxEnergy
     private final double maxEnergy; // Макс. емкость энергии
     private int age; // Возраст в тиках
     private final int maxLifespan; // Макс. возраст (0=бессмертен)
-    private boolean isAlive;
+    private volatile boolean isAlive;
 
     protected Organism(double maxEnergy, int maxLifespan) {
         this.id = UUID.randomUUID().toString();
@@ -23,7 +23,7 @@ public abstract class Organism implements OrganismBehavior {
 
     public String getId() { return id; }
     public boolean isAlive() { return isAlive; }
-    protected void die() { this.isAlive = false; }
+    public void die() { this.isAlive = false; }
     public double getCurrentEnergy() { return currentEnergy; }
     public double getMaxEnergy() { return maxEnergy; }
     public int getAge() { return age; }
