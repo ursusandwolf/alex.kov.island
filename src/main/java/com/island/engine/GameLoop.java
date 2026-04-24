@@ -37,28 +37,42 @@ public class GameLoop {
             timerHandle.cancel(false);
         }
         scheduler.shutdown();
-        taskExecutor.shutdown();
+        
+        // Даем текущему такту шанс завершиться перед закрытием taskExecutor
         try {
-            if (!scheduler.awaitTermination(1, TimeUnit.SECONDS)) scheduler.shutdownNow();
-            if (!taskExecutor.awaitTermination(1, TimeUnit.SECONDS)) taskExecutor.shutdownNow();
+            if (!scheduler.awaitTermination(2, TimeUnit.SECONDS)) {
+                scheduler.shutdownNow();
+            }
         } catch (InterruptedException e) {
             scheduler.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+
+        taskExecutor.shutdown();
+        try {
+            if (!taskExecutor.awaitTermination(2, TimeUnit.SECONDS)) {
+                taskExecutor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
             taskExecutor.shutdownNow();
             Thread.currentThread().interrupt();
         }
     }
 
     private void tick() {
-        if (!running) return;
+        if (!running || taskExecutor.isShutdown()) return;
         try {
             // Execute each major phase sequentially to maintain simulation logic,
             // but internal phase can be parallelized (e.g. movement by chunks)
             for (Runnable task : recurringTasks) {
+                if (!running || taskExecutor.isShutdown()) break;
                 task.run();
             }
         } catch (Exception e) {
-            System.err.println("Ошибка во время такта симуляции: " + e.getMessage());
-            e.printStackTrace();
+            if (running && !taskExecutor.isShutdown()) {
+                System.err.println("Ошибка во время такта симуляции: " + e.getMessage());
+                e.printStackTrace();
+            }
         }
     }
 

@@ -2,6 +2,7 @@ package com.island.engine;
 
 import com.island.content.Animal;
 import com.island.content.AnimalFactory;
+import com.island.content.AnimalType;
 import com.island.content.SpeciesConfig;
 import com.island.content.Plant;
 import com.island.model.Chunk;
@@ -37,16 +38,35 @@ public class WorldInitializer {
     }
 
     private void initializeCell(Cell cell, SpeciesConfig config) {
-        // Заселяем каждый вид с небольшой вероятностью
+        // Заселяем каждый вид ~10% от максимальной популяции
         for (String species : AnimalFactory.getRegisteredSpecies()) {
-            double probability = species.equals("caterpillar") ? 0.20 : 0.05;
-            if (ThreadLocalRandom.current().nextDouble() < probability) {
-                Animal a = AnimalFactory.createAnimal(species);
-                if (a != null) cell.addAnimal(a);
+            AnimalType type = config.getAnimalType(species);
+            if (type != null) {
+                int maxPerCell = type.getMaxPerCell();
+                // Гарантируем в среднем 10% популяции, но не ниже 5% шанса на 1 особь
+                double target = maxPerCell * 0.1;
+                int count = (int) target;
+                double chanceForExtra = target - count;
+                
+                // Если по расчету должно быть 0, устанавливаем минимальный порог 5%
+                if (count == 0) {
+                    chanceForExtra = Math.max(chanceForExtra, 0.05);
+                }
+                
+                if (ThreadLocalRandom.current().nextDouble() < chanceForExtra) {
+                    count++;
+                }
+                
+                for (int i = 0; i < count; i++) {
+                    Animal a = AnimalFactory.createAnimal(species);
+                    if (a != null) cell.addAnimal(a);
+                }
             }
         }
-        // Растения
-        if (ThreadLocalRandom.current().nextDouble() < 0.3) {
+        
+        // Растения - 10% от максимума (200 * 0.1 = 20)
+        int plantCount = 20;
+        for (int i = 0; i < plantCount; i++) {
             cell.addPlant(new Plant(1.0, 1.0, 0) {
                 @Override public String getTypeName() { return "Plant"; }
                 @Override public String getSpeciesKey() { return "plant"; }

@@ -38,7 +38,7 @@ public class ConsoleView {
         sb.append(CYAN).append("=== ISLAND ECOSYSTEM DASHBOARD ===").append(RESET).append("\n");
         sb.append(String.format("Tick: %-5d | Total Population: %-6d\n", 
                 island.getTickCount(), island.getTotalOrganismCount()));
-        sb.append("-".repeat(40)).append("\n");
+        sb.append("-".repeat(60)).append("\n");
 
         Map<String, Integer> counts = new TreeMap<>(); // Sorted for stable UI
         for (int x = 0; x < island.getWidth(); x++) {
@@ -53,34 +53,56 @@ public class ConsoleView {
             }
         }
 
-        // Print stats in 3 columns to save vertical space
+        // Print stats in 4 columns to save vertical space
         int col = 0;
         for (Map.Entry<String, Integer> entry : counts.entrySet()) {
             String icon = ICONS.getOrDefault(entry.getKey(), "🐾");
             sb.append(String.format("%s %-11s: %-5d  ", icon, entry.getKey(), entry.getValue()));
-            if (++col % 3 == 0) sb.append("\n");
+            if (++col % 4 == 0) sb.append("\n");
         }
-        if (col % 3 != 0) sb.append("\n");
+        if (col % 4 != 0) sb.append("\n");
 
-        sb.append("-".repeat(40)).append("\n");
-        sb.append(YELLOW).append("Live Map View (15x8):").append(RESET).append("\n");
+        sb.append("-".repeat(60)).append("\n");
+        sb.append(YELLOW).append("Map View (").append(island.getWidth()).append("x").append(island.getHeight()).append("):").append(RESET).append("\n");
         
-        for (int y = 0; y < Math.min(island.getHeight(), 8); y++) {
-            for (int x = 0; x < Math.min(island.getWidth(), 15); x++) {
-                Cell cell = island.getCell(x, y);
-                if (cell.getAnimalCount() > 0) {
-                    Animal top = cell.getAnimals().get(0);
-                    sb.append(ICONS.getOrDefault(top.getSpeciesKey(), "🐾")).append(" ");
-                } else if (cell.getPlantCount() > 0) {
-                    sb.append(GREEN).append(ICONS.get("plant")).append(RESET).append(" ");
-                } else {
-                    sb.append(".  ");
+        int midX = island.getWidth() / 2;
+        int midY = island.getHeight() / 2;
+
+        for (int y = 0; y < island.getHeight(); y++) {
+            if (y > 0 && y == midY) {
+                sb.append("---".repeat(island.getWidth() + 1)).append("\n");
+            }
+            for (int x = 0; x < island.getWidth(); x++) {
+                if (x > 0 && x == midX) {
+                    sb.append("| ");
                 }
+                renderCell(sb, island.getCell(x, y));
             }
             sb.append("\n");
         }
         
         System.out.print(sb.toString());
         System.out.flush();
+    }
+
+    private void renderCell(StringBuilder sb, Cell cell) {
+        Map<String, Integer> cellCounts = new HashMap<>();
+        cell.getAnimals().stream()
+                .filter(com.island.content.Organism::isAlive)
+                .forEach(a -> cellCounts.put(a.getSpeciesKey(), cellCounts.getOrDefault(a.getSpeciesKey(), 0) + 1));
+
+        if (!cellCounts.isEmpty()) {
+            Map.Entry<String, Integer> maxEntry = cellCounts.entrySet().stream()
+                    .max(Map.Entry.comparingByValue())
+                    .orElseThrow();
+            sb.append(ICONS.getOrDefault(maxEntry.getKey(), "🐾")).append("  ");
+        } else {
+            boolean hasPlants = cell.getPlants().stream().anyMatch(com.island.content.Organism::isAlive);
+            if (hasPlants) {
+                sb.append(GREEN).append(ICONS.get("plant")).append(RESET).append("  ");
+            } else {
+                sb.append(".   ");
+            }
+        }
     }
 }
