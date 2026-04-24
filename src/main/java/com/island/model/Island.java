@@ -19,12 +19,24 @@ public class Island {
         this.height = height;
         this.grid = new Cell[width][height];
         initializeGrid();
+        partitionIntoChunks();
     }
 
     private void initializeGrid() {
         for (int x = 0; x < width; x++)
             for (int y = 0; y < height; y++)
                 grid[x][y] = new Cell(x, y);
+    }
+
+    private void partitionIntoChunks() {
+        // As requested: minimal multi-threading, split island in half (two chunks)
+        int midX = width / 2;
+        if (midX > 0) {
+            chunks.add(new Chunk(0, 0, 0, midX, 0, height, this));
+            chunks.add(new Chunk(1, 0, midX, width, 0, height, this));
+        } else {
+            chunks.add(new Chunk(0, 0, 0, width, 0, height, this));
+        }
     }
 
     public Cell getCell(int x, int y) {
@@ -37,9 +49,30 @@ public class Island {
         return (x < 0 || x >= width || y < 0 || y >= height) ? null : grid[x][y];
     }
 
-    public boolean moveOrganism(Animal a, int fx, int fy, int tx, int ty) {
-        // TODO: Реализация потокобезопасного перемещения
-        return false;
+    public boolean moveOrganism(Animal animal, Cell from, Cell to) {
+        if (from == to) return true;
+
+        // Order locks by System.identityHashCode or coordinates to prevent deadlocks
+        Cell first = (System.identityHashCode(from) < System.identityHashCode(to)) ? from : to;
+        Cell second = (first == from) ? to : from;
+
+        first.getLock().lock();
+        try {
+            second.getLock().lock();
+            try {
+                if (from.getAnimals().contains(animal)) {
+                    if (to.addAnimal(animal)) {
+                        from.removeAnimal(animal);
+                        return true;
+                    }
+                }
+                return false;
+            } finally {
+                second.getLock().unlock();
+            }
+        } finally {
+            first.getLock().unlock();
+        }
     }
 
     public void initializeWorld(SpeciesConfig config) {

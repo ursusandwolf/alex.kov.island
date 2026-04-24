@@ -45,7 +45,7 @@ public class SimulatorMain {
         gameLoop.addRecurringTask(new PlantGrowthService(island));
         gameLoop.addRecurringTask(new FeedingService(island, interactionMatrix));
         gameLoop.addRecurringTask(new ReproductionService(island));
-        gameLoop.addRecurringTask(new MovementService(island));
+        gameLoop.addRecurringTask(new MovementService(island, gameLoop.getTaskExecutor()));
         
         // Добавляем вывод статистики через вьюху
         gameLoop.addRecurringTask(() -> consoleView.display(island));

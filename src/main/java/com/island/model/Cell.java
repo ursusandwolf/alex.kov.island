@@ -22,7 +22,10 @@ public class Cell {
     public boolean addAnimal(Animal animal) {
         lock.lock();
         try {
-            long count = animals.stream().filter(a -> a.getSpeciesKey().equals(animal.getSpeciesKey())).count();
+            long count = animals.stream()
+                    .filter(a -> a.getSpeciesKey()
+                            .equals(animal.getSpeciesKey()))
+                    .count();
             if (count >= animal.getMaxPerCell()) return false;
             return animals.add(animal);
         } finally { lock.unlock(); }
@@ -36,11 +39,17 @@ public class Cell {
     public List<Animal> getAnimals() { return new CopyOnWriteArrayList<>(animals); }
 
     public List<Animal> getAnimalsBySpecies(String key) {
-        return animals.stream().filter(a -> a.getSpeciesKey().equals(key)).collect(Collectors.toList());
+        return animals.stream()
+                .filter(a -> a.getSpeciesKey()
+                        .equals(key))
+                .collect(Collectors.toList());
     }
 
     public int countAnimalsBySpecies(String key) {
-        return (int) animals.stream().filter(a -> a.getSpeciesKey().equals(key)).count();
+        return (int) animals.stream()
+                .filter(a -> a.getSpeciesKey()
+                        .equals(key))
+                .count();
     }
 
     public int getAnimalCount() { return animals.size(); }

@@ -1,25 +1,41 @@
 package com.island.service;
 
 import com.island.content.Animal;
+import com.island.engine.GameLoop;
 import com.island.model.Cell;
 import com.island.model.Island;
+import com.island.model.Chunk;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class MovementService implements Runnable {
     private final Island island;
+    private final ExecutorService executor;
 
-    public MovementService(Island island) {
+    public MovementService(Island island, ExecutorService executor) {
         this.island = island;
+        this.executor = executor;
     }
 
     @Override
     public void run() {
-        for (int x = 0; x < island.getWidth(); x++) {
-            for (int y = 0; y < island.getHeight(); y++) {
-                processCell(island.getCell(x, y));
-            }
+        List<Callable<Void>> tasks = new ArrayList<>();
+        for (Chunk chunk : island.getChunks()) {
+            tasks.add(() -> {
+                for (Cell cell : chunk.getCells()) {
+                    processCell(cell);
+                }
+                return null;
+            });
+        }
+        try {
+            executor.invokeAll(tasks);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -27,7 +43,7 @@ public class MovementService implements Runnable {
         List<Animal> animals = cell.getAnimals();
         for (Animal animal : animals) {
             if (!animal.isAlive()) continue;
-            // Простая логика перемещения
+            
             int speed = animal.getSpeed();
             if (speed > 0) {
                 int dx = ThreadLocalRandom.current().nextInt(-speed, speed + 1);
@@ -35,9 +51,9 @@ public class MovementService implements Runnable {
                 int tx = cell.getX() + dx;
                 int ty = cell.getY() + dy;
                 
-                Cell target = island.getCell(tx, ty); // Остров зациклен в Island.getCell
-                if (target != cell && target.addAnimal(animal)) {
-                    cell.removeAnimal(animal);
+                Cell target = island.getCell(tx, ty);
+                if (target != cell) {
+                    island.moveOrganism(animal, cell, target);
                 }
             }
         }
