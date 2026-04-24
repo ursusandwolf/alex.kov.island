@@ -10,6 +10,7 @@ public class GameLoop {
     private final ExecutorService taskExecutor;
     private final int tickDurationMs;
     private ScheduledFuture<?> timerHandle;
+    private volatile boolean running = false;
 
     public GameLoop(int tickDurationMs) {
         this.tickDurationMs = tickDurationMs;
@@ -22,10 +23,16 @@ public class GameLoop {
     }
 
     public void start() {
+        running = true;
         timerHandle = scheduler.scheduleAtFixedRate(this::tick, 0, tickDurationMs, TimeUnit.MILLISECONDS);
     }
 
+    public boolean isRunning() {
+        return running;
+    }
+
     public void stop() {
+        running = false;
         if (timerHandle != null) {
             timerHandle.cancel(false);
         }
@@ -42,6 +49,7 @@ public class GameLoop {
     }
 
     private void tick() {
+        if (!running) return;
         try {
             // Execute each major phase sequentially to maintain simulation logic,
             // but internal phase can be parallelized (e.g. movement by chunks)

@@ -5,6 +5,8 @@ import com.island.content.SpeciesConfig;
 import com.island.model.Island;
 import com.island.service.*;
 
+import java.util.Map;
+
 public class SimulatorMain {
     public static void main(String[] args) {
         // 1. Загрузка конфигурации
@@ -52,6 +54,39 @@ public class SimulatorMain {
 
         // 7. Запуск
         System.out.println("Запуск симуляции острова (параллельная инициализация и перемещение)...");
+        System.out.println("Лимит времени: 5 минут. Условие остановки: вымирание любого вида.");
         gameLoop.start();
+
+        // 8. Мониторинг завершения (в главном потоке)
+        long startTime = System.currentTimeMillis();
+        long maxDurationMs = 5 * 60 * 1000; // 5 минут
+
+        try {
+            while (gameLoop.isRunning()) {
+                Thread.sleep(2000); // Проверка каждые 2 секунды
+
+                // Проверка лимита времени
+                if (System.currentTimeMillis() - startTime > maxDurationMs) {
+                    System.out.println("\n⏳ Время вышло (5 минут). Остановка симуляции...");
+                    gameLoop.stop();
+                    break;
+                }
+
+                // Проверка вымирания видов
+                Map<String, Integer> counts = island.getSpeciesCounts();
+                // Проверяем все виды, которые были изначально (из конфига)
+                for (String species : speciesConfig.getAllSpeciesKeys()) {
+                    if (counts.getOrDefault(species, 0) == 0) {
+                        System.out.println("\n💀 Вид '" + species + "' вымер! Остановка симуляции...");
+                        gameLoop.stop();
+                        break;
+                    }
+                }
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        System.out.println("Симуляция завершена.");
     }
 }

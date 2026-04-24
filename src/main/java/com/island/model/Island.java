@@ -86,6 +86,20 @@ public class Island {
         // TODO: Инициализация мира
     }
 
+    public Map<String, Integer> getSpeciesCounts() {
+        Map<String, Integer> counts = new HashMap<>();
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                for (Animal a : grid[x][y].getAnimals()) {
+                    if (a.isAlive()) {
+                        counts.put(a.getSpeciesKey(), counts.getOrDefault(a.getSpeciesKey(), 0) + 1);
+                    }
+                }
+            }
+        }
+        return counts;
+    }
+
     public int getTotalOrganismCount() {
         int count = 0;
         for (int x = 0; x < width; x++)
