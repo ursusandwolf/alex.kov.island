@@ -1,6 +1,7 @@
 package com.island.content;
 
 import java.util.UUID;
+import static com.island.config.SimulationConstants.*;
 
 // Базовый класс организмов (Template Method, Strategy, Information Expert)
 public abstract class Organism implements OrganismBehavior {
@@ -51,7 +52,7 @@ public abstract class Organism implements OrganismBehavior {
     @Override
     public void checkState() {
         ageOneTick();
-        consumeEnergy(maxEnergy * 0.1); // Базовый метаболизм: 10% в такт
+        consumeEnergy(maxEnergy * BASE_METABOLISM_PERCENT);
     }
 
     public abstract String getSpeciesKey();

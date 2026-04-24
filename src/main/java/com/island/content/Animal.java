@@ -1,6 +1,7 @@
 package com.island.content;
 
 import lombok.Getter;
+import static com.island.config.SimulationConstants.*;
 
 // Базовый класс животных (Flyweight для AnimalType)
 @Getter
@@ -18,22 +19,24 @@ public abstract class Animal extends Organism {
     public double getFoodForSaturation() { return animalType.getFoodForSaturation(); }
 
     @Override
-    public double eat() {
-        System.out.println(getTypeName() + " требуется реализация eat()");
-        return 0;
-    }
-
-    @Override
     public boolean move() {
         if (!canPerformAction()) return false;
-        consumeEnergy(getMaxEnergy() * 0.05); // 5% затрат
-        return false;
+        // Energy cost depends on speed
+        double moveCost = getMaxEnergy() * (BASE_MOVE_COST_PERCENT 
+            + (getSpeed() * SPEED_MOVE_COST_STEP_PERCENT));
+        consumeEnergy(moveCost);
+        return true;
     }
 
     @Override
     public Animal reproduce() {
         if (!canPerformAction()) return null;
-        consumeEnergy(getMaxEnergy() * 0.05); // 5% затрат
+        // Reproduction is expensive
+        double reproductionCost = getMaxEnergy() * REPRODUCTION_COST_PERCENT;
+        if (getCurrentEnergy() > reproductionCost) {
+            consumeEnergy(reproductionCost);
+            return AnimalFactory.createAnimal(getSpeciesKey());
+        }
         return null;
     }
 

@@ -42,7 +42,7 @@ public class SimulatorMain {
 
         // 6. Добавляем фазы симуляции в правильном порядке
         gameLoop.addRecurringTask(new LifecycleService(island, gameLoop.getTaskExecutor())); // Старение и метаболизм
-        gameLoop.addRecurringTask(new FeedingService(island, interactionMatrix));           // Питание
+        gameLoop.addRecurringTask(new FeedingService(island, interactionMatrix, gameLoop.getTaskExecutor())); // Питание
         gameLoop.addRecurringTask(new MovementService(island, gameLoop.getTaskExecutor()));  // Перемещение
         gameLoop.addRecurringTask(new ReproductionService(island, gameLoop.getTaskExecutor())); // Розмножение (животные + растения)
         gameLoop.addRecurringTask(new CleanupService(island, gameLoop.getTaskExecutor()));   // Очистка трупов
