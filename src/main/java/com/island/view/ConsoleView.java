@@ -5,20 +5,17 @@ import com.island.content.Plant;
 import com.island.model.Cell;
 import com.island.model.Island;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class ConsoleView {
-    // ANSI codes for UI
     private static final String RESET = "\u001B[0m";
-    private static final String CLEAR_SCREEN = "\033[H\033[2J";
     private static final String GREEN = "\u001B[32m";
-    private static final String RED = "\u001B[31m";
     private static final String YELLOW = "\u001B[33m";
     private static final String CYAN = "\u001B[36m";
 
     private static final Map<String, String> ICONS = new HashMap<>();
+    private static final Map<String, Integer> DISPLAY_PRIORITY = new HashMap<>();
 
     static {
         ICONS.put("wolf", "🐺"); ICONS.put("boa", "🐍"); ICONS.put("fox", "🦊");
@@ -27,12 +24,27 @@ public class ConsoleView {
         ICONS.put("goat", "🐐"); ICONS.put("sheep", "🐑"); ICONS.put("boar", "🐗");
         ICONS.put("buffalo", "🐃"); ICONS.put("duck", "🦆"); ICONS.put("caterpillar", "🐛");
         ICONS.put("plant", "🌿");
+
+        DISPLAY_PRIORITY.put("bear", 100);
+        DISPLAY_PRIORITY.put("wolf", 90);
+        DISPLAY_PRIORITY.put("boa", 80);
+        DISPLAY_PRIORITY.put("eagle", 70);
+        DISPLAY_PRIORITY.put("fox", 60);
+        DISPLAY_PRIORITY.put("buffalo", 55);
+        DISPLAY_PRIORITY.put("horse", 50);
+        DISPLAY_PRIORITY.put("deer", 45);
+        DISPLAY_PRIORITY.put("boar", 40);
+        DISPLAY_PRIORITY.put("sheep", 35);
+        DISPLAY_PRIORITY.put("goat", 30);
+        DISPLAY_PRIORITY.put("rabbit", 25);
+        DISPLAY_PRIORITY.put("duck", 20);
+        DISPLAY_PRIORITY.put("mouse", 10);
+        DISPLAY_PRIORITY.put("caterpillar", 5);
+        DISPLAY_PRIORITY.put("plant", 1);
     }
 
     public void display(Island island) {
         StringBuilder sb = new StringBuilder();
-        
-        // Reset cursor to top-left instead of full clear to prevent flicker
         sb.append("\033[H"); 
         
         sb.append(CYAN).append("=== ISLAND ECOSYSTEM DASHBOARD ===").append(RESET).append("\n");
@@ -40,69 +52,82 @@ public class ConsoleView {
                 island.getTickCount(), island.getTotalOrganismCount()));
         sb.append("-".repeat(60)).append("\n");
 
-        Map<String, Integer> counts = new TreeMap<>(); // Sorted for stable UI
+        Map<String, Integer> counts = new TreeMap<>();
         for (int x = 0; x < island.getWidth(); x++) {
             for (int y = 0; y < island.getHeight(); y++) {
                 Cell cell = island.getCell(x, y);
-                cell.getAnimals().forEach(a -> { 
-                    if (a.isAlive()) counts.put(a.getSpeciesKey(), counts.getOrDefault(a.getSpeciesKey(), 0) + 1); 
-                });
-                cell.getPlants().forEach(p -> { 
-                    if (p.isAlive()) counts.put(p.getSpeciesKey(), counts.getOrDefault(p.getSpeciesKey(), 0) + 1); 
-                });
+                cell.getAnimals().stream().filter(Animal::isAlive).forEach(a -> 
+                    counts.put(a.getSpeciesKey(), counts.getOrDefault(a.getSpeciesKey(), 0) + 1));
+                cell.getPlants().stream().filter(Plant::isAlive).forEach(p -> 
+                    counts.put(p.getSpeciesKey(), counts.getOrDefault(p.getSpeciesKey(), 0) + 1));
             }
         }
 
-        // Print stats in 4 columns to save vertical space
         int col = 0;
         for (Map.Entry<String, Integer> entry : counts.entrySet()) {
-            String icon = ICONS.getOrDefault(entry.getKey(), "🐾");
-            sb.append(String.format("%s %-11s: %-5d  ", icon, entry.getKey(), entry.getValue()));
+            sb.append(String.format("%s %-11s: %-5d  ", ICONS.get(entry.getKey()), entry.getKey(), entry.getValue()));
             if (++col % 4 == 0) sb.append("\n");
         }
         if (col % 4 != 0) sb.append("\n");
 
         sb.append("-".repeat(60)).append("\n");
-        sb.append(YELLOW).append("Map View (").append(island.getWidth()).append("x").append(island.getHeight()).append("):").append(RESET).append("\n");
+        sb.append(YELLOW).append("Map View (8x8) [2x2 icons per cell]:").append(RESET).append("\n");
         
         int midX = island.getWidth() / 2;
         int midY = island.getHeight() / 2;
 
         for (int y = 0; y < island.getHeight(); y++) {
             if (y > 0 && y == midY) {
-                sb.append("---".repeat(island.getWidth() + 1)).append("\n");
+                sb.append("=".repeat(island.getWidth() * 7 + 2)).append("\n");
             }
+            
+            StringBuilder topLine = new StringBuilder();
+            StringBuilder bottomLine = new StringBuilder();
+
             for (int x = 0; x < island.getWidth(); x++) {
                 if (x > 0 && x == midX) {
-                    sb.append("| ");
+                    topLine.append("║ ");
+                    bottomLine.append("║ ");
                 }
-                renderCell(sb, island.getCell(x, y));
+                
+                String[] icons = getCellIcons(island.getCell(x, y));
+                topLine.append("[").append(icons[0]).append(icons[1]).append("] ");
+                bottomLine.append("[").append(icons[2]).append(icons[3]).append("] ");
             }
-            sb.append("\n");
+            sb.append(topLine).append("\n").append(bottomLine).append("\n");
         }
         
         System.out.print(sb.toString());
         System.out.flush();
     }
 
-    private void renderCell(StringBuilder sb, Cell cell) {
-        Map<String, Integer> cellCounts = new HashMap<>();
-        cell.getAnimals().stream()
-                .filter(com.island.content.Organism::isAlive)
-                .forEach(a -> cellCounts.put(a.getSpeciesKey(), cellCounts.getOrDefault(a.getSpeciesKey(), 0) + 1));
+    private String[] getCellIcons(Cell cell) {
+        Set<String> species = cell.getAnimals().stream()
+                .filter(Animal::isAlive)
+                .map(Animal::getSpeciesKey)
+                .collect(Collectors.toSet());
 
-        if (!cellCounts.isEmpty()) {
-            Map.Entry<String, Integer> maxEntry = cellCounts.entrySet().stream()
-                    .max(Map.Entry.comparingByValue())
-                    .orElseThrow();
-            sb.append(ICONS.getOrDefault(maxEntry.getKey(), "🐾")).append("  ");
-        } else {
-            boolean hasPlants = cell.getPlants().stream().anyMatch(com.island.content.Organism::isAlive);
-            if (hasPlants) {
-                sb.append(GREEN).append(ICONS.get("plant")).append(RESET).append("  ");
-            } else {
-                sb.append(".   ");
-            }
+        List<String> sorted = new ArrayList<>(species);
+        sorted.sort((s1, s2) -> DISPLAY_PRIORITY.getOrDefault(s2, 0) - DISPLAY_PRIORITY.getOrDefault(s1, 0));
+
+        String[] result = new String[4];
+        int iconsFound = 0;
+        
+        for (int i = 0; i < Math.min(sorted.size(), 4); i++) {
+            result[iconsFound++] = ICONS.get(sorted.get(i));
         }
+
+        if (iconsFound < 4 && cell.getPlants().stream().anyMatch(Plant::isAlive)) {
+            result[iconsFound++] = GREEN + ICONS.get("plant") + RESET;
+        }
+
+        while (iconsFound < 4) {
+            result[iconsFound++] = ". ";
+        }
+        
+        // Ensure all strings are 2-char wide (emojis are usually 2-char wide in terminal representation)
+        // But in Java string they are often 1 or 2 surrogates. 
+        // Most emojis like 🐺 are 1 char in length but 2 columns wide.
+        return result;
     }
 }
