@@ -22,11 +22,4 @@ public class Wolf extends Animal implements Predator {
         System.out.println("Волк " + getId().substring(0, 8) + " ищет добычу...");
         return 0; // TODO: реализация охоты
     }
-
-    @Override
-    public Wolf reproduce() {
-        if (!canPerformAction()) return null;
-        System.out.println("Волк " + getId().substring(0, 8) + " ищет пару...");
-        return null; // TODO: реализация спаривания
-    }
 }

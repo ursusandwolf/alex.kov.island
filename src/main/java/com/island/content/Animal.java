@@ -19,6 +19,13 @@ public abstract class Animal extends Organism {
     public double getFoodForSaturation() { return animalType.getFoodForSaturation(); }
 
     @Override
+    public double eat() {
+        // Default implementation for animals. 
+        // Actual feeding logic is handled by FeedingService.
+        return 0;
+    }
+
+    @Override
     public boolean move() {
         if (!canPerformAction()) return false;
         // Energy cost depends on speed
@@ -31,10 +38,10 @@ public abstract class Animal extends Organism {
     @Override
     public Animal reproduce() {
         if (!canPerformAction()) return null;
-        // Reproduction is expensive
-        double reproductionCost = getMaxEnergy() * REPRODUCTION_COST_PERCENT;
-        if (getCurrentEnergy() > reproductionCost) {
-            consumeEnergy(reproductionCost);
+        // Reproduction is expensive: 30% of max energy
+        double cost = getMaxEnergy() * REPRODUCTION_COST_PERCENT;
+        if (getCurrentEnergy() > cost) {
+            consumeEnergy(cost);
             return AnimalFactory.createAnimal(getSpeciesKey());
         }
         return null;

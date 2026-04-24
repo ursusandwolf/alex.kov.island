@@ -19,7 +19,7 @@ class ReproductionServiceTest {
         
         assertEquals(2, cell.getAnimalCount());
         
-        ReproductionService service = new ReproductionService(island);
+        ReproductionService service = new ReproductionService(island, java.util.concurrent.Executors.newSingleThreadExecutor());
         service.run();
         
         // Should have 3 rabbits now (2 parents + 1 baby)

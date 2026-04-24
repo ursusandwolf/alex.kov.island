@@ -1,5 +1,27 @@
 # Changelog
 
+## [2026-04-24]
+### Multithreading & Performance
+- **Island Partitioning**: Implemented 2x2 grid partitioning of the island into 4 Chunks for parallel processing.
+- **Parallel Services**: Refactored `LifecycleService`, `FeedingService`, `MovementService`, `ReproductionService`, and `WorldInitializer` to use `ExecutorService` for parallel execution by chunks.
+- **Thread-Safe Movement**: Implemented transactional move logic in `Island.moveOrganism` using ordered locking on cells to prevent deadlocks and race conditions.
+
+### Biological Model Improvements
+- **Energy Management**: Centralized all simulation parameters in `SimulationConstants` and implemented static imports for cleaner code.
+- **Dynamic Energy Costs**: 
+    - Movement cost now depends on animal speed (base + 1%/speed unit).
+    - Reproduction cost increased to a significant 30% of max energy.
+    - Hunting effort now costs energy (base + predator speed).
+- **Relative Speed Hunting**: Predators now consume additional energy when chasing prey faster than themselves (2% per speed difference unit).
+- **Unified Reproduction**: Merged plant growth into `ReproductionService` using polymorphic `reproduce()` calls.
+
+### Quality Assurance
+- **JUnit 5 Integration**: Added a comprehensive test suite covering core components.
+- **Critical Bug Fixes**:
+    - Fixed a Race Condition in `MovementService` that caused animal duplication.
+    - Fixed compilation errors in animal subclasses by centralizing behavior in the base `Animal` class.
+    - Resolved logic issues where animals were failing to reproduce due to incomplete method overrides.
+
 ## [2026-04-23]
 ### Git Cleanup
 - Deleted stale/merged local and remote branches (`feature/feeding-logic`, `feature/fox`, `optimization-to-flyweight-pattern-6fce0`, `feature/flyweight-optimization2`, and various `revert-` and non-English branches).

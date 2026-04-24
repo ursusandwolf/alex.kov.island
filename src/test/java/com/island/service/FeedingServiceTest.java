@@ -22,7 +22,7 @@ class FeedingServiceTest {
         matrix = new InteractionMatrix();
         // Setup 100% chance for wolf to eat rabbit
         matrix.setChance("wolf", "rabbit", 100);
-        service = new FeedingService(island, matrix);
+        service = new FeedingService(island, matrix, java.util.concurrent.Executors.newSingleThreadExecutor());
     }
 
     @Test
