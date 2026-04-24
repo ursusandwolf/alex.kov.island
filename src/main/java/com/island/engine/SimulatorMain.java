@@ -32,15 +32,15 @@ public class SimulatorMain {
         // 3. Создание острова
         Island island = new Island(config.getIslandWidth(), config.getIslandHeight());
 
-        // 4. Инициализация мира
-        WorldInitializer initializer = new WorldInitializer();
-        initializer.initialize(island, speciesConfig);
-
-        // 5. Настройка GameLoop
+        // 4. Настройка GameLoop (нужен для получения ExecutorService)
         GameLoop gameLoop = new GameLoop(config.getTickDurationMs());
         com.island.view.ConsoleView consoleView = new com.island.view.ConsoleView();
-        
-        // Добавляем фазы
+
+        // 5. Инициализация мира (теперь параллельно через executor)
+        WorldInitializer initializer = new WorldInitializer();
+        initializer.initialize(island, speciesConfig, gameLoop.getTaskExecutor());
+
+        // 6. Добавляем фазы симуляции
         gameLoop.addRecurringTask(new LifecycleService(island)); // Сначала учет возраста и энергии
         gameLoop.addRecurringTask(new PlantGrowthService(island));
         gameLoop.addRecurringTask(new FeedingService(island, interactionMatrix));
@@ -50,8 +50,8 @@ public class SimulatorMain {
         // Добавляем вывод статистики через вьюху
         gameLoop.addRecurringTask(() -> consoleView.display(island));
 
-        // 6. Запуск
-        System.out.println("Запуск симуляции острова (MVP)...");
+        // 7. Запуск
+        System.out.println("Запуск симуляции острова (параллельная инициализация и перемещение)...");
         gameLoop.start();
     }
 }

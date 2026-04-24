@@ -29,9 +29,16 @@ public class Island {
     }
 
     private void partitionIntoChunks() {
-        // As requested: minimal multi-threading, split island in half (two chunks)
+        // Split island into 4 chunks (2x2 grid)
         int midX = width / 2;
-        if (midX > 0) {
+        int midY = height / 2;
+
+        if (midX > 0 && midY > 0) {
+            chunks.add(new Chunk(0, 0, 0, midX, 0, midY, this));
+            chunks.add(new Chunk(1, 0, midX, width, 0, midY, this));
+            chunks.add(new Chunk(0, 1, 0, midX, midY, height, this));
+            chunks.add(new Chunk(1, 1, midX, width, midY, height, this));
+        } else if (midX > 0) {
             chunks.add(new Chunk(0, 0, 0, midX, 0, height, this));
             chunks.add(new Chunk(1, 0, midX, width, 0, height, this));
         } else {
