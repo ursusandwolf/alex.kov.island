@@ -63,6 +63,11 @@ public class FeedingService implements Runnable {
         List<Animal> potentialPrey = cell.getAnimals();
         for (Animal prey : potentialPrey) {
             if (predator == prey || !prey.isAlive()) continue;
+            
+            // Stealth for caterpillars on the first tick
+            if (island.getTickCount() == 1 && prey.getSpeciesKey().equals("caterpillar")) {
+                continue;
+            }
 
             int chance = interactionMatrix.getChance(predator.getSpeciesKey(), prey.getSpeciesKey());
             if (chance > 0) {

@@ -51,27 +51,53 @@ public class ReproductionService implements Runnable {
 
     private void reproduceAnimals(Cell cell) {
         List<Animal> animals = cell.getAnimals();
-        Map<String, Integer> speciesCounts = new HashMap<>();
-        
+        // Group animals by species
+        Map<String, List<Animal>> speciesGroups = new HashMap<>();
         for (Animal animal : animals) {
-            if (!animal.isAlive()) continue;
-            speciesCounts.put(animal.getSpeciesKey(), speciesCounts.getOrDefault(animal.getSpeciesKey(), 0) + 1);
+            if (animal.isAlive()) {
+                speciesGroups.computeIfAbsent(animal.getSpeciesKey(), k -> new ArrayList<>()).add(animal);
+            }
         }
 
-        for (Map.Entry<String, Integer> entry : speciesCounts.entrySet()) {
+        for (Map.Entry<String, List<Animal>> entry : speciesGroups.entrySet()) {
             String speciesKey = entry.getKey();
-            int count = entry.getValue();
+            List<Animal> group = entry.getValue();
+            int count = group.size();
             
-            // Pairing logic: if 2 or more animals of the same species
             if (count >= 2) {
-                // In a more advanced version, we could call animal.reproduce() 
-                // which would check energy etc. For now keeping existing logic.
-                Animal baby = AnimalFactory.createAnimal(speciesKey);
-                if (baby != null) {
-                    cell.addAnimal(baby);
+                int pairs = count / 2;
+                Animal representative = group.get(0);
+                int offspringPerPair = calculateOffspringCount(representative);
+                int totalOffspring = pairs * offspringPerPair;
+                
+                for (int i = 0; i < totalOffspring; i++) {
+                    Animal baby = AnimalFactory.createAnimal(speciesKey);
+                    if (baby != null) {
+                        cell.addAnimal(baby);
+                    }
                 }
             }
         }
+    }
+
+    private int calculateOffspringCount(Animal animal) {
+        double weight = animal.getWeight();
+        int baseOffspring;
+        
+        if (animal.getSpeciesKey().equals("caterpillar")) {
+            baseOffspring = 4;
+        } else if (weight < 6.0) { // All small animals (including mice < 1kg and rabbits 1-6kg) get 2 base
+            baseOffspring = 2;
+        } else {
+            baseOffspring = 1;
+        }
+
+        // Additional +1 for herbivores
+        if (animal instanceof com.island.content.animals.herbivores.Herbivore) {
+            baseOffspring += 1;
+        }
+        
+        return baseOffspring;
     }
 
     private void reproducePlants(Cell cell) {

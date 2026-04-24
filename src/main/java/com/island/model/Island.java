@@ -13,6 +13,7 @@ public class Island {
     private final int width, height;
     private final Cell[][] grid;
     private final List<Chunk> chunks = new ArrayList<>();
+    private int tickCount = 0;
 
     public Island(int width, int height) {
         this.width = width;
@@ -20,6 +21,14 @@ public class Island {
         this.grid = new Cell[width][height];
         initializeGrid();
         partitionIntoChunks();
+    }
+
+    public void nextTick() {
+        tickCount++;
+    }
+
+    public int getTickCount() {
+        return tickCount;
     }
 
     private void initializeGrid() {

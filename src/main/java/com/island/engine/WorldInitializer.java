@@ -39,12 +39,12 @@ public class WorldInitializer {
     private void initializeCell(Cell cell, SpeciesConfig config) {
         // Заселяем каждый вид с небольшой вероятностью
         for (String species : AnimalFactory.getRegisteredSpecies()) {
-            if (ThreadLocalRandom.current().nextDouble() < 0.05) {
+            double probability = species.equals("caterpillar") ? 0.20 : 0.05;
+            if (ThreadLocalRandom.current().nextDouble() < probability) {
                 Animal a = AnimalFactory.createAnimal(species);
                 if (a != null) cell.addAnimal(a);
             }
         }
-
         // Растения
         if (ThreadLocalRandom.current().nextDouble() < 0.3) {
             cell.addPlant(new Plant(1.0, 1.0, 0) {

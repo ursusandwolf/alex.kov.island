@@ -43,6 +43,7 @@ public class SimulatorMain {
         initializer.initialize(island, speciesConfig, gameLoop.getTaskExecutor());
 
         // 6. Добавляем фазы симуляции в правильном порядке
+        gameLoop.addRecurringTask(island::nextTick); // Инкремент такта в начале
         gameLoop.addRecurringTask(new LifecycleService(island, gameLoop.getTaskExecutor())); // Старение и метаболизм
         gameLoop.addRecurringTask(new FeedingService(island, interactionMatrix, gameLoop.getTaskExecutor())); // Питание
         gameLoop.addRecurringTask(new MovementService(island, gameLoop.getTaskExecutor()));  // Перемещение
