@@ -41,11 +41,12 @@ public class SimulatorMain {
         initializer.initialize(island, speciesConfig, gameLoop.getTaskExecutor());
 
         // 6. Добавляем фазы симуляции
-        gameLoop.addRecurringTask(new LifecycleService(island)); // Сначала учет возраста и энергии
+        gameLoop.addRecurringTask(new LifecycleService(island, gameLoop.getTaskExecutor())); // Сначала учет возраста и энергии
         gameLoop.addRecurringTask(new PlantGrowthService(island));
         gameLoop.addRecurringTask(new FeedingService(island, interactionMatrix));
         gameLoop.addRecurringTask(new ReproductionService(island));
         gameLoop.addRecurringTask(new MovementService(island, gameLoop.getTaskExecutor()));
+        gameLoop.addRecurringTask(new CleanupService(island, gameLoop.getTaskExecutor())); // Очистка в конце такта
         
         // Добавляем вывод статистики через вьюху
         gameLoop.addRecurringTask(() -> consoleView.display(island));
