@@ -3,7 +3,8 @@ package com.island.engine;
 import com.island.content.Animal;
 import com.island.content.AnimalFactory;
 import com.island.content.AnimalType;
-import com.island.content.BasicPlant;
+import com.island.content.Grass;
+import com.island.content.Cabbage;
 import com.island.content.SpeciesConfig;
 import com.island.content.Plant;
 import com.island.model.Chunk;
@@ -66,11 +67,17 @@ public class WorldInitializer {
             }
         }
         
-        // Растения - присутствуют почти везде (90% клеток)
-        if (random.nextDouble() < 0.9) {
-            int plantCount = 5 + random.nextInt(30); // 5-35 растений
-            for (int i = 0; i < plantCount; i++) {
-                cell.addPlant(new BasicPlant());
+        // Растения - присутствуют в каждой клетке (100% шанс)
+        int grassCount = 10 + random.nextInt(20); // 10-30 пучков травы
+        for (int i = 0; i < grassCount; i++) {
+            cell.addPlant(new Grass());
+        }
+
+        // Капуста реже (30% клеток)
+        if (random.nextDouble() < 0.3) {
+            int cabbageCount = 2 + random.nextInt(5);
+            for (int i = 0; i < cabbageCount; i++) {
+                cell.addPlant(new Cabbage());
             }
         }
     }

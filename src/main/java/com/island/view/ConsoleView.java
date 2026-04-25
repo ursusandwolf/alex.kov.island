@@ -95,9 +95,11 @@ public class ConsoleView {
         }
 
         // Add plants to biomass if applicable
-        long alivePlants = cell.getPlants().stream().filter(Plant::isAlive).count();
-        if (alivePlants > 0) {
-            biomassMap.put("plant", alivePlants * 1.0); // 1kg per plant
+        for (Plant p : cell.getPlants()) {
+            if (p.isAlive()) {
+                biomassMap.put(p.getSpeciesKey(), 
+                    biomassMap.getOrDefault(p.getSpeciesKey(), 0.0) + p.getBiomass());
+            }
         }
 
         if (!biomassMap.isEmpty()) {

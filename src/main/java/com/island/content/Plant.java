@@ -10,10 +10,14 @@ public abstract class Plant extends Organism {
     protected final double growthRate; // Рост за тик в кг
 
     protected Plant(double maxBiomass, double growthRate, int maxLifespan) {
-        super(maxBiomass * 100, maxLifespan);
+        super(maxBiomass, maxLifespan); // Use maxBiomass as energy capacity
         this.maxBiomass = maxBiomass;
-        this.biomass = maxBiomass * 0.5;
+        this.biomass = maxBiomass * 0.5; // Start with 50%
         this.growthRate = growthRate;
+    }
+
+    public double getBiomass() {
+        return biomass;
     }
 
     public double consumeBiomass(double amount) {

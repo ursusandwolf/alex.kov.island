@@ -74,7 +74,7 @@ public class FeedingService implements Runnable {
         for (Animal prey : potentialPrey) {
             if (predator == prey || !prey.isAlive()) continue;
 
-            // Protection check: hides if escaped before or if it's a caterpillar on tick 1
+            // Protection check: hides if escaped before
             if (prey.isProtected(island.getTickCount())) {
                 continue;
             }
@@ -91,7 +91,6 @@ public class FeedingService implements Runnable {
 
                 if (ThreadLocalRandom.current().nextInt(100) < chance) {
                     // ATOMIC CHECK: Successful hunt ONLY if we can actually remove the prey from the cell.
-                    // This prevents situations where two predators eat the same prey in the same tick.
                     if (cell.removeAnimal(prey)) {
                         prey.die(); // Ensure prey is marked as dead
                         predator.addEnergy(prey.getWeight());
@@ -106,15 +105,33 @@ public class FeedingService implements Runnable {
             }
         }
 
-        // If no animal caught, try eating plants (for herbivores/omnivores)
-        int plantChance = interactionMatrix.getChance(predator.getSpeciesKey(), "Plant");
+        // --- Plant Feeding Logic ---
+        String predatorKey = predator.getSpeciesKey();
+        List<Plant> plants = cell.getPlants();
+        if (plants.isEmpty()) return;
+
+        double foodNeeded = predator.getFoodForSaturation() - (predator.getCurrentEnergy());
+        if (foodNeeded <= 0) return;
+
+        // 1. Try eating Cabbage (priority for Rabbit, Goat, Duck)
+        if (predatorKey.equals("rabbit") || predatorKey.equals("goat") || predatorKey.equals("duck")) {
+            for (Plant plant : plants) {
+                if (plant instanceof Cabbage && plant.isAlive()) {
+                    double eaten = plant.consumeBiomass(foodNeeded);
+                    predator.addEnergy(eaten);
+                    return; // Satiated or plant exhausted
+                }
+            }
+        }
+
+        // 2. Try eating Grass (for anyone who can eat "Plant" in matrix)
+        int plantChance = interactionMatrix.getChance(predatorKey, "Plant");
         if (plantChance > 0) {
-            List<Plant> plants = cell.getPlants();
-            if (!plants.isEmpty()) {
-                Plant plant = plants.get(0);
-                if (plant.isAlive()) {
-                    predator.addEnergy(1.0); // 1kg of plant energy
-                    cell.removePlant(plant);
+            for (Plant plant : plants) {
+                if (plant instanceof Grass && plant.isAlive()) {
+                    double eaten = plant.consumeBiomass(foodNeeded);
+                    predator.addEnergy(eaten);
+                    return;
                 }
             }
         }
