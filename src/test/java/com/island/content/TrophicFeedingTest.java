@@ -21,6 +21,7 @@ class TrophicFeedingTest {
     private InteractionMatrix matrix;
     private FeedingService feedingService;
     private LifecycleService lifecycleService;
+    private final SpeciesConfig config = SpeciesConfig.getInstance();
 
     @BeforeEach
     void setUp() {
@@ -34,8 +35,8 @@ class TrophicFeedingTest {
     @DisplayName("Test trophic hierarchy: predators hunt before prey acts")
     void testTrophicHierarchy() {
         Cell cell = island.getCell(0, 0);
-        Fox fox = new Fox();
-        Duck duck = new Duck();
+        Fox fox = new Fox(config.getAnimalType("fox"));
+        Duck duck = new Duck(config.getAnimalType("duck"));
         
         // Setup: Fox eats Duck (100%), Duck eats plants (not needed for this test)
         matrix.setChance("fox", "duck", 100);
@@ -54,13 +55,11 @@ class TrophicFeedingTest {
     @DisplayName("Test escape protection: prey hides after failed attack")
     void testEscapeAndHide() {
         Cell cell = island.getCell(0, 0);
-        Wolf wolf = new Wolf();
-        Fox fox = new Fox();
-        Rabbit rabbit = new Rabbit();
+        Wolf wolf = new Wolf(config.getAnimalType("wolf"));
+        Fox fox = new Fox(config.getAnimalType("fox"));
+        Rabbit rabbit = new Rabbit(config.getAnimalType("rabbit"));
         
         // Setup: Wolf eats Rabbit (1% - almost guaranteed to fail for test), Fox eats Rabbit (100%)
-        // Note: FeedingService uses random, so 1% might still succeed sometimes but highly unlikely.
-        // For absolute certainty, we could mock the random, but matrix setup is easier.
         matrix.setChance("wolf", "rabbit", 1); 
         matrix.setChance("fox", "rabbit", 100);
         
@@ -69,7 +68,6 @@ class TrophicFeedingTest {
         cell.addAnimal(rabbit);
         
         // Step 1: Run feeding. Wolf (heavier) attacks Rabbit first.
-        // If it fails (which is 99% likely), rabbit hides.
         feedingService.run();
         
         // If rabbit survived (likely), it MUST be hiding.

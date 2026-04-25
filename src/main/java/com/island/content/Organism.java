@@ -3,13 +3,13 @@ package com.island.content;
 import java.util.UUID;
 import static com.island.config.SimulationConstants.*;
 
-// Базовый класс организмов (Template Method, Strategy, Information Expert)
-public abstract class Organism implements OrganismBehavior {
-    private final String id; // Уникальный ID экземпляра
-    private volatile double currentEnergy; // 0..maxEnergy
-    private final double maxEnergy; // Макс. емкость энергии
-    private int age; // Возраст в тиках
-    private final int maxLifespan; // Макс. возраст (0=бессмертен)
+// Базовый класс организмов
+public abstract class Organism {
+    private final String id; 
+    private volatile double currentEnergy; 
+    private final double maxEnergy; 
+    private int age; 
+    private final int maxLifespan; 
     private volatile boolean isAlive;
 
     protected Organism(double maxEnergy, int maxLifespan) {
@@ -30,9 +30,17 @@ public abstract class Organism implements OrganismBehavior {
 
     public abstract String getTypeName();
 
-    @Override
     public double getEnergyPercentage() {
         return (maxEnergy == 0) ? 0 : (currentEnergy / maxEnergy) * 100.0;
+    }
+
+    public boolean canPerformAction() { 
+        return getEnergyPercentage() >= ACTION_MIN_ENERGY_PERCENT; 
+    }
+
+    public boolean canOnlyEat() { 
+        double e = getEnergyPercentage(); 
+        return e > 0 && e < ACTION_MIN_ENERGY_PERCENT; 
     }
 
     public synchronized void consumeEnergy(double amount) {
@@ -49,7 +57,6 @@ public abstract class Organism implements OrganismBehavior {
         if (maxLifespan > 0 && age >= maxLifespan) die();
     }
 
-    @Override
     public void checkState() {
         ageOneTick();
         consumeEnergy(maxEnergy * BASE_METABOLISM_PERCENT);

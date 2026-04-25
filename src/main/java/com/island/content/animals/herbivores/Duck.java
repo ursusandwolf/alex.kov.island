@@ -1,13 +1,11 @@
 package com.island.content.animals.herbivores;
 
 import com.island.content.Animal;
-import com.island.content.SpeciesConfig;
+import com.island.content.AnimalType;
 
-// Тип животного: Duck
 public class Duck extends Animal implements Herbivore {
-
-    public Duck() {
-        super(SpeciesConfig.getInstance().getAnimalType("duck"));
+    public Duck(AnimalType type) {
+        super(type);
     }
 
     @Override
@@ -17,8 +15,7 @@ public class Duck extends Animal implements Herbivore {
     public String getSpeciesKey() { return animalType.getSpeciesKey(); }
 
     @Override
-    public double eat() {
-        if (!isAlive()) return 0;
-        return 0; // TODO: реализация поиска еды
+    public Duck reproduce() {
+        return trySpendEnergyForReproduction() ? new Duck(animalType) : null;
     }
 }

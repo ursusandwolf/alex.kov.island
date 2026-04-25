@@ -4,13 +4,14 @@ import java.util.*;
 import com.island.content.animals.predators.*;
 import com.island.content.animals.herbivores.*;
 
+import java.util.function.Function;
+
 public final class AnimalFactory {
-    @FunctionalInterface
-    public interface AnimalCreator { Animal create(); }
+    private final SpeciesConfig config;
+    private final Map<String, Function<AnimalType, Animal>> registry = new HashMap<>();
 
-    private static final Map<String, AnimalCreator> registry = new HashMap<>();
-
-    static {
+    public AnimalFactory(SpeciesConfig config) {
+        this.config = config;
         registry.put("wolf", Wolf::new);
         registry.put("rabbit", Rabbit::new);
         registry.put("duck", Duck::new);
@@ -28,13 +29,13 @@ public final class AnimalFactory {
         registry.put("buffalo", Buffalo::new);
     }
 
-    private AnimalFactory() {}
-
-    public static Animal createAnimal(String key) {
-        AnimalCreator creator = registry.get(key.toLowerCase());
+    public Animal createAnimal(String key) {
+        Function<AnimalType, Animal> creator = registry.get(key.toLowerCase());
         if (creator == null) return null;
-        return creator.create();
+        
+        AnimalType type = config.getAnimalType(key);
+        return (type != null) ? creator.apply(type) : null;
     }
 
-    public static Set<String> getRegisteredSpecies() { return registry.keySet(); }
+    public Set<String> getRegisteredSpecies() { return registry.keySet(); }
 }

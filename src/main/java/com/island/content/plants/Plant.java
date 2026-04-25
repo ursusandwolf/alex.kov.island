@@ -2,9 +2,11 @@ package com.island.content.plants; import com.island.content.Organism;
 
 import lombok.Getter;
 
+import com.island.content.Reproducible;
+
 // Базовый класс растений
 @Getter
-public abstract class Plant extends Organism {
+public abstract class Plant extends Organism implements Reproducible<Plant> {
     protected double biomass; // Биомасса в кг (служит энергией)
     protected final double maxBiomass;
     protected final double growthRate; // Рост за тик в кг
@@ -32,14 +34,5 @@ public abstract class Plant extends Organism {
     }
 
     @Override
-    public double eat() { return 0; } // Растения не едят
-
-    @Override
-    public boolean move() { return false; } // Растения статичны
-
-    @Override
-    public Plant reproduce() {
-        if (!canPerformAction()) return null;
-        return null; // TODO: Реализовать механизм распространения
-    }
+    public abstract Plant reproduce();
 }

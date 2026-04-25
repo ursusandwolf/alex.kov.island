@@ -2,46 +2,25 @@ package com.island.service;
 import com.island.content.plants.*;
 import com.island.content.Animal;
 import com.island.content.AnimalFactory;
-import com.island.content.plants.Plant;
 import com.island.model.Cell;
-import com.island.model.Chunk;
 import com.island.model.Island;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
-public class ReproductionService implements Runnable {
-    private final Island island;
-    private final ExecutorService executor;
+public class ReproductionService extends AbstractService {
+    private final AnimalFactory animalFactory;
 
-    public ReproductionService(Island island, ExecutorService executor) {
-        this.island = island;
-        this.executor = executor;
+    public ReproductionService(Island island, AnimalFactory animalFactory, ExecutorService executor) {
+        super(island, executor);
+        this.animalFactory = animalFactory;
     }
 
     @Override
-    public void run() {
-        List<Callable<Void>> tasks = new ArrayList<>();
-        for (Chunk chunk : island.getChunks()) {
-            tasks.add(() -> {
-                for (Cell cell : chunk.getCells()) {
-                    processCell(cell);
-                }
-                return null;
-            });
-        }
-        try {
-            executor.invokeAll(tasks);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-    }
-
-    private void processCell(Cell cell) {
+    protected void processCell(Cell cell) {
         // 1. Reproduction of Animals (requires pairs)
         reproduceAnimals(cell);
         
@@ -71,7 +50,7 @@ public class ReproductionService implements Runnable {
                 int totalOffspring = pairs * offspringPerPair;
                 
                 for (int i = 0; i < totalOffspring; i++) {
-                    Animal baby = AnimalFactory.createAnimal(speciesKey);
+                    Animal baby = animalFactory.createAnimal(speciesKey);
                     if (baby != null) {
                         cell.addAnimal(baby);
                     }
@@ -86,13 +65,12 @@ public class ReproductionService implements Runnable {
         
         if (animal.getSpeciesKey().equals("caterpillar")) {
             baseOffspring = 4;
-        } else if (weight < 6.0) { // All small animals (including mice < 1kg and rabbits 1-6kg) get 2 base
+        } else if (weight < 6.0) { 
             baseOffspring = 2;
         } else {
             baseOffspring = 1;
         }
 
-        // Additional +1 for herbivores
         if (animal instanceof com.island.content.animals.herbivores.Herbivore) {
             baseOffspring += 1;
         }
@@ -106,7 +84,7 @@ public class ReproductionService implements Runnable {
         
         for (Plant plant : currentPlants) {
             if (plant.isAlive()) {
-                Plant baby = plant.reproduce(); // Polymorphic call
+                Plant baby = plant.reproduce(); 
                 if (baby != null) {
                     newPlants.add(baby);
                 }

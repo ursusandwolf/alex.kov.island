@@ -9,11 +9,12 @@ import static com.island.config.SimulationConstants.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class EnergyConsumptionTest {
+    private final SpeciesConfig config = SpeciesConfig.getInstance();
 
     @Test
     @DisplayName("Test energy consumption during movement based on speed")
     void testMovementEnergyCost() {
-        Wolf wolf = new Wolf(); // Speed 3
+        Wolf wolf = new Wolf(config.getAnimalType("wolf")); // Speed 3
         double initialEnergy = wolf.getCurrentEnergy();
         double expectedCost = wolf.getMaxEnergy() * (BASE_MOVE_COST_PERCENT + (wolf.getSpeed() * SPEED_MOVE_COST_STEP_PERCENT));
         
@@ -25,27 +26,21 @@ class EnergyConsumptionTest {
     @Test
     @DisplayName("Test reproduction energy cost")
     void testReproductionEnergyCost() {
-        Rabbit rabbit = new Rabbit();
+        Rabbit rabbit = new Rabbit(config.getAnimalType("rabbit"));
         rabbit.addEnergy(rabbit.getMaxEnergy()); // Ensure it's at max
         double initialEnergy = rabbit.getCurrentEnergy();
         double cost = rabbit.getMaxEnergy() * REPRODUCTION_COST_PERCENT;
         
-        System.out.println("Initial Energy: " + initialEnergy);
-        System.out.println("Max Energy: " + rabbit.getMaxEnergy());
-        System.out.println("Reproduction Cost: " + cost);
-        System.out.println("Energy Percentage: " + rabbit.getEnergyPercentage());
-        System.out.println("Can Perform Action: " + rabbit.canPerformAction());
-
         Animal baby = rabbit.reproduce();
         
-        assertNotNull(baby, "Baby should be created when energy is sufficient. Energy was: " + rabbit.getCurrentEnergy());
+        assertNotNull(baby, "Baby should be created when energy is sufficient.");
         assertEquals(initialEnergy - cost, rabbit.getCurrentEnergy(), 0.001);
     }
 
     @Test
     @DisplayName("Test organism dies when energy reaches zero")
     void testDeathByEnergyExhaustion() {
-        Wolf wolf = new Wolf();
+        Wolf wolf = new Wolf(config.getAnimalType("wolf"));
         assertTrue(wolf.isAlive());
         
         wolf.consumeEnergy(wolf.getMaxEnergy());
@@ -57,13 +52,12 @@ class EnergyConsumptionTest {
     @Test
     @DisplayName("Test metabolism reduces energy over time")
     void testMetabolism() {
-        Wolf wolf = new Wolf();
+        Wolf wolf = new Wolf(config.getAnimalType("wolf"));
         double initialEnergy = wolf.getCurrentEnergy();
         double metabolismCost = wolf.getMaxEnergy() * BASE_METABOLISM_PERCENT;
         
         wolf.checkState();
         
-        // ageOneTick is also called, but it doesn't affect energy unless lifespan reached
         assertEquals(initialEnergy - metabolismCost, wolf.getCurrentEnergy(), 0.001);
     }
 }

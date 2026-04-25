@@ -42,7 +42,7 @@ public class FeedingService implements Runnable {
     }
 
     private void processCell(Cell cell) {
-        List<Animal> animals = cell.getAnimals();
+        List<Animal> animals = new ArrayList<>(cell.getAnimals());
         
         // Trophic Hierarchy Sorting:
         // 1. Predators of animals (isAnimalPredator == true) have higher priority.

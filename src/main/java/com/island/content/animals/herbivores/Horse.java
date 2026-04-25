@@ -1,8 +1,21 @@
 package com.island.content.animals.herbivores;
+
 import com.island.content.Animal;
-import com.island.content.SpeciesConfig;
+import com.island.content.AnimalType;
+
 public class Horse extends Animal implements Herbivore {
-    public Horse() { super(SpeciesConfig.getInstance().getAnimalType("horse")); }
-    @Override public String getTypeName() { return "Horse"; }
-    @Override public String getSpeciesKey() { return "horse"; }
+    public Horse(AnimalType type) {
+        super(type);
+    }
+
+    @Override
+    public String getTypeName() { return animalType.getTypeName(); }
+
+    @Override
+    public String getSpeciesKey() { return animalType.getSpeciesKey(); }
+
+    @Override
+    public Horse reproduce() {
+        return trySpendEnergyForReproduction() ? new Horse(animalType) : null;
+    }
 }

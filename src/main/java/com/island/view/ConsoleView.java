@@ -51,16 +51,7 @@ public class ConsoleView {
                 island.getTickCount(), island.getTotalOrganismCount()));
         sb.append("-".repeat(60)).append("\n");
 
-        Map<String, Integer> currentCounts = new TreeMap<>();
-        for (int x = 0; x < island.getWidth(); x++) {
-            for (int y = 0; y < island.getHeight(); y++) {
-                Cell cell = island.getCell(x, y);
-                cell.getAnimals().stream().filter(Animal::isAlive).forEach(a -> 
-                    currentCounts.put(a.getSpeciesKey(), currentCounts.getOrDefault(a.getSpeciesKey(), 0) + 1));
-                cell.getPlants().stream().filter(Plant::isAlive).forEach(p -> 
-                    currentCounts.put(p.getSpeciesKey(), currentCounts.getOrDefault(p.getSpeciesKey(), 0) + 1));
-            }
-        }
+        Map<String, Integer> currentCounts = new TreeMap<>(island.getSpeciesCounts());
 
         renderStatsWithGraphs(sb, currentCounts);
 

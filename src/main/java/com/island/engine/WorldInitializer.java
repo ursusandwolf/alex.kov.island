@@ -19,13 +19,13 @@ import java.util.concurrent.ExecutorService;
 
 public class WorldInitializer {
 
-    public void initialize(Island island, SpeciesConfig config, ExecutorService executor) {
+    public void initialize(Island island, SpeciesConfig config, AnimalFactory animalFactory, ExecutorService executor) {
         List<Callable<Void>> tasks = new ArrayList<>();
         
         for (Chunk chunk : island.getChunks()) {
             tasks.add(() -> {
                 for (Cell cell : chunk.getCells()) {
-                    initializeCell(cell, config);
+                    initializeCell(cell, config, animalFactory);
                 }
                 return null;
             });
@@ -39,11 +39,11 @@ public class WorldInitializer {
         }
     }
 
-    private void initializeCell(Cell cell, SpeciesConfig config) {
+    private void initializeCell(Cell cell, SpeciesConfig config, AnimalFactory animalFactory) {
          
         
         // Заселяем виды вероятностно для создания кластеров и разнообразия
-        for (String species : AnimalFactory.getRegisteredSpecies()) {
+        for (String species : animalFactory.getRegisteredSpecies()) {
             AnimalType type = config.getAnimalType(species);
             if (type == null) continue;
 
@@ -61,7 +61,7 @@ public class WorldInitializer {
                 count = Math.max(count, 1);
                 
                 for (int i = 0; i < count; i++) {
-                    Animal a = AnimalFactory.createAnimal(species);
+                    Animal a = animalFactory.createAnimal(species);
                     if (a != null) cell.addAnimal(a);
                 }
             }

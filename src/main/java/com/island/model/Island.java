@@ -4,16 +4,20 @@ import com.island.content.Animal;
 import com.island.content.SpeciesConfig;
 import lombok.Getter;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 
 // Composite: Остров состоит из ячеек
-// Factory: Создание организмов при инициализации
 @Getter
 public class Island {
     private final int width, height;
     private final Cell[][] grid;
     private final List<Chunk> chunks = new ArrayList<>();
     private int tickCount = 0;
+    
+    private final Map<String, AtomicInteger> speciesCounts = new ConcurrentHashMap<>();
 
     public Island(int width, int height) {
         this.width = width;
@@ -34,7 +38,7 @@ public class Island {
     private void initializeGrid() {
         for (int x = 0; x < width; x++)
             for (int y = 0; y < height; y++)
-                grid[x][y] = new Cell(x, y);
+                grid[x][y] = new Cell(x, y, this);
     }
 
     private void partitionIntoChunks() {
@@ -65,10 +69,18 @@ public class Island {
         return (x < 0 || x >= width || y < 0 || y >= height) ? null : grid[x][y];
     }
 
+    public void onOrganismAdded(String speciesKey) {
+        speciesCounts.computeIfAbsent(speciesKey, k -> new AtomicInteger(0)).incrementAndGet();
+    }
+
+    public void onOrganismRemoved(String speciesKey) {
+        AtomicInteger count = speciesCounts.get(speciesKey);
+        if (count != null) count.decrementAndGet();
+    }
+
     public boolean moveOrganism(Animal animal, Cell from, Cell to) {
         if (from == to) return true;
 
-        // Order locks by System.identityHashCode or coordinates to prevent deadlocks
         Cell first = (System.identityHashCode(from) < System.identityHashCode(to)) ? from : to;
         Cell second = (first == from) ? to : from;
 
@@ -96,25 +108,13 @@ public class Island {
     }
 
     public Map<String, Integer> getSpeciesCounts() {
-        Map<String, Integer> counts = new HashMap<>();
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                for (Animal a : grid[x][y].getAnimals()) {
-                    if (a.isAlive()) {
-                        counts.put(a.getSpeciesKey(), counts.getOrDefault(a.getSpeciesKey(), 0) + 1);
-                    }
-                }
-            }
-        }
-        return counts;
+        return speciesCounts.entrySet().stream()
+                .filter(e -> e.getValue().get() > 0)
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get()));
     }
 
     public int getTotalOrganismCount() {
-        int count = 0;
-        for (int x = 0; x < width; x++)
-            for (int y = 0; y < height; y++)
-                count += grid[x][y].getAnimalCount() + grid[x][y].getPlantCount();
-        return count;
+        return speciesCounts.values().stream().mapToInt(AtomicInteger::get).sum();
     }
 
     public String getStatistics() {

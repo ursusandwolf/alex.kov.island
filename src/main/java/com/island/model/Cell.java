@@ -3,19 +3,24 @@ import com.island.content.plants.*;
 import com.island.content.Animal;
 import com.island.content.plants.Plant;
 import lombok.Getter;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
 @Getter
 public class Cell {
     private final int x, y;
+    private final Island island;
     private final List<Animal> animals = new CopyOnWriteArrayList<>();
     private final List<Plant> plants = new CopyOnWriteArrayList<>();
     private final ReentrantLock lock = new ReentrantLock();
 
-    public Cell(int x, int y) { this.x = x; this.y = y; }
+    public Cell(int x, int y, Island island) { 
+        this.x = x; 
+        this.y = y; 
+        this.island = island;
+    }
 
     public String getCoordinates() { return x + "," + y; }
 
@@ -27,22 +32,32 @@ public class Cell {
                             .equals(animal.getSpeciesKey()))
                     .count();
             if (count >= animal.getMaxPerCell()) return false;
-            return animals.add(animal);
+            if (animals.add(animal)) {
+                island.onOrganismAdded(animal.getSpeciesKey());
+                return true;
+            }
+            return false;
         } finally { lock.unlock(); }
     }
 
     public boolean removeAnimal(Animal animal) {
         lock.lock();
-        try { return animals.remove(animal); } finally { lock.unlock(); }
+        try { 
+            if (animals.remove(animal)) {
+                island.onOrganismRemoved(animal.getSpeciesKey());
+                return true;
+            }
+            return false;
+        } finally { lock.unlock(); }
     }
 
-    public List<Animal> getAnimals() { return new CopyOnWriteArrayList<>(animals); }
+    public List<Animal> getAnimals() { return Collections.unmodifiableList(animals); }
 
     public List<Animal> getAnimalsBySpecies(String key) {
         return animals.stream()
                 .filter(a -> a.getSpeciesKey()
                         .equals(key))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public int countAnimalsBySpecies(String key) {
@@ -57,24 +72,46 @@ public class Cell {
     public boolean addPlant(Plant plant) {
         lock.lock();
         try {
-            return plants.add(plant);
+            if (plants.add(plant)) {
+                island.onOrganismAdded(plant.getSpeciesKey());
+                return true;
+            }
+            return false;
         } finally { lock.unlock(); }
     }
 
     public boolean removePlant(Plant plant) {
         lock.lock();
-        try { return plants.remove(plant); } finally { lock.unlock(); }
+        try { 
+            if (plants.remove(plant)) {
+                island.onOrganismRemoved(plant.getSpeciesKey());
+                return true;
+            }
+            return false;
+        } finally { lock.unlock(); }
     }
 
-    public List<Plant> getPlants() { return new CopyOnWriteArrayList<>(plants); }
+    public List<Plant> getPlants() { return Collections.unmodifiableList(plants); }
 
     public int getPlantCount() { return plants.size(); }
 
     public void cleanupDeadOrganisms() {
         lock.lock();
         try {
-            animals.removeIf(a -> !a.isAlive());
-            plants.removeIf(p -> !p.isAlive());
+            animals.removeIf(a -> {
+                if (!a.isAlive()) {
+                    island.onOrganismRemoved(a.getSpeciesKey());
+                    return true;
+                }
+                return false;
+            });
+            plants.removeIf(p -> {
+                if (!p.isAlive()) {
+                    island.onOrganismRemoved(p.getSpeciesKey());
+                    return true;
+                }
+                return false;
+            });
         } finally { lock.unlock(); }
     }
 
