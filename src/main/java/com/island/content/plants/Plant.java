@@ -1,4 +1,4 @@
-package com.island.content;
+package com.island.content.plants; import com.island.content.Organism;
 
 import lombok.Getter;
 

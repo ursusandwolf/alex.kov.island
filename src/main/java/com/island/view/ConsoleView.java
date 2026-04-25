@@ -1,7 +1,7 @@
 package com.island.view;
-
+import com.island.content.plants.*;
 import com.island.content.Animal;
-import com.island.content.Plant;
+import com.island.content.plants.Plant;
 import com.island.model.Cell;
 import com.island.model.Island;
 
@@ -27,8 +27,16 @@ public class ConsoleView {
     private int lastRenderedTick = -1;
     private static final int RENDER_THROTTLE = 5;
 
+    private final Map<String, LinkedList<Integer>> populationHistory = new HashMap<>();
+    private static final int HISTORY_SIZE = 15;
+
     public void display(Island island) {
-        // Only update UI every RENDER_THROTTLE ticks to reduce flicker and make events more visible
+        // Update history every render tick
+        if (island.getTickCount() % RENDER_THROTTLE == 0 || lastRenderedTick == -1) {
+            updateHistory(island);
+        }
+
+        // Only update UI every RENDER_THROTTLE ticks to reduce flicker
         if (island.getTickCount() > 0 && island.getTickCount() % RENDER_THROTTLE != 0 && island.getTickCount() != lastRenderedTick + 1) {
             if (lastRenderedTick != -1) return; 
         }
@@ -42,23 +50,18 @@ public class ConsoleView {
                 island.getTickCount(), island.getTotalOrganismCount()));
         sb.append("-".repeat(60)).append("\n");
 
-        Map<String, Integer> counts = new TreeMap<>();
+        Map<String, Integer> currentCounts = new TreeMap<>();
         for (int x = 0; x < island.getWidth(); x++) {
             for (int y = 0; y < island.getHeight(); y++) {
                 Cell cell = island.getCell(x, y);
                 cell.getAnimals().stream().filter(Animal::isAlive).forEach(a -> 
-                    counts.put(a.getSpeciesKey(), counts.getOrDefault(a.getSpeciesKey(), 0) + 1));
+                    currentCounts.put(a.getSpeciesKey(), currentCounts.getOrDefault(a.getSpeciesKey(), 0) + 1));
                 cell.getPlants().stream().filter(Plant::isAlive).forEach(p -> 
-                    counts.put(p.getSpeciesKey(), counts.getOrDefault(p.getSpeciesKey(), 0) + 1));
+                    currentCounts.put(p.getSpeciesKey(), currentCounts.getOrDefault(p.getSpeciesKey(), 0) + 1));
             }
         }
 
-        int col = 0;
-        for (Map.Entry<String, Integer> entry : counts.entrySet()) {
-            sb.append(String.format("%s %-11s: %-5d  ", ICONS.get(entry.getKey()), entry.getKey(), entry.getValue()));
-            if (++col % 4 == 0) sb.append("\n");
-        }
-        if (col % 4 != 0) sb.append("\n");
+        renderStatsWithGraphs(sb, currentCounts);
 
         sb.append("-".repeat(60)).append("\n");
         sb.append(YELLOW).append("Map View:").append(RESET).append("\n");
@@ -81,6 +84,49 @@ public class ConsoleView {
         
         System.out.print(sb.toString());
         System.out.flush();
+    }
+
+    private void updateHistory(Island island) {
+        Map<String, Integer> currentCounts = island.getSpeciesCounts();
+        for (String species : ICONS.keySet()) {
+            populationHistory.putIfAbsent(species, new LinkedList<>());
+            LinkedList<Integer> history = populationHistory.get(species);
+            history.add(currentCounts.getOrDefault(species, 0));
+            if (history.size() > HISTORY_SIZE) {
+                history.removeFirst();
+            }
+        }
+    }
+
+    private void renderStatsWithGraphs(StringBuilder sb, Map<String, Integer> currentCounts) {
+        int col = 0;
+        for (Map.Entry<String, Integer> entry : currentCounts.entrySet()) {
+            String species = entry.getKey();
+            int count = entry.getValue();
+            String graph = getSparkline(species);
+            sb.append(String.format("%s %-11s: %-5d %s  ", ICONS.get(species), species, count, graph));
+            if (++col % 2 == 0) sb.append("\n");
+        }
+        if (col % 2 != 0) sb.append("\n");
+    }
+
+    private String getSparkline(String species) {
+        LinkedList<Integer> history = populationHistory.get(species);
+        if (history == null || history.size() < 2) return "      ";
+        
+        int min = history.stream().min(Integer::compare).orElse(0);
+        int max = history.stream().max(Integer::compare).orElse(1);
+        int range = Math.max(1, max - min);
+
+        char[] sparkChars = {' ', '▂', '▃', '▄', '▅', '▆', '▇', '█'};
+        StringBuilder sparkline = new StringBuilder();
+        for (int val : history) {
+            int idx = (int) (((double) (val - min) / range) * (sparkChars.length - 1));
+            sparkline.append(sparkChars[idx]);
+        }
+        // Pad to consistent width
+        while (sparkline.length() < HISTORY_SIZE) sparkline.insert(0, " ");
+        return sparkline.toString();
     }
 
     private void renderCell(StringBuilder sb, Cell cell) {

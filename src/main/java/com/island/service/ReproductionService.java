@@ -1,8 +1,8 @@
 package com.island.service;
-
+import com.island.content.plants.*;
 import com.island.content.Animal;
 import com.island.content.AnimalFactory;
-import com.island.content.Plant;
+import com.island.content.plants.Plant;
 import com.island.model.Cell;
 import com.island.model.Chunk;
 import com.island.model.Island;

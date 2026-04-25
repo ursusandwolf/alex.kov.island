@@ -1,12 +1,12 @@
 package com.island.engine;
-
+import com.island.content.plants.*;
 import com.island.content.Animal;
 import com.island.content.AnimalFactory;
 import com.island.content.AnimalType;
-import com.island.content.Grass;
-import com.island.content.Cabbage;
+import com.island.content.plants.Grass;
+import com.island.content.plants.Cabbage;
 import com.island.content.SpeciesConfig;
-import com.island.content.Plant;
+import com.island.content.plants.Plant;
 import com.island.model.Chunk;
 import com.island.model.Island;
 import com.island.model.Cell;

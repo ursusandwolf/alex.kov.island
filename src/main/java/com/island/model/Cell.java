@@ -1,7 +1,7 @@
 package com.island.model;
-
+import com.island.content.plants.*;
 import com.island.content.Animal;
-import com.island.content.Plant;
+import com.island.content.plants.Plant;
 import lombok.Getter;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
