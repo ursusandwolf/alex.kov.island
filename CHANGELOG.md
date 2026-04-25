@@ -1,5 +1,33 @@
 # Changelog
 
+## [2026-04-25]
+### Architecture & SOLID Refactoring
+- **Interface Segregation (ISP)**: Deployed `Mobile`, `Consumer`, and `Reproducible` interfaces. Removed the bloated `OrganismBehavior` interface.
+- **Dependency Inversion (DIP)**: Refactored `AnimalFactory` and all 15 animal species to use constructor injection for `AnimalType`. Removed hard dependencies on `SpeciesConfig` Singleton inside animal classes.
+- **Bootstrap Pattern**: Introduced `SimulationBootstrap` and `SimulationContext` to decouple initialization logic from `SimulatorMain` (SRP).
+- **Service Abstraction**: Created `AbstractService` to centralize parallel chunk processing logic, reducing code duplication across all simulation phases.
+
+### Performance & Concurrency
+- **Incremental Statistics**: Implemented `AtomicInteger` counters in `Island` for O(1) population tracking, replacing the expensive O(N²) full-grid scans.
+- **Efficient Collections**: Updated `Cell` getters to return `UnmodifiableList` views instead of creating defensive copies on every call.
+- **Thread-Safe Energy**: Synchronized `consumeEnergy` method to ensure atomic read-modify-write operations during parallel processing.
+- **Tick Optimization**: Accelerated simulation speed 10x (tick duration reduced to 10ms) and optimized `GameLoop` thread pool configuration.
+
+### Enhanced Biological Model
+- **Plant Refactoring**: Moved plants to `com.island.content.plants`. Replaced anonymous classes with concrete `Grass` and `Cabbage` classes.
+- **Biomass-based Feeding**: Plants now track biomass in kilograms. Herbivores consume specific amounts of biomass rather than whole plant objects.
+- **Specialized Diet**: Rabbits, Goats, and Ducks now prioritize `Cabbage` for higher energy yield.
+- **Natural Settlement**: Implemented probabilistic world initialization to create clusters and diverse population densities.
+
+### Visualization & UI
+- **Dynamic Map**: Implemented Top-3 species cycling in cells based on biomass to show "hidden" life on the map.
+- **Population Sparklines**: Added real-time Unicode graphs (▂▃▅█) to the dashboard for visual trend analysis of every species.
+- **UI Throttling**: Limited dashboard updates to every 5 ticks to ensure readability at high simulation speeds.
+
+### Quality Assurance
+- **JUnit 5 Suite**: Expanded test coverage to 14 tests including energy consumption, trophic feeding, concurrent movement, and world initialization.
+- **Code Cleanup**: Removed all debug `System.out.println` calls and deleted obsolete classes like `TerminalTaskRegistry`.
+
 ## [2026-04-24]
 ### Multithreading & Performance
 - **Island Partitioning**: Implemented 2x2 grid partitioning of the island into 4 Chunks for parallel processing.

@@ -1,12 +1,13 @@
-package com.island.service;
+package com.island.content;
 
 import com.island.content.animals.herbivores.Duck;
 import com.island.content.animals.herbivores.Rabbit;
 import com.island.content.animals.predators.Fox;
 import com.island.content.animals.predators.Wolf;
-import com.island.engine.InteractionMatrix;
+import com.island.util.InteractionMatrix;
 import com.island.model.Cell;
 import com.island.model.Island;
+import com.island.service.LifecycleService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,6 +21,7 @@ class TrophicFeedingTest {
     private InteractionMatrix matrix;
     private FeedingService feedingService;
     private LifecycleService lifecycleService;
+    private final SpeciesConfig config = SpeciesConfig.getInstance();
 
     @BeforeEach
     void setUp() {
@@ -33,8 +35,8 @@ class TrophicFeedingTest {
     @DisplayName("Test trophic hierarchy: predators hunt before prey acts")
     void testTrophicHierarchy() {
         Cell cell = island.getCell(0, 0);
-        Fox fox = new Fox();
-        Duck duck = new Duck();
+        Fox fox = new Fox(config.getAnimalType("fox"));
+        Duck duck = new Duck(config.getAnimalType("duck"));
         
         // Setup: Fox eats Duck (100%), Duck eats plants (not needed for this test)
         matrix.setChance("fox", "duck", 100);
@@ -53,13 +55,11 @@ class TrophicFeedingTest {
     @DisplayName("Test escape protection: prey hides after failed attack")
     void testEscapeAndHide() {
         Cell cell = island.getCell(0, 0);
-        Wolf wolf = new Wolf();
-        Fox fox = new Fox();
-        Rabbit rabbit = new Rabbit();
+        Wolf wolf = new Wolf(config.getAnimalType("wolf"));
+        Fox fox = new Fox(config.getAnimalType("fox"));
+        Rabbit rabbit = new Rabbit(config.getAnimalType("rabbit"));
         
         // Setup: Wolf eats Rabbit (1% - almost guaranteed to fail for test), Fox eats Rabbit (100%)
-        // Note: FeedingService uses random, so 1% might still succeed sometimes but highly unlikely.
-        // For absolute certainty, we could mock the random, but matrix setup is easier.
         matrix.setChance("wolf", "rabbit", 1); 
         matrix.setChance("fox", "rabbit", 100);
         
@@ -68,7 +68,6 @@ class TrophicFeedingTest {
         cell.addAnimal(rabbit);
         
         // Step 1: Run feeding. Wolf (heavier) attacks Rabbit first.
-        // If it fails (which is 99% likely), rabbit hides.
         feedingService.run();
         
         // If rabbit survived (likely), it MUST be hiding.
@@ -77,37 +76,5 @@ class TrophicFeedingTest {
             // Fox (who acts after Wolf) should NOT have eaten the rabbit because it's hidden
             assertTrue(cell.getAnimals().contains(rabbit), "Rabbit should still be in cell because it hid from fox");
         }
-    }
-
-    @Test
-    @DisplayName("Test caterpillar protection on first tick")
-    void testCaterpillarFirstTickProtection() {
-        Cell cell = island.getCell(0, 0);
-        Duck duck = new Duck();
-        com.island.content.animals.herbivores.Caterpillar caterpillar = new com.island.content.animals.herbivores.Caterpillar();
-        
-        // Use 100% chance to remove randomness on tick 2
-        matrix.setChance("duck", "caterpillar", 100);
-        
-        cell.addAnimal(duck);
-        cell.addAnimal(caterpillar);
-        
-        // Set tick to 1
-        island.nextTick(); 
-        assertEquals(1, island.getTickCount());
-        
-        feedingService.run();
-        
-        // Caterpillar should be protected on tick 1
-        assertTrue(caterpillar.isAlive(), "Caterpillar should be protected on tick 1");
-        
-        // Move to tick 2
-        island.nextTick();
-        assertEquals(2, island.getTickCount());
-        
-        feedingService.run();
-        
-        // Now caterpillar is vulnerable and chance is 100%
-        assertFalse(caterpillar.isAlive(), "Caterpillar should be eaten on tick 2");
     }
 }

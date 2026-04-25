@@ -1,8 +1,8 @@
-package com.island.service;
+package com.island.content;
 
 import com.island.content.animals.herbivores.Rabbit;
 import com.island.content.animals.predators.Wolf;
-import com.island.engine.InteractionMatrix;
+import com.island.util.InteractionMatrix;
 import com.island.model.Cell;
 import com.island.model.Island;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,6 +15,7 @@ class FeedingServiceTest {
     private Island island;
     private InteractionMatrix matrix;
     private FeedingService service;
+    private final SpeciesConfig config = SpeciesConfig.getInstance();
 
     @BeforeEach
     void setUp() {
@@ -28,8 +29,8 @@ class FeedingServiceTest {
     @Test
     void testWolfEatsRabbit() {
         Cell cell = island.getCell(0, 0);
-        Wolf wolf = new Wolf();
-        Rabbit rabbit = new Rabbit();
+        Wolf wolf = new Wolf(config.getAnimalType("wolf"));
+        Rabbit rabbit = new Rabbit(config.getAnimalType("rabbit"));
         
         cell.addAnimal(wolf);
         cell.addAnimal(rabbit);

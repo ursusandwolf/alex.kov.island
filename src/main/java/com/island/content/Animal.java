@@ -3,10 +3,10 @@ package com.island.content;
 import lombok.Getter;
 import static com.island.config.SimulationConstants.*;
 
-// Базовый класс животных (Flyweight для AnimalType)
+// Базовый класс животных
 @Getter
-public abstract class Animal extends Organism {
-    protected final AnimalType animalType; // Общие данные вида (Flyweight)
+public abstract class Animal extends Organism implements Mobile, Consumer, Reproducible<Animal> {
+    protected final AnimalType animalType; 
     private volatile boolean isHiding = false;
 
     protected Animal(AnimalType animalType) {
@@ -17,7 +17,6 @@ public abstract class Animal extends Organism {
     public void setHiding(boolean hiding) { this.isHiding = hiding; }
 
     public boolean isProtected(int currentTick) {
-        if (currentTick == 1 && getSpeciesKey().equals("caterpillar")) return true;
         return isHiding;
     }
 
@@ -28,32 +27,32 @@ public abstract class Animal extends Organism {
 
     @Override
     public double eat() {
-        // Default implementation for animals. 
-        // Actual feeding logic is handled by FeedingService.
         return 0;
     }
 
     @Override
     public boolean move() {
         if (!canPerformAction()) return false;
-        // Energy cost depends on speed
         double moveCost = getMaxEnergy() * (BASE_MOVE_COST_PERCENT 
             + (getSpeed() * SPEED_MOVE_COST_STEP_PERCENT));
         consumeEnergy(moveCost);
         return true;
     }
 
-    @Override
-    public Animal reproduce() {
-        if (!canPerformAction()) return null;
-        // Reproduction is expensive: 30% of max energy
+    public boolean trySpendEnergyForReproduction() {
+        // Need healthy energy level to be able to reproduce
+        if (getEnergyPercentage() < REPRODUCTION_MIN_ENERGY_PERCENT) return false;
+        
         double cost = getMaxEnergy() * REPRODUCTION_COST_PERCENT;
         if (getCurrentEnergy() > cost) {
             consumeEnergy(cost);
-            return AnimalFactory.createAnimal(getSpeciesKey());
+            return true;
         }
-        return null;
+        return false;
     }
+
+    @Override
+    public abstract Animal reproduce();
 
     public boolean canEat(String preyKey) { return animalType.canEat(preyKey); }
     public int getHuntProbability(String preyKey) { return animalType.getHuntProbability(preyKey); }
@@ -62,7 +61,6 @@ public abstract class Animal extends Organism {
      * Checks if this animal eats other animals (anything except plants).
      */
     public boolean isAnimalPredator() {
-        return animalType.getHuntProbabilities().keySet().stream()
-                .anyMatch(key -> !key.equalsIgnoreCase("plant"));
+        return animalType.isPredator();
     }
 }

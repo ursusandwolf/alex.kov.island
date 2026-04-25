@@ -1,13 +1,11 @@
 package com.island.content.animals.predators;
 
 import com.island.content.Animal;
-import com.island.content.SpeciesConfig;
+import com.island.content.AnimalType;
 
-// Хищник: Волк
 public class Wolf extends Animal implements Predator {
-
-    public Wolf() {
-        super(SpeciesConfig.getInstance().getAnimalType("wolf"));
+    public Wolf(AnimalType type) {
+        super(type);
     }
 
     @Override
@@ -17,9 +15,7 @@ public class Wolf extends Animal implements Predator {
     public String getSpeciesKey() { return animalType.getSpeciesKey(); }
 
     @Override
-    public double eat() {
-        if (!isAlive()) return 0;
-        System.out.println("Волк " + getId().substring(0, 8) + " ищет добычу...");
-        return 0; // TODO: реализация охоты
+    public Wolf reproduce() {
+        return trySpendEnergyForReproduction() ? new Wolf(animalType) : null;
     }
 }

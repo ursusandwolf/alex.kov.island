@@ -25,7 +25,8 @@ public final class AnimalType {
         this.maxEnergy = foodForSaturation;
         this.huntProbabilities = (huntProbabilities != null) ? 
                 Collections.unmodifiableMap(new HashMap<>(huntProbabilities)) : Collections.emptyMap();
-        this.isPredator = !this.huntProbabilities.isEmpty();
+        this.isPredator = this.huntProbabilities.keySet().stream()
+                .anyMatch(key -> !key.equalsIgnoreCase("plant"));
     }
 
     public boolean canEat(String key) { return huntProbabilities.containsKey(key); }

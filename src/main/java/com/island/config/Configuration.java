@@ -1,10 +1,12 @@
 package com.island.config;
 
 import lombok.Getter;
+import lombok.Setter;
 import java.io.InputStream;
 import java.util.Properties;
 
 @Getter
+@Setter
 public class Configuration {
     private int islandWidth = 100;
     private int islandHeight = 20;
@@ -21,6 +23,7 @@ public class Configuration {
             // Загрузка параметров из файла
             config.islandWidth = Integer.parseInt(prop.getProperty("island.width", "100"));
             config.islandHeight = Integer.parseInt(prop.getProperty("island.height", "20"));
+            config.tickDurationMs = Integer.parseInt(prop.getProperty("island.tickDurationMs", "1000"));
         } catch (Exception e) {
             System.err.println("Ошибка загрузки конфигурации, используются значения по умолчанию: " + e.getMessage());
         }

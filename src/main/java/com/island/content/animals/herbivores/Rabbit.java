@@ -1,13 +1,11 @@
 package com.island.content.animals.herbivores;
 
 import com.island.content.Animal;
-import com.island.content.SpeciesConfig;
+import com.island.content.AnimalType;
 
-// Тип животного: Rabbit
 public class Rabbit extends Animal implements Herbivore {
-
-    public Rabbit() {
-        super(SpeciesConfig.getInstance().getAnimalType("rabbit"));
+    public Rabbit(AnimalType type) {
+        super(type);
     }
 
     @Override
@@ -17,9 +15,7 @@ public class Rabbit extends Animal implements Herbivore {
     public String getSpeciesKey() { return animalType.getSpeciesKey(); }
 
     @Override
-    public double eat() {
-        if (!isAlive()) return 0;
-        System.out.println("Животное " + getId().substring(0, 8) + " ищет еду...");
-        return 0; // TODO: реализация поиска еды
+    public Rabbit reproduce() {
+        return trySpendEnergyForReproduction() ? new Rabbit(animalType) : null;
     }
 }
