@@ -27,11 +27,18 @@ public class ConsoleView {
 
     private int lastRenderedTick = -1;
     private static final int RENDER_THROTTLE = 5;
+    private boolean silent = false;
 
     private final Map<String, LinkedList<Integer>> populationHistory = new HashMap<>();
     private static final int HISTORY_SIZE = 15;
 
+    public void setSilent(boolean silent) {
+        this.silent = silent;
+    }
+
     public void display(Island island) {
+        if (silent) return;
+        
         // Update history every render tick
         if (island.getTickCount() % RENDER_THROTTLE == 0 || lastRenderedTick == -1) {
             updateHistory(island);

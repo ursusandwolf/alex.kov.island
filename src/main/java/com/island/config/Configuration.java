@@ -1,10 +1,12 @@
 package com.island.config;
 
 import lombok.Getter;
+import lombok.Setter;
 import java.io.InputStream;
 import java.util.Properties;
 
 @Getter
+@Setter
 public class Configuration {
     private int islandWidth = 100;
     private int islandHeight = 20;

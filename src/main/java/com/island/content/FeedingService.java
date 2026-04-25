@@ -44,15 +44,10 @@ public class FeedingService implements Runnable {
     private void processCell(Cell cell) {
         List<Animal> animals = new ArrayList<>(cell.getAnimals());
         
-        // Trophic Hierarchy Sorting:
-        // 1. Predators of animals (isAnimalPredator == true) have higher priority.
-        // 2. Heavier animals have higher priority within their group.
-        animals.sort((a, b) -> {
-            if (a.isAnimalPredator() != b.isAnimalPredator()) {
-                return a.isAnimalPredator() ? -1 : 1; // Predators first
-            }
-            return Double.compare(b.getWeight(), a.getWeight()); // Then by weight descending
-        });
+        // Sorting by weight descending ensures large animals (Buffalo, Horse, Bear, Boar, Deer) 
+        // get to eat first. This prevents smaller, more numerous species (Mice, Rabbits) 
+        // from instantly exhausting the cell's biomass.
+        animals.sort((a, b) -> Double.compare(b.getWeight(), a.getWeight()));
 
         for (Animal animal : animals) {
             if (animal.isAlive()) {
@@ -99,7 +94,7 @@ public class FeedingService implements Runnable {
                 } else {
                     // Hunt failed! Prey escapes and HIDES for the rest of the tick.
                     prey.setHiding(true);
-                    double escapeCost = prey.getMaxEnergy() * 0.05; // 5% energy to escape
+                    double escapeCost = prey.getMaxEnergy() * ESCAPE_ENERGY_COST_PERCENT; 
                     prey.consumeEnergy(escapeCost);
                 }
             }

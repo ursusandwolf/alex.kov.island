@@ -4,6 +4,7 @@ import com.island.content.Animal;
 import com.island.content.AnimalFactory;
 import com.island.model.Cell;
 import com.island.model.Island;
+import static com.island.config.SimulationConstants.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,36 +22,34 @@ public class ReproductionService extends AbstractService {
 
     @Override
     protected void processCell(Cell cell) {
-        // 1. Reproduction of Animals (requires pairs)
+        // Reproduction of Animals (requires pairs)
         reproduceAnimals(cell);
-        
-        // 2. Reproduction of Plants (polymorphic behavior)
-        reproducePlants(cell);
     }
 
     private void reproduceAnimals(Cell cell) {
         List<Animal> animals = cell.getAnimals();
-        // Group animals by species
-        Map<String, List<Animal>> speciesGroups = new HashMap<>();
+        // Group animals by species AND check for reproduction health
+        Map<String, List<Animal>> readyGroups = new HashMap<>();
         for (Animal animal : animals) {
-            if (animal.isAlive()) {
-                speciesGroups.computeIfAbsent(animal.getSpeciesKey(), k -> new ArrayList<>()).add(animal);
+            // isAlive() check and trySpendEnergyForReproduction() which checks thresholds and deducts energy
+            if (animal.isAlive() && animal.trySpendEnergyForReproduction()) {
+                readyGroups.computeIfAbsent(animal.getSpeciesKey(), k -> new ArrayList<>()).add(animal);
             }
         }
 
-        for (Map.Entry<String, List<Animal>> entry : speciesGroups.entrySet()) {
+        for (Map.Entry<String, List<Animal>> entry : readyGroups.entrySet()) {
             String speciesKey = entry.getKey();
             List<Animal> group = entry.getValue();
-            int count = group.size();
+            int readyCount = group.size();
             
-            if (count >= 2) {
-                int pairs = count / 2;
+            if (readyCount >= 2) {
+                int pairs = readyCount / 2;
                 Animal representative = group.get(0);
                 int offspringPerPair = calculateOffspringCount(representative);
                 int totalOffspring = pairs * offspringPerPair;
                 
                 for (int i = 0; i < totalOffspring; i++) {
-                    Animal baby = animalFactory.createAnimal(speciesKey);
+                    Animal baby = animalFactory.createBaby(speciesKey);
                     if (baby != null) {
                         cell.addAnimal(baby);
                     }
@@ -64,35 +63,17 @@ public class ReproductionService extends AbstractService {
         int baseOffspring;
         
         if (animal.getSpeciesKey().equals("caterpillar")) {
-            baseOffspring = 4;
-        } else if (weight < 6.0) { 
-            baseOffspring = 2;
+            baseOffspring = OFFSPRING_INSECT;
+        } else if (weight < WEIGHT_THRESHOLD_SMALL) { 
+            baseOffspring = OFFSPRING_SMALL_ANIMAL;
         } else {
-            baseOffspring = 1;
+            baseOffspring = OFFSPRING_LARGE_ANIMAL;
         }
 
         if (animal instanceof com.island.content.animals.herbivores.Herbivore) {
-            baseOffspring += 1;
+            baseOffspring += HERBIVORE_OFFSPRING_BONUS;
         }
         
         return baseOffspring;
-    }
-
-    private void reproducePlants(Cell cell) {
-        List<Plant> currentPlants = cell.getPlants();
-        List<Plant> newPlants = new ArrayList<>();
-        
-        for (Plant plant : currentPlants) {
-            if (plant.isAlive()) {
-                Plant baby = plant.reproduce(); 
-                if (baby != null) {
-                    newPlants.add(baby);
-                }
-            }
-        }
-        
-        for (Plant baby : newPlants) {
-            cell.addPlant(baby);
-        }
     }
 }

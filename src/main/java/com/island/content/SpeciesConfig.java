@@ -8,6 +8,10 @@ import java.util.*;
 public final class SpeciesConfig {
     private static final SpeciesConfig INSTANCE = new SpeciesConfig();
     private final Map<String, AnimalType> animalTypes = new HashMap<>();
+    private double plantWeight;
+    private int plantMaxCount;
+    private double cabbageWeight;
+    private int cabbageMaxCount;
 
     public static SpeciesConfig getInstance() { return INSTANCE; }
 
@@ -46,6 +50,12 @@ public final class SpeciesConfig {
                 animalTypes.put(s, new AnimalType(s, s.substring(0, 1).toUpperCase() + s.substring(1), 
                                                  weight, maxPerCell, speed, food, lifespan, prey));
             }
+
+            this.plantWeight = Double.parseDouble(prop.getProperty("plant.weight", "1.0"));
+            this.plantMaxCount = Integer.parseInt(prop.getProperty("plant.maxPerCell", "200"));
+            this.cabbageWeight = Double.parseDouble(prop.getProperty("cabbage.weight", "2.0"));
+            this.cabbageMaxCount = Integer.parseInt(prop.getProperty("cabbage.maxPerCell", "100"));
+
         } catch (Exception e) {
             e.printStackTrace();
         }

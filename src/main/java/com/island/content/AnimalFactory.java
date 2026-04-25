@@ -30,11 +30,23 @@ public final class AnimalFactory {
     }
 
     public Animal createAnimal(String key) {
+        return createAnimal(key, 0.5); // Default for initial population
+    }
+
+    public Animal createBaby(String key) {
+        return createAnimal(key, 0.3); // Babies start weaker
+    }
+
+    private Animal createAnimal(String key, double energyFactor) {
         Function<AnimalType, Animal> creator = registry.get(key.toLowerCase());
         if (creator == null) return null;
         
         AnimalType type = config.getAnimalType(key);
-        return (type != null) ? creator.apply(type) : null;
+        if (type == null) return null;
+
+        Animal animal = creator.apply(type);
+        animal.setEnergyFactor(energyFactor);
+        return animal;
     }
 
     public Set<String> getRegisteredSpecies() { return registry.keySet(); }

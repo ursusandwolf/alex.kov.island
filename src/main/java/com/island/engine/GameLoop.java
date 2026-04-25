@@ -64,17 +64,25 @@ public class GameLoop {
         }
     }
 
+    public void runTick() {
+        executeTick();
+    }
+
     private void tick() {
         if (!running || taskExecutor.isShutdown()) return;
+        executeTick();
+    }
+
+    private void executeTick() {
         try {
             // Execute each major phase sequentially to maintain simulation logic,
             // but internal phase can be parallelized (e.g. movement by chunks)
             for (Runnable task : recurringTasks) {
-                if (!running || taskExecutor.isShutdown()) break;
+                if (taskExecutor.isShutdown()) break;
                 task.run();
             }
         } catch (Exception e) {
-            if (running && !taskExecutor.isShutdown()) {
+            if (!taskExecutor.isShutdown()) {
                 System.err.println("Ошибка во время такта симуляции: " + e.getMessage());
                 e.printStackTrace();
             }

@@ -72,6 +72,7 @@ public class Cell {
     public boolean addPlant(Plant plant) {
         lock.lock();
         try {
+            if (plants.size() >= 200) return false;
             if (plants.add(plant)) {
                 island.onOrganismAdded(plant.getSpeciesKey());
                 return true;

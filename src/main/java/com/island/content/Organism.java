@@ -13,9 +13,13 @@ public abstract class Organism {
     private volatile boolean isAlive;
 
     protected Organism(double maxEnergy, int maxLifespan) {
+        this(maxEnergy, maxLifespan, BABY_INITIAL_ENERGY_PERCENT / 100.0); 
+    }
+
+    protected Organism(double maxEnergy, int maxLifespan, double energyFactor) {
         this.id = UUID.randomUUID().toString();
         this.maxEnergy = maxEnergy;
-        this.currentEnergy = maxEnergy;
+        this.currentEnergy = maxEnergy * energyFactor;
         this.age = 0;
         this.maxLifespan = maxLifespan;
         this.isAlive = true;
@@ -40,12 +44,16 @@ public abstract class Organism {
 
     public boolean canOnlyEat() { 
         double e = getEnergyPercentage(); 
-        return e > 0 && e < ACTION_MIN_ENERGY_PERCENT; 
+        return e > (DEATH_EPSILON * 100) && e < ACTION_MIN_ENERGY_PERCENT; 
+    }
+
+    public void setEnergyFactor(double factor) {
+        this.currentEnergy = maxEnergy * Math.max(0.0, Math.min(1.0, factor));
     }
 
     public synchronized void consumeEnergy(double amount) {
         currentEnergy = Math.max(0, currentEnergy - amount);
-        if (currentEnergy <= 0) die();
+        if (currentEnergy < DEATH_EPSILON) die();
     }
 
     public void addEnergy(double amount) {

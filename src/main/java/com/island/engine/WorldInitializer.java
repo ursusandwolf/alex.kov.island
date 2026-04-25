@@ -68,17 +68,7 @@ public class WorldInitializer {
         }
         
         // Растения - присутствуют в каждой клетке (100% шанс)
-        int grassCount = 10 + RandomUtils.nextInt(20); // 10-30 пучков травы
-        for (int i = 0; i < grassCount; i++) {
-            cell.addPlant(new Grass());
-        }
-
-        // Капуста реже (50% клеток)
-        if (RandomUtils.nextDouble() < 0.5) { // was 0.3
-            int cabbageCount = 5 + RandomUtils.nextInt(10); // was 2-5
-            for (int i = 0; i < cabbageCount; i++) {
-                cell.addPlant(new Cabbage());
-            }
-        }
+        cell.addPlant(new Grass());
+        cell.addPlant(new Cabbage());
     }
 }

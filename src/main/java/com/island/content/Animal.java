@@ -39,8 +39,10 @@ public abstract class Animal extends Organism implements Mobile, Consumer, Repro
         return true;
     }
 
-    protected boolean trySpendEnergyForReproduction() {
-        if (!canPerformAction()) return false;
+    public boolean trySpendEnergyForReproduction() {
+        // Need healthy energy level to be able to reproduce
+        if (getEnergyPercentage() < REPRODUCTION_MIN_ENERGY_PERCENT) return false;
+        
         double cost = getMaxEnergy() * REPRODUCTION_COST_PERCENT;
         if (getCurrentEnergy() > cost) {
             consumeEnergy(cost);

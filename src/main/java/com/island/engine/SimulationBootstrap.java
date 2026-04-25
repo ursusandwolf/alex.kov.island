@@ -15,8 +15,11 @@ import com.island.view.ConsoleView;
 public class SimulationBootstrap {
 
     public SimulationContext setup() {
+        return setup(Configuration.load());
+    }
+
+    public SimulationContext setup(Configuration config) {
         // 1. Load configuration
-        Configuration config = Configuration.load();
         SpeciesConfig speciesConfig = SpeciesConfig.getInstance();
         
         // 2. Setup interaction matrix
