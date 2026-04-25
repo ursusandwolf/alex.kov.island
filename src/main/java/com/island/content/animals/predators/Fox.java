@@ -19,13 +19,6 @@ public class Fox extends Animal implements Predator {
     @Override
     public double eat() {
         if (!isAlive()) return 0;
-        System.out.println("Животное " + getId().substring(0, 8) + " ищет еду...");
         return 0; // TODO: реализация поиска еды
-    }
-
-    @Override
-    public Fox reproduce() {
-        if (!canPerformAction()) return null;
-        return null; // TODO: реализация размножения
     }
 }

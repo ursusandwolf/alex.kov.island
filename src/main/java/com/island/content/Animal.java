@@ -62,7 +62,6 @@ public abstract class Animal extends Organism {
      * Checks if this animal eats other animals (anything except plants).
      */
     public boolean isAnimalPredator() {
-        return animalType.getHuntProbabilities().keySet().stream()
-                .anyMatch(key -> !key.equalsIgnoreCase("plant"));
+        return animalType.isPredator();
     }
 }

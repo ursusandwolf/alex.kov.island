@@ -23,7 +23,7 @@ public abstract class Organism implements OrganismBehavior {
 
     public String getId() { return id; }
     public boolean isAlive() { return isAlive; }
-    public void die() { this.isAlive = false; }
+    protected void die() { this.isAlive = false; }
     public double getCurrentEnergy() { return currentEnergy; }
     public double getMaxEnergy() { return maxEnergy; }
     public int getAge() { return age; }
@@ -35,7 +35,7 @@ public abstract class Organism implements OrganismBehavior {
         return (maxEnergy == 0) ? 0 : (currentEnergy / maxEnergy) * 100.0;
     }
 
-    public void consumeEnergy(double amount) {
+    public synchronized void consumeEnergy(double amount) {
         currentEnergy = Math.max(0, currentEnergy - amount);
         if (currentEnergy <= 0) die();
     }

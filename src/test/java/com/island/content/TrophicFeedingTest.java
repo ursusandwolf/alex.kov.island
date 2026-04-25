@@ -1,4 +1,4 @@
-package com.island.service;
+package com.island.content;
 
 import com.island.content.animals.herbivores.Duck;
 import com.island.content.animals.herbivores.Rabbit;
@@ -7,6 +7,7 @@ import com.island.content.animals.predators.Wolf;
 import com.island.engine.InteractionMatrix;
 import com.island.model.Cell;
 import com.island.model.Island;
+import com.island.service.LifecycleService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -3,6 +3,7 @@ package com.island.engine;
 import com.island.config.Configuration;
 import com.island.content.SpeciesConfig;
 import com.island.model.Island;
+import com.island.content.FeedingService;
 import com.island.service.*;
 
 import java.util.Map;

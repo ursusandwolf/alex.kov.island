@@ -1,4 +1,4 @@
-package com.island.service;
+package com.island.content;
 
 import com.island.content.animals.herbivores.Rabbit;
 import com.island.content.animals.predators.Wolf;

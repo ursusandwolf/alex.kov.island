@@ -19,7 +19,6 @@ public class Wolf extends Animal implements Predator {
     @Override
     public double eat() {
         if (!isAlive()) return 0;
-        System.out.println("Волк " + getId().substring(0, 8) + " ищет добычу...");
         return 0; // TODO: реализация охоты
     }
 }
