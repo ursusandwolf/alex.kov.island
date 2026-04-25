@@ -1,16 +1,16 @@
 package com.island.content;
-import com.island.content.plants.*;
+import com.island.util.RandomUtils;import com.island.content.plants.*;
 import com.island.model.Cell;
 import com.island.model.Chunk;
 import com.island.model.Island;
-import com.island.engine.InteractionMatrix;
+import com.island.util.InteractionMatrix;
 import static com.island.config.SimulationConstants.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadLocalRandom;
+
 
 public class FeedingService implements Runnable {
     private final Island island;
@@ -89,7 +89,7 @@ public class FeedingService implements Runnable {
                     if (!predator.isAlive()) return;
                 }
 
-                if (ThreadLocalRandom.current().nextInt(100) < chance) {
+                if (RandomUtils.checkChance(chance)) {
                     // ATOMIC CHECK: Successful hunt ONLY if we can actually remove the prey from the cell.
                     if (cell.removeAnimal(prey)) {
                         prey.die(); // Ensure prey is marked as dead

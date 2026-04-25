@@ -1,10 +1,10 @@
 package com.island.model;
-
+import com.island.util.RandomUtils;
 import com.island.content.Animal;
 import com.island.content.SpeciesConfig;
 import lombok.Getter;
 import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
+
 
 // Composite: Остров состоит из ячеек
 // Factory: Создание организмов при инициализации

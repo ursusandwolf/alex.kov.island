@@ -1,5 +1,5 @@
 package com.island.service;
-
+import com.island.util.RandomUtils;
 import com.island.content.Animal;
 import com.island.engine.GameLoop;
 import com.island.model.Cell;
@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadLocalRandom;
+
 
 public class MovementService implements Runnable {
     private final Island island;
@@ -46,8 +46,8 @@ public class MovementService implements Runnable {
             
             int speed = animal.getSpeed();
             if (speed > 0) {
-                int dx = ThreadLocalRandom.current().nextInt(-speed, speed + 1);
-                int dy = ThreadLocalRandom.current().nextInt(-speed, speed + 1);
+                int dx = RandomUtils.nextInt(-speed, speed + 1);
+                int dy = RandomUtils.nextInt(-speed, speed + 1);
                 int tx = cell.getX() + dx;
                 int ty = cell.getY() + dy;
                 

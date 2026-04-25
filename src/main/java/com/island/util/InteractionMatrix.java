@@ -1,4 +1,4 @@
-package com.island.engine;
+package com.island.util;
 
 import com.island.content.AnimalType;
 import java.util.Map;

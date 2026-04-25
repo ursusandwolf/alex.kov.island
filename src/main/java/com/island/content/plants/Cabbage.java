@@ -1,10 +1,10 @@
 package com.island.content.plants;
+import com.island.util.RandomUtils;
 
-import java.util.concurrent.ThreadLocalRandom;
 
 public class Cabbage extends Plant {
     public Cabbage() {
-        super(50.0, 5.0, 0); // 50kg max per unit, 5kg growth
+        super(100.0, 20.0, 0); // 100kg max, 20kg growth (was 50/5)
     }
 
     @Override
@@ -25,8 +25,8 @@ public class Cabbage extends Plant {
 
     @Override
     public Cabbage reproduce() {
-        // Cabbage spreads with a smaller chance
-        if (canPerformAction() && ThreadLocalRandom.current().nextDouble() < 0.05) {
+        // Higher reproduction chance to resist fast consumption
+        if (canPerformAction() && RandomUtils.nextDouble() < 0.15) { // was 0.05
             return new Cabbage();
         }
         return null;

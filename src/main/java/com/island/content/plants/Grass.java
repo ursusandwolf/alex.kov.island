@@ -1,6 +1,6 @@
 package com.island.content.plants;
+import com.island.util.RandomUtils;
 
-import java.util.concurrent.ThreadLocalRandom;
 
 public class Grass extends Plant {
     public Grass() {
@@ -26,7 +26,7 @@ public class Grass extends Plant {
     @Override
     public Grass reproduce() {
         // Grass spreads with a small chance
-        if (canPerformAction() && ThreadLocalRandom.current().nextDouble() < 0.1) {
+        if (canPerformAction() && RandomUtils.nextDouble() < 0.1) {
             return new Grass();
         }
         return null;

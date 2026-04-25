@@ -1,5 +1,6 @@
 package com.island.view;
-import com.island.content.plants.*;
+import com.island.util.RandomUtils;
+import com.island.util.ViewUtils;import com.island.content.plants.*;
 import com.island.content.Animal;
 import com.island.content.plants.Plant;
 import com.island.model.Cell;
@@ -21,7 +22,7 @@ public class ConsoleView {
         ICONS.put("deer", "🦌"); ICONS.put("rabbit", "🐇"); ICONS.put("mouse", "🐁");
         ICONS.put("goat", "🐐"); ICONS.put("sheep", "🐑"); ICONS.put("boar", "🐗");
         ICONS.put("buffalo", "🐃"); ICONS.put("duck", "🦆"); ICONS.put("caterpillar", "🐛");
-        ICONS.put("plant", "🌿");
+        ICONS.put("plant", "🌿"); ICONS.put("cabbage", "🥬");
     }
 
     private int lastRenderedTick = -1;
@@ -103,7 +104,7 @@ public class ConsoleView {
         for (Map.Entry<String, Integer> entry : currentCounts.entrySet()) {
             String species = entry.getKey();
             int count = entry.getValue();
-            String graph = getSparkline(species);
+            String graph = ViewUtils.getSparkline(populationHistory.get(species), HISTORY_SIZE);
             sb.append(String.format("%s %-11s: %-5d %s  ", ICONS.get(species), species, count, graph));
             if (++col % 2 == 0) sb.append("\n");
         }
@@ -160,8 +161,8 @@ public class ConsoleView {
             int displayIndex = (lastRenderedTick / RENDER_THROTTLE) % topSpeciesList.size();
             String speciesToDisplay = topSpeciesList.get(displayIndex);
             
-            if (speciesToDisplay.equals("plant")) {
-                sb.append(GREEN).append(ICONS.get("plant")).append(RESET).append(" ");
+            if (speciesToDisplay.equals("plant") || speciesToDisplay.equals("cabbage")) {
+                sb.append(GREEN).append(ICONS.get(speciesToDisplay)).append(RESET).append(" ");
             } else {
                 sb.append(ICONS.getOrDefault(speciesToDisplay, "🐾")).append(" ");
             }

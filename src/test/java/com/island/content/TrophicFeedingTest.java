@@ -4,7 +4,7 @@ import com.island.content.animals.herbivores.Duck;
 import com.island.content.animals.herbivores.Rabbit;
 import com.island.content.animals.predators.Fox;
 import com.island.content.animals.predators.Wolf;
-import com.island.engine.InteractionMatrix;
+import com.island.util.InteractionMatrix;
 import com.island.model.Cell;
 import com.island.model.Island;
 import com.island.service.LifecycleService;

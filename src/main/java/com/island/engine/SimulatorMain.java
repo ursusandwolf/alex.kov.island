@@ -1,5 +1,5 @@
 package com.island.engine;
-
+import com.island.util.InteractionMatrix;
 import com.island.config.Configuration;
 import com.island.content.SpeciesConfig;
 import com.island.model.Island;
