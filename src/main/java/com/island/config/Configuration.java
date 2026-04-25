@@ -21,6 +21,7 @@ public class Configuration {
             // Загрузка параметров из файла
             config.islandWidth = Integer.parseInt(prop.getProperty("island.width", "100"));
             config.islandHeight = Integer.parseInt(prop.getProperty("island.height", "20"));
+            config.tickDurationMs = Integer.parseInt(prop.getProperty("island.tickDurationMs", "1000"));
         } catch (Exception e) {
             System.err.println("Ошибка загрузки конфигурации, используются значения по умолчанию: " + e.getMessage());
         }

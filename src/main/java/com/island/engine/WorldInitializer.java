@@ -3,6 +3,7 @@ package com.island.engine;
 import com.island.content.Animal;
 import com.island.content.AnimalFactory;
 import com.island.content.AnimalType;
+import com.island.content.BasicPlant;
 import com.island.content.SpeciesConfig;
 import com.island.content.Plant;
 import com.island.model.Chunk;
@@ -38,24 +39,25 @@ public class WorldInitializer {
     }
 
     private void initializeCell(Cell cell, SpeciesConfig config) {
-        // Заселяем каждый вид ~10% от максимальной популяции
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        
+        // Заселяем виды вероятностно для создания кластеров и разнообразия
         for (String species : AnimalFactory.getRegisteredSpecies()) {
             AnimalType type = config.getAnimalType(species);
-            if (type != null) {
+            if (type == null) continue;
+
+            // Вероятность присутствия вида в данной клетке
+            // Хищники встречаются реже, травоядные чаще
+            double presenceProbability = type.isPredator() ? 0.3 : 0.6;
+            
+            if (random.nextDouble() < presenceProbability) {
                 int maxPerCell = type.getMaxPerCell();
-                // Гарантируем в среднем 10% популяции, но не ниже 5% шанса на 1 особь
-                double target = maxPerCell * 0.1;
-                int count = (int) target;
-                double chanceForExtra = target - count;
+                // Заселяем от 2% до 15% от максимума
+                double settlementRate = 0.02 + (random.nextDouble() * 0.13);
+                int count = (int) (maxPerCell * settlementRate);
                 
-                // Если по расчету должно быть 0, устанавливаем минимальный порог 5%
-                if (count == 0) {
-                    chanceForExtra = Math.max(chanceForExtra, 0.05);
-                }
-                
-                if (ThreadLocalRandom.current().nextDouble() < chanceForExtra) {
-                    count++;
-                }
+                // Гарантируем хотя бы 1 особь если вид "присутствует"
+                count = Math.max(count, 1);
                 
                 for (int i = 0; i < count; i++) {
                     Animal a = AnimalFactory.createAnimal(species);
@@ -64,21 +66,12 @@ public class WorldInitializer {
             }
         }
         
-        // Растения - 10% от максимума (200 * 0.1 = 20)
-        int plantCount = 20;
-        for (int i = 0; i < plantCount; i++) {
-            cell.addPlant(new Plant(1.0, 1.0, 0) {
-                @Override public String getTypeName() { return "Plant"; }
-                @Override public String getSpeciesKey() { return "plant"; }
-                @Override public Plant reproduce() {
-                    return (ThreadLocalRandom.current().nextDouble() < 0.1) ? 
-                        new Plant(maxBiomass, growthRate, 0) {
-                            @Override public String getTypeName() { return "Plant"; }
-                            @Override public String getSpeciesKey() { return "plant"; }
-                            @Override public Plant reproduce() { return super.reproduce(); }
-                        } : null;
-                }
-            });
+        // Растения - присутствуют почти везде (90% клеток)
+        if (random.nextDouble() < 0.9) {
+            int plantCount = 5 + random.nextInt(30); // 5-35 растений
+            for (int i = 0; i < plantCount; i++) {
+                cell.addPlant(new BasicPlant());
+            }
         }
     }
 }

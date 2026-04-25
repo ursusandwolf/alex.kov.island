@@ -79,36 +79,4 @@ class TrophicFeedingTest {
             assertTrue(cell.getAnimals().contains(rabbit), "Rabbit should still be in cell because it hid from fox");
         }
     }
-
-    @Test
-    @DisplayName("Test caterpillar protection on first tick")
-    void testCaterpillarFirstTickProtection() {
-        Cell cell = island.getCell(0, 0);
-        Duck duck = new Duck();
-        com.island.content.animals.herbivores.Caterpillar caterpillar = new com.island.content.animals.herbivores.Caterpillar();
-        
-        // Use 100% chance to remove randomness on tick 2
-        matrix.setChance("duck", "caterpillar", 100);
-        
-        cell.addAnimal(duck);
-        cell.addAnimal(caterpillar);
-        
-        // Set tick to 1
-        island.nextTick(); 
-        assertEquals(1, island.getTickCount());
-        
-        feedingService.run();
-        
-        // Caterpillar should be protected on tick 1
-        assertTrue(caterpillar.isAlive(), "Caterpillar should be protected on tick 1");
-        
-        // Move to tick 2
-        island.nextTick();
-        assertEquals(2, island.getTickCount());
-        
-        feedingService.run();
-        
-        // Now caterpillar is vulnerable and chance is 100%
-        assertFalse(caterpillar.isAlive(), "Caterpillar should be eaten on tick 2");
-    }
 }

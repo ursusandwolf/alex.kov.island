@@ -14,8 +14,13 @@ public class GameLoop {
 
     public GameLoop(int tickDurationMs) {
         this.tickDurationMs = tickDurationMs;
-        // Use available processors for parallel task execution
-        this.taskExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        // Use fixed thread pool to avoid constant thread creation/destruction
+        this.taskExecutor = new ThreadPoolExecutor(
+            Runtime.getRuntime().availableProcessors(),
+            Runtime.getRuntime().availableProcessors(),
+            0L, TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<>()
+        );
     }
 
     public void addRecurringTask(Runnable task) {

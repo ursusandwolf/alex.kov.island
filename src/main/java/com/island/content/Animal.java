@@ -17,7 +17,6 @@ public abstract class Animal extends Organism {
     public void setHiding(boolean hiding) { this.isHiding = hiding; }
 
     public boolean isProtected(int currentTick) {
-        if (currentTick == 1 && getSpeciesKey().equals("caterpillar")) return true;
         return isHiding;
     }
 

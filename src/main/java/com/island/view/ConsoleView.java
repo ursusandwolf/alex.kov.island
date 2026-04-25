@@ -6,7 +6,6 @@ import com.island.model.Cell;
 import com.island.model.Island;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class ConsoleView {
     private static final String RESET = "\u001B[0m";
@@ -15,7 +14,6 @@ public class ConsoleView {
     private static final String CYAN = "\u001B[36m";
 
     private static final Map<String, String> ICONS = new HashMap<>();
-    private static final Map<String, Integer> DISPLAY_PRIORITY = new HashMap<>();
 
     static {
         ICONS.put("wolf", "🐺"); ICONS.put("boa", "🐍"); ICONS.put("fox", "🦊");
@@ -24,26 +22,18 @@ public class ConsoleView {
         ICONS.put("goat", "🐐"); ICONS.put("sheep", "🐑"); ICONS.put("boar", "🐗");
         ICONS.put("buffalo", "🐃"); ICONS.put("duck", "🦆"); ICONS.put("caterpillar", "🐛");
         ICONS.put("plant", "🌿");
-
-        DISPLAY_PRIORITY.put("bear", 100);
-        DISPLAY_PRIORITY.put("wolf", 90);
-        DISPLAY_PRIORITY.put("boa", 80);
-        DISPLAY_PRIORITY.put("eagle", 70);
-        DISPLAY_PRIORITY.put("fox", 60);
-        DISPLAY_PRIORITY.put("buffalo", 55);
-        DISPLAY_PRIORITY.put("horse", 50);
-        DISPLAY_PRIORITY.put("deer", 45);
-        DISPLAY_PRIORITY.put("boar", 40);
-        DISPLAY_PRIORITY.put("sheep", 35);
-        DISPLAY_PRIORITY.put("goat", 30);
-        DISPLAY_PRIORITY.put("rabbit", 25);
-        DISPLAY_PRIORITY.put("duck", 20);
-        DISPLAY_PRIORITY.put("mouse", 10);
-        DISPLAY_PRIORITY.put("caterpillar", 5);
-        DISPLAY_PRIORITY.put("plant", 1);
     }
 
+    private int lastRenderedTick = -1;
+    private static final int RENDER_THROTTLE = 5;
+
     public void display(Island island) {
+        // Only update UI every RENDER_THROTTLE ticks to reduce flicker and make events more visible
+        if (island.getTickCount() > 0 && island.getTickCount() % RENDER_THROTTLE != 0 && island.getTickCount() != lastRenderedTick + 1) {
+            if (lastRenderedTick != -1) return; 
+        }
+        lastRenderedTick = island.getTickCount();
+
         StringBuilder sb = new StringBuilder();
         sb.append("\033[H"); 
         
@@ -71,63 +61,64 @@ public class ConsoleView {
         if (col % 4 != 0) sb.append("\n");
 
         sb.append("-".repeat(60)).append("\n");
-        sb.append(YELLOW).append("Map View (8x8) [2x2 icons per cell]:").append(RESET).append("\n");
+        sb.append(YELLOW).append("Map View:").append(RESET).append("\n");
         
         int midX = island.getWidth() / 2;
         int midY = island.getHeight() / 2;
 
         for (int y = 0; y < island.getHeight(); y++) {
             if (y > 0 && y == midY) {
-                sb.append("=".repeat(island.getWidth() * 7 + 2)).append("\n");
+                sb.append("---".repeat(island.getWidth() + 1)).append("\n");
             }
-            
-            StringBuilder topLine = new StringBuilder();
-            StringBuilder bottomLine = new StringBuilder();
-
             for (int x = 0; x < island.getWidth(); x++) {
                 if (x > 0 && x == midX) {
-                    topLine.append("║ ");
-                    bottomLine.append("║ ");
+                    sb.append("| ");
                 }
-                
-                String[] icons = getCellIcons(island.getCell(x, y));
-                topLine.append("[").append(icons[0]).append(icons[1]).append("] ");
-                bottomLine.append("[").append(icons[2]).append(icons[3]).append("] ");
+                renderCell(sb, island.getCell(x, y));
             }
-            sb.append(topLine).append("\n").append(bottomLine).append("\n");
+            sb.append("\n");
         }
         
         System.out.print(sb.toString());
         System.out.flush();
     }
 
-    private String[] getCellIcons(Cell cell) {
-        Set<String> species = cell.getAnimals().stream()
-                .filter(Animal::isAlive)
-                .map(Animal::getSpeciesKey)
-                .collect(Collectors.toSet());
-
-        List<String> sorted = new ArrayList<>(species);
-        sorted.sort((s1, s2) -> DISPLAY_PRIORITY.getOrDefault(s2, 0) - DISPLAY_PRIORITY.getOrDefault(s1, 0));
-
-        String[] result = new String[4];
-        int iconsFound = 0;
+    private void renderCell(StringBuilder sb, Cell cell) {
+        // Calculate total biomass per species in this cell
+        Map<String, Double> biomassMap = new HashMap<>();
         
-        for (int i = 0; i < Math.min(sorted.size(), 4); i++) {
-            result[iconsFound++] = ICONS.get(sorted.get(i));
+        for (Animal a : cell.getAnimals()) {
+            if (a.isAlive()) {
+                biomassMap.put(a.getSpeciesKey(), 
+                    biomassMap.getOrDefault(a.getSpeciesKey(), 0.0) + a.getWeight());
+            }
         }
 
-        if (iconsFound < 4 && cell.getPlants().stream().anyMatch(Plant::isAlive)) {
-            result[iconsFound++] = GREEN + ICONS.get("plant") + RESET;
+        // Add plants to biomass if applicable
+        long alivePlants = cell.getPlants().stream().filter(Plant::isAlive).count();
+        if (alivePlants > 0) {
+            biomassMap.put("plant", alivePlants * 1.0); // 1kg per plant
         }
 
-        while (iconsFound < 4) {
-            result[iconsFound++] = ". ";
+        if (!biomassMap.isEmpty()) {
+            // Get top 3 species by biomass
+            List<String> topSpeciesList = biomassMap.entrySet().stream()
+                    .sorted((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()))
+                    .limit(3)
+                    .map(Map.Entry::getKey)
+                    .toList();
+            
+            // Cycle through the top species based on the current tick
+            int displayIndex = (lastRenderedTick / RENDER_THROTTLE) % topSpeciesList.size();
+            String speciesToDisplay = topSpeciesList.get(displayIndex);
+            
+            if (speciesToDisplay.equals("plant")) {
+                sb.append(GREEN).append(ICONS.get("plant")).append(RESET).append(" ");
+            } else {
+                sb.append(ICONS.getOrDefault(speciesToDisplay, "🐾")).append(" ");
+            }
+        } else {
+            sb.append(". ");
         }
-        
-        // Ensure all strings are 2-char wide (emojis are usually 2-char wide in terminal representation)
-        // But in Java string they are often 1 or 2 surrogates. 
-        // Most emojis like 🐺 are 1 char in length but 2 columns wide.
-        return result;
     }
 }
