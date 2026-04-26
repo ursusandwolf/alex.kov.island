@@ -56,6 +56,11 @@ public abstract class Organism {
         if (currentEnergy < DEATH_EPSILON) die();
     }
 
+    public void setEnergy(double energy) {
+        this.currentEnergy = Math.min(energy, maxEnergy);
+        if (this.currentEnergy < DEATH_EPSILON) die();
+    }
+
     public void addEnergy(double amount) {
         currentEnergy = Math.min(maxEnergy, currentEnergy + amount);
     }

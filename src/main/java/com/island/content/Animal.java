@@ -14,6 +14,11 @@ public abstract class Animal extends Organism implements Mobile, Consumer, Repro
         this.animalType = animalType;
     }
 
+    public boolean canInitiateReproduction() {
+        // Minimum energy to even consider mating (e.g. 70%)
+        return isAlive() && getEnergyPercentage() >= REPRODUCTION_MIN_ENERGY_PERCENT;
+    }
+
     public void setHiding(boolean hiding) { this.isHiding = hiding; }
 
     public boolean isProtected(int currentTick) {

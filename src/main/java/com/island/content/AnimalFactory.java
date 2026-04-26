@@ -30,11 +30,19 @@ public final class AnimalFactory {
     }
 
     public Animal createAnimal(String key) {
-        return createAnimal(key, 0.5); // Default for initial population
+        return createAnimal(key, 0.5); 
+    }
+
+    public Animal createAnimalWithEnergy(String key, double energy) {
+        Animal animal = createAnimal(key, 1.0); // Create with max energy base
+        if (animal != null) {
+            animal.setEnergy(energy);
+        }
+        return animal;
     }
 
     public Animal createBaby(String key) {
-        return createAnimal(key, 0.3); // Babies start weaker
+        return createAnimal(key, 0.3); 
     }
 
     private Animal createAnimal(String key, double energyFactor) {
