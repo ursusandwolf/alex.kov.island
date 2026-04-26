@@ -90,6 +90,10 @@ public abstract class Organism {
         return currentEnergy < DEATH_EPSILON;
     }
 
+    public boolean isHibernating() {
+        return false;
+    }
+
     public double getWeight() { return 1.0; } // Default weight
 
     /**

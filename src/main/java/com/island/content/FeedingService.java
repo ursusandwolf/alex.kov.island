@@ -75,7 +75,7 @@ public class FeedingService implements Runnable {
 
         for (int i = 0; i < predators.size(); i++) {
             Animal predator = predators.get(i);
-            if (predator.isAlive()) {
+            if (predator.isAlive() && !predator.isHibernating()) {
                 tryEat(predator, cell, preyProvider, protectionMap);
             }
         }
@@ -121,9 +121,13 @@ public class FeedingService implements Runnable {
                     totalEffort *= Math.pow(HUNT_FATIGUE_COST_MULTIPLIER, extraBlocks);
                 }
 
-                // Efficiency Check: use original chance from matrix
+                // --- Strict Efficiency (ROI) Check ---
+                // Expected profit must be at least 10% higher than effort to justify the risk.
+                // Formula: (PreyWeight * SuccessChance) >= (TotalEffort * 1.1)
                 double expectedGain = preyWeight * (chance / 100.0);
-                if (expectedGain < totalEffort && predator.getEnergyPercentage() > 40) continue;
+                if (expectedGain < totalEffort * 1.1) {
+                    continue; // "Not worth the risk": skip this prey
+                }
 
                 predator.consumeEnergy(totalEffort);
                 if (!predator.isAlive()) return; // Stop if dead or energy exhausted

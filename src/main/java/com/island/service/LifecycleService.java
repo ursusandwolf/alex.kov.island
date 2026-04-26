@@ -30,7 +30,9 @@ public class LifecycleService extends AbstractService {
                 }
 
                 // 2. Consume Metabolism Energy (Kleiber's Law)
-                animal.consumeEnergy(animal.getMaxEnergy() * animal.getDynamicMetabolismRate());
+                if (!animal.isHibernating()) {
+                    animal.consumeEnergy(animal.getMaxEnergy() * animal.getDynamicMetabolismRate());
+                }
                 
                 // 3. Check Hunger Death
                 if (!animal.isAlive() && animal.isStarving()) {

@@ -49,13 +49,24 @@ public class WorldInitializer {
             if (type == null) continue;
 
             // Вероятность присутствия вида в данной клетке
-            // Повышаем вероятность для всех видов для более плотного старта
-            double presenceProbability = type.isPredator() ? 0.5 : 0.8;
+            double presenceProbability = type.isPredator() ? 0.4 : 0.8;
+            
+            // Специальное снижение для топ-хищников
+            if (species.equals("bear") || species.equals("wolf")) {
+                presenceProbability = 0.15; // Only 15% cells will have them initially
+            }
             
             if (RandomUtils.nextDouble() < presenceProbability) {
                 int maxPerCell = type.getMaxPerCell();
-                // Заселяем от 10% до 35% от максимума (вместо 2-15%)
+                
+                // Заселяем от 10% до 35% от максимума
                 double settlementRate = 0.10 + (RandomUtils.nextDouble() * 0.25);
+                
+                // Для медведей и волков снижаем еще и плотность в ячейке
+                if (species.equals("bear") || species.equals("wolf")) {
+                    settlementRate = 0.05 + (RandomUtils.nextDouble() * 0.05); // 5-10%
+                }
+                
                 int count = (int) (maxPerCell * settlementRate);
                 
                 // Гарантируем хотя бы 1 особь если вид "присутствует"

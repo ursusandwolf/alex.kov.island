@@ -11,17 +11,17 @@ public final class SimulationConstants {
     public static double PREDATOR_SPEED_HUNT_COST_STEP_PERCENT = 0.005; 
     public static double PREY_RELATIVE_SPEED_HUNT_COST_STEP_PERCENT = 0.05; // Increased penalty for speed diff
     
-    public static double BASE_METABOLISM_PERCENT = 0.01; // Reduced to 1.0%
+    public static double BASE_METABOLISM_PERCENT = 0.015; // Adjusted to 1.5%
     
     // Metabolism Step Modifiers
     public static double METABOLISM_MODIFIER_TINY = 1.20; 
     public static double METABOLISM_MODIFIER_MEDIUM = 1.00; 
     public static double METABOLISM_MODIFIER_LARGE = 0.80; 
-    public static double HERBIVORE_METABOLISM_MODIFIER = 0.80; // 20% less energy burned for herbivores 
+    public static double HERBIVORE_METABOLISM_MODIFIER = 0.80; 
 
     // Hunt Fatigue Constants
-    public static int HUNT_FATIGUE_THRESHOLD = 10; 
-    public static double HUNT_FATIGUE_COST_MULTIPLIER = 1.5; 
+    public static int HUNT_FATIGUE_THRESHOLD = 5; // Reduced from 10: Predators tire 2x faster
+    public static double HUNT_FATIGUE_COST_MULTIPLIER = 1.3; // +30% cost per block 
     
     // Thresholds
     public static double ACTION_MIN_ENERGY_PERCENT = 15.0; 
