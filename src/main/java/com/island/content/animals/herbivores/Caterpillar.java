@@ -9,18 +9,9 @@ import com.island.content.SpeciesConfig;
  */
 public class Caterpillar extends Plant {
     public Caterpillar() {
-        super(SpeciesConfig.getInstance().getAnimalType("caterpillar").getWeight() * 
+        super("Caterpillar", "caterpillar",
+              SpeciesConfig.getInstance().getAnimalType("caterpillar").getWeight() * 
               SpeciesConfig.getInstance().getAnimalType("caterpillar").getMaxPerCell());
-    }
-
-    @Override
-    public String getTypeName() {
-        return "Caterpillar";
-    }
-
-    @Override
-    public String getSpeciesKey() {
-        return "caterpillar";
     }
 
     /**

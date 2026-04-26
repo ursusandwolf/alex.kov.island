@@ -9,12 +9,6 @@ public class Eagle extends Animal implements Predator {
     }
 
     @Override
-    public String getTypeName() { return animalType.getTypeName(); }
-
-    @Override
-    public String getSpeciesKey() { return animalType.getSpeciesKey(); }
-
-    @Override
     public Eagle reproduce() {
         return trySpendEnergyForReproduction() ? new Eagle(animalType) : null;
     }

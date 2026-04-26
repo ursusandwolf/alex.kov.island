@@ -29,6 +29,8 @@ public class FeedingService implements Runnable {
 
     @Override
     public void run() {
+        if (executor.isShutdown()) return;
+
         // Centralized: calculate protection map once per tick
         Map<String, Double> protectionMap = island.getProtectionMap(speciesConfig);
 
@@ -42,7 +44,11 @@ public class FeedingService implements Runnable {
             });
         }
         try {
-            executor.invokeAll(tasks);
+            if (!executor.isShutdown()) {
+                executor.invokeAll(tasks);
+            }
+        } catch (java.util.concurrent.RejectedExecutionException e) {
+            // Ignore shutdown races
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }

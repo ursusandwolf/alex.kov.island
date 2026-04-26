@@ -1,14 +1,14 @@
 package com.island.model;
-import com.island.content.plants.*;
+
 import com.island.content.Animal;
 import com.island.content.plants.Plant;
-import lombok.Getter;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
-@Getter
+/**
+ * Represents a single cell on the island grid.
+ */
 public class Cell {
     private final int x, y;
     private final Island island;
@@ -21,6 +21,11 @@ public class Cell {
         this.y = y; 
         this.island = island;
     }
+
+    public int getX() { return x; }
+    public int getY() { return y; }
+    public Island getIsland() { return island; }
+    public ReentrantLock getLock() { return lock; }
 
     public String getCoordinates() { return x + "," + y; }
 
@@ -53,11 +58,7 @@ public class Cell {
         } finally { lock.unlock(); }
     }
 
-    public List<Animal> getAnimals() { 
-        // Returning a direct reference is dangerous but fast. 
-        // For performance, we use a synchronized copy ONLY when needed by services.
-        return animals; 
-    }
+    public List<Animal> getAnimals() { return animals; }
 
     public List<Animal> getAnimalsBySpecies(String key) {
         lock.lock();
@@ -81,14 +82,11 @@ public class Cell {
         } finally { lock.unlock(); }
     }
 
-    public int getAnimalCount() { 
-        return animals.size(); 
-    }
+    public int getAnimalCount() { return animals.size(); }
 
     public boolean addPlant(Plant plant) {
         lock.lock();
         try {
-            // In the container model, we usually have only one plant object per type in a cell
             if (plants.add(plant)) {
                 return true;
             }
@@ -121,8 +119,6 @@ public class Cell {
                     animals.remove(i);
                 }
             }
-            // Plants are containers and "root systems" are immortal, 
-            // so we don't remove them here, just update their biomass logic
         } finally { lock.unlock(); }
     }
 

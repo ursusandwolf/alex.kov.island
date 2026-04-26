@@ -1,10 +1,10 @@
 package com.island.content;
 
-import lombok.Getter;
 import java.util.*;
 
-// Flyweight: общие данные вида (интринсивное состояние)
-@Getter
+/**
+ * Flyweight: common data for a species.
+ */
 public final class AnimalType {
     private final String speciesKey, typeName;
     private final double weight, foodForSaturation, maxEnergy;
@@ -28,6 +28,16 @@ public final class AnimalType {
         this.isPredator = this.huntProbabilities.keySet().stream()
                 .anyMatch(key -> !key.equalsIgnoreCase("plant"));
     }
+
+    public String getSpeciesKey() { return speciesKey; }
+    public String getTypeName() { return typeName; }
+    public double getWeight() { return weight; }
+    public double getFoodForSaturation() { return foodForSaturation; }
+    public double getMaxEnergy() { return maxEnergy; }
+    public int getMaxPerCell() { return maxPerCell; }
+    public int getSpeed() { return speed; }
+    public int getMaxLifespan() { return maxLifespan; }
+    public boolean isPredator() { return isPredator; }
 
     public boolean canEat(String key) { return huntProbabilities.containsKey(key); }
     public int getHuntProbability(String key) { return huntProbabilities.getOrDefault(key, 0); }

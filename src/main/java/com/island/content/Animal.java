@@ -3,33 +3,40 @@ package com.island.content;
 import lombok.Getter;
 import static com.island.config.SimulationConstants.*;
 
-// Базовый класс животных
-@Getter
+/**
+ * Base class for all animals in the simulation.
+ */
 public abstract class Animal extends Organism implements Mobile, Consumer, Reproducible<Animal> {
     protected final AnimalType animalType; 
-    private volatile boolean isHiding = false;
 
     protected Animal(AnimalType animalType) {
         super(animalType.getMaxEnergy(), animalType.getMaxLifespan());
         this.animalType = animalType;
     }
-public boolean canInitiateReproduction() {
-    // Minimum energy to even consider mating (e.g. 70%)
-    return isAlive() && getEnergyPercentage() >= REPRODUCTION_MIN_ENERGY_PERCENT;
-}
 
-public boolean isProtected(int currentTick) {
-    return isHiding;
-}
+    @Override
+    public String getTypeName() { return animalType.getTypeName(); }
+
+    @Override
+    public String getSpeciesKey() { return animalType.getSpeciesKey(); }
+
+    public AnimalType getAnimalType() { return animalType; }
+
+    public boolean canInitiateReproduction() {
+        return isAlive() && getEnergyPercentage() >= REPRODUCTION_MIN_ENERGY_PERCENT;
+    }
+
+    public boolean isProtected(int currentTick) {
+        return isHiding;
+    }
+
     public double getWeight() { return animalType.getWeight(); }
     public int getMaxPerCell() { return animalType.getMaxPerCell(); }
     public int getSpeed() { return animalType.getSpeed(); }
     public double getFoodForSaturation() { return animalType.getFoodForSaturation(); }
 
     @Override
-    public double eat() {
-        return 0;
-    }
+    public double eat() { return 0; }
 
     @Override
     public boolean move() {
@@ -41,9 +48,7 @@ public boolean isProtected(int currentTick) {
     }
 
     public boolean trySpendEnergyForReproduction() {
-        // Need healthy energy level to be able to reproduce
         if (getEnergyPercentage() < REPRODUCTION_MIN_ENERGY_PERCENT) return false;
-        
         double cost = getMaxEnergy() * REPRODUCTION_COST_PERCENT;
         if (getCurrentEnergy() > cost) {
             consumeEnergy(cost);
@@ -55,14 +60,9 @@ public boolean isProtected(int currentTick) {
     @Override
     public abstract Animal reproduce();
 
-    public abstract String getSpeciesKey();
-
     public boolean canEat(String preyKey) { return animalType.canEat(preyKey); }
     public int getHuntProbability(String preyKey) { return animalType.getHuntProbability(preyKey); }
 
-    /**
-     * Checks if this animal eats other animals (anything except plants).
-     */
     public boolean isAnimalPredator() {
         return animalType.isPredator();
     }

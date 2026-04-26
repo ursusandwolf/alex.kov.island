@@ -3,9 +3,10 @@ package com.island.engine;
 import com.island.content.SpeciesConfig;
 import com.island.model.Island;
 import com.island.view.ConsoleView;
-import lombok.Getter;
 
-@Getter
+/**
+ * Holder for core simulation components.
+ */
 public class SimulationContext {
     private final Island island;
     private final GameLoop gameLoop;
@@ -18,4 +19,9 @@ public class SimulationContext {
         this.speciesConfig = speciesConfig;
         this.consoleView = consoleView;
     }
+
+    public Island getIsland() { return island; }
+    public GameLoop getGameLoop() { return gameLoop; }
+    public SpeciesConfig getSpeciesConfig() { return speciesConfig; }
+    public ConsoleView getConsoleView() { return consoleView; }
 }

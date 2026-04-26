@@ -1,18 +1,17 @@
 package com.island.model;
-import com.island.util.RandomUtils;
+
 import com.island.content.Animal;
 import com.island.content.AnimalType;
 import com.island.content.SpeciesConfig;
 import com.island.content.plants.Plant;
-import lombok.Getter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-
-// Composite: Остров состоит из ячеек
-@Getter
+/**
+ * Composite: Island consists of cells.
+ */
 public class Island {
     private final int width, height;
     private final Cell[][] grid;
@@ -32,6 +31,12 @@ public class Island {
         initializeGrid();
         partitionIntoChunks();
     }
+
+    public int getWidth() { return width; }
+    public int getHeight() { return height; }
+    public Cell[][] getGrid() { return grid; }
+    public List<Chunk> getChunks() { return chunks; }
+    public int getTickCount() { return tickCount; }
 
     public void setRedBookProtectionEnabled(boolean enabled) {
         this.redBookProtectionEnabled = enabled;
@@ -54,10 +59,9 @@ public class Island {
             int currentCount = getSpeciesCount(key);
             int globalCapacity = islandArea * type.getMaxPerCell();
             
-            double threshold = globalCapacity * 0.05; // Lower to 5%
+            double threshold = globalCapacity * 0.05; 
             if (currentCount > 0 && currentCount < threshold) {
                 double ratio = (double) currentCount / threshold;
-                // Probability: 30% to 60%
                 double hideChance = 0.60 - (ratio * 0.30);
                 protectionMap.put(key, hideChance);
             }
@@ -113,10 +117,6 @@ public class Island {
         eatenAnimals.set(0);
     }
 
-    public int getTickCount() {
-        return tickCount;
-    }
-
     private void initializeGrid() {
         for (int x = 0; x < width; x++)
             for (int y = 0; y < height; y++)
@@ -124,7 +124,6 @@ public class Island {
     }
 
     private void partitionIntoChunks() {
-        // Split island into 4 chunks (2x2 grid)
         int midX = width / 2;
         int midY = height / 2;
 
@@ -190,20 +189,13 @@ public class Island {
         }
     }
 
-    public void initializeWorld(SpeciesConfig config) {
-        // TODO: Инициализация мира
-    }
-
     public Map<String, Integer> getSpeciesCounts() {
         Map<String, Integer> counts = new HashMap<>();
-        
-        // Add animal counts
         for (Map.Entry<String, AtomicInteger> entry : speciesCounts.entrySet()) {
             int count = entry.getValue().get();
             if (count > 0) counts.put(entry.getKey(), count);
         }
 
-        // Add plant/caterpillar biomass units from all cells
         double totalPlant = 0;
         double totalCabbage = 0;
         double totalCaterpillar = 0;
@@ -226,7 +218,6 @@ public class Island {
 
     public int getTotalOrganismCount() {
         int animalTotal = speciesCounts.values().stream().mapToInt(AtomicInteger::get).sum();
-        
         double plantTotal = 0;
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {

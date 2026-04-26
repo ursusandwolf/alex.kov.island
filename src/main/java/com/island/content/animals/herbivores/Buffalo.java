@@ -9,12 +9,6 @@ public class Buffalo extends Animal implements Herbivore {
     }
 
     @Override
-    public String getTypeName() { return animalType.getTypeName(); }
-
-    @Override
-    public String getSpeciesKey() { return animalType.getSpeciesKey(); }
-
-    @Override
     public Buffalo reproduce() {
         return trySpendEnergyForReproduction() ? new Buffalo(animalType) : null;
     }

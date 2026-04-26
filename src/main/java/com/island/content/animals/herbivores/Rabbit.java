@@ -9,12 +9,6 @@ public class Rabbit extends Animal implements Herbivore {
     }
 
     @Override
-    public String getTypeName() { return animalType.getTypeName(); }
-
-    @Override
-    public String getSpeciesKey() { return animalType.getSpeciesKey(); }
-
-    @Override
     public Rabbit reproduce() {
         return trySpendEnergyForReproduction() ? new Rabbit(animalType) : null;
     }
