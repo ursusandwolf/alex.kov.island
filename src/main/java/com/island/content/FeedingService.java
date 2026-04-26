@@ -62,12 +62,8 @@ public class FeedingService implements Runnable {
     }
 
     private void tryEat(Animal predator, Cell cell, PreyProvider preyProvider) {
-        // Base hunting cost
-        double huntEffortCost = predator.getMaxEnergy() * (BASE_HUNT_COST_PERCENT 
-            + (predator.getSpeed() * PREDATOR_SPEED_HUNT_COST_STEP_PERCENT));
-        predator.consumeEnergy(huntEffortCost);
-
-        if (!predator.isAlive()) return;
+        // Upfront search cost is removed to avoid "absurd" losses on small prey.
+        // Predators now pay per attempt based on prey size and difficulty.
 
         // Try hunting animals provided by the mediator
         for (Animal prey : preyProvider.getPreyFor(predator)) {
@@ -75,13 +71,27 @@ public class FeedingService implements Runnable {
 
             int chance = interactionMatrix.getChance(predator.getSpeciesKey(), prey.getSpeciesKey());
             if (chance > 0) {
-                // Relative speed logic
+                // 1. Strike effort: Proportional to prey size, but capped.
+                // Ensures that hunting a mouse doesn't cost a bear more than the mouse weighs.
+                double strikeCost = Math.min(prey.getWeight() * 0.1, predator.getMaxEnergy() * 0.005);
+                
+                // 2. Relative speed logic (Chase cost)
+                double chaseCost = 0;
                 int speedDifference = prey.getSpeed() - predator.getSpeed();
                 if (speedDifference > 0) {
-                    double chaseCost = predator.getMaxEnergy() * (speedDifference * PREY_RELATIVE_SPEED_HUNT_COST_STEP_PERCENT);
-                    predator.consumeEnergy(chaseCost);
-                    if (!predator.isAlive()) return;
+                    chaseCost = predator.getMaxEnergy() * (speedDifference * PREY_RELATIVE_SPEED_HUNT_COST_STEP_PERCENT);
                 }
+
+                double totalEffort = strikeCost + chaseCost;
+
+                // 3. Efficiency Check: Don't hunt if expected gain < effort
+                double expectedGain = prey.getWeight() * (chance / 100.0);
+                if (expectedGain < totalEffort && predator.getEnergyPercentage() > 40) {
+                    continue; // Skip unprofitable prey unless desperate
+                }
+
+                predator.consumeEnergy(totalEffort);
+                if (!predator.isAlive()) return;
 
                 if (RandomUtils.checkChance(chance)) {
                     if (cell.removeAnimal(prey)) {
@@ -91,7 +101,7 @@ public class FeedingService implements Runnable {
                         
                         // Check if satiated
                         if (predator.getCurrentEnergy() >= predator.getFoodForSaturation()) {
-                            return; // Predator is full, stop hunting
+                            return; 
                         }
                     }
                 } else {
