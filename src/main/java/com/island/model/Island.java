@@ -21,6 +21,8 @@ public class Island {
     private boolean redBookProtectionEnabled = true;
     
     private final Map<String, AtomicInteger> speciesCounts = new ConcurrentHashMap<>();
+    private final AtomicInteger hungerDeaths = new AtomicInteger(0);
+    private final AtomicInteger ageDeaths = new AtomicInteger(0);
 
     public Island(int width, int height) {
         this.width = width;
@@ -95,8 +97,15 @@ public class Island {
         return starving;
     }
 
+    public void reportHungerDeath() { hungerDeaths.incrementAndGet(); }
+    public void reportAgeDeath() { ageDeaths.incrementAndGet(); }
+    public int getHungerDeaths() { return hungerDeaths.get(); }
+    public int getAgeDeaths() { return ageDeaths.get(); }
+
     public void nextTick() {
         tickCount++;
+        hungerDeaths.set(0);
+        ageDeaths.set(0);
     }
 
     public int getTickCount() {

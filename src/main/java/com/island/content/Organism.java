@@ -53,26 +53,42 @@ public abstract class Organism {
 
     public synchronized void consumeEnergy(double amount) {
         currentEnergy = Math.max(0, currentEnergy - amount);
-        if (currentEnergy < DEATH_EPSILON) die();
+        if (currentEnergy < DEATH_EPSILON && isAlive) {
+            isAlive = false;
+        }
     }
 
     public void setEnergy(double energy) {
         this.currentEnergy = Math.min(energy, maxEnergy);
-        if (this.currentEnergy < DEATH_EPSILON) die();
+        if (this.currentEnergy < DEATH_EPSILON && isAlive) {
+            isAlive = false;
+        }
     }
 
     public void addEnergy(double amount) {
         currentEnergy = Math.min(maxEnergy, currentEnergy + amount);
     }
 
+    public boolean checkAgeDeath() {
+        age++;
+        if (maxLifespan > 0 && age >= maxLifespan && isAlive) {
+            isAlive = false;
+            return true;
+        }
+        return false;
+    }
+
     protected void ageOneTick() {
         age++;
-        if (maxLifespan > 0 && age >= maxLifespan) die();
+        if (maxLifespan > 0 && age >= maxLifespan) isAlive = false;
+    }
+
+    public boolean isStarving() {
+        return currentEnergy < DEATH_EPSILON;
     }
 
     public void checkState() {
-        ageOneTick();
-        consumeEnergy(maxEnergy * BASE_METABOLISM_PERCENT);
+        // Now returns void, logic moved to service for reporting
     }
 
     public abstract String getSpeciesKey();

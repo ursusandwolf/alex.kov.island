@@ -69,6 +69,10 @@ public class ConsoleView {
         sb.append(satietyColor).append("#".repeat(progress)).append(".".repeat(20 - progress)).append(RESET).append("] ");
         sb.append(String.format("| Starving: %s%d%s\n", (starving > 0 ? "\u001B[31m" : GREEN), starving, RESET));
         
+        sb.append(String.format("Deaths Last Tick: Hunger: %s%d%s | Old Age: %s%d%s\n", 
+                "\u001B[31m", island.getHungerDeaths(), RESET, 
+                YELLOW, island.getAgeDeaths(), RESET));
+
         sb.append("-".repeat(60)).append("\n");
 
         Map<String, Integer> currentCounts = new TreeMap<>(island.getSpeciesCounts());

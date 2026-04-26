@@ -50,13 +50,13 @@ class EnergyConsumptionTest {
     }
 
     @Test
-    @DisplayName("Test metabolism reduces energy over time")
+    @DisplayName("Test metabolism reduces energy")
     void testMetabolism() {
         Wolf wolf = new Wolf(config.getAnimalType("wolf"));
         double initialEnergy = wolf.getCurrentEnergy();
         double metabolismCost = wolf.getMaxEnergy() * BASE_METABOLISM_PERCENT;
         
-        wolf.checkState();
+        wolf.consumeEnergy(metabolismCost);
         
         assertEquals(initialEnergy - metabolismCost, wolf.getCurrentEnergy(), 0.001);
     }
