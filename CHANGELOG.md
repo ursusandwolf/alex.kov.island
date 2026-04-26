@@ -1,5 +1,12 @@
 # Changelog
 
+## [2026-04-26]
+### Modernization & Scalability
+- **Java 21 Migration**: Upgraded project from Java 17 to Java 21 LTS to leverage the latest JVM features and performance improvements.
+- **Virtual Threads (Project Loom)**: Replaced traditional `FixedThreadPool` with `VirtualThreadPerTaskExecutor` in `GameLoop`. This allows for near-infinite scalability of parallel simulation tasks (chunks) without the overhead of platform threads.
+- **Sequenced Collections**: Updated UI and processing logic to use Java 21's new collection interfaces (e.g., `getFirst()`, `getLast()`) for cleaner and more expressive code.
+- **Maven Configuration**: Updated `pom.xml` properties and `maven-compiler-plugin` to target Java 21.
+
 ## [2026-04-25]
 ### Architecture & SOLID Refactoring
 - **Interface Segregation (ISP)**: Deployed `Mobile`, `Consumer`, and `Reproducible` interfaces. Removed the bloated `OrganismBehavior` interface.
