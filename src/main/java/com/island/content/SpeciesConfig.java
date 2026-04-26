@@ -62,7 +62,14 @@ public final class SpeciesConfig {
     }
 
     public AnimalType getAnimalType(String key) { return animalTypes.get(key); }
-    public Set<String> getAllSpeciesKeys() { return animalTypes.keySet(); }
+    
+    public Set<String> getAllSpeciesKeys() {
+        Set<String> allKeys = new HashSet<>(animalTypes.keySet());
+        allKeys.add("plant");
+        allKeys.add("cabbage");
+        return allKeys;
+    }
+
     public int getHuntProbability(String predator, String prey) {
         AnimalType type = animalTypes.get(predator);
         return (type != null) ? type.getHuntProbability(prey) : 0;

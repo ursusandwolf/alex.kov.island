@@ -127,21 +127,22 @@ public class FeedingService implements Runnable {
         }
 
         // --- Plant Feeding Logic ---
-        // (Plants are simpler and don't yet use the mediator in this version)
         String predatorKey = predator.getSpeciesKey();
         List<Plant> plants = cell.getPlants();
         if (plants.isEmpty()) return;
 
-        double foodNeeded = predator.getFoodForSaturation() - (predator.getCurrentEnergy());
+        double foodNeeded = predator.getFoodForSaturation() - predator.getCurrentEnergy();
         if (foodNeeded <= 0) return;
 
         // 1. Try eating Cabbage (priority for Rabbit, Goat, Duck)
         if (predatorKey.equals("rabbit") || predatorKey.equals("goat") || predatorKey.equals("duck")) {
-            for (Plant plant : plants) {
+            for (int i = 0; i < plants.size(); i++) {
+                Plant plant = plants.get(i);
                 if (plant instanceof Cabbage && plant.isAlive()) {
                     double eaten = plant.consumeBiomass(foodNeeded);
                     predator.addEnergy(eaten);
-                    return; // Satiated or plant exhausted
+                    foodNeeded -= eaten;
+                    if (foodNeeded <= 0) return; // Satiated
                 }
             }
         }
@@ -149,11 +150,13 @@ public class FeedingService implements Runnable {
         // 2. Try eating Grass (for anyone who can eat "Plant" in matrix)
         int plantChance = interactionMatrix.getChance(predatorKey, "Plant");
         if (plantChance > 0) {
-            for (Plant plant : plants) {
+            for (int i = 0; i < plants.size(); i++) {
+                Plant plant = plants.get(i);
                 if (plant instanceof Grass && plant.isAlive()) {
                     double eaten = plant.consumeBiomass(foodNeeded);
                     predator.addEnergy(eaten);
-                    return;
+                    foodNeeded -= eaten;
+                    if (foodNeeded <= 0) return; // Satiated
                 }
             }
         }
