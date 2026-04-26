@@ -36,20 +36,21 @@ class TrophicFeedingTest {
     @DisplayName("Test trophic hierarchy: predators hunt before prey acts")
     void testTrophicHierarchy() {
         Cell cell = island.getCell(0, 0);
-        Fox fox = new Fox(config.getAnimalType("fox"));
-        Duck duck = new Duck(config.getAnimalType("duck"));
+        Wolf wolf = new Wolf(config.getAnimalType("wolf"));
+        Rabbit rabbit = new Rabbit(config.getAnimalType("rabbit"));
         
-        // Setup: Fox eats Duck (100%), Duck eats plants (not needed for this test)
-        matrix.setChance("fox", "duck", 100);
+        // Setup: Wolf is hungry (50% energy), faster, and has 100% chance to eat Rabbit
+        wolf.setEnergy(wolf.getMaxEnergy() * 0.5);
+        matrix.setChance("wolf", "rabbit", 100);
         
-        cell.addAnimal(fox);
-        cell.addAnimal(duck);
+        cell.addAnimal(wolf);
+        cell.addAnimal(rabbit);
         
         feedingService.run();
         
-        // If Fox acts first, Duck should be eaten and gone
-        assertFalse(duck.isAlive(), "Duck should be eaten by Fox");
-        assertEquals(1, cell.getAnimalCount(), "Only Fox should remain");
+        // If Wolf acts first and is faster, Rabbit should be eaten
+        assertFalse(rabbit.isAlive(), "Rabbit should be eaten by Wolf");
+        assertEquals(1, cell.getAnimalCount(), "Only Wolf should remain");
     }
 
     @Test

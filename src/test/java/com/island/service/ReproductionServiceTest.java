@@ -23,12 +23,10 @@ class ReproductionServiceTest {
         Animal r1 = new Rabbit(config.getAnimalType("rabbit"));
         Animal r2 = new Rabbit(config.getAnimalType("rabbit"));
         
-        // Give them max energy. saturation for rabbit is 0.45 kg.
-        // Total energy = 0.45 * 2 = 0.90.
-        // Max offspring for rabbit: base 2 + 1 bonus = 3.
-        // Formula: E_per_head = 0.90 / (2 + 3) = 0.18.
-        // Threshold: 0.4 * 0.45 = 0.18.
-        // 0.18 >= 0.18 -> True. 
+        // Rabbit Max offspring: base 4 + herbivore 2 = 6.
+        // Total energy = 0.90. Threshold = 0.18.
+        // k=6 -> 0.9/8 = 0.11 (X)
+        // k=3 -> 0.9/5 = 0.18 (OK)
         // Expected: 2 parents + 3 babies = 5.
         r1.setEnergy(r1.getMaxEnergy());
         r2.setEnergy(r2.getMaxEnergy());
@@ -39,7 +37,7 @@ class ReproductionServiceTest {
         ReproductionService service = new ReproductionService(island, factory, java.util.concurrent.Executors.newSingleThreadExecutor());
         service.run();
         
-        assertEquals(5, cell.getAnimalCount());
+        assertEquals(5, cell.getAnimalCount(), "Should produce 3 babies due to energy constraints");
         
         for (Animal a : cell.getAnimals()) {
             assertEquals(0.18, a.getCurrentEnergy(), 0.001);

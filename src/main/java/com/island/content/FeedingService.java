@@ -104,9 +104,11 @@ public class FeedingService implements Runnable {
                 
                 // Chase cost (only for animals)
                 double chaseCost = 0;
+                
                 if (prey instanceof Animal a) {
                     int speedDifference = a.getSpeed() - predator.getSpeed();
                     if (speedDifference > 0) {
+                        // Linear cost based on speed difference
                         chaseCost = predator.getMaxEnergy() * (speedDifference * PREY_RELATIVE_SPEED_HUNT_COST_STEP_PERCENT);
                     }
                 }
@@ -114,13 +116,12 @@ public class FeedingService implements Runnable {
                 double totalEffort = strikeCost + chaseCost;
                 
                 // --- Hunt Fatigue Logic ---
-                // After HUNT_FATIGUE_THRESHOLD attempts, cost increases by HUNT_FATIGUE_COST_MULTIPLIER every block
                 if (attemptsInTick > HUNT_FATIGUE_THRESHOLD) {
                     int extraBlocks = (attemptsInTick - 1) / HUNT_FATIGUE_THRESHOLD;
                     totalEffort *= Math.pow(HUNT_FATIGUE_COST_MULTIPLIER, extraBlocks);
                 }
 
-                // Efficiency Check
+                // Efficiency Check: use original chance from matrix
                 double expectedGain = preyWeight * (chance / 100.0);
                 if (expectedGain < totalEffort && predator.getEnergyPercentage() > 40) continue;
 

@@ -49,13 +49,13 @@ public class WorldInitializer {
             if (type == null) continue;
 
             // Вероятность присутствия вида в данной клетке
-            // Хищники встречаются реже, травоядные чаще
-            double presenceProbability = type.isPredator() ? 0.3 : 0.6;
+            // Повышаем вероятность для всех видов для более плотного старта
+            double presenceProbability = type.isPredator() ? 0.5 : 0.8;
             
             if (RandomUtils.nextDouble() < presenceProbability) {
                 int maxPerCell = type.getMaxPerCell();
-                // Заселяем от 2% до 15% от максимума
-                double settlementRate = 0.02 + (RandomUtils.nextDouble() * 0.13);
+                // Заселяем от 10% до 35% от максимума (вместо 2-15%)
+                double settlementRate = 0.10 + (RandomUtils.nextDouble() * 0.25);
                 int count = (int) (maxPerCell * settlementRate);
                 
                 // Гарантируем хотя бы 1 особь если вид "присутствует"

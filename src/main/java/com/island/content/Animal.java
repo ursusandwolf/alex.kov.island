@@ -58,6 +58,16 @@ public abstract class Animal extends Organism implements Mobile, Consumer, Repro
     }
 
     @Override
+    public double getDynamicMetabolismRate() {
+        double rate = super.getDynamicMetabolismRate();
+        // Herbivores get a survival bonus (lower metabolism)
+        if (this instanceof com.island.content.animals.herbivores.Herbivore) {
+            rate *= HERBIVORE_METABOLISM_MODIFIER;
+        }
+        return rate;
+    }
+
+    @Override
     public abstract Animal reproduce();
 
     public boolean canEat(String preyKey) { return animalType.canEat(preyKey); }
