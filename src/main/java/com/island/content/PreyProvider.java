@@ -8,9 +8,10 @@ import java.util.*;
 /**
  * Optimized food provider that simulates a mixed "buffet" with competition.
  * Uses pre-calculated protection map for endangered species.
+ * Includes both individual animals and biomass "portions" (like Caterpillars).
  */
 public class PreyProvider {
-    private final List<Animal> masterPool;
+    private final List<Organism> masterPool;
     private final InteractionMatrix matrix;
     private final int currentTick;
     private final Island island;
@@ -22,19 +23,34 @@ public class PreyProvider {
         this.island = cell.getIsland();
         
         this.masterPool = new ArrayList<>();
+        
+        // 1. Add Animals
         List<Animal> cellAnimals = cell.getAnimals();
         cell.getLock().lock();
         try {
             for (int i = 0; i < cellAnimals.size(); i++) {
                 Animal a = cellAnimals.get(i);
                 if (a.isAlive() && !a.isProtected(currentTick)) {
-                    // --- Applied Centralized Protection ---
                     Double hideChance = protectionMap.get(a.getSpeciesKey());
                     if (hideChance != null && Math.random() < hideChance) {
                         a.setHiding(true);
                         continue; 
                     }
                     masterPool.add(a);
+                }
+            }
+            
+            // 2. Add Caterpillar "Portions" (Virtual prey encounters)
+            for (com.island.content.plants.Plant p : cell.getPlants()) {
+                if (p instanceof com.island.content.animals.herbivores.Caterpillar && p.isAlive()) {
+                    // Check protection (Smart Biomass hiding)
+                    Double hideChance = protectionMap.get(p.getSpeciesKey());
+                    if (hideChance != null && Math.random() < hideChance) continue;
+
+                    // Add up to 10 virtual "encounters" with caterpillars
+                    for (int j = 0; j < 10; j++) {
+                        masterPool.add(p);
+                    }
                 }
             }
         } finally {
@@ -75,7 +91,7 @@ public class PreyProvider {
         }
     }
 
-    public Iterable<Animal> getPreyFor(Animal predator) {
+    public Iterable<Organism> getPreyFor(Animal predator) {
         double foodNeeded = predator.getFoodForSaturation() - predator.getCurrentEnergy();
         if (foodNeeded <= 0 || masterPool.isEmpty()) return Collections.emptyList();
 
@@ -86,11 +102,11 @@ public class PreyProvider {
         
         if (limitedQuota < 1 && scarcityFactor > 0.05) limitedQuota = 1;
 
-        List<Animal> buffet = new ArrayList<>();
+        List<Organism> buffet = new ArrayList<>();
         int attempts = 0;
 
         for (int i = 0; i < masterPool.size(); i++) {
-            Animal potentialPrey = masterPool.get(i);
+            Organism potentialPrey = masterPool.get(i);
             if (potentialPrey == predator || !potentialPrey.isAlive()) continue;
 
             if (matrix.getChance(predKey, potentialPrey.getSpeciesKey()) > 0) {
@@ -107,7 +123,7 @@ public class PreyProvider {
         masterPool.remove(prey);
     }
 
-    public void markAsEaten(Animal prey) {
+    public void markAsEaten(Organism prey) {
         masterPool.remove(prey);
     }
 }
