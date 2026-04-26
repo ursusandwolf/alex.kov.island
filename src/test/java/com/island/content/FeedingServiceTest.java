@@ -63,7 +63,7 @@ class FeedingServiceTest {
         cell.addAnimal(rabbit);
 
         // Setup matrix: Rabbit eats Plant (Grass) with 100% chance
-        matrix.setChance("rabbit", "Plant", 100);
+        matrix.setChance("rabbit", "plant", 100);
 
         service.run();
 

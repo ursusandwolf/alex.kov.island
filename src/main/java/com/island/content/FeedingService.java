@@ -168,37 +168,34 @@ public class FeedingService implements Runnable {
         double foodNeeded = predator.getFoodForSaturation() - predator.getCurrentEnergy();
         if (foodNeeded <= 0) return;
 
-        // 1. Try eating Cabbage (priority for Rabbit, Goat, Duck)
-        if (predatorKey.equals("rabbit") || predatorKey.equals("goat") || predatorKey.equals("duck")) {
+        // Any animal that can eat "plant" in the matrix can eat Cabbage and Grass
+        int canEatPlants = interactionMatrix.getChance(predatorKey, "plant");
+        if (canEatPlants > 0) {
+            // 1. Try eating Cabbage first (higher energy density)
             for (int i = 0; i < plants.size(); i++) {
                 Plant plant = plants.get(i);
                 if (plant instanceof Cabbage && plant.isAlive()) {
-                    // Check protection
                     Double hideChance = protectionMap.get(plant.getSpeciesKey());
                     if (hideChance != null && Math.random() < hideChance) continue;
 
                     double eaten = plant.consumeBiomass(foodNeeded);
                     predator.addEnergy(eaten);
                     foodNeeded -= eaten;
-                    if (foodNeeded <= 0) return; // Satiated
+                    if (foodNeeded <= 0) return; 
                 }
             }
-        }
 
-        // 2. Try eating Grass
-        int plantChance = interactionMatrix.getChance(predatorKey, "Plant");
-        if (plantChance > 0) {
+            // 2. Try eating Grass 
             for (int i = 0; i < plants.size(); i++) {
                 Plant plant = plants.get(i);
                 if (plant instanceof Grass && plant.isAlive()) {
-                    // Check protection
                     Double hideChance = protectionMap.get(plant.getSpeciesKey());
                     if (hideChance != null && Math.random() < hideChance) continue;
 
                     double eaten = plant.consumeBiomass(foodNeeded);
                     predator.addEnergy(eaten);
                     foodNeeded -= eaten;
-                    if (foodNeeded <= 0) return; // Satiated
+                    if (foodNeeded <= 0) return; 
                 }
             }
         }

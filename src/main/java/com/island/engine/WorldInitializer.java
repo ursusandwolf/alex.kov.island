@@ -52,8 +52,11 @@ public class WorldInitializer {
             double presenceProbability = type.isPredator() ? 0.4 : 0.8;
             
             // Специальное снижение для топ-хищников
-            if (species.equals("bear") || species.equals("wolf")) {
-                presenceProbability = 0.15; // Only 15% cells will have them initially
+            if (species.equals("bear")) {
+                presenceProbability = 0.15; // 15% cells
+            }
+            if (species.equals("wolf")) {
+                presenceProbability = 0.05; // Only 5% cells (Extreme sparsity for wolves)
             }
             
             if (RandomUtils.nextDouble() < presenceProbability) {
@@ -63,8 +66,11 @@ public class WorldInitializer {
                 double settlementRate = 0.10 + (RandomUtils.nextDouble() * 0.25);
                 
                 // Для медведей и волков снижаем еще и плотность в ячейке
-                if (species.equals("bear") || species.equals("wolf")) {
+                if (species.equals("bear")) {
                     settlementRate = 0.05 + (RandomUtils.nextDouble() * 0.05); // 5-10%
+                }
+                if (species.equals("wolf")) {
+                    settlementRate = 0.02 + (RandomUtils.nextDouble() * 0.03); // 2-5% (1-2 wolves max)
                 }
                 
                 int count = (int) (maxPerCell * settlementRate);
