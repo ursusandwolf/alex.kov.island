@@ -11,7 +11,7 @@ public final class SimulationConstants {
     public static double PREDATOR_SPEED_HUNT_COST_STEP_PERCENT = 0.01;
     public static double PREY_RELATIVE_SPEED_HUNT_COST_STEP_PERCENT = 0.02;
     
-    public static double BASE_METABOLISM_PERCENT = 0.10;
+    public static double BASE_METABOLISM_PERCENT = 0.07;
     
     // Thresholds
     public static double ACTION_MIN_ENERGY_PERCENT = 30.0;

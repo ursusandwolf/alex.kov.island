@@ -50,11 +50,11 @@ public class Island {
             int currentCount = getSpeciesCount(key);
             int globalCapacity = islandArea * type.getMaxPerCell();
             
-            double threshold = globalCapacity * 0.10;
+            double threshold = globalCapacity * 0.05; // Lower to 5%
             if (currentCount > 0 && currentCount < threshold) {
                 double ratio = (double) currentCount / threshold;
-                // Probability: 50% (at 10% pop) to 75% (at near 0 pop)
-                double hideChance = 0.75 - (ratio * 0.25);
+                // Probability: 30% to 60%
+                double hideChance = 0.60 - (ratio * 0.30);
                 protectionMap.put(key, hideChance);
             }
         }
