@@ -1,6 +1,7 @@
 package com.island.model;
 import com.island.util.RandomUtils;
 import com.island.content.Animal;
+import com.island.content.AnimalType;
 import com.island.content.SpeciesConfig;
 import lombok.Getter;
 import java.util.*;
@@ -16,6 +17,7 @@ public class Island {
     private final Cell[][] grid;
     private final List<Chunk> chunks = new ArrayList<>();
     private int tickCount = 0;
+    private boolean redBookProtectionEnabled = true;
     
     private final Map<String, AtomicInteger> speciesCounts = new ConcurrentHashMap<>();
 
@@ -25,6 +27,38 @@ public class Island {
         this.grid = new Cell[width][height];
         initializeGrid();
         partitionIntoChunks();
+    }
+
+    public void setRedBookProtectionEnabled(boolean enabled) {
+        this.redBookProtectionEnabled = enabled;
+    }
+
+    public boolean isRedBookProtectionEnabled() {
+        return redBookProtectionEnabled;
+    }
+
+    public Map<String, Double> getProtectionMap(SpeciesConfig config) {
+        if (!redBookProtectionEnabled) return Collections.emptyMap();
+        
+        Map<String, Double> protectionMap = new HashMap<>();
+        int islandArea = width * height;
+
+        for (String key : config.getAllSpeciesKeys()) {
+            AnimalType type = config.getAnimalType(key);
+            if (type == null) continue;
+
+            int currentCount = getSpeciesCount(key);
+            int globalCapacity = islandArea * type.getMaxPerCell();
+            
+            double threshold = globalCapacity * 0.10;
+            if (currentCount > 0 && currentCount < threshold) {
+                double ratio = (double) currentCount / threshold;
+                // Probability: 50% (at 10% pop) to 75% (at near 0 pop)
+                double hideChance = 0.75 - (ratio * 0.25);
+                protectionMap.put(key, hideChance);
+            }
+        }
+        return protectionMap;
     }
 
     public void nextTick() {
@@ -67,6 +101,11 @@ public class Island {
 
     public Cell getCellUnsafe(int x, int y) {
         return (x < 0 || x >= width || y < 0 || y >= height) ? null : grid[x][y];
+    }
+
+    public int getSpeciesCount(String speciesKey) {
+        AtomicInteger count = speciesCounts.get(speciesKey);
+        return (count != null) ? count.get() : 0;
     }
 
     public void onOrganismAdded(String speciesKey) {

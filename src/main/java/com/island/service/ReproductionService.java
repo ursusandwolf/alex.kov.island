@@ -55,15 +55,11 @@ public class ReproductionService extends AbstractService {
         double maxEnergy = p1.getMaxEnergy();
         int maxOffspring = calculateMaxOffspringCount(p1);
         
-        // Dynamic offspring count based on available energy and survival floor.
-        // Rule: Need at least 150% of one individual's max energy to have 1 baby.
-        // For more babies, we need (2 + k) * 40% of max energy.
         int offspringCount = 0;
         double survivalFloor = maxEnergy * 0.4 - 0.005;
 
         for (int k = maxOffspring; k >= 1; k--) {
             double requiredTotal = (2 + k) * survivalFloor;
-            // Additional check for the 150% rule for the first child
             if (k == 1) requiredTotal = Math.max(requiredTotal, maxEnergy * 1.5 - 0.05); 
             
             if (totalEnergy >= requiredTotal) {

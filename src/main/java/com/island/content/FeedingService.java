@@ -7,7 +7,9 @@ import com.island.util.InteractionMatrix;
 import static com.island.config.SimulationConstants.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
@@ -16,6 +18,7 @@ public class FeedingService implements Runnable {
     private final Island island;
     private final InteractionMatrix interactionMatrix;
     private final ExecutorService executor;
+    private final SpeciesConfig speciesConfig = SpeciesConfig.getInstance();
 
     public FeedingService(Island island, InteractionMatrix interactionMatrix, ExecutorService executor) {
         this.island = island;
@@ -25,11 +28,14 @@ public class FeedingService implements Runnable {
 
     @Override
     public void run() {
+        // Centralized: calculate protection map once per tick
+        Map<String, Double> protectionMap = island.getProtectionMap(speciesConfig);
+
         List<Callable<Void>> tasks = new ArrayList<>();
         for (Chunk chunk : island.getChunks()) {
             tasks.add(() -> {
                 for (Cell cell : chunk.getCells()) {
-                    processCell(cell);
+                    processCell(cell, protectionMap);
                 }
                 return null;
             });
@@ -41,7 +47,7 @@ public class FeedingService implements Runnable {
         }
     }
 
-    private void processCell(Cell cell) {
+    private void processCell(Cell cell, Map<String, Double> protectionMap) {
         List<Animal> predators;
         cell.getLock().lock();
         try {
@@ -58,7 +64,7 @@ public class FeedingService implements Runnable {
             return Double.compare(initiativeB, initiativeA);
         });
 
-        PreyProvider preyProvider = new PreyProvider(cell, interactionMatrix, island.getTickCount());
+        PreyProvider preyProvider = new PreyProvider(cell, interactionMatrix, island.getTickCount(), protectionMap);
 
         for (int i = 0; i < predators.size(); i++) {
             Animal predator = predators.get(i);

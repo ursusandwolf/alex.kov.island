@@ -20,6 +20,7 @@ class FeedingServiceTest {
     @BeforeEach
     void setUp() {
         island = new Island(1, 1);
+        island.setRedBookProtectionEnabled(false);
         matrix = new InteractionMatrix();
         // Setup 100% chance for wolf to eat rabbit
         matrix.setChance("wolf", "rabbit", 100);

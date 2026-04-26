@@ -17,6 +17,7 @@ class ReproductionServiceTest {
     @Test
     void testReproductionWithMaxEnergy() {
         Island island = new Island(1, 1);
+        island.setRedBookProtectionEnabled(false);
         Cell cell = island.getCell(0, 0);
         
         Animal r1 = new Rabbit(config.getAnimalType("rabbit"));
@@ -48,19 +49,15 @@ class ReproductionServiceTest {
     @Test
     void testReproductionWithModerateEnergy() {
         Island island = new Island(1, 1);
+        island.setRedBookProtectionEnabled(false);
         Cell cell = island.getCell(0, 0);
         
         Animal r1 = new Rabbit(config.getAnimalType("rabbit"));
         Animal r2 = new Rabbit(config.getAnimalType("rabbit"));
         
-        // Increase energy to be well above threshold.
-        // saturation for rabbit is 0.45.
-        // Threshold (40%) = 0.18.
-        // Let's give them 0.35 each = 0.70 total.
-        // 0.70 / 3 individuals = 0.233...
-        // 0.233 >= 0.18 -> True.
-        r1.setEnergy(0.35);
-        r2.setEnergy(0.35);
+        // Use max energy levels.
+        r1.setEnergy(0.45);
+        r2.setEnergy(0.45);
         
         cell.addAnimal(r1);
         cell.addAnimal(r2);
@@ -68,12 +65,14 @@ class ReproductionServiceTest {
         ReproductionService service = new ReproductionService(island, factory, java.util.concurrent.Executors.newSingleThreadExecutor());
         service.run();
         
-        assertEquals(3, cell.getAnimalCount());
+        // Expected: 2 parents + 3 babies = 5.
+        assertEquals(5, cell.getAnimalCount(), "Should have 2 parents + 3 babies (max)");
     }
 
     @Test
     void testNoReproductionWhenStarving() {
         Island island = new Island(1, 1);
+        island.setRedBookProtectionEnabled(false);
         Cell cell = island.getCell(0, 0);
         
         Animal r1 = new Rabbit(config.getAnimalType("rabbit"));

@@ -26,6 +26,7 @@ class TrophicFeedingTest {
     @BeforeEach
     void setUp() {
         island = new Island(1, 1);
+        island.setRedBookProtectionEnabled(false);
         matrix = new InteractionMatrix();
         feedingService = new FeedingService(island, matrix, Executors.newSingleThreadExecutor());
         lifecycleService = new LifecycleService(island, Executors.newSingleThreadExecutor());
