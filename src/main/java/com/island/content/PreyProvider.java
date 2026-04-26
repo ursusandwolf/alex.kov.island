@@ -20,38 +20,49 @@ public class PreyProvider {
         this.matrix = matrix;
         this.currentTick = currentTick;
         
-        // 1. Create a shuffled snapshot of all potentially available animals
-        List<Animal> allAnimals = new ArrayList<>(cell.getAnimals());
-        Collections.shuffle(allAnimals); 
-        this.masterPool = allAnimals.stream()
-                .filter(a -> a.isAlive() && !a.isProtected(currentTick))
-                .collect(Collectors.toCollection(ArrayList::new));
+        // Use a simple loop instead of Streams for grouping and filtering
+        this.masterPool = new ArrayList<>();
+        List<Animal> cellAnimals = cell.getAnimals();
+        cell.getLock().lock();
+        try {
+            for (Animal a : cellAnimals) {
+                if (a.isAlive() && !a.isProtected(currentTick)) {
+                    masterPool.add(a);
+                }
+            }
+        } finally {
+            cell.getLock().unlock();
+        }
+        Collections.shuffle(masterPool);
 
         calculateScarcity(cell);
     }
 
     /**
      * Calculates the supply/demand ratio in the cell.
-     * If there are many predators and few prey, every predator gets a smaller "attempt quota".
      */
     private void calculateScarcity(Cell cell) {
         double totalNeeds = 0;
         double totalSupply = 0;
 
-        for (Animal a : cell.getAnimals()) {
-            if (!a.isAlive()) continue;
-            
-            if (a.isAnimalPredator()) {
-                double hunger = a.getFoodForSaturation() - a.getCurrentEnergy();
-                if (hunger > 0) totalNeeds += hunger;
-            } else {
-                totalSupply += a.getWeight();
+        List<Animal> cellAnimals = cell.getAnimals();
+        cell.getLock().lock();
+        try {
+            for (Animal a : cellAnimals) {
+                if (!a.isAlive()) continue;
+                
+                if (a.isAnimalPredator()) {
+                    double hunger = a.getFoodForSaturation() - a.getCurrentEnergy();
+                    if (hunger > 0) totalNeeds += hunger;
+                } else {
+                    totalSupply += a.getWeight();
+                }
             }
+        } finally {
+            cell.getLock().unlock();
         }
 
         if (totalNeeds > 0) {
-            // Scarcity factor: if total needs are 100kg and supply is 50kg, factor is 0.5.
-            // This limits the "buffet" size for each predator regardless of its position in queue.
             this.scarcityFactor = Math.min(1.0, totalSupply / totalNeeds);
         }
     }

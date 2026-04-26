@@ -42,10 +42,16 @@ public class FeedingService implements Runnable {
     }
 
     private void processCell(Cell cell) {
-        List<Animal> predators = new ArrayList<>(cell.getAnimals());
+        List<Animal> predators;
+        cell.getLock().lock();
+        try {
+            // Snapshot of predators for current tick processing
+            predators = new ArrayList<>(cell.getAnimals());
+        } finally {
+            cell.getLock().unlock();
+        }
         
-        // Sorting by initiative: (Weight * 0.7 + Speed * 0.3) * Random(0.8..1.2)
-        // This gives chance for faster/lighter predators to act before heavy ones.
+        // Sorting by initiative (jittered)
         predators.sort((a, b) -> {
             double initiativeA = (a.getWeight() * 0.7 + a.getSpeed() * 0.3) * (0.8 + Math.random() * 0.4);
             double initiativeB = (b.getWeight() * 0.7 + b.getSpeed() * 0.3) * (0.8 + Math.random() * 0.4);
@@ -54,7 +60,8 @@ public class FeedingService implements Runnable {
 
         PreyProvider preyProvider = new PreyProvider(cell, interactionMatrix, island.getTickCount());
 
-        for (Animal predator : predators) {
+        for (int i = 0; i < predators.size(); i++) {
+            Animal predator = predators.get(i);
             if (predator.isAlive()) {
                 tryEat(predator, cell, preyProvider);
             }

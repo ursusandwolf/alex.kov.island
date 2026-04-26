@@ -3,17 +3,17 @@ import com.island.content.plants.*;
 import com.island.content.Animal;
 import com.island.content.plants.Plant;
 import lombok.Getter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Getter
 public class Cell {
     private final int x, y;
     private final Island island;
-    private final List<Animal> animals = new CopyOnWriteArrayList<>();
-    private final List<Plant> plants = new CopyOnWriteArrayList<>();
+    private final List<Animal> animals = new ArrayList<>();
+    private final List<Plant> plants = new ArrayList<>();
     private final ReentrantLock lock = new ReentrantLock();
 
     public Cell(int x, int y, Island island) { 
@@ -27,11 +27,13 @@ public class Cell {
     public boolean addAnimal(Animal animal) {
         lock.lock();
         try {
-            long count = animals.stream()
-                    .filter(a -> a.getSpeciesKey()
-                            .equals(animal.getSpeciesKey()))
-                    .count();
+            int count = 0;
+            String key = animal.getSpeciesKey();
+            for (Animal a : animals) {
+                if (a.getSpeciesKey().equals(key)) count++;
+            }
             if (count >= animal.getMaxPerCell()) return false;
+            
             if (animals.add(animal)) {
                 island.onOrganismAdded(animal.getSpeciesKey());
                 return true;
@@ -51,23 +53,37 @@ public class Cell {
         } finally { lock.unlock(); }
     }
 
-    public List<Animal> getAnimals() { return Collections.unmodifiableList(animals); }
+    public List<Animal> getAnimals() { 
+        // Returning a direct reference is dangerous but fast. 
+        // For performance, we use a synchronized copy ONLY when needed by services.
+        return animals; 
+    }
 
     public List<Animal> getAnimalsBySpecies(String key) {
-        return animals.stream()
-                .filter(a -> a.getSpeciesKey()
-                        .equals(key))
-                .toList();
+        lock.lock();
+        try {
+            List<Animal> result = new ArrayList<>();
+            for (Animal a : animals) {
+                if (a.getSpeciesKey().equals(key)) result.add(a);
+            }
+            return result;
+        } finally { lock.unlock(); }
     }
 
     public int countAnimalsBySpecies(String key) {
-        return (int) animals.stream()
-                .filter(a -> a.getSpeciesKey()
-                        .equals(key))
-                .count();
+        lock.lock();
+        try {
+            int count = 0;
+            for (Animal a : animals) {
+                if (a.getSpeciesKey().equals(key)) count++;
+            }
+            return count;
+        } finally { lock.unlock(); }
     }
 
-    public int getAnimalCount() { return animals.size(); }
+    public int getAnimalCount() { 
+        return animals.size(); 
+    }
 
     public boolean addPlant(Plant plant) {
         lock.lock();
@@ -92,27 +108,27 @@ public class Cell {
         } finally { lock.unlock(); }
     }
 
-    public List<Plant> getPlants() { return Collections.unmodifiableList(plants); }
+    public List<Plant> getPlants() { return plants; }
 
     public int getPlantCount() { return plants.size(); }
 
     public void cleanupDeadOrganisms() {
         lock.lock();
         try {
-            animals.removeIf(a -> {
+            for (int i = animals.size() - 1; i >= 0; i--) {
+                Animal a = animals.get(i);
                 if (!a.isAlive()) {
                     island.onOrganismRemoved(a.getSpeciesKey());
-                    return true;
+                    animals.remove(i);
                 }
-                return false;
-            });
-            plants.removeIf(p -> {
+            }
+            for (int i = plants.size() - 1; i >= 0; i--) {
+                Plant p = plants.get(i);
                 if (!p.isAlive()) {
                     island.onOrganismRemoved(p.getSpeciesKey());
-                    return true;
+                    plants.remove(i);
                 }
-                return false;
-            });
+            }
         } finally { lock.unlock(); }
     }
 
