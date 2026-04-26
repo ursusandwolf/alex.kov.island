@@ -11,14 +11,24 @@ import static com.island.config.SimulationConstants.*;
  * They don't consume energy; they produce it through growth.
  */
 public abstract class Plant extends Organism implements Reproducible<Plant> {
+    protected final String typeName;
+    protected final String speciesKey;
     protected double biomass;
     protected final double maxBiomass;
 
-    protected Plant(double maxBiomass) {
+    protected Plant(String typeName, String speciesKey, double maxBiomass) {
         super(1.0, 0, PLANT_INITIAL_BIOMASS_FACTOR); 
+        this.typeName = typeName;
+        this.speciesKey = speciesKey;
         this.maxBiomass = maxBiomass;
         this.biomass = maxBiomass * PLANT_INITIAL_BIOMASS_FACTOR; 
     }
+
+    @Override
+    public String getTypeName() { return typeName; }
+
+    @Override
+    public String getSpeciesKey() { return speciesKey; }
 
     @Override
     public double getEnergyPercentage() {
@@ -31,6 +41,10 @@ public abstract class Plant extends Organism implements Reproducible<Plant> {
 
     public double getMaxBiomass() {
         return maxBiomass;
+    }
+
+    public void addBiomass(double amount) {
+        biomass = Math.min(maxBiomass, biomass + amount);
     }
 
     public double consumeBiomass(double amount) {

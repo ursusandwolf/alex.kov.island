@@ -9,12 +9,6 @@ public class Deer extends Animal implements Herbivore {
     }
 
     @Override
-    public String getTypeName() { return animalType.getTypeName(); }
-
-    @Override
-    public String getSpeciesKey() { return animalType.getSpeciesKey(); }
-
-    @Override
     public Deer reproduce() {
         return trySpendEnergyForReproduction() ? new Deer(animalType) : null;
     }

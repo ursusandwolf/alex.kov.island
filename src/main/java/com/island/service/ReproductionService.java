@@ -28,37 +28,82 @@ public class ReproductionService extends AbstractService {
 
     private void reproduceAnimals(Cell cell) {
         List<Animal> animals = cell.getAnimals();
-        // Group animals by species AND check for reproduction health
         Map<String, List<Animal>> readyGroups = new HashMap<>();
+        
+        Island island = cell.getIsland();
+        int islandArea = island.getWidth() * island.getHeight();
+
         for (Animal animal : animals) {
-            // isAlive() check and trySpendEnergyForReproduction() which checks thresholds and deducts energy
-            if (animal.isAlive() && animal.trySpendEnergyForReproduction()) {
-                readyGroups.computeIfAbsent(animal.getSpeciesKey(), k -> new ArrayList<>()).add(animal);
+            String key = animal.getSpeciesKey();
+            int currentCount = island.getSpeciesCount(key);
+            int globalCapacity = islandArea * animal.getMaxPerCell();
+            
+            // Check for Red Book Reproduction Bonus
+            double threshold = globalCapacity * ENDANGERED_POPULATION_THRESHOLD;
+            double requiredPercent = REPRODUCTION_MIN_ENERGY_PERCENT;
+            
+            // --- Buffalo specific nerf ---
+            if (key.equals("buffalo")) {
+                requiredPercent = 95.0; // Buffalo must be extremely full to reproduce
+            } else if (currentCount > 0 && currentCount < threshold) {
+                requiredPercent -= ENDANGERED_REPRO_BONUS_PERCENT; 
+            }
+
+            if (animal.isAlive() && animal.getEnergyPercentage() >= requiredPercent) {
+                readyGroups.computeIfAbsent(key, k -> new ArrayList<>()).add(animal);
             }
         }
 
         for (Map.Entry<String, List<Animal>> entry : readyGroups.entrySet()) {
             String speciesKey = entry.getKey();
             List<Animal> group = entry.getValue();
-            int readyCount = group.size();
             
-            if (readyCount >= 2) {
-                int pairs = readyCount / 2;
-                Animal representative = group.get(0);
-                int offspringPerPair = calculateOffspringCount(representative);
-                int totalOffspring = pairs * offspringPerPair;
+            // Pair them up
+            for (int i = 0; i + 1 < group.size(); i += 2) {
+                Animal parent1 = group.get(i);
+                Animal parent2 = group.get(i + 1);
                 
-                for (int i = 0; i < totalOffspring; i++) {
-                    Animal baby = animalFactory.createBaby(speciesKey);
-                    if (baby != null) {
-                        cell.addAnimal(baby);
-                    }
+                processPair(cell, parent1, parent2, speciesKey);
+            }
+        }
+    }
+
+    private void processPair(Cell cell, Animal p1, Animal p2, String speciesKey) {
+        double totalEnergy = p1.getCurrentEnergy() + p2.getCurrentEnergy();
+        double maxEnergy = p1.getMaxEnergy();
+        int maxOffspring = calculateMaxOffspringCount(p1);
+        
+        int offspringCount = 0;
+        double survivalFloor = maxEnergy * 0.4 - 0.005;
+
+        for (int k = maxOffspring; k >= 1; k--) {
+            double requiredTotal = (2 + k) * survivalFloor;
+            if (k == 1) requiredTotal = Math.max(requiredTotal, maxEnergy * 1.5 - 0.05); 
+            
+            if (totalEnergy >= requiredTotal) {
+                offspringCount = k;
+                break;
+            }
+        }
+
+        if (offspringCount > 0) {
+            double finalEnergyPerHead = totalEnergy / (2 + offspringCount);
+            
+            p1.setEnergy(finalEnergyPerHead);
+            p2.setEnergy(finalEnergyPerHead);
+            
+            for (int j = 0; j < offspringCount; j++) {
+                Animal baby = animalFactory.createAnimalWithEnergy(speciesKey, finalEnergyPerHead);
+                if (baby != null) {
+                    cell.addAnimal(baby);
                 }
             }
         }
     }
 
-    private int calculateOffspringCount(Animal animal) {
+    private int calculateMaxOffspringCount(Animal animal) {
+        if (animal.getSpeciesKey().equals("buffalo")) return 1;
+
         double weight = animal.getWeight();
         int baseOffspring;
         

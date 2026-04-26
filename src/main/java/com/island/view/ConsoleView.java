@@ -30,6 +30,7 @@ public class ConsoleView {
     private boolean silent = false;
 
     private final Map<String, LinkedList<Integer>> populationHistory = new HashMap<>();
+    private final LinkedList<Integer> totalPopulationHistory = new LinkedList<>();
     private static final int HISTORY_SIZE = 15;
 
     public void setSilent(boolean silent) {
@@ -54,8 +55,26 @@ public class ConsoleView {
         sb.append("\033[H"); 
         
         sb.append(CYAN).append("=== ISLAND ECOSYSTEM DASHBOARD ===").append(RESET).append("\n");
-        sb.append(String.format("Tick: %-5d | Total Population: %-6d\n", 
-                island.getTickCount(), island.getTotalOrganismCount()));
+        String totalGraph = ViewUtils.getSparkline(totalPopulationHistory, HISTORY_SIZE * 2);
+        sb.append(String.format("Tick: %-5d | Total Population: %-6d %s\n", 
+                island.getTickCount(), island.getTotalOrganismCount(), totalGraph));
+        
+        // Hunger Stats
+        double satiety = island.getGlobalSatiety();
+        int starving = island.getStarvingCount();
+        String satietyColor = satiety > 70 ? GREEN : (satiety > 40 ? YELLOW : "\u001B[31m"); // Red if < 40%
+        
+        sb.append(String.format("Global Satiety: %s%3.1f%%%s [", satietyColor, satiety, RESET));
+        int progress = (int) (satiety / 5);
+        sb.append(satietyColor).append("#".repeat(progress)).append(".".repeat(20 - progress)).append(RESET).append("] ");
+        sb.append(String.format("| Starving: %s%d%s\n", (starving > 0 ? "\u001B[31m" : GREEN), starving, RESET));
+        
+        sb.append(String.format("Deaths Last Tick: Hunger: %s%d%s | Old Age: %s%d%s\n", 
+                "\u001B[31m", island.getHungerDeaths(), RESET, 
+                YELLOW, island.getAgeDeaths(), RESET));
+        sb.append(String.format("Hunts Successful: %s%d%s\n", 
+                GREEN, island.getEatenAnimals(), RESET));
+
         sb.append("-".repeat(60)).append("\n");
 
         Map<String, Integer> currentCounts = new TreeMap<>(island.getSpeciesCounts());
@@ -86,8 +105,16 @@ public class ConsoleView {
     }
 
     private void updateHistory(Island island) {
+        // Update Total History
+        totalPopulationHistory.add(island.getTotalOrganismCount());
+        if (totalPopulationHistory.size() > HISTORY_SIZE * 2) {
+            totalPopulationHistory.removeFirst();
+        }
+
+        // Update Species History
         Map<String, Integer> currentCounts = island.getSpeciesCounts();
-        for (String species : ICONS.keySet()) {
+        List<String> allSpecies = new ArrayList<>(com.island.content.SpeciesConfig.getInstance().getAllSpeciesKeys());
+        for (String species : allSpecies) {
             populationHistory.putIfAbsent(species, new LinkedList<>());
             LinkedList<Integer> history = populationHistory.get(species);
             history.add(currentCounts.getOrDefault(species, 0));
@@ -99,11 +126,15 @@ public class ConsoleView {
 
     private void renderStatsWithGraphs(StringBuilder sb, Map<String, Integer> currentCounts) {
         int col = 0;
-        for (Map.Entry<String, Integer> entry : currentCounts.entrySet()) {
-            String species = entry.getKey();
-            int count = entry.getValue();
+        List<String> allSpecies = new ArrayList<>(com.island.content.SpeciesConfig.getInstance().getAllSpeciesKeys());
+        Collections.sort(allSpecies);
+
+        for (String species : allSpecies) {
+            int count = currentCounts.getOrDefault(species, 0);
+            String icon = ICONS.getOrDefault(species, species.substring(0, 1).toUpperCase());
             String graph = ViewUtils.getSparkline(populationHistory.get(species), HISTORY_SIZE);
-            sb.append(String.format("%s %-11s: %-5d %s  ", ICONS.get(species), species, count, graph));
+            
+            sb.append(String.format("%s %-11s: %-5d %s  ", icon, species, count, graph));
             if (++col % 2 == 0) sb.append("\n");
         }
         if (col % 2 != 0) sb.append("\n");
@@ -158,11 +189,12 @@ public class ConsoleView {
             // Cycle through the top species based on the current tick
             int displayIndex = (lastRenderedTick / RENDER_THROTTLE) % topSpeciesList.size();
             String speciesToDisplay = topSpeciesList.get(displayIndex);
+            String icon = ICONS.getOrDefault(speciesToDisplay, speciesToDisplay.substring(0, 1).toUpperCase());
             
             if (speciesToDisplay.equals("plant") || speciesToDisplay.equals("cabbage")) {
-                sb.append(GREEN).append(ICONS.get(speciesToDisplay)).append(RESET).append(" ");
+                sb.append(GREEN).append(icon).append(RESET).append(" ");
             } else {
-                sb.append(ICONS.getOrDefault(speciesToDisplay, "🐾")).append(" ");
+                sb.append(icon).append(" ");
             }
         } else {
             sb.append(". ");

@@ -4,16 +4,7 @@ import com.island.content.SpeciesConfig;
 
 public class Cabbage extends Plant {
     public Cabbage() {
-        super(SpeciesConfig.getInstance().getCabbageWeight() * SpeciesConfig.getInstance().getCabbageMaxCount()); 
-    }
-
-    @Override
-    public String getTypeName() {
-        return "Cabbage";
-    }
-
-    @Override
-    public String getSpeciesKey() {
-        return "cabbage";
+        super("Cabbage", "cabbage", 
+              SpeciesConfig.getInstance().getCabbageWeight() * SpeciesConfig.getInstance().getCabbageMaxCount()); 
     }
 }

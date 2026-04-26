@@ -9,12 +9,6 @@ public class Boar extends Animal implements Herbivore {
     }
 
     @Override
-    public String getTypeName() { return animalType.getTypeName(); }
-
-    @Override
-    public String getSpeciesKey() { return animalType.getSpeciesKey(); }
-
-    @Override
     public Boar reproduce() {
         return trySpendEnergyForReproduction() ? new Boar(animalType) : null;
     }

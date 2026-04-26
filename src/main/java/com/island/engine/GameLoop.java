@@ -4,9 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 
+/**
+ * Orchestrates the simulation ticks.
+ */
 public class GameLoop {
     private final List<Runnable> recurringTasks = new ArrayList<>();
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private final ScheduledExecutorService timer;
     private final ExecutorService taskExecutor;
     private final int tickDurationMs;
     private ScheduledFuture<?> timerHandle;
@@ -14,77 +17,47 @@ public class GameLoop {
 
     public GameLoop(int tickDurationMs) {
         this.tickDurationMs = tickDurationMs;
-        // Use fixed thread pool to avoid constant thread creation/destruction
-        this.taskExecutor = new ThreadPoolExecutor(
-            Runtime.getRuntime().availableProcessors(),
-            Runtime.getRuntime().availableProcessors(),
-            0L, TimeUnit.MILLISECONDS,
-            new LinkedBlockingQueue<>()
-        );
+        // Use virtual threads for better scalability with many tasks
+        this.taskExecutor = Executors.newVirtualThreadPerTaskExecutor();
+        this.timer = Executors.newSingleThreadScheduledExecutor();
     }
 
     public void addRecurringTask(Runnable task) {
         recurringTasks.add(task);
     }
 
-    public void start() {
+    public synchronized void start() {
+        if (running) return;
         running = true;
-        timerHandle = scheduler.scheduleAtFixedRate(this::tick, 0, tickDurationMs, TimeUnit.MILLISECONDS);
+        timerHandle = timer.scheduleAtFixedRate(this::tick, 0, tickDurationMs, TimeUnit.MILLISECONDS);
+    }
+
+    public synchronized void stop() {
+        if (!running) return;
+        running = false;
+        if (timerHandle != null) timerHandle.cancel(false);
+        timer.shutdown();
+        taskExecutor.shutdown();
     }
 
     public boolean isRunning() {
         return running;
     }
 
-    public void stop() {
-        running = false;
-        if (timerHandle != null) {
-            timerHandle.cancel(false);
-        }
-        scheduler.shutdown();
-        
-        // Даем текущему такту шанс завершиться перед закрытием taskExecutor
-        try {
-            if (!scheduler.awaitTermination(2, TimeUnit.SECONDS)) {
-                scheduler.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            scheduler.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
-
-        taskExecutor.shutdown();
-        try {
-            if (!taskExecutor.awaitTermination(2, TimeUnit.SECONDS)) {
-                taskExecutor.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            taskExecutor.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
-    }
-
     public void runTick() {
-        executeTick();
+        tick();
     }
 
     private void tick() {
-        if (!running || taskExecutor.isShutdown()) return;
-        executeTick();
-    }
-
-    private void executeTick() {
-        try {
-            // Execute each major phase sequentially to maintain simulation logic,
-            // but internal phase can be parallelized (e.g. movement by chunks)
-            for (Runnable task : recurringTasks) {
-                if (taskExecutor.isShutdown()) break;
+        for (Runnable task : recurringTasks) {
+            if (!running) break; // Stop immediately if gameLoop was stopped
+            try {
                 task.run();
-            }
-        } catch (Exception e) {
-            if (!taskExecutor.isShutdown()) {
-                System.err.println("Ошибка во время такта симуляции: " + e.getMessage());
-                e.printStackTrace();
+            } catch (Exception e) {
+                if (running) { // Only log errors if we're supposed to be running
+                    System.err.println("Ошибка во время такта симуляции: " + e.getMessage());
+                    e.printStackTrace();
+                }
             }
         }
     }

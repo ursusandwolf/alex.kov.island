@@ -9,12 +9,6 @@ public class Duck extends Animal implements Herbivore {
     }
 
     @Override
-    public String getTypeName() { return animalType.getTypeName(); }
-
-    @Override
-    public String getSpeciesKey() { return animalType.getSpeciesKey(); }
-
-    @Override
     public Duck reproduce() {
         return trySpendEnergyForReproduction() ? new Duck(animalType) : null;
     }

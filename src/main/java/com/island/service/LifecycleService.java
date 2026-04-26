@@ -15,20 +15,42 @@ public class LifecycleService extends AbstractService {
 
     @Override
     protected void processCell(Cell cell) {
+        Island island = cell.getIsland();
         // Process Animals
         List<Animal> animals = cell.getAnimals();
-        for (Animal animal : animals) {
+        for (int i = 0; i < animals.size(); i++) {
+            Animal animal = animals.get(i);
             if (animal.isAlive()) {
                 animal.setHiding(false); // Reset protection flag
-                animal.checkState();
+                
+                // 1. Check Age Death
+                if (animal.checkAgeDeath()) {
+                    island.reportAgeDeath();
+                    continue;
+                }
+
+                // 2. Consume Metabolism Energy (Kleiber's Law)
+                if (!animal.isHibernating()) {
+                    animal.consumeEnergy(animal.getMaxEnergy() * animal.getDynamicMetabolismRate());
+                }
+                
+                // 3. Check Hunger Death
+                if (!animal.isAlive() && animal.isStarving()) {
+                    island.reportHungerDeath();
+                }
             }
         }
 
-        // Process Plants (Growth and potentially death if biomass=0)
+        // Process Plants (Growth & Pendulum)
         List<Plant> plants = cell.getPlants();
-        for (Plant plant : plants) {
-            if (plant.isAlive()) {
-                plant.checkState();
+        for (int i = 0; i < plants.size(); i++) {
+            Plant plant = plants.get(i);
+            plant.setHiding(false); 
+            
+            if (plant instanceof com.island.content.animals.herbivores.Caterpillar caterpillar) {
+                caterpillar.processPendulum(cell);
+            } else {
+                plant.grow();
             }
         }
     }

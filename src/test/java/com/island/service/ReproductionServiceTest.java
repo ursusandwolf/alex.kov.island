@@ -1,5 +1,6 @@
 package com.island.service;
 
+import com.island.content.Animal;
 import com.island.content.AnimalFactory;
 import com.island.content.SpeciesConfig;
 import com.island.content.animals.herbivores.Rabbit;
@@ -14,19 +15,78 @@ class ReproductionServiceTest {
     private final AnimalFactory factory = new AnimalFactory(config);
 
     @Test
-    void testReproduction() {
+    void testReproductionWithMaxEnergy() {
         Island island = new Island(1, 1);
+        island.setRedBookProtectionEnabled(false);
         Cell cell = island.getCell(0, 0);
         
-        cell.addAnimal(new Rabbit(config.getAnimalType("rabbit")));
-        cell.addAnimal(new Rabbit(config.getAnimalType("rabbit")));
+        Animal r1 = new Rabbit(config.getAnimalType("rabbit"));
+        Animal r2 = new Rabbit(config.getAnimalType("rabbit"));
         
-        assertEquals(2, cell.getAnimalCount());
+        // Rabbit Max offspring: base 4 + herbivore 2 = 6.
+        // Total energy = 0.90. Threshold = 0.18.
+        // k=6 -> 0.9/8 = 0.11 (X)
+        // k=3 -> 0.9/5 = 0.18 (OK)
+        // Expected: 2 parents + 3 babies = 5.
+        r1.setEnergy(r1.getMaxEnergy());
+        r2.setEnergy(r2.getMaxEnergy());
+        
+        cell.addAnimal(r1);
+        cell.addAnimal(r2);
         
         ReproductionService service = new ReproductionService(island, factory, java.util.concurrent.Executors.newSingleThreadExecutor());
         service.run();
         
-        // 2 rabbits -> 1 pair -> 3 babies. Total 5.
-        assertEquals(5, cell.getAnimalCount());
+        assertEquals(5, cell.getAnimalCount(), "Should produce 3 babies due to energy constraints");
+        
+        for (Animal a : cell.getAnimals()) {
+            assertEquals(0.18, a.getCurrentEnergy(), 0.001);
+        }
+    }
+
+    @Test
+    void testReproductionWithModerateEnergy() {
+        Island island = new Island(1, 1);
+        island.setRedBookProtectionEnabled(false);
+        Cell cell = island.getCell(0, 0);
+        
+        Animal r1 = new Rabbit(config.getAnimalType("rabbit"));
+        Animal r2 = new Rabbit(config.getAnimalType("rabbit"));
+        
+        // Use max energy levels.
+        r1.setEnergy(0.45);
+        r2.setEnergy(0.45);
+        
+        cell.addAnimal(r1);
+        cell.addAnimal(r2);
+        
+        ReproductionService service = new ReproductionService(island, factory, java.util.concurrent.Executors.newSingleThreadExecutor());
+        service.run();
+        
+        // Expected: 2 parents + 3 babies = 5.
+        assertEquals(5, cell.getAnimalCount(), "Should have 2 parents + 3 babies (max)");
+    }
+
+    @Test
+    void testNoReproductionWhenStarving() {
+        Island island = new Island(1, 1);
+        island.setRedBookProtectionEnabled(false);
+        Cell cell = island.getCell(0, 0);
+        
+        Animal r1 = new Rabbit(config.getAnimalType("rabbit"));
+        Animal r2 = new Rabbit(config.getAnimalType("rabbit"));
+        
+        // Total energy = 0.3.
+        // For 1 baby need 0.54.
+        r1.setEnergy(0.15);
+        r2.setEnergy(0.15);
+        
+        cell.addAnimal(r1);
+        cell.addAnimal(r2);
+        
+        ReproductionService service = new ReproductionService(island, factory, java.util.concurrent.Executors.newSingleThreadExecutor());
+        service.run();
+        
+        assertEquals(2, cell.getAnimalCount());
     }
 }

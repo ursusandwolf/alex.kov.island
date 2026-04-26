@@ -5,6 +5,7 @@ import com.island.content.AnimalFactory;
 import com.island.content.AnimalType;
 import com.island.content.plants.Grass;
 import com.island.content.plants.Cabbage;
+import com.island.content.animals.herbivores.Caterpillar;
 import com.island.content.SpeciesConfig;
 import com.island.content.plants.Plant;
 import com.island.model.Chunk;
@@ -48,15 +49,35 @@ public class WorldInitializer {
             if (type == null) continue;
 
             // Вероятность присутствия вида в данной клетке
-            // Хищники встречаются реже, травоядные чаще
-            double presenceProbability = type.isPredator() ? 0.3 : 0.6;
+            double presenceProbability = type.isPredator() ? 0.4 : 0.8;
+            
+            // Специальное снижение для топ-хищников
+            if (species.equals("bear")) {
+                presenceProbability = 0.15; // 15% cells
+            }
+            if (species.equals("wolf")) {
+                presenceProbability = 0.05; // Only 5% cells (Extreme sparsity for wolves)
+            }
             
             if (RandomUtils.nextDouble() < presenceProbability) {
                 int maxPerCell = type.getMaxPerCell();
-                // Заселяем от 2% до 15% от максимума
-                double settlementRate = 0.02 + (RandomUtils.nextDouble() * 0.13);
-                int count = (int) (maxPerCell * settlementRate);
-                
+
+                // Заселяем от 10% до 35% от максимума (Восстановлено для всех)
+                double settlementRate = 0.10 + (RandomUtils.nextDouble() * 0.25);
+
+                // Специальные ограничения
+                if (species.equals("bear")) {
+                    settlementRate = 0.05 + (RandomUtils.nextDouble() * 0.05); 
+                }
+                if (species.equals("wolf")) {
+                    settlementRate = 0.02 + (RandomUtils.nextDouble() * 0.03); 
+                }
+                // --- Buffalo Restriction ---
+                if (species.equals("buffalo")) {
+                    settlementRate = 0.05; // Fixed low density
+                }
+
+                int count = (int) (maxPerCell * settlementRate);                
                 // Гарантируем хотя бы 1 особь если вид "присутствует"
                 count = Math.max(count, 1);
                 
@@ -70,5 +91,6 @@ public class WorldInitializer {
         // Растения - присутствуют в каждой клетке (100% шанс)
         cell.addPlant(new Grass());
         cell.addPlant(new Cabbage());
+        cell.addPlant(new Caterpillar());
     }
 }

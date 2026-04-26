@@ -23,6 +23,8 @@ public abstract class AbstractService implements Runnable {
 
     @Override
     public void run() {
+        if (executor.isShutdown()) return;
+
         List<Callable<Void>> tasks = new ArrayList<>();
         for (Chunk chunk : island.getChunks()) {
             tasks.add(() -> {
@@ -33,7 +35,11 @@ public abstract class AbstractService implements Runnable {
             });
         }
         try {
-            executor.invokeAll(tasks);
+            if (!executor.isShutdown()) {
+                executor.invokeAll(tasks);
+            }
+        } catch (java.util.concurrent.RejectedExecutionException e) {
+            // Silently ignore if shutdown happened between check and execution
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }

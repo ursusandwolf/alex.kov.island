@@ -1,23 +1,28 @@
 package com.island.model;
-import com.island.util.RandomUtils;
+
 import com.island.content.Animal;
+import com.island.content.AnimalType;
 import com.island.content.SpeciesConfig;
-import lombok.Getter;
+import com.island.content.plants.Plant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-
-// Composite: Остров состоит из ячеек
-@Getter
+/**
+ * Composite: Island consists of cells.
+ */
 public class Island {
     private final int width, height;
     private final Cell[][] grid;
     private final List<Chunk> chunks = new ArrayList<>();
     private int tickCount = 0;
+    private boolean redBookProtectionEnabled = true;
     
     private final Map<String, AtomicInteger> speciesCounts = new ConcurrentHashMap<>();
+    private final AtomicInteger hungerDeaths = new AtomicInteger(0);
+    private final AtomicInteger ageDeaths = new AtomicInteger(0);
+    private final AtomicInteger eatenAnimals = new AtomicInteger(0);
 
     public Island(int width, int height) {
         this.width = width;
@@ -27,12 +32,89 @@ public class Island {
         partitionIntoChunks();
     }
 
-    public void nextTick() {
-        tickCount++;
+    public int getWidth() { return width; }
+    public int getHeight() { return height; }
+    public Cell[][] getGrid() { return grid; }
+    public List<Chunk> getChunks() { return chunks; }
+    public int getTickCount() { return tickCount; }
+
+    public void setRedBookProtectionEnabled(boolean enabled) {
+        this.redBookProtectionEnabled = enabled;
     }
 
-    public int getTickCount() {
-        return tickCount;
+    public boolean isRedBookProtectionEnabled() {
+        return redBookProtectionEnabled;
+    }
+
+    public Map<String, Double> getProtectionMap(SpeciesConfig config) {
+        if (!redBookProtectionEnabled) return Collections.emptyMap();
+        
+        Map<String, Double> protectionMap = new HashMap<>();
+        int islandArea = width * height;
+
+        for (String key : config.getAllSpeciesKeys()) {
+            AnimalType type = config.getAnimalType(key);
+            if (type == null) continue;
+
+            int currentCount = getSpeciesCount(key);
+            int globalCapacity = islandArea * type.getMaxPerCell();
+            
+            double threshold = globalCapacity * 0.05; 
+            if (currentCount > 0 && currentCount < threshold) {
+                double ratio = (double) currentCount / threshold;
+                double hideChance = 0.60 - (ratio * 0.30);
+                protectionMap.put(key, hideChance);
+            }
+        }
+        return protectionMap;
+    }
+
+    public double getGlobalSatiety() {
+        double totalMax = 0;
+        double totalCurrent = 0;
+        int animalCount = 0;
+
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                for (Animal a : grid[x][y].getAnimals()) {
+                    if (a.isAlive()) {
+                        totalMax += a.getMaxEnergy();
+                        totalCurrent += a.getCurrentEnergy();
+                        animalCount++;
+                    }
+                }
+            }
+        }
+        return (animalCount == 0) ? 100.0 : (totalCurrent / totalMax) * 100.0;
+    }
+
+    public int getStarvingCount() {
+        int starving = 0;
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                for (Animal a : grid[x][y].getAnimals()) {
+                    if (a.isAlive() && a.getEnergyPercentage() < 30.0) {
+                        starving++;
+                    }
+                }
+            }
+        }
+        return starving;
+    }
+
+    public void reportHungerDeath() { hungerDeaths.incrementAndGet(); }
+    public void reportAgeDeath() { ageDeaths.incrementAndGet(); }
+    public void reportEatenAnimal() { eatenAnimals.incrementAndGet(); }
+    
+    public int getHungerDeaths() { return hungerDeaths.get(); }
+    public int getAgeDeaths() { return ageDeaths.get(); }
+    public int getEatenAnimals() { return eatenAnimals.get(); }
+
+    public void nextTick() {
+        tickCount++;
+        hungerDeaths.set(0);
+        ageDeaths.set(0);
+        eatenAnimals.set(0);
     }
 
     private void initializeGrid() {
@@ -42,7 +124,6 @@ public class Island {
     }
 
     private void partitionIntoChunks() {
-        // Split island into 4 chunks (2x2 grid)
         int midX = width / 2;
         int midY = height / 2;
 
@@ -67,6 +148,11 @@ public class Island {
 
     public Cell getCellUnsafe(int x, int y) {
         return (x < 0 || x >= width || y < 0 || y >= height) ? null : grid[x][y];
+    }
+
+    public int getSpeciesCount(String speciesKey) {
+        AtomicInteger count = speciesCounts.get(speciesKey);
+        return (count != null) ? count.get() : 0;
     }
 
     public void onOrganismAdded(String speciesKey) {
@@ -103,18 +189,42 @@ public class Island {
         }
     }
 
-    public void initializeWorld(SpeciesConfig config) {
-        // TODO: Инициализация мира
-    }
-
     public Map<String, Integer> getSpeciesCounts() {
-        return speciesCounts.entrySet().stream()
-                .filter(e -> e.getValue().get() > 0)
-                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get()));
+        Map<String, Integer> counts = new HashMap<>();
+        for (Map.Entry<String, AtomicInteger> entry : speciesCounts.entrySet()) {
+            int count = entry.getValue().get();
+            if (count > 0) counts.put(entry.getKey(), count);
+        }
+
+        double totalPlant = 0;
+        double totalCabbage = 0;
+        double totalCaterpillar = 0;
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                for (Plant p : grid[x][y].getPlants()) {
+                    String sKey = p.getSpeciesKey();
+                    if (sKey.equals("plant")) totalPlant += p.getBiomass();
+                    else if (sKey.equals("cabbage")) totalCabbage += p.getBiomass();
+                    else if (sKey.equals("caterpillar")) totalCaterpillar += p.getBiomass();
+                }
+            }
+        }
+        if (totalPlant > 0) counts.put("plant", (int) totalPlant);
+        if (totalCabbage > 0) counts.put("cabbage", (int) totalCabbage);
+        if (totalCaterpillar > 0) counts.put("caterpillar", (int) totalCaterpillar);
+
+        return counts;
     }
 
     public int getTotalOrganismCount() {
-        return speciesCounts.values().stream().mapToInt(AtomicInteger::get).sum();
+        int animalTotal = speciesCounts.values().stream().mapToInt(AtomicInteger::get).sum();
+        double plantTotal = 0;
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                plantTotal += grid[x][y].getPlantCount();
+            }
+        }
+        return animalTotal + (int) plantTotal;
     }
 
     public String getStatistics() {

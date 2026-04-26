@@ -20,6 +20,7 @@ class FeedingServiceTest {
     @BeforeEach
     void setUp() {
         island = new Island(1, 1);
+        island.setRedBookProtectionEnabled(false);
         matrix = new InteractionMatrix();
         // Setup 100% chance for wolf to eat rabbit
         matrix.setChance("wolf", "rabbit", 100);
@@ -46,5 +47,28 @@ class FeedingServiceTest {
         
         // Wolf should have more energy
         assertTrue(wolf.getCurrentEnergy() > initialEnergy);
+    }
+
+    @Test
+    void testRabbitEatsGrass() {
+        Cell cell = island.getCell(0, 0);
+        Rabbit rabbit = new Rabbit(config.getAnimalType("rabbit"));
+        // saturation for rabbit is 0.45kg. Give it very low energy but keep it alive.
+        rabbit.setEnergy(0.05); 
+        double initialEnergy = rabbit.getCurrentEnergy();
+
+        com.island.content.plants.Grass grass = new com.island.content.plants.Grass();
+        double initialBiomass = grass.getBiomass();
+        cell.addPlant(grass);
+        cell.addAnimal(rabbit);
+
+        // Setup matrix: Rabbit eats Plant (Grass) with 100% chance
+        matrix.setChance("rabbit", "plant", 100);
+
+        service.run();
+
+        // Rabbit should have gained energy
+        assertTrue(rabbit.getCurrentEnergy() > initialEnergy, "Rabbit should have gained energy from eating grass");
+        assertTrue(grass.getBiomass() < initialBiomass, "Grass biomass should have decreased");
     }
 }
