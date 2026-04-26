@@ -87,7 +87,8 @@ public class ConsoleView {
 
     private void updateHistory(Island island) {
         Map<String, Integer> currentCounts = island.getSpeciesCounts();
-        for (String species : ICONS.keySet()) {
+        List<String> allSpecies = new ArrayList<>(com.island.content.SpeciesConfig.getInstance().getAllSpeciesKeys());
+        for (String species : allSpecies) {
             populationHistory.putIfAbsent(species, new LinkedList<>());
             LinkedList<Integer> history = populationHistory.get(species);
             history.add(currentCounts.getOrDefault(species, 0));
@@ -99,11 +100,15 @@ public class ConsoleView {
 
     private void renderStatsWithGraphs(StringBuilder sb, Map<String, Integer> currentCounts) {
         int col = 0;
-        for (Map.Entry<String, Integer> entry : currentCounts.entrySet()) {
-            String species = entry.getKey();
-            int count = entry.getValue();
+        List<String> allSpecies = new ArrayList<>(com.island.content.SpeciesConfig.getInstance().getAllSpeciesKeys());
+        Collections.sort(allSpecies);
+
+        for (String species : allSpecies) {
+            int count = currentCounts.getOrDefault(species, 0);
+            String icon = ICONS.getOrDefault(species, species.substring(0, 1).toUpperCase());
             String graph = ViewUtils.getSparkline(populationHistory.get(species), HISTORY_SIZE);
-            sb.append(String.format("%s %-11s: %-5d %s  ", ICONS.get(species), species, count, graph));
+            
+            sb.append(String.format("%s %-11s: %-5d %s  ", icon, species, count, graph));
             if (++col % 2 == 0) sb.append("\n");
         }
         if (col % 2 != 0) sb.append("\n");
@@ -158,11 +163,12 @@ public class ConsoleView {
             // Cycle through the top species based on the current tick
             int displayIndex = (lastRenderedTick / RENDER_THROTTLE) % topSpeciesList.size();
             String speciesToDisplay = topSpeciesList.get(displayIndex);
+            String icon = ICONS.getOrDefault(speciesToDisplay, speciesToDisplay.substring(0, 1).toUpperCase());
             
             if (speciesToDisplay.equals("plant") || speciesToDisplay.equals("cabbage")) {
-                sb.append(GREEN).append(ICONS.get(speciesToDisplay)).append(RESET).append(" ");
+                sb.append(GREEN).append(icon).append(RESET).append(" ");
             } else {
-                sb.append(ICONS.getOrDefault(speciesToDisplay, "🐾")).append(" ");
+                sb.append(icon).append(" ");
             }
         } else {
             sb.append(". ");
