@@ -42,21 +42,26 @@ public class FeedingService implements Runnable {
     }
 
     private void processCell(Cell cell) {
-        List<Animal> animals = new ArrayList<>(cell.getAnimals());
+        List<Animal> predators = new ArrayList<>(cell.getAnimals());
         
-        // Sorting by weight descending ensures large animals (Buffalo, Horse, Bear, Boar, Deer) 
-        // get to eat first. This prevents smaller, more numerous species (Mice, Rabbits) 
-        // from instantly exhausting the cell's biomass.
-        animals.sort((a, b) -> Double.compare(b.getWeight(), a.getWeight()));
+        // Sorting by initiative: (Weight * 0.7 + Speed * 0.3) * Random(0.8..1.2)
+        // This gives chance for faster/lighter predators to act before heavy ones.
+        predators.sort((a, b) -> {
+            double initiativeA = (a.getWeight() * 0.7 + a.getSpeed() * 0.3) * (0.8 + Math.random() * 0.4);
+            double initiativeB = (b.getWeight() * 0.7 + b.getSpeed() * 0.3) * (0.8 + Math.random() * 0.4);
+            return Double.compare(initiativeB, initiativeA);
+        });
 
-        for (Animal animal : animals) {
-            if (animal.isAlive()) {
-                tryEat(animal, cell);
+        PreyProvider preyProvider = new PreyProvider(cell, interactionMatrix, island.getTickCount());
+
+        for (Animal predator : predators) {
+            if (predator.isAlive()) {
+                tryEat(predator, cell, preyProvider);
             }
         }
     }
 
-    private void tryEat(Animal predator, Cell cell) {
+    private void tryEat(Animal predator, Cell cell, PreyProvider preyProvider) {
         // Base hunting cost
         double huntEffortCost = predator.getMaxEnergy() * (BASE_HUNT_COST_PERCENT 
             + (predator.getSpeed() * PREDATOR_SPEED_HUNT_COST_STEP_PERCENT));
@@ -64,15 +69,9 @@ public class FeedingService implements Runnable {
 
         if (!predator.isAlive()) return;
 
-        // Try hunting animals
-        List<Animal> potentialPrey = cell.getAnimals();
-        for (Animal prey : potentialPrey) {
-            if (predator == prey || !prey.isAlive()) continue;
-
-            // Protection check: hides if escaped before
-            if (prey.isProtected(island.getTickCount())) {
-                continue;
-            }
+        // Try hunting animals provided by the mediator
+        for (Animal prey : preyProvider.getPreyFor(predator)) {
+            if (predator == prey || !prey.isAlive() || prey.isProtected(island.getTickCount())) continue;
 
             int chance = interactionMatrix.getChance(predator.getSpeciesKey(), prey.getSpeciesKey());
             if (chance > 0) {
@@ -85,15 +84,19 @@ public class FeedingService implements Runnable {
                 }
 
                 if (RandomUtils.checkChance(chance)) {
-                    // ATOMIC CHECK: Successful hunt ONLY if we can actually remove the prey from the cell.
                     if (cell.removeAnimal(prey)) {
-                        prey.die(); // Ensure prey is marked as dead
+                        prey.die();
                         predator.addEnergy(prey.getWeight());
-                        return;
+                        preyProvider.markAsEaten(prey);
+                        
+                        // Check if satiated
+                        if (predator.getCurrentEnergy() >= predator.getFoodForSaturation()) {
+                            return; // Predator is full, stop hunting
+                        }
                     }
                 } else {
-                    // Hunt failed! Prey escapes and HIDES for the rest of the tick.
-                    prey.setHiding(true);
+                    // Hunt failed! Prey escapes and hides.
+                    preyProvider.markAsHiding(prey);
                     double escapeCost = prey.getMaxEnergy() * ESCAPE_ENERGY_COST_PERCENT; 
                     prey.consumeEnergy(escapeCost);
                 }
@@ -101,6 +104,7 @@ public class FeedingService implements Runnable {
         }
 
         // --- Plant Feeding Logic ---
+        // (Plants are simpler and don't yet use the mediator in this version)
         String predatorKey = predator.getSpeciesKey();
         List<Plant> plants = cell.getPlants();
         if (plants.isEmpty()) return;

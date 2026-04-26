@@ -54,6 +54,8 @@ public abstract class Animal extends Organism implements Mobile, Consumer, Repro
     @Override
     public abstract Animal reproduce();
 
+    public abstract String getSpeciesKey();
+
     public boolean canEat(String preyKey) { return animalType.canEat(preyKey); }
     public int getHuntProbability(String preyKey) { return animalType.getHuntProbability(preyKey); }
 
