@@ -67,6 +67,7 @@ public final class SpeciesConfig {
         Set<String> allKeys = new HashSet<>(animalTypes.keySet());
         allKeys.add("plant");
         allKeys.add("cabbage");
+        allKeys.add("caterpillar");
         return allKeys;
     }
 

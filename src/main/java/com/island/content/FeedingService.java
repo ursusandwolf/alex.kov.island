@@ -1,5 +1,6 @@
 package com.island.content;
 import com.island.util.RandomUtils;import com.island.content.plants.*;
+import com.island.content.animals.herbivores.Caterpillar;
 import com.island.model.Cell;
 import com.island.model.Chunk;
 import com.island.model.Island;
@@ -112,6 +113,11 @@ public class FeedingService implements Runnable {
                         predator.addEnergy(prey.getWeight());
                         preyProvider.markAsEaten(prey);
                         
+                        // Report to global stats
+                        if (!prey.getSpeciesKey().equals("caterpillar")) {
+                            island.reportEatenAnimal();
+                        }
+                        
                         // Check if satiated
                         if (predator.getCurrentEnergy() >= predator.getFoodForSaturation()) {
                             return; 
@@ -157,6 +163,22 @@ public class FeedingService implements Runnable {
                     predator.addEnergy(eaten);
                     foodNeeded -= eaten;
                     if (foodNeeded <= 0) return; // Satiated
+                }
+            }
+        }
+
+        // 3. Try eating Caterpillar Biomass (for Fox, Boar, etc.)
+        int caterpillarChance = interactionMatrix.getChance(predatorKey, "caterpillar");
+        if (caterpillarChance > 0) {
+            for (int i = 0; i < plants.size(); i++) {
+                Plant p = plants.get(i);
+                if (p instanceof Caterpillar && p.isAlive()) {
+                    // Note: Here we skip RandomUtils.checkChance for biomass-based prey 
+                    // for performance, treating it as partial successful foraging.
+                    double eaten = p.consumeBiomass(foodNeeded);
+                    predator.addEnergy(eaten);
+                    foodNeeded -= eaten;
+                    if (foodNeeded <= 0) return;
                 }
             }
         }

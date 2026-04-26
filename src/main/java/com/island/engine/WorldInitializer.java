@@ -5,6 +5,7 @@ import com.island.content.AnimalFactory;
 import com.island.content.AnimalType;
 import com.island.content.plants.Grass;
 import com.island.content.plants.Cabbage;
+import com.island.content.animals.herbivores.Caterpillar;
 import com.island.content.SpeciesConfig;
 import com.island.content.plants.Plant;
 import com.island.model.Chunk;
@@ -70,5 +71,6 @@ public class WorldInitializer {
         // Растения - присутствуют в каждой клетке (100% шанс)
         cell.addPlant(new Grass());
         cell.addPlant(new Cabbage());
+        cell.addPlant(new Caterpillar());
     }
 }

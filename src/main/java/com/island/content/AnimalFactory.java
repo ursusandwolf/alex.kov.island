@@ -15,7 +15,6 @@ public final class AnimalFactory {
         registry.put("wolf", Wolf::new);
         registry.put("rabbit", Rabbit::new);
         registry.put("duck", Duck::new);
-        registry.put("caterpillar", Caterpillar::new);
         registry.put("fox", Fox::new);
         registry.put("boa", Boa::new);
         registry.put("bear", Bear::new);
@@ -30,6 +29,7 @@ public final class AnimalFactory {
     }
 
     public Animal createAnimal(String key) {
+        if (key.equalsIgnoreCase("caterpillar")) return null;
         return createAnimal(key, 0.5); 
     }
 

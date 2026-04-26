@@ -1,21 +1,25 @@
 package com.island.content.animals.herbivores;
 
-import com.island.content.Animal;
-import com.island.content.AnimalType;
+import com.island.content.plants.Plant;
+import com.island.content.SpeciesConfig;
 
-public class Caterpillar extends Animal implements Herbivore {
-    public Caterpillar(AnimalType type) {
-        super(type);
+/**
+ * Optimized Caterpillar: Now acts as a biomass container (like plants).
+ * This eliminates millions of individual objects from the simulation.
+ */
+public class Caterpillar extends Plant {
+    public Caterpillar() {
+        super(SpeciesConfig.getInstance().getAnimalType("caterpillar").getWeight() * 
+              SpeciesConfig.getInstance().getAnimalType("caterpillar").getMaxPerCell());
     }
 
     @Override
-    public String getTypeName() { return animalType.getTypeName(); }
+    public String getTypeName() {
+        return "Caterpillar";
+    }
 
     @Override
-    public String getSpeciesKey() { return animalType.getSpeciesKey(); }
-
-    @Override
-    public Caterpillar reproduce() {
-        return trySpendEnergyForReproduction() ? new Caterpillar(animalType) : null;
+    public String getSpeciesKey() {
+        return "caterpillar";
     }
 }

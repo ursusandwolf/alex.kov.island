@@ -23,6 +23,7 @@ public class Island {
     private final Map<String, AtomicInteger> speciesCounts = new ConcurrentHashMap<>();
     private final AtomicInteger hungerDeaths = new AtomicInteger(0);
     private final AtomicInteger ageDeaths = new AtomicInteger(0);
+    private final AtomicInteger eatenAnimals = new AtomicInteger(0);
 
     public Island(int width, int height) {
         this.width = width;
@@ -99,13 +100,17 @@ public class Island {
 
     public void reportHungerDeath() { hungerDeaths.incrementAndGet(); }
     public void reportAgeDeath() { ageDeaths.incrementAndGet(); }
+    public void reportEatenAnimal() { eatenAnimals.incrementAndGet(); }
+    
     public int getHungerDeaths() { return hungerDeaths.get(); }
     public int getAgeDeaths() { return ageDeaths.get(); }
+    public int getEatenAnimals() { return eatenAnimals.get(); }
 
     public void nextTick() {
         tickCount++;
         hungerDeaths.set(0);
         ageDeaths.set(0);
+        eatenAnimals.set(0);
     }
 
     public int getTickCount() {
@@ -198,19 +203,23 @@ public class Island {
             if (count > 0) counts.put(entry.getKey(), count);
         }
 
-        // Add plant biomass units from all cells
+        // Add plant/caterpillar biomass units from all cells
         double totalPlant = 0;
         double totalCabbage = 0;
+        double totalCaterpillar = 0;
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 for (Plant p : grid[x][y].getPlants()) {
-                    if (p.getSpeciesKey().equals("plant")) totalPlant += p.getBiomass();
-                    if (p.getSpeciesKey().equals("cabbage")) totalCabbage += p.getBiomass();
+                    String sKey = p.getSpeciesKey();
+                    if (sKey.equals("plant")) totalPlant += p.getBiomass();
+                    else if (sKey.equals("cabbage")) totalCabbage += p.getBiomass();
+                    else if (sKey.equals("caterpillar")) totalCaterpillar += p.getBiomass();
                 }
             }
         }
         if (totalPlant > 0) counts.put("plant", (int) totalPlant);
         if (totalCabbage > 0) counts.put("cabbage", (int) totalCabbage);
+        if (totalCaterpillar > 0) counts.put("caterpillar", (int) totalCaterpillar);
 
         return counts;
     }

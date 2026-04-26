@@ -72,6 +72,8 @@ public class ConsoleView {
         sb.append(String.format("Deaths Last Tick: Hunger: %s%d%s | Old Age: %s%d%s\n", 
                 "\u001B[31m", island.getHungerDeaths(), RESET, 
                 YELLOW, island.getAgeDeaths(), RESET));
+        sb.append(String.format("Hunts Successful: %s%d%s\n", 
+                GREEN, island.getEatenAnimals(), RESET));
 
         sb.append("-".repeat(60)).append("\n");
 
