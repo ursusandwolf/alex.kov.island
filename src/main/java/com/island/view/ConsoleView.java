@@ -58,6 +58,17 @@ public class ConsoleView {
         String totalGraph = ViewUtils.getSparkline(totalPopulationHistory, HISTORY_SIZE * 2);
         sb.append(String.format("Tick: %-5d | Total Population: %-6d %s\n", 
                 island.getTickCount(), island.getTotalOrganismCount(), totalGraph));
+        
+        // Hunger Stats
+        double satiety = island.getGlobalSatiety();
+        int starving = island.getStarvingCount();
+        String satietyColor = satiety > 70 ? GREEN : (satiety > 40 ? YELLOW : "\u001B[31m"); // Red if < 40%
+        
+        sb.append(String.format("Global Satiety: %s%3.1f%%%s [", satietyColor, satiety, RESET));
+        int progress = (int) (satiety / 5);
+        sb.append(satietyColor).append("#".repeat(progress)).append(".".repeat(20 - progress)).append(RESET).append("] ");
+        sb.append(String.format("| Starving: %s%d%s\n", (starving > 0 ? "\u001B[31m" : GREEN), starving, RESET));
+        
         sb.append("-".repeat(60)).append("\n");
 
         Map<String, Integer> currentCounts = new TreeMap<>(island.getSpeciesCounts());

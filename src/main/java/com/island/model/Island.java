@@ -62,6 +62,39 @@ public class Island {
         return protectionMap;
     }
 
+    public double getGlobalSatiety() {
+        double totalMax = 0;
+        double totalCurrent = 0;
+        int animalCount = 0;
+
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                for (Animal a : grid[x][y].getAnimals()) {
+                    if (a.isAlive()) {
+                        totalMax += a.getMaxEnergy();
+                        totalCurrent += a.getCurrentEnergy();
+                        animalCount++;
+                    }
+                }
+            }
+        }
+        return (animalCount == 0) ? 100.0 : (totalCurrent / totalMax) * 100.0;
+    }
+
+    public int getStarvingCount() {
+        int starving = 0;
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                for (Animal a : grid[x][y].getAnimals()) {
+                    if (a.isAlive() && a.getEnergyPercentage() < 30.0) {
+                        starving++;
+                    }
+                }
+            }
+        }
+        return starving;
+    }
+
     public void nextTick() {
         tickCount++;
     }
