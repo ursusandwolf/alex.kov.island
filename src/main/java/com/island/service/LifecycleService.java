@@ -29,8 +29,8 @@ public class LifecycleService extends AbstractService {
                     continue;
                 }
 
-                // 2. Consume Metabolism Energy
-                animal.consumeEnergy(animal.getMaxEnergy() * com.island.config.SimulationConstants.BASE_METABOLISM_PERCENT);
+                // 2. Consume Metabolism Energy (Kleiber's Law)
+                animal.consumeEnergy(animal.getMaxEnergy() * animal.getDynamicMetabolismRate());
                 
                 // 3. Check Hunger Death
                 if (!animal.isAlive() && animal.isStarving()) {

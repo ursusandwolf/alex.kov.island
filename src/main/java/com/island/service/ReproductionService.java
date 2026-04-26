@@ -30,9 +30,23 @@ public class ReproductionService extends AbstractService {
         List<Animal> animals = cell.getAnimals();
         Map<String, List<Animal>> readyGroups = new HashMap<>();
         
+        Island island = cell.getIsland();
+        int islandArea = island.getWidth() * island.getHeight();
+
         for (Animal animal : animals) {
-            if (animal.canInitiateReproduction()) {
-                readyGroups.computeIfAbsent(animal.getSpeciesKey(), k -> new ArrayList<>()).add(animal);
+            String key = animal.getSpeciesKey();
+            int currentCount = island.getSpeciesCount(key);
+            int globalCapacity = islandArea * animal.getMaxPerCell();
+            
+            // Check for Red Book Reproduction Bonus
+            double threshold = globalCapacity * ENDANGERED_POPULATION_THRESHOLD;
+            double requiredPercent = REPRODUCTION_MIN_ENERGY_PERCENT;
+            if (currentCount > 0 && currentCount < threshold) {
+                requiredPercent -= ENDANGERED_REPRO_BONUS_PERCENT; // 60 -> 40
+            }
+
+            if (animal.isAlive() && animal.getEnergyPercentage() >= requiredPercent) {
+                readyGroups.computeIfAbsent(key, k -> new ArrayList<>()).add(animal);
             }
         }
 

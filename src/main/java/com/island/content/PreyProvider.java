@@ -97,10 +97,23 @@ public class PreyProvider {
 
         String predKey = predator.getSpeciesKey();
         
-        int baseQuota = 5 + (int)(foodNeeded * 2); 
-        int limitedQuota = (int) (baseQuota * scarcityFactor);
+        // --- Predator Intelligence and Persistence ---
+        // Base quota of search attempts
+        int baseQuota = 15 + (int)(foodNeeded * 2); 
         
-        if (limitedQuota < 1 && scarcityFactor > 0.05) limitedQuota = 1;
+        // Gradual persistence bonus based on size (instead of sharp 5x jump)
+        if (predator.getWeight() > 100) {
+            baseQuota += (int)(predator.getWeight() / 10.0);
+        }
+
+        // Limit maximum search depth to prevent wiping out entire cells
+        if (baseQuota > 60) baseQuota = 60;
+
+        // Scarcity impact softened: predators always get at least 60% of their quota
+        int limitedQuota = (int) (baseQuota * (0.6 + (scarcityFactor * 0.4))); 
+        
+        // Minimum search depth: 5 attempts if pool is large
+        if (limitedQuota < 5 && masterPool.size() > 10) limitedQuota = 5;
 
         List<Organism> buffet = new ArrayList<>();
         int attempts = 0;

@@ -86,15 +86,17 @@ public class FeedingService implements Runnable {
         // Predators now pay per attempt based on prey size and difficulty.
 
         // Try hunting organisms (Animals and Smart Biomass like Caterpillar) provided by the mediator
+        int attemptsInTick = 0;
         for (Organism prey : preyProvider.getPreyFor(predator)) {
             if (predator == prey || !prey.isAlive()) continue;
+            attemptsInTick++;
 
             int chance = interactionMatrix.getChance(predator.getSpeciesKey(), prey.getSpeciesKey());
             if (chance > 0) {
                 // 1. Calculate costs and gains
                 double preyWeight;
                 if (prey instanceof Animal a) preyWeight = a.getWeight();
-                else if (prey instanceof Caterpillar c) preyWeight = 0.01; // Unit weight for a single bite
+                else if (prey instanceof Caterpillar c) preyWeight = 0.01; 
                 else preyWeight = 0;
 
                 // Strike effort
@@ -110,13 +112,20 @@ public class FeedingService implements Runnable {
                 }
 
                 double totalEffort = strikeCost + chaseCost;
+                
+                // --- Hunt Fatigue Logic ---
+                // After HUNT_FATIGUE_THRESHOLD attempts, cost increases by HUNT_FATIGUE_COST_MULTIPLIER every block
+                if (attemptsInTick > HUNT_FATIGUE_THRESHOLD) {
+                    int extraBlocks = (attemptsInTick - 1) / HUNT_FATIGUE_THRESHOLD;
+                    totalEffort *= Math.pow(HUNT_FATIGUE_COST_MULTIPLIER, extraBlocks);
+                }
 
                 // Efficiency Check
                 double expectedGain = preyWeight * (chance / 100.0);
                 if (expectedGain < totalEffort && predator.getEnergyPercentage() > 40) continue;
 
                 predator.consumeEnergy(totalEffort);
-                if (!predator.isAlive()) return;
+                if (!predator.isAlive()) return; // Stop if dead or energy exhausted
 
                 // 2. Execution
                 if (RandomUtils.checkChance(chance)) {

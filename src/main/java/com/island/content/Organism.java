@@ -90,6 +90,19 @@ public abstract class Organism {
         return currentEnergy < DEATH_EPSILON;
     }
 
+    public double getWeight() { return 1.0; } // Default weight
+
+    /**
+     * Stepped Metabolism Rate: 
+     * Small organisms burn energy slightly faster, large ones slightly slower.
+     */
+    public double getDynamicMetabolismRate() {
+        double w = getWeight();
+        if (w < 1.0) return BASE_METABOLISM_PERCENT * METABOLISM_MODIFIER_TINY; 
+        if (w > 300.0) return BASE_METABOLISM_PERCENT * METABOLISM_MODIFIER_LARGE;
+        return BASE_METABOLISM_PERCENT * METABOLISM_MODIFIER_MEDIUM;
+    }
+
     public void checkState() {
         // Now returns void, logic moved to service for reporting
     }
