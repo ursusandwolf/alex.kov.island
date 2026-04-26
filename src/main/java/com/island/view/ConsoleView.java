@@ -30,6 +30,7 @@ public class ConsoleView {
     private boolean silent = false;
 
     private final Map<String, LinkedList<Integer>> populationHistory = new HashMap<>();
+    private final LinkedList<Integer> totalPopulationHistory = new LinkedList<>();
     private static final int HISTORY_SIZE = 15;
 
     public void setSilent(boolean silent) {
@@ -54,8 +55,9 @@ public class ConsoleView {
         sb.append("\033[H"); 
         
         sb.append(CYAN).append("=== ISLAND ECOSYSTEM DASHBOARD ===").append(RESET).append("\n");
-        sb.append(String.format("Tick: %-5d | Total Population: %-6d\n", 
-                island.getTickCount(), island.getTotalOrganismCount()));
+        String totalGraph = ViewUtils.getSparkline(totalPopulationHistory, HISTORY_SIZE * 2);
+        sb.append(String.format("Tick: %-5d | Total Population: %-6d %s\n", 
+                island.getTickCount(), island.getTotalOrganismCount(), totalGraph));
         sb.append("-".repeat(60)).append("\n");
 
         Map<String, Integer> currentCounts = new TreeMap<>(island.getSpeciesCounts());
@@ -86,6 +88,13 @@ public class ConsoleView {
     }
 
     private void updateHistory(Island island) {
+        // Update Total History
+        totalPopulationHistory.add(island.getTotalOrganismCount());
+        if (totalPopulationHistory.size() > HISTORY_SIZE * 2) {
+            totalPopulationHistory.removeFirst();
+        }
+
+        // Update Species History
         Map<String, Integer> currentCounts = island.getSpeciesCounts();
         List<String> allSpecies = new ArrayList<>(com.island.content.SpeciesConfig.getInstance().getAllSpeciesKeys());
         for (String species : allSpecies) {
