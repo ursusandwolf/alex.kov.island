@@ -33,6 +33,10 @@ public abstract class Plant extends Organism implements Reproducible<Plant> {
         return maxBiomass;
     }
 
+    public void addBiomass(double amount) {
+        biomass = Math.min(maxBiomass, biomass + amount);
+    }
+
     public double consumeBiomass(double amount) {
         double actual = Math.min(biomass, amount);
         biomass -= actual;

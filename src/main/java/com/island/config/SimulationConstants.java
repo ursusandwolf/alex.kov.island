@@ -32,6 +32,11 @@ public final class SimulationConstants {
     public static double PLANT_GROWTH_RATE_MIN = 0.05;
     public static double PLANT_GROWTH_RATE_MAX = 0.10;
 
+    // Caterpillar (Smart Biomass) Pendulum Constants
+    public static double CATERPILLAR_METABOLISM_RATE = 0.05;
+    public static double CATERPILLAR_FERTILIZER_EFFICIENCY = 0.90;
+    public static double CATERPILLAR_FEED_EFFICIENCY = 0.90;
+
     public static final double GRASS_WEIGHT = 1.0;
     public static final int GRASS_MAX_COUNT = 200;
     public static final double CABBAGE_WEIGHT = 2.0;
