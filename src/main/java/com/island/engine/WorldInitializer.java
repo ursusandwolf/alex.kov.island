@@ -61,20 +61,23 @@ public class WorldInitializer {
             
             if (RandomUtils.nextDouble() < presenceProbability) {
                 int maxPerCell = type.getMaxPerCell();
-                
-                // Заселяем от 10% до 35% от максимума
+
+                // Заселяем от 10% до 35% от максимума (Восстановлено для всех)
                 double settlementRate = 0.10 + (RandomUtils.nextDouble() * 0.25);
-                
-                // Для медведей и волков снижаем еще и плотность в ячейке
+
+                // Специальные ограничения
                 if (species.equals("bear")) {
-                    settlementRate = 0.05 + (RandomUtils.nextDouble() * 0.05); // 5-10%
+                    settlementRate = 0.05 + (RandomUtils.nextDouble() * 0.05); 
                 }
                 if (species.equals("wolf")) {
-                    settlementRate = 0.02 + (RandomUtils.nextDouble() * 0.03); // 2-5% (1-2 wolves max)
+                    settlementRate = 0.02 + (RandomUtils.nextDouble() * 0.03); 
                 }
-                
-                int count = (int) (maxPerCell * settlementRate);
-                
+                // --- Buffalo Restriction ---
+                if (species.equals("buffalo")) {
+                    settlementRate = 0.05; // Fixed low density
+                }
+
+                int count = (int) (maxPerCell * settlementRate);                
                 // Гарантируем хотя бы 1 особь если вид "присутствует"
                 count = Math.max(count, 1);
                 

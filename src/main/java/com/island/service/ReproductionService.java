@@ -41,8 +41,12 @@ public class ReproductionService extends AbstractService {
             // Check for Red Book Reproduction Bonus
             double threshold = globalCapacity * ENDANGERED_POPULATION_THRESHOLD;
             double requiredPercent = REPRODUCTION_MIN_ENERGY_PERCENT;
-            if (currentCount > 0 && currentCount < threshold) {
-                requiredPercent -= ENDANGERED_REPRO_BONUS_PERCENT; // 60 -> 40
+            
+            // --- Buffalo specific nerf ---
+            if (key.equals("buffalo")) {
+                requiredPercent = 95.0; // Buffalo must be extremely full to reproduce
+            } else if (currentCount > 0 && currentCount < threshold) {
+                requiredPercent -= ENDANGERED_REPRO_BONUS_PERCENT; 
             }
 
             if (animal.isAlive() && animal.getEnergyPercentage() >= requiredPercent) {
@@ -98,6 +102,8 @@ public class ReproductionService extends AbstractService {
     }
 
     private int calculateMaxOffspringCount(Animal animal) {
+        if (animal.getSpeciesKey().equals("buffalo")) return 1;
+
         double weight = animal.getWeight();
         int baseOffspring;
         
