@@ -88,9 +88,8 @@ public class Cell {
     public boolean addPlant(Plant plant) {
         lock.lock();
         try {
-            if (plants.size() >= 200) return false;
+            // In the container model, we usually have only one plant object per type in a cell
             if (plants.add(plant)) {
-                island.onOrganismAdded(plant.getSpeciesKey());
                 return true;
             }
             return false;
@@ -100,17 +99,17 @@ public class Cell {
     public boolean removePlant(Plant plant) {
         lock.lock();
         try { 
-            if (plants.remove(plant)) {
-                island.onOrganismRemoved(plant.getSpeciesKey());
-                return true;
-            }
-            return false;
+            return plants.remove(plant);
         } finally { lock.unlock(); }
     }
 
     public List<Plant> getPlants() { return plants; }
 
-    public int getPlantCount() { return plants.size(); }
+    public int getPlantCount() { 
+        double total = 0;
+        for (Plant p : plants) total += p.getBiomass();
+        return (int) total; 
+    }
 
     public void cleanupDeadOrganisms() {
         lock.lock();
@@ -122,13 +121,8 @@ public class Cell {
                     animals.remove(i);
                 }
             }
-            for (int i = plants.size() - 1; i >= 0; i--) {
-                Plant p = plants.get(i);
-                if (!p.isAlive()) {
-                    island.onOrganismRemoved(p.getSpeciesKey());
-                    plants.remove(i);
-                }
-            }
+            // Plants are containers and "root systems" are immortal, 
+            // so we don't remove them here, just update their biomass logic
         } finally { lock.unlock(); }
     }
 

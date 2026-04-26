@@ -3,6 +3,7 @@ import com.island.util.RandomUtils;
 import com.island.content.Animal;
 import com.island.content.AnimalType;
 import com.island.content.SpeciesConfig;
+import com.island.content.plants.Plant;
 import lombok.Getter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -147,13 +148,41 @@ public class Island {
     }
 
     public Map<String, Integer> getSpeciesCounts() {
-        return speciesCounts.entrySet().stream()
-                .filter(e -> e.getValue().get() > 0)
-                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get()));
+        Map<String, Integer> counts = new HashMap<>();
+        
+        // Add animal counts
+        for (Map.Entry<String, AtomicInteger> entry : speciesCounts.entrySet()) {
+            int count = entry.getValue().get();
+            if (count > 0) counts.put(entry.getKey(), count);
+        }
+
+        // Add plant biomass units from all cells
+        double totalPlant = 0;
+        double totalCabbage = 0;
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                for (Plant p : grid[x][y].getPlants()) {
+                    if (p.getSpeciesKey().equals("plant")) totalPlant += p.getBiomass();
+                    if (p.getSpeciesKey().equals("cabbage")) totalCabbage += p.getBiomass();
+                }
+            }
+        }
+        if (totalPlant > 0) counts.put("plant", (int) totalPlant);
+        if (totalCabbage > 0) counts.put("cabbage", (int) totalCabbage);
+
+        return counts;
     }
 
     public int getTotalOrganismCount() {
-        return speciesCounts.values().stream().mapToInt(AtomicInteger::get).sum();
+        int animalTotal = speciesCounts.values().stream().mapToInt(AtomicInteger::get).sum();
+        
+        double plantTotal = 0;
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                plantTotal += grid[x][y].getPlantCount();
+            }
+        }
+        return animalTotal + (int) plantTotal;
     }
 
     public String getStatistics() {
