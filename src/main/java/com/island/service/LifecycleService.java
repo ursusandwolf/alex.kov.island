@@ -43,6 +43,7 @@ public class LifecycleService extends AbstractService {
         List<Plant> plants = cell.getPlants();
         for (int i = 0; i < plants.size(); i++) {
             Plant plant = plants.get(i);
+            plant.setHiding(false); // Reset stealth for biomass too
             plant.grow();
         }
     }

@@ -13,18 +13,14 @@ public abstract class Animal extends Organism implements Mobile, Consumer, Repro
         super(animalType.getMaxEnergy(), animalType.getMaxLifespan());
         this.animalType = animalType;
     }
+public boolean canInitiateReproduction() {
+    // Minimum energy to even consider mating (e.g. 70%)
+    return isAlive() && getEnergyPercentage() >= REPRODUCTION_MIN_ENERGY_PERCENT;
+}
 
-    public boolean canInitiateReproduction() {
-        // Minimum energy to even consider mating (e.g. 70%)
-        return isAlive() && getEnergyPercentage() >= REPRODUCTION_MIN_ENERGY_PERCENT;
-    }
-
-    public void setHiding(boolean hiding) { this.isHiding = hiding; }
-
-    public boolean isProtected(int currentTick) {
-        return isHiding;
-    }
-
+public boolean isProtected(int currentTick) {
+    return isHiding;
+}
     public double getWeight() { return animalType.getWeight(); }
     public int getMaxPerCell() { return animalType.getMaxPerCell(); }
     public int getSpeed() { return animalType.getSpeed(); }

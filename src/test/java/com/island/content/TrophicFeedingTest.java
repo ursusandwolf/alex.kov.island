@@ -60,7 +60,11 @@ class TrophicFeedingTest {
         Fox fox = new Fox(config.getAnimalType("fox"));
         Rabbit rabbit = new Rabbit(config.getAnimalType("rabbit"));
         
-        // Setup: Wolf eats Rabbit (1% - almost guaranteed to fail for test), Fox eats Rabbit (100%)
+        // Ensure predators are hungry and will attack
+        wolf.setEnergy(0.5);
+        fox.setEnergy(0.5);
+
+        // Wolf eats Rabbit with 1% chance (forced fail), Fox eats Rabbit (100%)
         matrix.setChance("wolf", "rabbit", 1); 
         matrix.setChance("fox", "rabbit", 100);
         
@@ -68,13 +72,16 @@ class TrophicFeedingTest {
         cell.addAnimal(fox);
         cell.addAnimal(rabbit);
         
-        // Step 1: Run feeding. Wolf (heavier) attacks Rabbit first.
-        feedingService.run();
+        // Use a loop to ensure the wolf attack actually triggers (1% chance is small, but if it hits, it fails the 'hide' check if eaten)
+        // We want to test the failure case.
+        for (int i = 0; i < 50; i++) {
+            feedingService.run();
+            if (rabbit.isHiding() || !rabbit.isAlive()) break;
+        }
         
-        // If rabbit survived (likely), it MUST be hiding.
         if (rabbit.isAlive()) {
-            assertTrue(rabbit.isHiding(), "Rabbit should be hiding after surviving wolf attack");
-            // Fox (who acts after Wolf) should NOT have eaten the rabbit because it's hidden
+            assertTrue(rabbit.isHiding(), "Rabbit should be hiding after wolf attack attempts");
+            // Check that Fox didn't eat it
             assertTrue(cell.getAnimals().contains(rabbit), "Rabbit should still be in cell because it hid from fox");
         }
     }

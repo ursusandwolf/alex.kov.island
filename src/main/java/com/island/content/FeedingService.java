@@ -70,12 +70,12 @@ public class FeedingService implements Runnable {
         for (int i = 0; i < predators.size(); i++) {
             Animal predator = predators.get(i);
             if (predator.isAlive()) {
-                tryEat(predator, cell, preyProvider);
+                tryEat(predator, cell, preyProvider, protectionMap);
             }
         }
     }
 
-    private void tryEat(Animal predator, Cell cell, PreyProvider preyProvider) {
+    private void tryEat(Animal predator, Cell cell, PreyProvider preyProvider, Map<String, Double> protectionMap) {
         // Upfront search cost is removed to avoid "absurd" losses on small prey.
         // Predators now pay per attempt based on prey size and difficulty.
 
@@ -145,6 +145,10 @@ public class FeedingService implements Runnable {
             for (int i = 0; i < plants.size(); i++) {
                 Plant plant = plants.get(i);
                 if (plant instanceof Cabbage && plant.isAlive()) {
+                    // Check protection
+                    Double hideChance = protectionMap.get(plant.getSpeciesKey());
+                    if (hideChance != null && Math.random() < hideChance) continue;
+
                     double eaten = plant.consumeBiomass(foodNeeded);
                     predator.addEnergy(eaten);
                     foodNeeded -= eaten;
@@ -159,6 +163,10 @@ public class FeedingService implements Runnable {
             for (int i = 0; i < plants.size(); i++) {
                 Plant plant = plants.get(i);
                 if (plant instanceof Grass && plant.isAlive()) {
+                    // Check protection
+                    Double hideChance = protectionMap.get(plant.getSpeciesKey());
+                    if (hideChance != null && Math.random() < hideChance) continue;
+
                     double eaten = plant.consumeBiomass(foodNeeded);
                     predator.addEnergy(eaten);
                     foodNeeded -= eaten;
@@ -173,8 +181,10 @@ public class FeedingService implements Runnable {
             for (int i = 0; i < plants.size(); i++) {
                 Plant p = plants.get(i);
                 if (p instanceof Caterpillar && p.isAlive()) {
-                    // Note: Here we skip RandomUtils.checkChance for biomass-based prey 
-                    // for performance, treating it as partial successful foraging.
+                    // Check protection (Smart Biomass hiding)
+                    Double hideChance = protectionMap.get(p.getSpeciesKey());
+                    if (hideChance != null && Math.random() < hideChance) continue;
+
                     double eaten = p.consumeBiomass(foodNeeded);
                     predator.addEnergy(eaten);
                     foodNeeded -= eaten;

@@ -11,6 +11,7 @@ public abstract class Organism {
     private int age; 
     private final int maxLifespan; 
     private volatile boolean isAlive;
+    protected boolean isHiding = false;
 
     protected Organism(double maxEnergy, int maxLifespan) {
         this(maxEnergy, maxLifespan, BABY_INITIAL_ENERGY_PERCENT / 100.0); 
@@ -27,6 +28,8 @@ public abstract class Organism {
 
     public String getId() { return id; }
     public boolean isAlive() { return isAlive; }
+    public boolean isHiding() { return isHiding; }
+    public void setHiding(boolean h) { this.isHiding = h; }
     protected void die() { this.isAlive = false; }
     public double getCurrentEnergy() { return currentEnergy; }
     public double getMaxEnergy() { return maxEnergy; }
