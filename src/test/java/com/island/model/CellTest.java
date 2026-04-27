@@ -1,5 +1,6 @@
 package com.island.model;
 
+import com.island.content.AnimalType;
 import com.island.content.animals.predators.Wolf;
 import com.island.content.SpeciesConfig;
 import com.island.content.SpeciesKey;
@@ -20,11 +21,12 @@ class CellTest {
 
     @Test
     void testAddAnimal() {
-        Wolf wolf = new Wolf(config.getAnimalType(SpeciesKey.WOLF));
+        AnimalType wolfType = config.getAnimalType(SpeciesKey.WOLF);
+        Wolf wolf = new Wolf(wolfType);
         boolean added = cell.addAnimal(wolf);
         assertTrue(added);
         assertEquals(1, cell.getAnimalCount());
-        assertEquals(1, cell.countAnimalsBySpecies(SpeciesKey.WOLF));
+        assertEquals(1, cell.countAnimalsByType(wolfType));
     }
 
     @Test

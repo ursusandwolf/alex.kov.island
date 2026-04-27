@@ -4,6 +4,10 @@ import com.island.content.Animal;
 import com.island.content.DeathCause;
 import com.island.model.Cell;
 import com.island.model.Island;
+
+import static com.island.config.SimulationConstants.BASE_MOVE_COST_PERCENT;
+import static com.island.config.SimulationConstants.SPEED_MOVE_COST_STEP_PERCENT;
+
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadLocalRandom;
@@ -26,10 +30,16 @@ public class MovementService extends AbstractService {
 
         for (Animal animal : animals) {
             if (animal.isAlive()) {
-                if (!animal.move()) {
-                    if (!animal.isAlive()) {
-                        island.reportDeath(animal.getSpeciesKey(), DeathCause.MOVEMENT_EXHAUSTION);
-                    }
+                if (!animal.canPerformAction()) {
+                    continue;
+                }
+
+                double moveCost = animal.getMaxEnergy() 
+                        * (BASE_MOVE_COST_PERCENT + (animal.getSpeed() * SPEED_MOVE_COST_STEP_PERCENT));
+                animal.consumeEnergy(moveCost);
+
+                if (!animal.isAlive()) {
+                    island.reportDeath(animal.getSpeciesKey(), DeathCause.MOVEMENT_EXHAUSTION);
                     continue;
                 }
                 

@@ -31,7 +31,7 @@ class ReproductionServiceTest {
         cell.addAnimal(r1);
         cell.addAnimal(r2);
         
-        ReproductionService service = new ReproductionService(island, factory, java.util.concurrent.Executors.newSingleThreadExecutor());
+        ReproductionService service = new ReproductionService(island, factory, config, java.util.concurrent.Executors.newSingleThreadExecutor());
         service.run();
         
         // Expected: 2 parents + (1 to 3) babies.
@@ -53,7 +53,7 @@ class ReproductionServiceTest {
         cell.addAnimal(r1);
         cell.addAnimal(r2);
         
-        ReproductionService service = new ReproductionService(island, factory, java.util.concurrent.Executors.newSingleThreadExecutor());
+        ReproductionService service = new ReproductionService(island, factory, config, java.util.concurrent.Executors.newSingleThreadExecutor());
         service.run();
         
         assertEquals(2, cell.getAnimalCount(), "Starving animals should not reproduce");

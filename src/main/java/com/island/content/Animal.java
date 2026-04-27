@@ -10,8 +10,9 @@ import com.island.content.plants.Plant;
 
 /**
  * Base class for all animals in the simulation.
+ * Represents the state and properties of an animal.
  */
-public abstract class Animal extends Organism implements Mobile, Consumer, Reproducible<Animal> {
+public abstract class Animal extends Organism {
     protected final AnimalType animalType; 
     protected boolean isHiding = false;
 
@@ -68,34 +69,6 @@ public abstract class Animal extends Organism implements Mobile, Consumer, Repro
     }
 
     @Override
-    public double eat() {
-        return 0;
-    }
-
-    @Override
-    public boolean move() {
-        if (!canPerformAction()) {
-            return false;
-        }
-        double moveCost = getMaxEnergy() 
-                * (BASE_MOVE_COST_PERCENT + (getSpeed() * SPEED_MOVE_COST_STEP_PERCENT));
-        consumeEnergy(moveCost);
-        return true;
-    }
-
-    public boolean trySpendEnergyForReproduction() {
-        if (getEnergyPercentage() < REPRODUCTION_MIN_ENERGY_PERCENT) {
-            return false;
-        }
-        double cost = getMaxEnergy() * REPRODUCTION_COST_PERCENT;
-        if (getCurrentEnergy() > cost) {
-            consumeEnergy(cost);
-            return true;
-        }
-        return false;
-    }
-
-    @Override
     public double getDynamicMetabolismRate() {
         double rate = super.getDynamicMetabolismRate();
         // Herbivores get a survival bonus
@@ -104,9 +77,6 @@ public abstract class Animal extends Organism implements Mobile, Consumer, Repro
         }
         return rate;
     }
-
-    @Override
-    public abstract Animal reproduce();
 
     public boolean canEat(SpeciesKey preyKey) {
         return animalType.canEat(preyKey);

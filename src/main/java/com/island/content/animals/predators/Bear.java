@@ -25,12 +25,4 @@ public class Bear extends Predator {
     public boolean canPerformAction() {
         return super.canPerformAction() && !isHibernating();
     }
-
-    @Override
-    public Bear reproduce() {
-        if (isHibernating()) {
-            return null;
-        }
-        return trySpendEnergyForReproduction() ? new Bear(animalType) : null;
-    }
 }

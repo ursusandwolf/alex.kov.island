@@ -39,7 +39,7 @@ public class SimulationBootstrap {
         initializer.initialize(island, speciesConfig, animalFactory, gameLoop.getTaskExecutor());
 
         // 6. Register simulation tasks
-        TaskRegistry taskRegistry = new TaskRegistry(gameLoop, island, matrix, animalFactory, consoleView);
+        TaskRegistry taskRegistry = new TaskRegistry(gameLoop, island, matrix, animalFactory, speciesConfig, consoleView);
         taskRegistry.registerAll();
 
         return new SimulationContext(island, gameLoop, speciesConfig, consoleView);

@@ -6,9 +6,4 @@ public class Horse extends Herbivore {
     public Horse(AnimalType type) {
         super(type);
     }
-
-    @Override
-    public Horse reproduce() {
-        return trySpendEnergyForReproduction() ? new Horse(animalType) : null;
-    }
 }

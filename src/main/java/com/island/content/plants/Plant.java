@@ -5,7 +5,6 @@ import static com.island.config.SimulationConstants.PLANT_GROWTH_RATE_MIN;
 import static com.island.config.SimulationConstants.PLANT_INITIAL_BIOMASS_FACTOR;
 
 import com.island.content.Organism;
-import com.island.content.Reproducible;
 import com.island.content.SpeciesKey;
 import com.island.util.RandomUtils;
 
@@ -14,7 +13,7 @@ import com.island.util.RandomUtils;
  * Plants are unique as they represent the total biomass of their type in a cell.
  * They don't consume energy; they produce it through growth.
  */
-public abstract class Plant extends Organism implements Reproducible<Plant> {
+public abstract class Plant extends Organism {
     protected final String typeName;
     protected final SpeciesKey speciesKey;
     protected double biomass;
@@ -67,10 +66,5 @@ public abstract class Plant extends Organism implements Reproducible<Plant> {
     @Override
     public void consumeEnergy(double amount) {
         // Plants don't consume energy
-    }
-
-    @Override
-    public Plant reproduce() {
-        return null; // Plants "reproduce" through growth/mass increase in this model
     }
 }

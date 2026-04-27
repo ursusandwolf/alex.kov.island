@@ -58,13 +58,14 @@ public class BoundaryConditionsTest {
         for (Animal a : toRemove) cell.removeAnimal(a);
 
         int maxWolves = context.getSpeciesConfig().getAnimalType(SpeciesKey.WOLF).getMaxPerCell();
-        
+
         for (int i = 0; i < maxWolves + 10; i++) {
             factory.createAnimal(SpeciesKey.WOLF).ifPresent(cell::addAnimal);
         }
-        
-        int actualCount = cell.countAnimalsBySpecies(SpeciesKey.WOLF);
-        
+
+        int actualCount = cell.countAnimalsByType(context.getSpeciesConfig().getAnimalType(SpeciesKey.WOLF));
+
         assertTrue(actualCount <= maxWolves, "Cell should respect max capacity of wolves: " + actualCount + " vs " + maxWolves);
+
     }
 }

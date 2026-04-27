@@ -6,9 +6,4 @@ public class Boa extends Predator {
     public Boa(AnimalType type) {
         super(type);
     }
-
-    @Override
-    public Boa reproduce() {
-        return trySpendEnergyForReproduction() ? new Boa(animalType) : null;
-    }
 }

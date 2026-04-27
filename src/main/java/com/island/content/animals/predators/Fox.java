@@ -6,9 +6,4 @@ public class Fox extends Predator {
     public Fox(AnimalType type) {
         super(type);
     }
-
-    @Override
-    public Fox reproduce() {
-        return trySpendEnergyForReproduction() ? new Fox(animalType) : null;
-    }
 }

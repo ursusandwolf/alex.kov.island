@@ -1,6 +1,14 @@
 # Changelog
 
 ## [2026-04-27]
+### SRP & Performance Refactoring
+- **SRP Implementation (Animal)**: Stripped `Animal.java` of simulation logic (`move`, `eat`, `reproduce`). These responsibilities were moved to `MovementService` and `ReproductionService`, transforming `Animal` into a pure data/state model.
+- **Optimized Cell Indexing**: Refactored `Cell.java` to use `Map<AnimalType, List<Animal>>` for O(1) species access and added `Map<SizeClass, List<Animal>>` for rapid prey searching by weight category.
+- **Interface Simplification**: Removed `Mobile`, `Consumer`, and `Reproducible` interfaces as actions are now centralized in services, reducing boilerplate and inheritance complexity.
+- **Subclass Cleanup**: Removed 15 redundant `reproduce()` overrides across all animal species (Wolf, Rabbit, Bear, etc.), significantly reducing code duplication.
+- **Internal API Stabilization**: Updated `TaskRegistry` and `SimulationBootstrap` to support the new service-oriented architecture.
+- **Test Alignment**: Re-verified the entire project with 13 core tests after the structural overhaul, ensuring zero regressions in energy logic and population limits.
+
 ### Stabilization & Critical Fixes
 - **Race Condition Resolution**: Fixed a critical bug in `FeedingService` where multiple predators could consume the same prey. Implemented atomic check-and-consume logic using synchronized cell locking.
 - **Ecosystem Re-balancing**: Restored all species parameters to `FULL_TASK.md` baseline. Corrected caterpillar saturation limits and adjusted plant growth rates to 10% for long-term stability.

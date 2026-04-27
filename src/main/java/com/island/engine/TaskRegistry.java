@@ -2,6 +2,7 @@ package com.island.engine;
 
 import com.island.content.AnimalFactory;
 import com.island.content.FeedingService;
+import com.island.content.SpeciesConfig;
 import com.island.model.Island;
 import com.island.service.CleanupService;
 import com.island.service.LifecycleService;
@@ -18,14 +19,16 @@ public class TaskRegistry {
     private final Island island;
     private final InteractionMatrix matrix;
     private final AnimalFactory animalFactory;
+    private final SpeciesConfig speciesConfig;
     private final ConsoleView view;
 
     public TaskRegistry(GameLoop gameLoop, Island island, InteractionMatrix matrix, 
-                        AnimalFactory animalFactory, ConsoleView view) {
+                        AnimalFactory animalFactory, SpeciesConfig speciesConfig, ConsoleView view) {
         this.gameLoop = gameLoop;
         this.island = island;
         this.matrix = matrix;
         this.animalFactory = animalFactory;
+        this.speciesConfig = speciesConfig;
         this.view = view;
     }
 
@@ -34,7 +37,7 @@ public class TaskRegistry {
         gameLoop.addRecurringTask(new LifecycleService(island, gameLoop.getTaskExecutor()));
         gameLoop.addRecurringTask(new FeedingService(island, matrix, gameLoop.getTaskExecutor()));
         gameLoop.addRecurringTask(new MovementService(island, gameLoop.getTaskExecutor()));
-        gameLoop.addRecurringTask(new ReproductionService(island, animalFactory, gameLoop.getTaskExecutor()));
+        gameLoop.addRecurringTask(new ReproductionService(island, animalFactory, speciesConfig, gameLoop.getTaskExecutor()));
         gameLoop.addRecurringTask(new CleanupService(island, gameLoop.getTaskExecutor()));
         gameLoop.addRecurringTask(() -> view.display(island));
     }
