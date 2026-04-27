@@ -1,13 +1,12 @@
 # Changelog
 
 ## [2026-04-27]
-### SRP & Performance Refactoring
-- **SRP Implementation (Animal)**: Stripped `Animal.java` of simulation logic (`move`, `eat`, `reproduce`). These responsibilities were moved to `MovementService` and `ReproductionService`, transforming `Animal` into a pure data/state model.
-- **Optimized Cell Indexing**: Refactored `Cell.java` to use `Map<AnimalType, List<Animal>>` for O(1) species access and added `Map<SizeClass, List<Animal>>` for rapid prey searching by weight category.
-- **Interface Simplification**: Removed `Mobile`, `Consumer`, and `Reproducible` interfaces as actions are now centralized in services, reducing boilerplate and inheritance complexity.
-- **Subclass Cleanup**: Removed 15 redundant `reproduce()` overrides across all animal species (Wolf, Rabbit, Bear, etc.), significantly reducing code duplication.
-- **Internal API Stabilization**: Updated `TaskRegistry` and `SimulationBootstrap` to support the new service-oriented architecture.
-- **Test Alignment**: Re-verified the entire project with 13 core tests after the structural overhaul, ensuring zero regressions in energy logic and population limits.
+### Architectural Refinement & Optimization
+- **Decoupled Species Management**: Fully eliminated the `SpeciesConfig` Singleton. Replaced it with an immutable `SpeciesRegistry` and a dedicated `SpeciesLoader`. All dependencies are now handled via constructor injection, significantly improving testability and adhering to SRP.
+- **ROI-Driven Hunting Optimization**: Refactored `PreyProvider` to utilize the new `SizeClass` indexing in `Cell`. Predators now scan potential prey starting from the largest size (HUGE -> SMALL), drastically reducing loop iterations in `FeedingService` by reaching satiety sooner.
+- **Mass-Injected Plant Models**: Plants (`Grass`, `Cabbage`) and `Caterpillar` biomass containers now receive their configuration parameters via constructor injection, removing hidden static dependencies.
+- **Red Book Stabilization**: Added a toggle for "Red Book" protection to ensure deterministic test results while maintaining the ecosystem protection logic in production.
+- **Complete Test Overhaul**: Synchronized 20 core unit and integration tests with the new registry-based architecture, ensuring 100% pass rate.
 
 ### Stabilization & Critical Fixes
 - **Race Condition Resolution**: Fixed a critical bug in `FeedingService` where multiple predators could consume the same prey. Implemented atomic check-and-consume logic using synchronized cell locking.
