@@ -4,9 +4,6 @@ import static com.island.config.SimulationConstants.ACTION_MIN_ENERGY_PERCENT;
 import static com.island.config.SimulationConstants.BABY_INITIAL_ENERGY_PERCENT;
 import static com.island.config.SimulationConstants.BASE_METABOLISM_PERCENT;
 import static com.island.config.SimulationConstants.DEATH_EPSILON;
-import static com.island.config.SimulationConstants.METABOLISM_MODIFIER_LARGE;
-import static com.island.config.SimulationConstants.METABOLISM_MODIFIER_MEDIUM;
-import static com.island.config.SimulationConstants.METABOLISM_MODIFIER_TINY;
 
 import java.util.UUID;
 
@@ -126,11 +123,7 @@ public abstract class Organism {
 
     public double getDynamicMetabolismRate() {
         SizeClass sizeClass = SizeClass.fromWeight(getWeight());
-        return switch (sizeClass) {
-            case SMALL -> BASE_METABOLISM_PERCENT * METABOLISM_MODIFIER_TINY;
-            case MEDIUM -> BASE_METABOLISM_PERCENT * METABOLISM_MODIFIER_MEDIUM;
-            case LARGE, HUGE -> BASE_METABOLISM_PERCENT * METABOLISM_MODIFIER_LARGE;
-        };
+        return BASE_METABOLISM_PERCENT * sizeClass.getMetabolismModifier();
     }
 
     public abstract SpeciesKey getSpeciesKey();

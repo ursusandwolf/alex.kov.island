@@ -3,15 +3,13 @@ package com.island.service;
 import static com.island.config.SimulationConstants.ENDANGERED_POPULATION_THRESHOLD;
 import static com.island.config.SimulationConstants.ENDANGERED_REPRO_BONUS_PERCENT;
 import static com.island.config.SimulationConstants.HERBIVORE_OFFSPRING_BONUS;
-import static com.island.config.SimulationConstants.OFFSPRING_LARGE_ANIMAL;
-import static com.island.config.SimulationConstants.OFFSPRING_SMALL_ANIMAL;
 import static com.island.config.SimulationConstants.REPRODUCTION_COST_PERCENT;
 import static com.island.config.SimulationConstants.REPRODUCTION_MIN_ENERGY_PERCENT;
-import static com.island.config.SimulationConstants.WEIGHT_THRESHOLD_SMALL;
 
 import com.island.content.Animal;
 import com.island.content.AnimalFactory;
 import com.island.content.AnimalType;
+import com.island.content.SizeClass;
 import com.island.content.SpeciesRegistry;
 import com.island.content.SpeciesKey;
 import com.island.model.Cell;
@@ -95,12 +93,8 @@ public class ReproductionService extends AbstractService {
     }
 
     private int calculateOffspringCount(Animal animal) {
-        int baseOffspring;
-        if (animal.getWeight() < WEIGHT_THRESHOLD_SMALL) {
-            baseOffspring = OFFSPRING_SMALL_ANIMAL;
-        } else {
-            baseOffspring = OFFSPRING_LARGE_ANIMAL;
-        }
+        SizeClass sizeClass = SizeClass.fromWeight(animal.getWeight());
+        int baseOffspring = sizeClass.getOffspringCount();
 
         if (animal instanceof com.island.content.animals.herbivores.Herbivore) {
             baseOffspring += HERBIVORE_OFFSPRING_BONUS;
