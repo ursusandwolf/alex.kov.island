@@ -21,6 +21,7 @@ public enum SpeciesKey {
     BUFFALO("buffalo", false),
     DUCK("duck", false),
     CATERPILLAR("caterpillar", false),
+    BUTTERFLY("butterfly", false),
     
     PLANT("plant", false),
     GRASS("grass", false),
@@ -47,7 +48,7 @@ public enum SpeciesKey {
     }
 
     public boolean isBiomass() {
-        return isPlant() || this == CATERPILLAR;
+        return isPlant() || this == CATERPILLAR || this == BUTTERFLY;
     }
 
 

@@ -42,6 +42,7 @@ public class ConsoleView {
         ICONS.put(SpeciesKey.BUFFALO, "🐃");
         ICONS.put(SpeciesKey.DUCK, "🦆");
         ICONS.put(SpeciesKey.CATERPILLAR, "🐛");
+        ICONS.put(SpeciesKey.BUTTERFLY, "🦋");
         ICONS.put(SpeciesKey.PLANT, "🌿");
         ICONS.put(SpeciesKey.GRASS, "☘️");
         ICONS.put(SpeciesKey.CABBAGE, "🥬");

@@ -125,5 +125,9 @@ public abstract class Organism {
         return BASE_METABOLISM_PERCENT * sizeClass.getMetabolismModifier();
     }
 
+    public boolean isHibernating() {
+        return false;
+    }
+
     public abstract SpeciesKey getSpeciesKey();
 }

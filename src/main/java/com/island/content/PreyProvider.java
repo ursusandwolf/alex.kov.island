@@ -49,10 +49,15 @@ public class PreyProvider {
             }
         }
 
-        // 2. Check Caterpillar Biomass (Special case)
+        // 2. Check Caterpillar and Butterfly Biomass (Special cases)
         Plant caterpillar = cell.getPlant(SpeciesKey.CATERPILLAR);
         if (caterpillar != null && caterpillar.isAlive() && matrix.getChance(predKey, SpeciesKey.CATERPILLAR) > 0) {
             buffet.add(caterpillar);
+        }
+
+        Plant butterfly = cell.getPlant(SpeciesKey.BUTTERFLY);
+        if (butterfly != null && butterfly.isAlive() && matrix.getChance(predKey, SpeciesKey.BUTTERFLY) > 0) {
+            buffet.add(butterfly);
         }
 
         return buffet;

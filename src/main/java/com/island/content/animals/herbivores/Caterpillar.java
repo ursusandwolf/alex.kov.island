@@ -3,49 +3,127 @@ package com.island.content.animals.herbivores;
 import static com.island.config.SimulationConstants.CATERPILLAR_FEED_EFFICIENCY;
 import static com.island.config.SimulationConstants.CATERPILLAR_METABOLISM_RATE;
 
-
 import com.island.content.SpeciesKey;
 import com.island.content.plants.Plant;
 import com.island.model.Cell;
 import java.util.List;
 
 /**
- * Optimized Caterpillar: Now acts as a biomass container (like plants).
- * This eliminates millions of individual objects from the simulation.
+ * Optimized Caterpillar: Now acts as a biomass container with stages.
+ * Life cycle: 40 ticks active -> 20 ticks sleep (50% probability) -> Butterfly.
  */
 public class Caterpillar extends Plant {
+    private final double[] activeStages = new double[40];
+    private final double[] sleepStages = new double[20];
+
     public Caterpillar(double maxBiomass) {
         super("Caterpillar", SpeciesKey.CATERPILLAR, maxBiomass);
+        // Distribute initial biomass across active stages for realistic start
+        activeStages[0] = maxBiomass;
+        this.biomass = maxBiomass;
     }
 
-    /**
-     * The Pendulum Logic: 
-     * 1. Lose mass (natural decay/metabolism).
-     * 2. Consume other plants (Grass, Cabbage).
-     * 3. Mass increases (breeding/growth).
-     */
     public void processPendulum(Cell cell) {
-        // 1. Natural metabolic loss
-        double metabolicLoss = biomass * CATERPILLAR_METABOLISM_RATE;
-        biomass -= metabolicLoss;
+        // 1. Natural metabolic loss (only for active stages)
+        double totalActive = 0;
+        for (int i = 0; i < activeStages.length; i++) {
+            activeStages[i] *= (1.0 - CATERPILLAR_METABOLISM_RATE);
+            totalActive += activeStages[i];
+        }
 
-        // 2. Feed on actual plants in the same cell
-        double appetite = maxBiomass * 0.10; 
-        List<Plant> availablePlants = cell.getPlants();
-        for (Plant p : availablePlants) {
-            if (p != this && p.isAlive()) {
-                double eaten = p.consumeBiomass(appetite * (1.0 / CATERPILLAR_FEED_EFFICIENCY));
-                biomass = Math.min(maxBiomass, biomass + (eaten * CATERPILLAR_FEED_EFFICIENCY));
-                appetite -= eaten;
-                if (appetite <= 0) {
-                    break;
+        // 2. Feed on actual plants (increases biomass in the first active stage)
+        double appetite = totalActive * 0.10; 
+        if (appetite > 0) {
+            List<Plant> availablePlants = cell.getPlants();
+            for (Plant p : availablePlants) {
+                if (p != this && p.isAlive() && !(p instanceof Butterfly)) {
+                    double eaten = p.consumeBiomass(appetite * (1.0 / CATERPILLAR_FEED_EFFICIENCY));
+                    activeStages[0] += (eaten * CATERPILLAR_FEED_EFFICIENCY);
+                    appetite -= eaten;
+                    if (appetite <= 0) {
+                        break;
+                    }
                 }
             }
         }
+
+        // 3. Life Cycle Advancement
+        advanceStages(cell);
+        
+        // 4. Sync total biomass
+        updateTotalBiomass();
+    }
+
+    private void advanceStages(Cell cell) {
+        // --- Sleep to Butterfly transition ---
+        double emergingButterflies = sleepStages[sleepStages.length - 1];
+        if (emergingButterflies > 0) {
+            Butterfly b = (Butterfly) cell.getPlant(SpeciesKey.BUTTERFLY);
+            if (b == null) {
+                b = new Butterfly(0);
+                cell.addPlant(b);
+            }
+            b.addBiomass(emergingButterflies);
+        }
+
+        // Shift sleep stages
+        for (int i = sleepStages.length - 1; i > 0; i--) {
+            sleepStages[i] = sleepStages[i - 1];
+        }
+        sleepStages[0] = 0;
+
+        // --- Active to Sleep transition ---
+        double maturingCaterpillars = activeStages[activeStages.length - 1];
+        // 50% fall into hibernation, 50% stay active (reset to age 0)
+        sleepStages[0] = maturingCaterpillars * 0.5;
+        double stayedActive = maturingCaterpillars * 0.5;
+
+        // Shift active stages
+        for (int i = activeStages.length - 1; i > 0; i--) {
+            activeStages[i] = activeStages[i - 1];
+        }
+        activeStages[0] = stayedActive;
+    }
+
+    private void updateTotalBiomass() {
+        double total = 0;
+        for (double s : activeStages) {
+            total += s;
+        }
+        for (double s : sleepStages) {
+            total += s;
+        }
+        this.biomass = total;
+    }
+
+    @Override
+    public boolean isHibernating() {
+        // We consider the mass in sleepStages as hibernating
+        double sleepTotal = 0;
+        for (double s : sleepStages) {
+            sleepTotal += s;
+        }
+        return sleepTotal > (biomass * 0.1); // Simple threshold
     }
 
     @Override
     public void grow() {
-        // Growth is now handled via processPendulum(Cell)
+        // Handled via processPendulum
+    }
+
+    @Override
+    public double consumeBiomass(double amount) {
+        double actual = super.consumeBiomass(amount);
+        if (biomass > 0) {
+            // Proportional reduction across all stages
+            double factor = biomass / (biomass + actual);
+            for (int i = 0; i < activeStages.length; i++) {
+                activeStages[i] *= factor;
+            }
+            for (int i = 0; i < sleepStages.length; i++) {
+                sleepStages[i] *= factor;
+            }
+        }
+        return actual;
     }
 }

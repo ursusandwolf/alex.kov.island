@@ -46,6 +46,8 @@ public class LifecycleService extends AbstractService {
         for (Plant plant : plants) {
             if (plant instanceof com.island.content.animals.herbivores.Caterpillar caterpillar) {
                 caterpillar.processPendulum(cell);
+            } else if (plant instanceof com.island.content.animals.herbivores.Butterfly butterfly) {
+                butterfly.processPendulum(cell);
             } else {
                 plant.grow();
             }

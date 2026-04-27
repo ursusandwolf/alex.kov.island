@@ -4,6 +4,7 @@ import static com.island.config.SimulationConstants.HUNT_FATIGUE_COST_MULTIPLIER
 import static com.island.config.SimulationConstants.HUNT_FATIGUE_THRESHOLD;
 
 import com.island.config.EnergyPolicy;
+import com.island.content.animals.herbivores.Butterfly;
 import com.island.content.animals.herbivores.Caterpillar;
 import com.island.content.plants.Cabbage;
 import com.island.content.plants.Grass;
@@ -129,6 +130,13 @@ public class FeedingService implements Runnable {
                             if (c.isAlive()) {
                                 double foodNeeded = consumer.getFoodForSaturation() - consumer.getCurrentEnergy();
                                 double eaten = c.consumeBiomass(foodNeeded);
+                                consumer.addEnergy(eaten);
+                                success = true;
+                            }
+                        } else if (prey instanceof Butterfly b) {
+                            if (b.isAlive()) {
+                                double foodNeeded = consumer.getFoodForSaturation() - consumer.getCurrentEnergy();
+                                double eaten = b.consumeBiomass(foodNeeded);
                                 consumer.addEnergy(eaten);
                                 success = true;
                             }
