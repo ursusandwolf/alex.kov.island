@@ -1,9 +1,8 @@
 package com.island.content.animals.herbivores;
 
-import com.island.content.Animal;
 import com.island.content.AnimalType;
 
-public class Rabbit extends Animal implements Herbivore {
+public class Rabbit extends Herbivore {
     public Rabbit(AnimalType type) {
         super(type);
     }

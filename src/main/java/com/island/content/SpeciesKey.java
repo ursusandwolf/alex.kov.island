@@ -1,11 +1,8 @@
 package com.island.content;
 
-import lombok.Getter;
-
 /**
  * Enumeration of all species in the simulation to replace magic strings.
  */
-@Getter
 public enum SpeciesKey {
     WOLF("wolf", true),
     BOA("boa", true),
@@ -34,6 +31,14 @@ public enum SpeciesKey {
     SpeciesKey(String code, boolean predator) {
         this.code = code;
         this.predator = predator;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public boolean isPredator() {
+        return predator;
     }
 
     public static SpeciesKey fromCode(String code) {
