@@ -48,28 +48,47 @@ public class WorldInitializer {
                 continue;
             }
 
+            // 1. Presence Probability (Filter which species exist in this cell)
             double presenceProbability = type.isPredator() ? 0.4 : 0.8;
             
+            // Special cases for rare predators
             if (species == SpeciesKey.BEAR) {
                 presenceProbability = 0.15;
             }
             if (species == SpeciesKey.WOLF) {
-                presenceProbability = 0.05;
+                presenceProbability = 0.10;
             }
             
             if (ThreadLocalRandom.current().nextDouble() < presenceProbability) {
-                double settlementRate = 0.10 + (ThreadLocalRandom.current().nextDouble() * 0.25);
+                // 2. Settlement Rate (Density of the species if present)
+                // Implement a Population Pyramid: smaller = denser
+                double baseRate;
+                double randomRange;
 
-                if (species == SpeciesKey.BEAR) {
-                    settlementRate = 0.05 + (ThreadLocalRandom.current().nextDouble() * 0.05);
-                }
-                if (species == SpeciesKey.WOLF) {
-                    settlementRate = 0.02 + (ThreadLocalRandom.current().nextDouble() * 0.03);
-                }
-                if (species == SpeciesKey.BUFFALO) {
-                    settlementRate = 0.05;
+                switch (type.getSizeClass()) {
+                    case TINY -> { // Mouse, Hamster, Caterpillar
+                        baseRate = 0.60;
+                        randomRange = 0.35;
+                    }
+                    case SMALL -> { // Duck
+                        baseRate = 0.40;
+                        randomRange = 0.30;
+                    }
+                    case NORMAL -> { // Rabbit, Fox, Eagle
+                        baseRate = 0.20;
+                        randomRange = 0.25;
+                    }
+                    case MEDIUM -> { // Wolf, Boa, Goat, Sheep
+                        baseRate = 0.10;
+                        randomRange = 0.15;
+                    }
+                    default -> { // Large, Huge (Bear, Buffalo, Horse, Deer)
+                        baseRate = 0.05;
+                        randomRange = 0.10;
+                    }
                 }
 
+                double settlementRate = baseRate + (ThreadLocalRandom.current().nextDouble() * randomRange);
                 int count = (int) (type.getMaxPerCell() * settlementRate);                
                 count = Math.max(count, 1);
                 
@@ -80,7 +99,7 @@ public class WorldInitializer {
         }
         
         // Initialize plants with mass from registry
-        cell.addPlant(new Grass(registry.getPlantWeight(SpeciesKey.PLANT) * registry.getPlantMaxCount(SpeciesKey.PLANT)));
+        cell.addPlant(new Grass(registry.getPlantWeight(SpeciesKey.GRASS) * registry.getPlantMaxCount(SpeciesKey.GRASS)));
         cell.addPlant(new Cabbage(registry.getPlantWeight(SpeciesKey.CABBAGE) * registry.getPlantMaxCount(SpeciesKey.CABBAGE)));
         
         // Caterpillar is also a biomass container

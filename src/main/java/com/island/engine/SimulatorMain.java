@@ -39,6 +39,9 @@ public class SimulatorMain {
 
                 Map<SpeciesKey, Integer> counts = context.getIsland().getSpeciesCounts();
                 for (SpeciesKey species : context.getSpeciesRegistry().getAllAnimalKeys()) {
+                    if (species.isBiomass()) {
+                        continue;
+                    }
                     if (counts.getOrDefault(species, 0) == 0) {
                         System.out.println("\n💀 Вид '" + species.getCode() + "' вымер! Остановка симуляции...");
                         gameLoop.stop();

@@ -230,24 +230,43 @@ public class Island {
 
     public Map<SpeciesKey, Integer> getSpeciesCounts() {
         Map<SpeciesKey, Integer> counts = new EnumMap<>(SpeciesKey.class);
+        
+        // Add Animals (from tracked counts)
         speciesCounts.forEach((k, v) -> {
             if (v.get() > 0) {
                 counts.put(k, v.get());
             }
         });
+
+        // Add Biomass (Plants, Caterpillars) - sum their total mass across the island
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                for (Plant p : grid[x][y].getPlants()) {
+                    if (p.isAlive() && p.getBiomass() > 0) {
+                        counts.merge(p.getSpeciesKey(), (int) p.getBiomass(), Integer::sum);
+                    }
+                }
+            }
+        }
+        
         return counts;
     }
 
     public int getTotalOrganismCount() {
         int animalTotal = 0;
-        double plantTotal = 0;
+        for (AtomicInteger count : speciesCounts.values()) {
+            animalTotal += count.get();
+        }
+        
+        int biomassTotal = 0;
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
-                animalTotal += grid[x][y].getAnimalCount();
-                plantTotal += grid[x][y].getPlantCount();
+                for (Plant p : grid[x][y].getPlants()) {
+                    biomassTotal += (int) p.getBiomass();
+                }
             }
         }
-        return animalTotal + (int) plantTotal;
+        return animalTotal + biomassTotal;
     }
 
     public void moveOrganism(Animal animal, Cell from, Cell to) {
