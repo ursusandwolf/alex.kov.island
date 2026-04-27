@@ -1,7 +1,14 @@
 package com.island.content;
 
+import static com.island.config.SimulationConstants.ACTION_MIN_ENERGY_PERCENT;
+import static com.island.config.SimulationConstants.BABY_INITIAL_ENERGY_PERCENT;
+import static com.island.config.SimulationConstants.BASE_METABOLISM_PERCENT;
+import static com.island.config.SimulationConstants.DEATH_EPSILON;
+import static com.island.config.SimulationConstants.METABOLISM_MODIFIER_LARGE;
+import static com.island.config.SimulationConstants.METABOLISM_MODIFIER_MEDIUM;
+import static com.island.config.SimulationConstants.METABOLISM_MODIFIER_TINY;
+
 import java.util.UUID;
-import static com.island.config.SimulationConstants.*;
 
 /**
  * Базовый класс организмов.

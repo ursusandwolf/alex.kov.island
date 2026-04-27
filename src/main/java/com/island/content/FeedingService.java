@@ -69,21 +69,12 @@ public class FeedingService implements Runnable {
         List<Animal> consumers;
         cell.getLock().lock();
         try {
-            // All animals act in randomized order for fairness
+            // Take a snapshot to process safely
             consumers = new ArrayList<>(cell.getAnimals());
         } finally {
             cell.getLock().unlock();
         }
         
-        // Sorting by initiative (jittered weight + speed)
-        consumers.sort((a, b) -> {
-            double initiativeA = (a.getWeight() * 0.7 + a.getSpeed() * 0.3) 
-                * (0.8 + ThreadLocalRandom.current().nextDouble() * 0.4);
-            double initiativeB = (b.getWeight() * 0.7 + b.getSpeed() * 0.3) 
-                * (0.8 + ThreadLocalRandom.current().nextDouble() * 0.4);
-            return Double.compare(initiativeB, initiativeA);
-        });
-
         PreyProvider preyProvider = new PreyProvider(cell, interactionMatrix, island.getTickCount(), protectionMap);
 
         for (Animal consumer : consumers) {

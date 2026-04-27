@@ -36,8 +36,7 @@ public class PreyProvider {
         SpeciesKey predKey = predator.getSpeciesKey();
 
         // 1. Check Herbivores (Primary target)
-        List<Animal> herbivores = new ArrayList<>(cell.getHerbivores());
-        Collections.shuffle(herbivores, ThreadLocalRandom.current());
+        List<Animal> herbivores = cell.getHerbivores();
         for (Animal h : herbivores) {
             if (h.isAlive() && matrix.getChance(predKey, h.getSpeciesKey()) > 0) {
                 if (isProtected(h)) {
@@ -48,8 +47,7 @@ public class PreyProvider {
         }
 
         // 2. Check other Predators (Intraspecies or interspecies competition)
-        List<Animal> predators = new ArrayList<>(cell.getPredators());
-        Collections.shuffle(predators, ThreadLocalRandom.current());
+        List<Animal> predators = cell.getPredators();
         for (Animal p : predators) {
             if (p != predator && p.isAlive() && matrix.getChance(predKey, p.getSpeciesKey()) > 0) {
                 if (isProtected(p)) {

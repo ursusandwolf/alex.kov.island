@@ -158,14 +158,14 @@ public class ConsoleView {
         for (Animal a : cell.getAnimals()) {
             if (a.isAlive()) {
                 biomassMap.put(a.getSpeciesKey(), 
-                    biomassMap.getOrDefault(a.getSpeciesKey(), 0.0) + a.getWeight());
+                        biomassMap.getOrDefault(a.getSpeciesKey(), 0.0) + a.getWeight());
             }
         }
 
         for (Plant p : cell.getPlants()) {
             if (p.isAlive()) {
                 biomassMap.put(p.getSpeciesKey(), 
-                    biomassMap.getOrDefault(p.getSpeciesKey(), 0.0) + p.getBiomass());
+                        biomassMap.getOrDefault(p.getSpeciesKey(), 0.0) + p.getBiomass());
             }
         }
 

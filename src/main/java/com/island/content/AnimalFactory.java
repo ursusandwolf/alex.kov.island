@@ -49,14 +49,15 @@ public final class AnimalFactory {
         return createAnimal(key, 0.5); 
     }
 
-    public Optional<Animal> createBaby(SpeciesKey key) {
-        return createAnimal(key, 0.3); 
-    }
-
-    public Optional<Animal> createAnimalWithEnergy(SpeciesKey key, double energy) {
-        Optional<Animal> animalOpt = createAnimal(key, 1.0);
-        animalOpt.ifPresent(a -> a.setEnergy(energy));
-        return animalOpt;
+    /**
+     * Transitional methods.
+     */
+    public Animal createAnimal(String key) {
+        try {
+            return createAnimal(SpeciesKey.fromCode(key)).orElse(null);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     private Optional<Animal> createAnimal(SpeciesKey key, double energyFactor) {
@@ -75,18 +76,17 @@ public final class AnimalFactory {
         return Optional.of(animal);
     }
 
-    public Set<SpeciesKey> getRegisteredSpecies() {
-        return registry.keySet();
+    public Optional<Animal> createBaby(SpeciesKey key) {
+        return createAnimal(key, 0.3); 
     }
 
-    /**
-     * Transitional methods.
-     */
-    public Animal createAnimal(String key) {
-        try {
-            return createAnimal(SpeciesKey.fromCode(key)).orElse(null);
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+    public Optional<Animal> createAnimalWithEnergy(SpeciesKey key, double energy) {
+        Optional<Animal> animalOpt = createAnimal(key, 1.0);
+        animalOpt.ifPresent(a -> a.setEnergy(energy));
+        return animalOpt;
+    }
+
+    public Set<SpeciesKey> getRegisteredSpecies() {
+        return registry.keySet();
     }
 }

@@ -1,6 +1,10 @@
 package com.island.content;
 
-import static com.island.config.SimulationConstants.*;
+import static com.island.config.SimulationConstants.BASE_MOVE_COST_PERCENT;
+import static com.island.config.SimulationConstants.HERBIVORE_METABOLISM_MODIFIER;
+import static com.island.config.SimulationConstants.REPRODUCTION_COST_PERCENT;
+import static com.island.config.SimulationConstants.REPRODUCTION_MIN_ENERGY_PERCENT;
+import static com.island.config.SimulationConstants.SPEED_MOVE_COST_STEP_PERCENT;
 
 import com.island.content.plants.Plant;
 
@@ -73,8 +77,8 @@ public abstract class Animal extends Organism implements Mobile, Consumer, Repro
         if (!canPerformAction()) {
             return false;
         }
-        double moveCost = getMaxEnergy() * (BASE_MOVE_COST_PERCENT 
-            + (getSpeed() * SPEED_MOVE_COST_STEP_PERCENT));
+        double moveCost = getMaxEnergy() 
+                * (BASE_MOVE_COST_PERCENT + (getSpeed() * SPEED_MOVE_COST_STEP_PERCENT));
         consumeEnergy(moveCost);
         return true;
     }

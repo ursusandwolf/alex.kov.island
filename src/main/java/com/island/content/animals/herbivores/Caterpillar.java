@@ -1,7 +1,6 @@
 package com.island.content.animals.herbivores;
 
 import static com.island.config.SimulationConstants.CATERPILLAR_FEED_EFFICIENCY;
-import static com.island.config.SimulationConstants.CATERPILLAR_FERTILIZER_EFFICIENCY;
 import static com.island.config.SimulationConstants.CATERPILLAR_METABOLISM_RATE;
 
 import com.island.content.SpeciesConfig;

@@ -192,8 +192,8 @@ public class Island {
         for (int x = 0; x < width; x += chunkSize) {
             for (int y = 0; y < height; y += chunkSize) {
                 chunks.add(new Chunk(x / chunkSize, y / chunkSize, 
-                    x, Math.min(x + chunkSize, width), 
-                    y, Math.min(y + chunkSize, height), this));
+                        x, Math.min(x + chunkSize, width), 
+                        y, Math.min(y + chunkSize, height), this));
             }
         }
     }
@@ -222,6 +222,17 @@ public class Island {
     public int getSpeciesCount(SpeciesKey key) {
         AtomicInteger count = speciesCounts.get(key);
         return (count != null) ? count.get() : 0;
+    }
+
+    /**
+     * Transitional.
+     */
+    public int getSpeciesCount(String key) {
+        try {
+            return getSpeciesCount(SpeciesKey.fromCode(key));
+        } catch (IllegalArgumentException e) {
+            return 0;
+        }
     }
 
     public Map<SpeciesKey, Integer> getSpeciesCounts() {
@@ -276,14 +287,5 @@ public class Island {
 
     public String getStatistics() {
         return String.format("Остров[%dx%d] Всего организмов: %d", width, height, getTotalOrganismCount());
-    }
-
-    // Transitional
-    public int getSpeciesCount(String key) {
-        try {
-            return getSpeciesCount(SpeciesKey.fromCode(key));
-        } catch (IllegalArgumentException e) {
-            return 0;
-        }
     }
 }
