@@ -1,5 +1,25 @@
 # Changelog
 
+## [2026-04-27]
+### Stabilization & Critical Fixes
+- **Race Condition Resolution**: Fixed a critical bug in `FeedingService` where multiple predators could consume the same prey. Implemented atomic check-and-consume logic using synchronized cell locking.
+- **Ecosystem Re-balancing**: Restored all species parameters to `FULL_TASK.md` baseline. Corrected caterpillar saturation limits and adjusted plant growth rates to 10% for long-term stability.
+- **Config Validation**: Added strict validation for all configuration parameters, preventing simulation crashes due to non-positive dimensions or invalid species metrics.
+
+### Architectural Refinement (SOLID & Patterns)
+- **Strategy Pattern for Hunting**: Extracted hunting logic into `HuntingStrategy` and `DefaultHuntingStrategy` (OCP). Predators now use an extensible ROI-based evaluation for prey selection.
+- **Enhanced Cell Model**: Replaced linear list scanning in `Cell` with indexed storage using `EnumMap<SpeciesKey, List<Animal>>` and role-based buckets. Optimized access time to O(1) for frequent operations.
+- **Unified Death Lifecycle**: Centralized mortality logic in `Organism.tryConsumeEnergy()`. Introduced `DeathCause` enum and detailed per-species mortality tracking (Hunger, Age, Eaten, Exhaustion).
+- **Decoupled Config Management**: Split `SpeciesConfig` into `SpeciesLoader` (loading) and `SpeciesRegistry` (immutable storage), strictly following SRP.
+- **Typed Domain Model**: Replaced magic strings with `SpeciesKey` enum across the entire codebase. Replaced raw types in collections with parameterized generics for better type safety.
+- **Size Classification**: Introduced `SizeClass` (Small to Huge) to unify weight thresholds for metabolism and movement costs.
+
+### Code Quality & Standards
+- **Checkstyle Integration**: Integrated `maven-checkstyle-plugin` with a customized Google Style guide. Brought the entire codebase to 0 style violations.
+- **Optimized Hot Loops**: Removed expensive `Collections.shuffle()` and redundant sorting from simulation cycles to reduce CPU overhead and improve tick performance.
+- **Extended Test Coverage**: Added `EcosystemStabilityTest` (long-run verification) and `BoundaryConditionsTest`. Updated and stabilized all existing unit tests to pass 100% green.
+- **Enhanced Statistics**: Updated `ConsoleView` to display cumulative mortality metrics and animal-only death counters (excluding plants/biomass from death totals).
+
 ## [2026-04-26]
 ### Modernization & Scalability
 - **Java 21 Migration**: Upgraded project from Java 17 to Java 21 LTS to leverage the latest JVM features and performance improvements.
