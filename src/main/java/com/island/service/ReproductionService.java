@@ -3,9 +3,8 @@ package com.island.service;
 import static com.island.config.SimulationConstants.ENDANGERED_POPULATION_THRESHOLD;
 import static com.island.config.SimulationConstants.ENDANGERED_REPRO_BONUS_PERCENT;
 import static com.island.config.SimulationConstants.HERBIVORE_OFFSPRING_BONUS;
-import static com.island.config.SimulationConstants.REPRODUCTION_COST_PERCENT;
-import static com.island.config.SimulationConstants.REPRODUCTION_MIN_ENERGY_PERCENT;
 
+import com.island.config.EnergyPolicy;
 import com.island.content.Animal;
 import com.island.content.AnimalFactory;
 import com.island.content.AnimalType;
@@ -74,10 +73,10 @@ public class ReproductionService extends AbstractService {
     }
 
     private boolean trySpendEnergyForReproduction(Animal animal) {
-        if (animal.getEnergyPercentage() < REPRODUCTION_MIN_ENERGY_PERCENT) {
+        if (animal.getEnergyPercentage() < EnergyPolicy.REPRODUCTION_MIN.getPercent()) {
             return false;
         }
-        double cost = animal.getMaxEnergy() * REPRODUCTION_COST_PERCENT;
+        double cost = animal.getMaxEnergy() * EnergyPolicy.REPRODUCTION_COST.getFactor();
         if (animal.getCurrentEnergy() > cost) {
             animal.consumeEnergy(cost);
             return true;

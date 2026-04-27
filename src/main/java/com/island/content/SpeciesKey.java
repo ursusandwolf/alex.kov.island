@@ -38,7 +38,7 @@ public enum SpeciesKey {
     }
 
     public boolean isPredator() {
-        return isPredator;
+        return predator;
     }
 
     public boolean isPlant() {

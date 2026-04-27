@@ -1,10 +1,9 @@
 package com.island.content;
 
-import static com.island.config.SimulationConstants.ACTION_MIN_ENERGY_PERCENT;
-import static com.island.config.SimulationConstants.BABY_INITIAL_ENERGY_PERCENT;
 import static com.island.config.SimulationConstants.BASE_METABOLISM_PERCENT;
 import static com.island.config.SimulationConstants.DEATH_EPSILON;
 
+import com.island.config.EnergyPolicy;
 import java.util.UUID;
 
 /**
@@ -19,7 +18,7 @@ public abstract class Organism {
     private volatile boolean isAlive;
 
     protected Organism(double maxEnergy, int maxLifespan) {
-        this(maxEnergy, maxLifespan, BABY_INITIAL_ENERGY_PERCENT / 100.0); 
+        this(maxEnergy, maxLifespan, EnergyPolicy.BIRTH_INITIAL.getFactor()); 
     }
 
     protected Organism(double maxEnergy, int maxLifespan, double energyFactor) {
@@ -62,12 +61,12 @@ public abstract class Organism {
     }
 
     public boolean canPerformAction() { 
-        return getEnergyPercentage() >= ACTION_MIN_ENERGY_PERCENT; 
+        return getEnergyPercentage() >= EnergyPolicy.ACTION_MIN.getPercent(); 
     }
 
     public boolean canOnlyEat() { 
         double e = getEnergyPercentage(); 
-        return e > (DEATH_EPSILON * 100) && e < ACTION_MIN_ENERGY_PERCENT; 
+        return e > (DEATH_EPSILON * 100) && e < EnergyPolicy.ACTION_MIN.getPercent(); 
     }
 
     public void setEnergyFactor(double factor) {
