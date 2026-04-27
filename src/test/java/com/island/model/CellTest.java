@@ -2,6 +2,7 @@ package com.island.model;
 
 import com.island.content.animals.predators.Wolf;
 import com.island.content.SpeciesConfig;
+import com.island.content.SpeciesKey;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -19,25 +20,25 @@ class CellTest {
 
     @Test
     void testAddAnimal() {
-        Wolf wolf = new Wolf(config.getAnimalType("wolf"));
+        Wolf wolf = new Wolf(config.getAnimalType(SpeciesKey.WOLF));
         boolean added = cell.addAnimal(wolf);
         assertTrue(added);
         assertEquals(1, cell.getAnimalCount());
-        assertEquals(1, cell.countAnimalsBySpecies("wolf"));
+        assertEquals(1, cell.countAnimalsBySpecies(SpeciesKey.WOLF));
     }
 
     @Test
     void testAddAnimalExceedingLimit() {
-        int max = config.getAnimalType("wolf").getMaxPerCell();
+        int max = config.getAnimalType(SpeciesKey.WOLF).getMaxPerCell();
         for (int i = 0; i < max; i++) {
-            assertTrue(cell.addAnimal(new Wolf(config.getAnimalType("wolf"))), "Should be able to add wolf " + i);
+            assertTrue(cell.addAnimal(new Wolf(config.getAnimalType(SpeciesKey.WOLF))), "Should be able to add wolf " + i);
         }
-        assertFalse(cell.addAnimal(new Wolf(config.getAnimalType("wolf"))), "Should not be able to add wolf exceeding limit");
+        assertFalse(cell.addAnimal(new Wolf(config.getAnimalType(SpeciesKey.WOLF))), "Should not be able to add wolf exceeding limit");
     }
 
     @Test
     void testRemoveAnimal() {
-        Wolf wolf = new Wolf(config.getAnimalType("wolf"));
+        Wolf wolf = new Wolf(config.getAnimalType(SpeciesKey.WOLF));
         cell.addAnimal(wolf);
         boolean removed = cell.removeAnimal(wolf);
         assertTrue(removed);
@@ -46,8 +47,8 @@ class CellTest {
 
     @Test
     void testCleanupDeadOrganisms() {
-        Wolf aliveWolf = new Wolf(config.getAnimalType("wolf"));
-        Wolf deadWolf = new Wolf(config.getAnimalType("wolf"));
+        Wolf aliveWolf = new Wolf(config.getAnimalType(SpeciesKey.WOLF));
+        Wolf deadWolf = new Wolf(config.getAnimalType(SpeciesKey.WOLF));
         deadWolf.consumeEnergy(deadWolf.getMaxEnergy()); // Kill it
         
         cell.addAnimal(aliveWolf);
