@@ -184,6 +184,20 @@ public class Cell {
         }
     }
 
+    public boolean addBiomass(SpeciesKey key, double amount) {
+        lock.lock();
+        try {
+            Biomass existing = biomassBySpecies.get(key);
+            if (existing != null) {
+                existing.addBiomass(amount);
+                return true;
+            }
+            return false; // Cannot add mass if container doesn't exist in this cell
+        } finally {
+            lock.unlock();
+        }
+    }
+
     public boolean removeBiomass(Biomass b) {
         lock.lock();
         try {

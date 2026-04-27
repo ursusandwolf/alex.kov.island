@@ -315,24 +315,9 @@ public class Island {
             try {
                 // In this optimized model, we can just transfer the value.
                 double actualToMove = Math.min(b.getBiomass(), amount);
-                b.consumeBiomass(actualToMove);
                 
-                // Create a temporary object to pass to addBiomass (which merges it)
-                // We use the same speed and type info.
-                try {
-                    // Using reflection or a factory would be better, but for this specific model,
-                    // we can assume the recipient cell's addBiomass handles the merge.
-                    // We need a way to pass the mass. Let's make addBiomass take a SpeciesKey and amount too?
-                    // Or just use the existing addBiomass with a "dummy" container.
-                    
-                    // Let's improve Cell.addBiomass to be more flexible if needed, 
-                    // but for now, we'll create a lightweight copy for the transfer.
-                    Biomass dummy = (Biomass) b.getClass().getConstructor(double.class, int.class)
-                                            .newInstance(actualToMove, b.getSpeed());
-                    to.addBiomass(dummy);
-                } catch (Exception e) {
-                    // Fallback: if reflection fails, return the biomass
-                    b.addBiomass(actualToMove);
+                if (to.addBiomass(b.getSpeciesKey(), actualToMove)) {
+                    b.consumeBiomass(actualToMove);
                 }
             } finally {
                 second.getLock().unlock();

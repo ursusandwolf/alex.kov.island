@@ -95,9 +95,7 @@ public class ReproductionService extends AbstractService {
         SizeClass sizeClass = SizeClass.fromWeight(animal.getWeight());
         int baseOffspring = sizeClass.getOffspringCount();
 
-        if (animal instanceof com.island.content.animals.herbivores.Herbivore) {
-            baseOffspring += HERBIVORE_OFFSPRING_BONUS;
-        }
+        baseOffspring += animal.getOffspringBonus();
         
         // Add randomization
         return ThreadLocalRandom.current().nextInt(1, baseOffspring + 1);

@@ -1,10 +1,10 @@
 package com.island.engine;
 
 import com.island.content.AnimalFactory;
-import com.island.content.FeedingService;
 import com.island.content.SpeciesRegistry;
 import com.island.model.Island;
 import com.island.service.CleanupService;
+import com.island.service.FeedingService;
 import com.island.service.LifecycleService;
 import com.island.service.MovementService;
 import com.island.service.ReproductionService;

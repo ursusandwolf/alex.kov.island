@@ -97,6 +97,11 @@ public class Caterpillar extends Biomass {
     }
 
     @Override
+    public void tick(Cell cell) {
+        processPendulum(cell);
+    }
+
+    @Override
     public boolean isHibernating() {
         // We consider the mass in sleepStages as hibernating
         double sleepTotal = 0;
@@ -104,11 +109,6 @@ public class Caterpillar extends Biomass {
             sleepTotal += s;
         }
         return sleepTotal > (biomass * 0.1); // Simple threshold
-    }
-
-    @Override
-    public void grow() {
-        // Handled via processPendulum
     }
 
     public void spawn(double amount) {
@@ -120,18 +120,20 @@ public class Caterpillar extends Biomass {
 
     @Override
     public double consumeBiomass(double amount) {
-        double actual = super.consumeBiomass(amount);
-        if (biomass > 0) {
-            // Proportional reduction across all stages
-            double factor = biomass / (biomass + actual);
+        double activeTotal = 0;
+        for (double s : activeStages) {
+            activeTotal += s;
+        }
+
+        double actualEaten = Math.min(activeTotal, amount);
+        if (actualEaten > 0) {
+            double factor = (activeTotal - actualEaten) / activeTotal;
             for (int i = 0; i < activeStages.length; i++) {
                 activeStages[i] *= factor;
             }
-            for (int i = 0; i < sleepStages.length; i++) {
-                sleepStages[i] *= factor;
-            }
+            updateTotalBiomass();
         }
-        return actual;
+        return actualEaten;
     }
 }
 

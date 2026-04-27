@@ -63,7 +63,7 @@ public class Butterfly extends Biomass {
     }
 
     @Override
-    public void grow() {
-        // Growth is handled via processPendulum and metamorphosis
+    public void tick(Cell cell) {
+        processPendulum(cell);
     }
 }

@@ -75,4 +75,8 @@ public abstract class Animal extends Organism {
     public boolean isAnimalPredator() {
         return animalType.isPredator();
     }
+
+    public int getOffspringBonus() {
+        return 0;
+    }
 }

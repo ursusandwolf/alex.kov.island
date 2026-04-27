@@ -6,6 +6,7 @@ import com.island.content.animals.predators.Wolf;
 import com.island.model.Cell;
 import com.island.model.Island;
 import com.island.util.InteractionMatrix;
+import com.island.service.FeedingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

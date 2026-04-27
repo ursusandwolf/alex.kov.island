@@ -46,7 +46,7 @@ public class SpeciesLoader {
         int maxCount = Math.max(0, Integer.parseInt(props.getProperty(code + ".maxPerCell", "1")));
         int speed = Math.max(0, Integer.parseInt(props.getProperty(code + ".speed", "0")));
         
-        if (isPlant(key)) {
+        if (key.isPlant()) {
             plantWeights.put(key, weight);
             plantMaxCounts.put(key, maxCount);
             plantSpeeds.put(key, speed);
@@ -67,9 +67,5 @@ public class SpeciesLoader {
             
             animalTypes.put(key, new AnimalType(key, code, weight, maxCount, speed, food, lifespan, preyMap));
         }
-    }
-
-    private boolean isPlant(SpeciesKey key) {
-        return key == SpeciesKey.PLANT || key == SpeciesKey.GRASS || key == SpeciesKey.CABBAGE;
     }
 }

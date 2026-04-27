@@ -44,13 +44,7 @@ public class LifecycleService extends AbstractService {
         // Process Plants (Growth & Pendulum)
         List<Biomass> plants = cell.getBiomassContainers();
         for (Biomass plant : plants) {
-            if (plant instanceof com.island.content.animals.herbivores.Caterpillar caterpillar) {
-                caterpillar.processPendulum(cell);
-            } else if (plant instanceof com.island.content.animals.herbivores.Butterfly butterfly) {
-                butterfly.processPendulum(cell);
-            } else {
-                plant.grow();
-            }
+            plant.tick(cell);
         }
     }
 }

@@ -4,6 +4,7 @@ import static com.island.config.SimulationConstants.PLANT_GROWTH_RATE;
 import static com.island.config.SimulationConstants.PLANT_INITIAL_BIOMASS_FACTOR;
 
 import com.island.util.RandomUtils;
+import com.island.model.Cell;
 
 /**
  * Base class for all biomass-based organisms (Plants, Insects).
@@ -52,14 +53,13 @@ public abstract class Biomass extends Organism {
         return speed;
     }
 
+    public void tick(Cell cell) {
+        grow();
+    }
+
     public void grow() {
         // Growth logic centralized around fixed rate for stability
         biomass = Math.min(maxBiomass, biomass + (maxBiomass * PLANT_GROWTH_RATE));
-    }
-
-    public void checkState() {
-        ageOneTick();
-        grow();
     }
 
     public double consumeBiomass(double amount) {

@@ -38,7 +38,7 @@ public abstract class Organism {
         return isAlive;
     }
 
-    protected void die() {
+    public void die() {
         this.isAlive = false;
     }
 
@@ -62,11 +62,6 @@ public abstract class Organism {
 
     public boolean canPerformAction() { 
         return getEnergyPercentage() >= EnergyPolicy.ACTION_MIN.getPercent(); 
-    }
-
-    public boolean canOnlyEat() { 
-        double e = getEnergyPercentage(); 
-        return e > (DEATH_EPSILON * 100) && e < EnergyPolicy.ACTION_MIN.getPercent(); 
     }
 
     public void setEnergyFactor(double factor) {
@@ -103,13 +98,6 @@ public abstract class Organism {
             return true;
         }
         return false;
-    }
-
-    protected void ageOneTick() {
-        age++;
-        if (maxLifespan > 0 && age >= maxLifespan) {
-            isAlive = false;
-        }
     }
 
     public boolean isStarving() {

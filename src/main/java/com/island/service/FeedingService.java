@@ -1,74 +1,53 @@
-package com.island.content;
+package com.island.service;
 
 import static com.island.config.SimulationConstants.HUNT_FATIGUE_COST_MULTIPLIER;
 import static com.island.config.SimulationConstants.HUNT_FATIGUE_THRESHOLD;
 
 import com.island.config.EnergyPolicy;
-import com.island.content.animals.herbivores.Butterfly;
-import com.island.content.animals.herbivores.Caterpillar;
-import com.island.content.plants.Cabbage;
-import com.island.content.plants.Grass;
+import com.island.content.Animal;
 import com.island.content.Biomass;
+import com.island.content.DeathCause;
+import com.island.content.DefaultHuntingStrategy;
+import com.island.content.HuntingStrategy;
+import com.island.content.Organism;
+import com.island.content.PreyProvider;
+import com.island.content.SpeciesKey;
+import com.island.content.SpeciesRegistry;
 import com.island.model.Cell;
-import com.island.model.Chunk;
 import com.island.model.Island;
 import com.island.util.InteractionMatrix;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Service responsible for feeding logic of all animals.
  */
-public class FeedingService implements Runnable {
-    private final Island island;
+public class FeedingService extends AbstractService {
     private final InteractionMatrix interactionMatrix;
-    private final ExecutorService executor;
     private final SpeciesRegistry speciesRegistry;
     private final HuntingStrategy huntingStrategy;
+    private Map<SpeciesKey, Double> protectionMap;
 
     public FeedingService(Island island, InteractionMatrix interactionMatrix, 
                           SpeciesRegistry speciesRegistry, ExecutorService executor) {
-        this.island = island;
+        super(island, executor);
         this.interactionMatrix = interactionMatrix;
-        this.executor = executor;
         this.speciesRegistry = speciesRegistry;
         this.huntingStrategy = new DefaultHuntingStrategy(interactionMatrix);
     }
 
     @Override
     public void run() {
-        if (executor.isShutdown()) {
-            return;
-        }
-
         // Centralized: calculate protection map once per tick
-        Map<SpeciesKey, Double> protectionMap = island.getProtectionMap(speciesRegistry);
-
-        List<Callable<Void>> tasks = new ArrayList<>();
-        for (Chunk chunk : island.getChunks()) {
-            tasks.add(() -> {
-                for (Cell cell : chunk.getCells()) {
-                    processCell(cell, protectionMap);
-                }
-                return null;
-            });
-        }
-        try {
-            if (!executor.isShutdown()) {
-                executor.invokeAll(tasks);
-            }
-        } catch (java.util.concurrent.RejectedExecutionException e) {
-            // Ignore shutdown races
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        this.protectionMap = getIsland().getProtectionMap(speciesRegistry);
+        super.run();
     }
 
-    private void processCell(Cell cell, Map<SpeciesKey, Double> protectionMap) {
+    @Override
+    protected void processCell(Cell cell) {
         List<Animal> consumers;
         cell.getLock().lock();
         try {
@@ -78,16 +57,16 @@ public class FeedingService implements Runnable {
             cell.getLock().unlock();
         }
         
-        PreyProvider preyProvider = new PreyProvider(cell, interactionMatrix, island.getTickCount(), protectionMap);
+        PreyProvider preyProvider = new PreyProvider(cell, interactionMatrix, getIsland().getTickCount(), protectionMap);
 
         for (Animal consumer : consumers) {
             if (consumer.isAlive() && !consumer.isHibernating()) {
-                tryEat(consumer, cell, preyProvider, protectionMap);
+                tryEat(consumer, cell, preyProvider);
             }
         }
     }
 
-    private void tryEat(Animal consumer, Cell cell, PreyProvider preyProvider, Map<SpeciesKey, Double> protectionMap) {
+    private void tryEat(Animal consumer, Cell cell, PreyProvider preyProvider) {
         int attemptsInTick = 0;
         for (Organism prey : preyProvider.getPreyFor(consumer)) {
             if (consumer == prey || !prey.isAlive()) {
@@ -109,7 +88,7 @@ public class FeedingService implements Runnable {
                 }
 
                 if (!consumer.tryConsumeEnergy(totalEffort)) {
-                    island.reportDeath(consumer.getSpeciesKey(), DeathCause.HUNGER);
+                    getIsland().reportDeath(consumer.getSpeciesKey(), DeathCause.HUNGER);
                     return; 
                 }
 
@@ -123,18 +102,11 @@ public class FeedingService implements Runnable {
                                 a.die();
                                 consumer.addEnergy(a.getWeight());
                                 preyProvider.markAsEaten(a);
-                                island.reportDeath(a.getSpeciesKey(), DeathCause.EATEN);
+                                getIsland().reportDeath(a.getSpeciesKey(), DeathCause.EATEN);
                                 success = true;
                             }
-                        } else if (prey instanceof Caterpillar c) {
-                            if (c.isAlive()) {
-                                double foodNeeded = consumer.getFoodForSaturation() - consumer.getCurrentEnergy();
-                                double eaten = c.consumeBiomass(foodNeeded);
-                                consumer.addEnergy(eaten);
-                                success = true;
-                            }
-                        } else if (prey instanceof Butterfly b) {
-                            if (b.isAlive()) {
+                        } else if (prey instanceof Biomass b) {
+                            if (b.getBiomass() > 0) {
                                 double foodNeeded = consumer.getFoodForSaturation() - consumer.getCurrentEnergy();
                                 double eaten = b.consumeBiomass(foodNeeded);
                                 consumer.addEnergy(eaten);
@@ -168,8 +140,8 @@ public class FeedingService implements Runnable {
         if (canEatPlants > 0) {
             // 1. Try eating Cabbage first
             Biomass cabbage = cell.getBiomass(SpeciesKey.CABBAGE);
-            if (cabbage != null && cabbage.isAlive()) {
-                if (!isPlantProtected(cabbage, protectionMap)) {
+            if (cabbage != null && cabbage.getBiomass() > 0) {
+                if (!isPlantProtected(cabbage)) {
                     double eaten = cabbage.consumeBiomass(foodNeeded);
                     consumer.addEnergy(eaten);
                     foodNeeded -= eaten;
@@ -181,8 +153,8 @@ public class FeedingService implements Runnable {
 
             // 2. Try eating Grass 
             Biomass grass = cell.getBiomass(SpeciesKey.GRASS);
-            if (grass != null && grass.isAlive()) {
-                if (!isPlantProtected(grass, protectionMap)) {
+            if (grass != null && grass.getBiomass() > 0) {
+                if (!isPlantProtected(grass)) {
                     double eaten = grass.consumeBiomass(foodNeeded);
                     consumer.addEnergy(eaten);
                 }
@@ -190,7 +162,7 @@ public class FeedingService implements Runnable {
         }
     }
 
-    private boolean isPlantProtected(Biomass plant, Map<SpeciesKey, Double> protectionMap) {
+    private boolean isPlantProtected(Biomass plant) {
         Double hideChance = protectionMap.get(plant.getSpeciesKey());
         return hideChance != null && ThreadLocalRandom.current().nextDouble() < hideChance;
     }
