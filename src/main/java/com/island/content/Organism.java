@@ -122,7 +122,11 @@ public abstract class Organism {
 
     public double getDynamicMetabolismRate() {
         SizeClass sizeClass = SizeClass.fromWeight(getWeight());
-        return BASE_METABOLISM_PERCENT * sizeClass.getMetabolismModifier();
+        return BASE_METABOLISM_PERCENT * sizeClass.getMetabolismModifier() * getSpecialMetabolismModifier();
+    }
+
+    protected double getSpecialMetabolismModifier() {
+        return 1.0;
     }
 
     public boolean isHibernating() {

@@ -2,11 +2,8 @@ package com.island.config;
 
 public final class SimulationConstants {
     // Energy Costs
-    public static final double BASE_MOVE_COST_PERCENT = 0.05;
     public static final double SPEED_MOVE_COST_STEP_PERCENT = 0.01;
     
-    public static final double BASE_HUNT_COST_PERCENT = 0.01; 
-    public static final double PREDATOR_SPEED_HUNT_COST_STEP_PERCENT = 0.005; 
     public static final double PREY_RELATIVE_SPEED_HUNT_COST_STEP_PERCENT = 0.05; 
     
     public static final double BASE_METABOLISM_PERCENT = 0.015; 
@@ -32,7 +29,6 @@ public final class SimulationConstants {
 
     // Caterpillar Pendulum Constants
     public static final double CATERPILLAR_METABOLISM_RATE = 0.05;
-    public static final double CATERPILLAR_FERTILIZER_EFFICIENCY = 1.0; 
     public static final double CATERPILLAR_FEED_EFFICIENCY = 1.0; 
     
     private SimulationConstants() {

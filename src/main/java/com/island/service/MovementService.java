@@ -6,7 +6,6 @@ import com.island.content.DeathCause;
 import com.island.model.Cell;
 import com.island.model.Island;
 
-import static com.island.config.SimulationConstants.BASE_MOVE_COST_PERCENT;
 import static com.island.config.SimulationConstants.SPEED_MOVE_COST_STEP_PERCENT;
 
 import java.util.List;
@@ -40,8 +39,7 @@ public class MovementService extends AbstractService {
                     continue;
                 }
 
-                double moveCost = animal.getMaxEnergy() 
-                        * (BASE_MOVE_COST_PERCENT + (animal.getSpeed() * SPEED_MOVE_COST_STEP_PERCENT));
+                double moveCost = animal.getMaxEnergy() * (1 + animal.getSpeed()) * SPEED_MOVE_COST_STEP_PERCENT;
                 animal.consumeEnergy(moveCost);
 
                 if (!animal.isAlive()) {

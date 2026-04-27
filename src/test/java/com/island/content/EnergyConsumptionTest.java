@@ -17,7 +17,7 @@ class EnergyConsumptionTest {
     void testMovementEnergyCost() {
         Wolf wolf = new Wolf(registry.getAnimalType(SpeciesKey.WOLF).orElseThrow());
         double initialEnergy = wolf.getCurrentEnergy();
-        double expectedCost = wolf.getMaxEnergy() * (BASE_MOVE_COST_PERCENT + (wolf.getSpeed() * SPEED_MOVE_COST_STEP_PERCENT));
+        double expectedCost = wolf.getMaxEnergy() * (1 + wolf.getSpeed()) * SPEED_MOVE_COST_STEP_PERCENT;
 
         // Simulating the energy cost logic now handled by MovementService
         if (wolf.canPerformAction()) {

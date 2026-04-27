@@ -1,7 +1,5 @@
 package com.island.content;
 
-import static com.island.config.SimulationConstants.BASE_MOVE_COST_PERCENT;
-import static com.island.config.SimulationConstants.HERBIVORE_METABOLISM_MODIFIER;
 import static com.island.config.SimulationConstants.SPEED_MOVE_COST_STEP_PERCENT;
 
 import com.island.config.EnergyPolicy;
@@ -64,16 +62,6 @@ public abstract class Animal extends Organism {
 
     public double getFoodForSaturation() {
         return animalType.getFoodForSaturation();
-    }
-
-    @Override
-    public double getDynamicMetabolismRate() {
-        double rate = super.getDynamicMetabolismRate();
-        // Herbivores get a survival bonus
-        if (this instanceof com.island.content.animals.herbivores.Herbivore) {
-            rate *= HERBIVORE_METABOLISM_MODIFIER;
-        }
-        return rate;
     }
 
     public boolean canEat(SpeciesKey preyKey) {
