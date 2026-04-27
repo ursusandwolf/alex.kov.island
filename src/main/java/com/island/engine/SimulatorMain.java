@@ -1,5 +1,6 @@
 package com.island.engine;
 
+import com.island.content.SpeciesKey;
 import java.util.Map;
 
 /**
@@ -36,10 +37,10 @@ public class SimulatorMain {
                     break;
                 }
 
-                Map<String, Integer> counts = context.getIsland().getSpeciesCounts();
-                for (String species : context.getSpeciesConfig().getAllSpeciesKeys()) {
+                Map<SpeciesKey, Integer> counts = context.getIsland().getSpeciesCounts();
+                for (SpeciesKey species : context.getSpeciesConfig().getAllAnimalKeys()) {
                     if (counts.getOrDefault(species, 0) == 0) {
-                        System.out.println("\n💀 Вид '" + species + "' вымер! Остановка симуляции...");
+                        System.out.println("\n💀 Вид '" + species.getCode() + "' вымер! Остановка симуляции...");
                         gameLoop.stop();
                         return;
                     }

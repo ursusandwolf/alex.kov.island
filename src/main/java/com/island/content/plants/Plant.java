@@ -2,6 +2,7 @@ package com.island.content.plants;
 
 import com.island.content.Organism;
 import com.island.content.Reproducible;
+import com.island.content.SpeciesKey;
 import com.island.util.RandomUtils;
 import static com.island.config.SimulationConstants.*;
 
@@ -12,11 +13,11 @@ import static com.island.config.SimulationConstants.*;
  */
 public abstract class Plant extends Organism implements Reproducible<Plant> {
     protected final String typeName;
-    protected final String speciesKey;
+    protected final SpeciesKey speciesKey;
     protected double biomass;
     protected final double maxBiomass;
 
-    protected Plant(String typeName, String speciesKey, double maxBiomass) {
+    protected Plant(String typeName, SpeciesKey speciesKey, double maxBiomass) {
         super(1.0, 0, PLANT_INITIAL_BIOMASS_FACTOR); 
         this.typeName = typeName;
         this.speciesKey = speciesKey;
@@ -28,7 +29,7 @@ public abstract class Plant extends Organism implements Reproducible<Plant> {
     public String getTypeName() { return typeName; }
 
     @Override
-    public String getSpeciesKey() { return speciesKey; }
+    public SpeciesKey getSpeciesKey() { return speciesKey; }
 
     @Override
     public double getEnergyPercentage() {

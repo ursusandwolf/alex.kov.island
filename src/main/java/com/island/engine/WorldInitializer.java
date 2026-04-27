@@ -1,5 +1,5 @@
 package com.island.engine;
-import com.island.util.RandomUtils;import com.island.content.plants.*;
+import com.island.content.plants.*;
 import com.island.content.Animal;
 import com.island.content.AnimalFactory;
 import com.island.content.AnimalType;
@@ -7,7 +7,7 @@ import com.island.content.plants.Grass;
 import com.island.content.plants.Cabbage;
 import com.island.content.animals.herbivores.Caterpillar;
 import com.island.content.SpeciesConfig;
-import com.island.content.plants.Plant;
+import com.island.content.SpeciesKey;
 import com.island.model.Chunk;
 import com.island.model.Island;
 import com.island.model.Cell;
@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadLocalRandom;
 
 
 public class WorldInitializer {
@@ -41,54 +42,32 @@ public class WorldInitializer {
     }
 
     private void initializeCell(Cell cell, SpeciesConfig config, AnimalFactory animalFactory) {
-         
-        
-        // Заселяем виды вероятностно для создания кластеров и разнообразия
-        for (String species : animalFactory.getRegisteredSpecies()) {
+        for (SpeciesKey species : animalFactory.getRegisteredSpecies()) {
             AnimalType type = config.getAnimalType(species);
             if (type == null) continue;
 
-            // Вероятность присутствия вида в данной клетке
             double presenceProbability = type.isPredator() ? 0.4 : 0.8;
             
-            // Специальное снижение для топ-хищников
-            if (species.equals("bear")) {
-                presenceProbability = 0.15; // 15% cells
-            }
-            if (species.equals("wolf")) {
-                presenceProbability = 0.05; // Only 5% cells (Extreme sparsity for wolves)
-            }
+            if (species == SpeciesKey.BEAR) presenceProbability = 0.15;
+            if (species == SpeciesKey.WOLF) presenceProbability = 0.05;
             
-            if (RandomUtils.nextDouble() < presenceProbability) {
+            if (ThreadLocalRandom.current().nextDouble() < presenceProbability) {
                 int maxPerCell = type.getMaxPerCell();
+                double settlementRate = 0.10 + (ThreadLocalRandom.current().nextDouble() * 0.25);
 
-                // Заселяем от 10% до 35% от максимума (Восстановлено для всех)
-                double settlementRate = 0.10 + (RandomUtils.nextDouble() * 0.25);
-
-                // Специальные ограничения
-                if (species.equals("bear")) {
-                    settlementRate = 0.05 + (RandomUtils.nextDouble() * 0.05); 
-                }
-                if (species.equals("wolf")) {
-                    settlementRate = 0.02 + (RandomUtils.nextDouble() * 0.03); 
-                }
-                // --- Buffalo Restriction ---
-                if (species.equals("buffalo")) {
-                    settlementRate = 0.05; // Fixed low density
-                }
+                if (species == SpeciesKey.BEAR) settlementRate = 0.05 + (ThreadLocalRandom.current().nextDouble() * 0.05); 
+                if (species == SpeciesKey.WOLF) settlementRate = 0.02 + (ThreadLocalRandom.current().nextDouble() * 0.03); 
+                if (species == SpeciesKey.BUFFALO) settlementRate = 0.05;
 
                 int count = (int) (maxPerCell * settlementRate);                
-                // Гарантируем хотя бы 1 особь если вид "присутствует"
                 count = Math.max(count, 1);
                 
                 for (int i = 0; i < count; i++) {
-                    Animal a = animalFactory.createAnimal(species);
-                    if (a != null) cell.addAnimal(a);
+                    animalFactory.createAnimal(species).ifPresent(cell::addAnimal);
                 }
             }
         }
         
-        // Растения - присутствуют в каждой клетке (100% шанс)
         cell.addPlant(new Grass());
         cell.addPlant(new Cabbage());
         cell.addPlant(new Caterpillar());

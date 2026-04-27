@@ -1,0 +1,45 @@
+package com.island.content;
+
+import lombok.Getter;
+
+/**
+ * Enumeration of all species in the simulation to replace magic strings.
+ */
+@Getter
+public enum SpeciesKey {
+    WOLF("wolf", true),
+    BOA("boa", true),
+    FOX("fox", true),
+    BEAR("bear", true),
+    EAGLE("eagle", true),
+    
+    HORSE("horse", false),
+    DEER("deer", false),
+    RABBIT("rabbit", false),
+    MOUSE("mouse", false),
+    GOAT("goat", false),
+    SHEEP("sheep", false),
+    BOAR("boar", false),
+    BUFFALO("buffalo", false),
+    DUCK("duck", false),
+    CATERPILLAR("caterpillar", false),
+    
+    PLANT("plant", false),
+    GRASS("grass", false),
+    CABBAGE("cabbage", false);
+
+    private final String code;
+    private final boolean predator;
+
+    SpeciesKey(String code, boolean predator) {
+        this.code = code;
+        this.predator = predator;
+    }
+
+    public static SpeciesKey fromCode(String code) {
+        for (SpeciesKey key : values()) {
+            if (key.code.equalsIgnoreCase(code)) return key;
+        }
+        throw new IllegalArgumentException("Unknown species code: " + code);
+    }
+}

@@ -1,19 +1,33 @@
 package com.island.model;
 
 import com.island.content.Animal;
+import com.island.content.SpeciesKey;
 import com.island.content.plants.Plant;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Represents a single cell on the island grid.
+ * Optimized with indexed storage by species and role for O(1) access and efficient feeding.
  */
 public class Cell {
     private final int x, y;
     private final Island island;
-    private final List<Animal> animals = new ArrayList<>();
-    private final List<Plant> plants = new ArrayList<>();
+    
+    // Indexed Storage
+    private final Map<SpeciesKey, List<Animal>> animalsBySpecies = new EnumMap<>(SpeciesKey.class);
+    private final List<Animal> predators = new ArrayList<>();
+    private final List<Animal> herbivores = new ArrayList<>();
+    private final Map<SpeciesKey, Plant> plantsBySpecies = new EnumMap<>(SpeciesKey.class);
+    
+    // Flat lists for general iteration if needed
+    private final List<Animal> allAnimals = new ArrayList<>();
+    private final List<Plant> allPlants = new ArrayList<>();
+    
     private final ReentrantLock lock = new ReentrantLock();
 
     public Cell(int x, int y, Island island) { 
@@ -32,97 +46,101 @@ public class Cell {
     public boolean addAnimal(Animal animal) {
         lock.lock();
         try {
-            int count = 0;
-            String key = animal.getSpeciesKey();
-            for (Animal a : animals) {
-                if (a.getSpeciesKey().equals(key)) count++;
-            }
-            if (count >= animal.getMaxPerCell()) return false;
+            SpeciesKey key = animal.getSpeciesKey();
+            List<Animal> speciesList = animalsBySpecies.computeIfAbsent(key, k -> new ArrayList<>());
             
-            if (animals.add(animal)) {
-                island.onOrganismAdded(animal.getSpeciesKey());
-                return true;
+            if (speciesList.size() >= animal.getMaxPerCell()) return false;
+            
+            speciesList.add(animal);
+            allAnimals.add(animal);
+            
+            if (animal.isAnimalPredator()) {
+                predators.add(animal);
+            } else {
+                herbivores.add(animal);
             }
-            return false;
+            
+            island.onOrganismAdded(key);
+            return true;
         } finally { lock.unlock(); }
     }
 
     public boolean removeAnimal(Animal animal) {
         lock.lock();
         try { 
-            if (animals.remove(animal)) {
-                island.onOrganismRemoved(animal.getSpeciesKey());
+            SpeciesKey key = animal.getSpeciesKey();
+            List<Animal> speciesList = animalsBySpecies.get(key);
+            if (speciesList != null && speciesList.remove(animal)) {
+                allAnimals.remove(animal);
+                if (animal.isAnimalPredator()) {
+                    predators.remove(animal);
+                } else {
+                    herbivores.remove(animal);
+                }
+                island.onOrganismRemoved(key);
                 return true;
             }
             return false;
         } finally { lock.unlock(); }
     }
 
-    public List<Animal> getAnimals() { return animals; }
+    public List<Animal> getAnimals() { return allAnimals; }
+    public List<Animal> getPredators() { return predators; }
+    public List<Animal> getHerbivores() { return herbivores; }
 
-    public List<Animal> getAnimalsBySpecies(String key) {
+    public List<Animal> getAnimalsBySpecies(SpeciesKey key) {
         lock.lock();
         try {
-            List<Animal> result = new ArrayList<>();
-            for (Animal a : animals) {
-                if (a.getSpeciesKey().equals(key)) result.add(a);
-            }
-            return result;
+            List<Animal> list = animalsBySpecies.get(key);
+            return list != null ? new ArrayList<>(list) : Collections.emptyList();
         } finally { lock.unlock(); }
     }
 
-    public int countAnimalsBySpecies(String key) {
+    public int countAnimalsBySpecies(SpeciesKey key) {
         lock.lock();
         try {
-            int count = 0;
-            for (Animal a : animals) {
-                if (a.getSpeciesKey().equals(key)) count++;
-            }
-            return count;
+            List<Animal> list = animalsBySpecies.get(key);
+            return list != null ? list.size() : 0;
         } finally { lock.unlock(); }
     }
 
-    public int getAnimalCount() { return animals.size(); }
+    public int getAnimalCount() { return allAnimals.size(); }
 
     public boolean addPlant(Plant plant) {
         lock.lock();
         try {
-            if (plants.add(plant)) {
+            SpeciesKey key = plant.getSpeciesKey();
+            if (!plantsBySpecies.containsKey(key)) {
+                plantsBySpecies.put(key, plant);
+                allPlants.add(plant);
                 return true;
             }
             return false;
         } finally { lock.unlock(); }
     }
 
-    public boolean removePlant(Plant plant) {
-        lock.lock();
-        try { 
-            return plants.remove(plant);
-        } finally { lock.unlock(); }
-    }
-
-    public List<Plant> getPlants() { return plants; }
+    public List<Plant> getPlants() { return allPlants; }
+    public Plant getPlant(SpeciesKey key) { return plantsBySpecies.get(key); }
 
     public int getPlantCount() { 
         double total = 0;
-        for (Plant p : plants) total += p.getBiomass();
+        for (Plant p : allPlants) total += p.getBiomass();
         return (int) total; 
     }
 
     public void cleanupDeadOrganisms() {
         lock.lock();
         try {
-            for (int i = animals.size() - 1; i >= 0; i--) {
-                Animal a = animals.get(i);
+            for (int i = allAnimals.size() - 1; i >= 0; i--) {
+                Animal a = allAnimals.get(i);
                 if (!a.isAlive()) {
-                    island.onOrganismRemoved(a.getSpeciesKey());
-                    animals.remove(i);
+                    removeAnimal(a);
                 }
             }
         } finally { lock.unlock(); }
     }
 
     public String getStatistics() {
-        return String.format("Cell[%d,%d]: Животные=%d, Растения=%d", x, y, animals.size(), plants.size());
+        return String.format("Cell[%d,%d]: Животные=%d, Растения=%d", x, y, allAnimals.size(), allPlants.size());
     }
 }

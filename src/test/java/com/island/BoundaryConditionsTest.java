@@ -6,6 +6,7 @@ import com.island.model.Island;
 import com.island.content.AnimalFactory;
 import com.island.model.Cell;
 import com.island.content.Animal;
+import com.island.content.SpeciesKey;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -28,17 +29,16 @@ public class BoundaryConditionsTest {
                 for (Animal a : toRemove) {
                     cell.removeAnimal(a);
                 }
-                // Plants are not tracked by island counters in the same way, but let's clear them
                 cell.getPlants().clear();
             }
         }
         
         // Run tick
         assertDoesNotThrow(() -> context.getGameLoop().runTick());
-        // We only check animals here as plants have biomass and different counting
+        
         int animalCount = 0;
-        for (String key : context.getSpeciesConfig().getAllSpeciesKeys()) {
-            if (!key.equals("plant") && !key.equals("cabbage") && !key.equals("caterpillar")) {
+        for (SpeciesKey key : SpeciesKey.values()) {
+            if (key.isPredator() || (key != SpeciesKey.PLANT && key != SpeciesKey.GRASS && key != SpeciesKey.CABBAGE && key != SpeciesKey.CATERPILLAR)) {
                 animalCount += island.getSpeciesCount(key);
             }
         }
@@ -57,16 +57,13 @@ public class BoundaryConditionsTest {
         List<Animal> toRemove = new ArrayList<>(cell.getAnimals());
         for (Animal a : toRemove) cell.removeAnimal(a);
 
-        int maxWolves = context.getSpeciesConfig().getAnimalType("wolf").getMaxPerCell();
+        int maxWolves = context.getSpeciesConfig().getAnimalType(SpeciesKey.WOLF).getMaxPerCell();
         
         for (int i = 0; i < maxWolves + 10; i++) {
-            cell.addAnimal(factory.createAnimal("wolf"));
+            factory.createAnimal(SpeciesKey.WOLF).ifPresent(cell::addAnimal);
         }
         
-        int actualCount = 0;
-        for (Animal a : cell.getAnimals()) {
-            if (a.getSpeciesKey().equals("wolf")) actualCount++;
-        }
+        int actualCount = cell.countAnimalsBySpecies(SpeciesKey.WOLF);
         
         assertTrue(actualCount <= maxWolves, "Cell should respect max capacity of wolves: " + actualCount + " vs " + maxWolves);
     }

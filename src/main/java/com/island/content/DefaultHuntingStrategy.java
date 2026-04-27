@@ -19,10 +19,7 @@ public class DefaultHuntingStrategy implements HuntingStrategy {
 
     @Override
     public double calculateHuntCost(Animal predator, Organism prey) {
-        double preyWeight;
-        if (prey instanceof Animal a) preyWeight = a.getWeight();
-        else if (prey instanceof Caterpillar c) preyWeight = 0.01; 
-        else preyWeight = 0;
+        double preyWeight = prey.getWeight();
 
         // Strike effort
         double strikeCost = Math.min(preyWeight * 0.1, predator.getMaxEnergy() * 0.005);
@@ -41,11 +38,7 @@ public class DefaultHuntingStrategy implements HuntingStrategy {
 
     @Override
     public boolean isWorthHunting(Animal predator, Organism prey, double successRate, double cost) {
-        double preyWeight;
-        if (prey instanceof Animal a) preyWeight = a.getWeight();
-        else if (prey instanceof Caterpillar c) preyWeight = 0.01; 
-        else preyWeight = 0;
-
+        double preyWeight = prey.getWeight();
         double expectedGain = preyWeight * successRate;
         // ROI Check: Expected profit must be at least 10% higher than effort
         return expectedGain >= cost * 1.1;

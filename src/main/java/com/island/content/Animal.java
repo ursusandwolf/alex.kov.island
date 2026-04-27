@@ -8,6 +8,7 @@ import static com.island.config.SimulationConstants.*;
  */
 public abstract class Animal extends Organism implements Mobile, Consumer, Reproducible<Animal> {
     protected final AnimalType animalType; 
+    protected boolean isHiding = false;
 
     protected Animal(AnimalType animalType) {
         super(animalType.getMaxEnergy(), animalType.getMaxLifespan());
@@ -18,9 +19,12 @@ public abstract class Animal extends Organism implements Mobile, Consumer, Repro
     public String getTypeName() { return animalType.getTypeName(); }
 
     @Override
-    public String getSpeciesKey() { return animalType.getSpeciesKey(); }
+    public SpeciesKey getSpeciesKey() { return animalType.getSpeciesKey(); }
 
     public AnimalType getAnimalType() { return animalType; }
+
+    public boolean isHiding() { return isHiding; }
+    public void setHiding(boolean h) { this.isHiding = h; }
 
     public boolean canInitiateReproduction() {
         return isAlive() && getEnergyPercentage() >= REPRODUCTION_MIN_ENERGY_PERCENT;
@@ -60,7 +64,7 @@ public abstract class Animal extends Organism implements Mobile, Consumer, Repro
     @Override
     public double getDynamicMetabolismRate() {
         double rate = super.getDynamicMetabolismRate();
-        // Herbivores get a survival bonus (lower metabolism)
+        // Herbivores get a survival bonus
         if (this instanceof com.island.content.animals.herbivores.Herbivore) {
             rate *= HERBIVORE_METABOLISM_MODIFIER;
         }
@@ -70,8 +74,8 @@ public abstract class Animal extends Organism implements Mobile, Consumer, Repro
     @Override
     public abstract Animal reproduce();
 
-    public boolean canEat(String preyKey) { return animalType.canEat(preyKey); }
-    public int getHuntProbability(String preyKey) { return animalType.getHuntProbability(preyKey); }
+    public boolean canEat(SpeciesKey preyKey) { return animalType.canEat(preyKey); }
+    public int getHuntProbability(SpeciesKey preyKey) { return animalType.getHuntProbability(preyKey); }
 
     public boolean isAnimalPredator() {
         return animalType.isPredator();

@@ -2,15 +2,15 @@ package com.island.service;
 import com.island.content.plants.*;
 import com.island.content.Animal;
 import com.island.content.AnimalFactory;
+import com.island.content.SpeciesKey;
 import com.island.model.Cell;
 import com.island.model.Island;
 import static com.island.config.SimulationConstants.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadLocalRandom;
+
 
 public class ReproductionService extends AbstractService {
     private final AnimalFactory animalFactory;
@@ -22,94 +22,54 @@ public class ReproductionService extends AbstractService {
 
     @Override
     protected void processCell(Cell cell) {
-        // Reproduction of Animals (requires pairs)
-        reproduceAnimals(cell);
-    }
-
-    private void reproduceAnimals(Cell cell) {
-        List<Animal> animals = cell.getAnimals();
-        Map<String, List<Animal>> readyGroups = new HashMap<>();
-        
-        Island island = cell.getIsland();
-        int islandArea = island.getWidth() * island.getHeight();
-
-        for (Animal animal : animals) {
-            String key = animal.getSpeciesKey();
-            int currentCount = island.getSpeciesCount(key);
-            int globalCapacity = islandArea * animal.getMaxPerCell();
+        // Reproduce by species groups in the cell
+        for (SpeciesKey speciesKey : animalFactory.getRegisteredSpecies()) {
+            List<Animal> potentialMates = cell.getAnimalsBySpecies(speciesKey);
             
-            // Check for Red Book Reproduction Bonus
-            double threshold = globalCapacity * ENDANGERED_POPULATION_THRESHOLD;
-            double requiredPercent = REPRODUCTION_MIN_ENERGY_PERCENT;
-            
-            // --- Buffalo specific nerf ---
-            if (key.equals("buffalo")) {
-                requiredPercent = 95.0; // Buffalo must be extremely full to reproduce
-            } else if (currentCount > 0 && currentCount < threshold) {
-                requiredPercent -= ENDANGERED_REPRO_BONUS_PERCENT; 
-            }
-
-            if (animal.isAlive() && animal.getEnergyPercentage() >= requiredPercent) {
-                readyGroups.computeIfAbsent(key, k -> new ArrayList<>()).add(animal);
-            }
-        }
-
-        for (Map.Entry<String, List<Animal>> entry : readyGroups.entrySet()) {
-            String speciesKey = entry.getKey();
-            List<Animal> group = entry.getValue();
-            
-            // Pair them up
-            for (int i = 0; i + 1 < group.size(); i += 2) {
-                Animal parent1 = group.get(i);
-                Animal parent2 = group.get(i + 1);
-                
-                processPair(cell, parent1, parent2, speciesKey);
+            // Need at least 2 to reproduce
+            if (potentialMates.size() >= 2) {
+                processSpeciesReproduction(cell, speciesKey, potentialMates);
             }
         }
     }
 
-    private void processPair(Cell cell, Animal p1, Animal p2, String speciesKey) {
-        double totalEnergy = p1.getCurrentEnergy() + p2.getCurrentEnergy();
-        double maxEnergy = p1.getMaxEnergy();
-        int maxOffspring = calculateMaxOffspringCount(p1);
-        
-        int offspringCount = 0;
-        double survivalFloor = maxEnergy * 0.4 - 0.005;
+    private void processSpeciesReproduction(Cell cell, SpeciesKey key, List<Animal> mates) {
+        int pairs = mates.size() / 2;
+        int babiesCount = 0;
 
-        for (int k = maxOffspring; k >= 1; k--) {
-            double requiredTotal = (2 + k) * survivalFloor;
-            if (k == 1) requiredTotal = Math.max(requiredTotal, maxEnergy * 1.5 - 0.05); 
-            
-            if (totalEnergy >= requiredTotal) {
-                offspringCount = k;
-                break;
-            }
-        }
+        for (int i = 0; i < pairs; i++) {
+            Animal parent1 = mates.get(i * 2);
+            Animal parent2 = mates.get(i * 2 + 1);
 
-        if (offspringCount > 0) {
-            double finalEnergyPerHead = totalEnergy / (2 + offspringCount);
-            
-            p1.setEnergy(finalEnergyPerHead);
-            p2.setEnergy(finalEnergyPerHead);
-            
-            for (int j = 0; j < offspringCount; j++) {
-                Animal baby = animalFactory.createAnimalWithEnergy(speciesKey, finalEnergyPerHead);
-                if (baby != null) {
-                    cell.addAnimal(baby);
+            if (parent1.canInitiateReproduction() && parent2.canInitiateReproduction()) {
+                if (parent1.trySpendEnergyForReproduction() && parent2.trySpendEnergyForReproduction()) {
+                    int offspring = calculateOffspringCount(parent1);
+                    
+                    // --- Endangered species bonus ---
+                    if (isEndangered(parent1)) {
+                        offspring = (int) (offspring * (1 + ENDANGERED_REPRO_BONUS_PERCENT / 100.0));
+                        if (offspring == 0) offspring = 1; 
+                    }
+
+                    for (int j = 0; j < offspring; j++) {
+                        animalFactory.createBaby(key).ifPresent(cell::addAnimal);
+                        babiesCount++;
+                    }
                 }
             }
         }
     }
 
-    private int calculateMaxOffspringCount(Animal animal) {
-        if (animal.getSpeciesKey().equals("buffalo")) return 1;
+    private boolean isEndangered(Animal animal) {
+        Island island = getIsland();
+        int currentCount = island.getSpeciesCount(animal.getSpeciesKey());
+        int globalCapacity = (island.getWidth() * island.getHeight()) * animal.getMaxPerCell();
+        return currentCount < globalCapacity * ENDANGERED_POPULATION_THRESHOLD;
+    }
 
-        double weight = animal.getWeight();
+    private int calculateOffspringCount(Animal animal) {
         int baseOffspring;
-        
-        if (animal.getSpeciesKey().equals("caterpillar")) {
-            baseOffspring = OFFSPRING_INSECT;
-        } else if (weight < WEIGHT_THRESHOLD_SMALL) { 
+        if (animal.getWeight() < WEIGHT_THRESHOLD_SMALL) {
             baseOffspring = OFFSPRING_SMALL_ANIMAL;
         } else {
             baseOffspring = OFFSPRING_LARGE_ANIMAL;
@@ -119,6 +79,7 @@ public class ReproductionService extends AbstractService {
             baseOffspring += HERBIVORE_OFFSPRING_BONUS;
         }
         
-        return baseOffspring;
+        // Add randomization
+        return ThreadLocalRandom.current().nextInt(1, baseOffspring + 1);
     }
 }

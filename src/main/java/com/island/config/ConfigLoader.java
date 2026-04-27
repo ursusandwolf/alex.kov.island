@@ -1,6 +1,7 @@
 package com.island.config;
 
 import com.island.content.SpeciesConfig;
+import com.island.content.SpeciesKey;
 import com.island.util.InteractionMatrix;
 
 /**
@@ -13,27 +14,22 @@ public class ConfigLoader {
 
     public InteractionMatrix loadInteractionMatrix(SpeciesConfig speciesConfig) {
         InteractionMatrix matrix = new InteractionMatrix();
-        for (String predatorKey : speciesConfig.getAllSpeciesKeys()) {
-            for (String preyKey : speciesConfig.getAllSpeciesKeys()) {
-                int chance = speciesConfig.getHuntProbability(predatorKey, preyKey);
+        for (SpeciesKey predatorKey : SpeciesKey.values()) {
+            for (SpeciesKey preyKey : SpeciesKey.values()) {
+                int chance = speciesConfig.getHuntProbability(predatorKey.getCode(), preyKey.getCode());
                 if (chance > 0) {
                     matrix.setChance(predatorKey, preyKey, chance);
                 }
             }
             // Default plant eating chance
-            int plantChance = speciesConfig.getHuntProbability(predatorKey, "plant");
+            int plantChance = speciesConfig.getHuntProbability(predatorKey.getCode(), "plant");
             if (plantChance > 0) {
-                matrix.setChance(predatorKey, "Plant", plantChance);
-            } else if (isDefaultHerbivore(predatorKey)) {
-                matrix.setChance(predatorKey, "Plant", 100);
+                matrix.setChance(predatorKey, SpeciesKey.PLANT, plantChance);
+            } else if (predatorKey.isPredator() == false) {
+                // Default fallback for herbivores if not specified
+                matrix.setChance(predatorKey, SpeciesKey.PLANT, 100);
             }
         }
         return matrix;
-    }
-
-    private boolean isDefaultHerbivore(String key) {
-        return key.equals("rabbit") || key.equals("duck") || key.equals("goat") 
-            || key.equals("sheep") || key.equals("horse") || key.equals("deer")
-            || key.equals("cow") || key.equals("buffalo");
     }
 }

@@ -1,6 +1,7 @@
 package com.island.content.animals.herbivores;
 
 import com.island.content.plants.Plant;
+import com.island.content.SpeciesKey;
 import com.island.content.SpeciesConfig;
 
 /**
@@ -9,9 +10,9 @@ import com.island.content.SpeciesConfig;
  */
 public class Caterpillar extends Plant {
     public Caterpillar() {
-        super("Caterpillar", "caterpillar",
-              SpeciesConfig.getInstance().getAnimalType("caterpillar").getWeight() * 
-              SpeciesConfig.getInstance().getAnimalType("caterpillar").getMaxPerCell());
+        super("Caterpillar", SpeciesKey.CATERPILLAR,
+              SpeciesConfig.getInstance().getAnimalType(SpeciesKey.CATERPILLAR).getWeight() * 
+              SpeciesConfig.getInstance().getAnimalType(SpeciesKey.CATERPILLAR).getMaxPerCell());
     }
 
     /**

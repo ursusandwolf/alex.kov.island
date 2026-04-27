@@ -6,6 +6,7 @@ import com.island.model.Cell;
 import com.island.model.Island;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class MovementService extends AbstractService {
 
@@ -32,20 +33,17 @@ public class MovementService extends AbstractService {
                 int speed = animal.getSpeed();
                 
                 // --- Red Book Mobility Bonus ---
-                // Endangered animals move 2 cells further to find mates/food
                 int currentCount = island.getSpeciesCount(animal.getSpeciesKey());
                 int globalCapacity = islandArea * animal.getMaxPerCell();
-                if (currentCount > 0 && currentCount < globalCapacity * com.island.config.SimulationConstants.ENDANGERED_POPULATION_THRESHOLD) {
+                if (currentCount < globalCapacity * 0.05) {
                     speed += 2; 
                 }
 
                 if (speed > 0) {
-                    int dx = RandomUtils.nextInt(-speed, speed + 1);
-                    int dy = RandomUtils.nextInt(-speed, speed + 1);
-                    int tx = cell.getX() + dx;
-                    int ty = cell.getY() + dy;
+                    int dx = ThreadLocalRandom.current().nextInt(-speed, speed + 1);
+                    int dy = ThreadLocalRandom.current().nextInt(-speed, speed + 1);
                     
-                    Cell target = island.getCell(tx, ty);
+                    Cell target = island.getCell(cell.getX() + dx, cell.getY() + dy);
                     if (target != cell) {
                         island.moveOrganism(animal, cell, target);
                     }

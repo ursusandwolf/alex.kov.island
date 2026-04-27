@@ -17,10 +17,9 @@ public class LifecycleService extends AbstractService {
     @Override
     protected void processCell(Cell cell) {
         Island island = cell.getIsland();
-        // Process Animals
-        List<Animal> animals = cell.getAnimals();
-        for (int i = 0; i < animals.size(); i++) {
-            Animal animal = animals.get(i);
+        // Process Animals (Snapshot to avoid concurrent issues while iterating)
+        List<Animal> animals = new java.util.ArrayList<>(cell.getAnimals());
+        for (Animal animal : animals) {
             if (animal.isAlive()) {
                 animal.setHiding(false); // Reset protection flag
                 
@@ -41,10 +40,7 @@ public class LifecycleService extends AbstractService {
 
         // Process Plants (Growth & Pendulum)
         List<Plant> plants = cell.getPlants();
-        for (int i = 0; i < plants.size(); i++) {
-            Plant plant = plants.get(i);
-            plant.setHiding(false); 
-            
+        for (Plant plant : plants) {
             if (plant instanceof com.island.content.animals.herbivores.Caterpillar caterpillar) {
                 caterpillar.processPendulum(cell);
             } else {

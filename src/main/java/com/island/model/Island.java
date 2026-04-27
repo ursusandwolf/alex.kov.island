@@ -2,16 +2,18 @@ package com.island.model;
 
 import com.island.content.Animal;
 import com.island.content.AnimalType;
+import com.island.content.DeathCause;
 import com.island.content.SpeciesConfig;
+import com.island.content.SpeciesKey;
 import com.island.content.plants.Plant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 /**
  * Composite: Island consists of cells.
@@ -23,9 +25,9 @@ public class Island {
     private int tickCount = 0;
     private boolean redBookProtectionEnabled = true;
     
-    private final Map<String, AtomicInteger> speciesCounts = new ConcurrentHashMap<>();
-    private final Map<com.island.content.DeathCause, Map<String, AtomicInteger>> deathStats = new ConcurrentHashMap<>();
-    private final Map<com.island.content.DeathCause, Map<String, AtomicInteger>> totalDeathStats = new ConcurrentHashMap<>();
+    private final Map<SpeciesKey, AtomicInteger> speciesCounts = new EnumMap<>(SpeciesKey.class);
+    private final Map<DeathCause, Map<SpeciesKey, AtomicInteger>> deathStats = new EnumMap<>(DeathCause.class);
+    private final Map<DeathCause, Map<SpeciesKey, AtomicInteger>> totalDeathStats = new EnumMap<>(DeathCause.class);
 
     public Island(int width, int height) {
         this.width = width;
@@ -33,9 +35,12 @@ public class Island {
         this.grid = new Cell[width][height];
         initializeGrid();
         partitionIntoChunks();
-        for (com.island.content.DeathCause cause : com.island.content.DeathCause.values()) {
+        for (DeathCause cause : DeathCause.values()) {
             deathStats.put(cause, new ConcurrentHashMap<>());
             totalDeathStats.put(cause, new ConcurrentHashMap<>());
+        }
+        for (SpeciesKey key : SpeciesKey.values()) {
+            speciesCounts.put(key, new AtomicInteger(0));
         }
     }
 
@@ -53,13 +58,13 @@ public class Island {
         return redBookProtectionEnabled;
     }
 
-    public Map<String, Double> getProtectionMap(SpeciesConfig config) {
+    public Map<SpeciesKey, Double> getProtectionMap(SpeciesConfig config) {
         if (!redBookProtectionEnabled) return Collections.emptyMap();
         
-        Map<String, Double> protectionMap = new HashMap<>();
+        Map<SpeciesKey, Double> protectionMap = new EnumMap<>(SpeciesKey.class);
         int islandArea = width * height;
 
-        for (String key : config.getAllSpeciesKeys()) {
+        for (SpeciesKey key : config.getAllAnimalKeys()) {
             AnimalType type = config.getAnimalType(key);
             if (type == null) continue;
 
@@ -109,7 +114,7 @@ public class Island {
         return starving;
     }
 
-    public void reportDeath(String speciesKey, com.island.content.DeathCause cause) {
+    public void reportDeath(SpeciesKey speciesKey, DeathCause cause) {
         deathStats.get(cause)
                  .computeIfAbsent(speciesKey, k -> new AtomicInteger(0))
                  .incrementAndGet();
@@ -118,38 +123,39 @@ public class Island {
                  .incrementAndGet();
     }
 
-    public int getDeathCount(com.island.content.DeathCause cause) {
+    public int getDeathCount(DeathCause cause) {
         return deathStats.get(cause).values().stream().mapToInt(AtomicInteger::get).sum();
     }
 
-    public int getTotalAnimalDeathCount(com.island.content.DeathCause cause) {
+    public int getTotalAnimalDeathCount(DeathCause cause) {
         return totalDeathStats.get(cause).entrySet().stream()
                 .filter(e -> !isPlantKey(e.getKey()))
                 .mapToInt(e -> e.getValue().get())
                 .sum();
     }
 
-    private boolean isPlantKey(String key) {
-        return key.equalsIgnoreCase("plant") || 
-               key.equalsIgnoreCase("cabbage") || 
-               key.equalsIgnoreCase("caterpillar");
+    private boolean isPlantKey(SpeciesKey key) {
+        return key == SpeciesKey.PLANT || 
+               key == SpeciesKey.CABBAGE || 
+               key == SpeciesKey.CATERPILLAR ||
+               key == SpeciesKey.GRASS;
     }
 
-    public Map<String, Integer> getDeathsBySpecies(com.island.content.DeathCause cause) {
-        Map<String, Integer> result = new HashMap<>();
+    public Map<SpeciesKey, Integer> getDeathsBySpecies(DeathCause cause) {
+        Map<SpeciesKey, Integer> result = new EnumMap<>(SpeciesKey.class);
         deathStats.get(cause).forEach((k, v) -> result.put(k, v.get()));
         return result;
     }
 
-    public Map<String, Integer> getTotalDeathsBySpecies(com.island.content.DeathCause cause) {
-        Map<String, Integer> result = new HashMap<>();
+    public Map<SpeciesKey, Integer> getTotalDeathsBySpecies(DeathCause cause) {
+        Map<SpeciesKey, Integer> result = new EnumMap<>(SpeciesKey.class);
         totalDeathStats.get(cause).forEach((k, v) -> result.put(k, v.get()));
         return result;
     }
 
     public void nextTick() {
         tickCount++;
-        for (Map<String, AtomicInteger> stats : deathStats.values()) {
+        for (Map<SpeciesKey, AtomicInteger> stats : deathStats.values()) {
             stats.clear();
         }
     }
@@ -161,63 +167,76 @@ public class Island {
     }
 
     private void partitionIntoChunks() {
-        int midX = width / 2;
-        int midY = height / 2;
-
-        if (midX > 0 && midY > 0) {
-            chunks.add(new Chunk(0, 0, 0, midX, 0, midY, this));
-            chunks.add(new Chunk(1, 0, midX, width, 0, midY, this));
-            chunks.add(new Chunk(0, 1, 0, midX, midY, height, this));
-            chunks.add(new Chunk(1, 1, midX, width, midY, height, this));
-        } else if (midX > 0) {
-            chunks.add(new Chunk(0, 0, 0, midX, 0, height, this));
-            chunks.add(new Chunk(1, 0, midX, width, 0, height, this));
-        } else {
-            chunks.add(new Chunk(0, 0, 0, width, 0, height, this));
+        int chunkSize = 20; 
+        for (int x = 0; x < width; x += chunkSize) {
+            for (int y = 0; y < height; y += chunkSize) {
+                chunks.add(new Chunk(x / chunkSize, y / chunkSize, 
+                    x, Math.min(x + chunkSize, width), 
+                    y, Math.min(y + chunkSize, height), this));
+            }
         }
     }
 
     public Cell getCell(int x, int y) {
-        int wx = ((x % width) + width) % width;
-        int wy = ((y % height) + height) % height;
-        return grid[wx][wy];
+        // Toroidal island logic
+        int tx = (x % width + width) % width;
+        int ty = (y % height + height) % height;
+        return grid[tx][ty];
     }
 
-    public Cell getCellUnsafe(int x, int y) {
-        return (x < 0 || x >= width || y < 0 || y >= height) ? null : grid[x][y];
+    public void onOrganismAdded(SpeciesKey key) {
+        AtomicInteger count = speciesCounts.get(key);
+        if (count != null) count.incrementAndGet();
     }
 
-    public int getSpeciesCount(String speciesKey) {
-        AtomicInteger count = speciesCounts.get(speciesKey);
-        return (count != null) ? count.get() : 0;
-    }
-
-    public void onOrganismAdded(String speciesKey) {
-        speciesCounts.computeIfAbsent(speciesKey, k -> new AtomicInteger(0)).incrementAndGet();
-    }
-
-    public void onOrganismRemoved(String speciesKey) {
-        AtomicInteger count = speciesCounts.get(speciesKey);
+    public void onOrganismRemoved(SpeciesKey key) {
+        AtomicInteger count = speciesCounts.get(key);
         if (count != null) count.decrementAndGet();
     }
 
-    public boolean moveOrganism(Animal animal, Cell from, Cell to) {
-        if (from == to) return true;
+    public int getSpeciesCount(SpeciesKey key) {
+        AtomicInteger count = speciesCounts.get(key);
+        return (count != null) ? count.get() : 0;
+    }
 
-        Cell first = (System.identityHashCode(from) < System.identityHashCode(to)) ? from : to;
+    public Map<SpeciesKey, Integer> getSpeciesCounts() {
+        Map<SpeciesKey, Integer> counts = new EnumMap<>(SpeciesKey.class);
+        speciesCounts.forEach((k, v) -> {
+            if (v.get() > 0) counts.put(k, v.get());
+        });
+        return counts;
+    }
+
+    public int getTotalOrganismCount() {
+        int animalTotal = 0;
+        double plantTotal = 0;
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                animalTotal += grid[x][y].getAnimalCount();
+                plantTotal += grid[x][y].getPlantCount();
+            }
+        }
+        return animalTotal + (int) plantTotal;
+    }
+
+    public void moveOrganism(Animal animal, Cell from, Cell to) {
+        if (from == to) return;
+        
+        Cell first = (from.getX() < to.getX() || (from.getX() == to.getX() && from.getY() < to.getY())) ? from : to;
         Cell second = (first == from) ? to : from;
 
         first.getLock().lock();
         try {
             second.getLock().lock();
             try {
-                if (from.getAnimals().contains(animal)) {
-                    if (to.addAnimal(animal)) {
-                        from.removeAnimal(animal);
-                        return true;
+                if (from.removeAnimal(animal)) {
+                    if (!to.addAnimal(animal)) {
+                        if (!from.addAnimal(animal)) {
+                            animal.tryConsumeEnergy(animal.getCurrentEnergy()); 
+                            reportDeath(animal.getSpeciesKey(), DeathCause.MOVEMENT_EXHAUSTION);
+                        }
                     }
                 }
-                return false;
             } finally {
                 second.getLock().unlock();
             }
@@ -226,45 +245,16 @@ public class Island {
         }
     }
 
-    public Map<String, Integer> getSpeciesCounts() {
-        Map<String, Integer> counts = new HashMap<>();
-        for (Map.Entry<String, AtomicInteger> entry : speciesCounts.entrySet()) {
-            int count = entry.getValue().get();
-            if (count > 0) counts.put(entry.getKey(), count);
-        }
-
-        double totalPlant = 0;
-        double totalCabbage = 0;
-        double totalCaterpillar = 0;
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                for (Plant p : grid[x][y].getPlants()) {
-                    String sKey = p.getSpeciesKey();
-                    if (sKey.equals("plant")) totalPlant += p.getBiomass();
-                    else if (sKey.equals("cabbage")) totalCabbage += p.getBiomass();
-                    else if (sKey.equals("caterpillar")) totalCaterpillar += p.getBiomass();
-                }
-            }
-        }
-        if (totalPlant > 0) counts.put("plant", (int) totalPlant);
-        if (totalCabbage > 0) counts.put("cabbage", (int) totalCabbage);
-        if (totalCaterpillar > 0) counts.put("caterpillar", (int) totalCaterpillar);
-
-        return counts;
-    }
-
-    public int getTotalOrganismCount() {
-        int animalTotal = speciesCounts.values().stream().mapToInt(AtomicInteger::get).sum();
-        double plantTotal = 0;
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                plantTotal += grid[x][y].getPlantCount();
-            }
-        }
-        return animalTotal + (int) plantTotal;
-    }
-
     public String getStatistics() {
         return String.format("Остров[%dx%d] Всего организмов: %d", width, height, getTotalOrganismCount());
+    }
+
+    // Transitional
+    public int getSpeciesCount(String key) {
+        try {
+            return getSpeciesCount(SpeciesKey.fromCode(key));
+        } catch (IllegalArgumentException e) {
+            return 0;
+        }
     }
 }

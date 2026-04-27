@@ -14,7 +14,7 @@ class EnergyConsumptionTest {
     @Test
     @DisplayName("Test energy consumption during movement based on speed")
     void testMovementEnergyCost() {
-        Wolf wolf = new Wolf(config.getAnimalType("wolf")); // Speed 3
+        Wolf wolf = new Wolf(config.getAnimalType(SpeciesKey.WOLF)); 
         double initialEnergy = wolf.getCurrentEnergy();
         double expectedCost = wolf.getMaxEnergy() * (BASE_MOVE_COST_PERCENT + (wolf.getSpeed() * SPEED_MOVE_COST_STEP_PERCENT));
         
@@ -26,8 +26,8 @@ class EnergyConsumptionTest {
     @Test
     @DisplayName("Test reproduction energy cost")
     void testReproductionEnergyCost() {
-        Rabbit rabbit = new Rabbit(config.getAnimalType("rabbit"));
-        rabbit.addEnergy(rabbit.getMaxEnergy()); // Ensure it's at max
+        Rabbit rabbit = new Rabbit(config.getAnimalType(SpeciesKey.RABBIT));
+        rabbit.addEnergy(rabbit.getMaxEnergy()); 
         double initialEnergy = rabbit.getCurrentEnergy();
         double cost = rabbit.getMaxEnergy() * REPRODUCTION_COST_PERCENT;
         
@@ -40,7 +40,7 @@ class EnergyConsumptionTest {
     @Test
     @DisplayName("Test organism dies when energy reaches zero")
     void testDeathByEnergyExhaustion() {
-        Wolf wolf = new Wolf(config.getAnimalType("wolf"));
+        Wolf wolf = new Wolf(config.getAnimalType(SpeciesKey.WOLF));
         assertTrue(wolf.isAlive());
         
         wolf.consumeEnergy(wolf.getMaxEnergy());
@@ -52,7 +52,7 @@ class EnergyConsumptionTest {
     @Test
     @DisplayName("Test metabolism reduces energy")
     void testMetabolism() {
-        Wolf wolf = new Wolf(config.getAnimalType("wolf"));
+        Wolf wolf = new Wolf(config.getAnimalType(SpeciesKey.WOLF));
         double initialEnergy = wolf.getCurrentEnergy();
         double metabolismCost = wolf.getMaxEnergy() * BASE_METABOLISM_PERCENT;
         

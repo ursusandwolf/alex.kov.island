@@ -1,6 +1,5 @@
 package com.island.content;
 
-import com.island.content.animals.herbivores.Duck;
 import com.island.content.animals.herbivores.Rabbit;
 import com.island.content.animals.predators.Fox;
 import com.island.content.animals.predators.Wolf;
@@ -20,7 +19,6 @@ class TrophicFeedingTest {
     private Island island;
     private InteractionMatrix matrix;
     private FeedingService feedingService;
-    private LifecycleService lifecycleService;
     private final SpeciesConfig config = SpeciesConfig.getInstance();
 
     @BeforeEach
@@ -29,26 +27,23 @@ class TrophicFeedingTest {
         island.setRedBookProtectionEnabled(false);
         matrix = new InteractionMatrix();
         feedingService = new FeedingService(island, matrix, Executors.newSingleThreadExecutor());
-        lifecycleService = new LifecycleService(island, Executors.newSingleThreadExecutor());
     }
 
     @Test
     @DisplayName("Test trophic hierarchy: predators hunt before prey acts")
     void testTrophicHierarchy() {
         Cell cell = island.getCell(0, 0);
-        Wolf wolf = new Wolf(config.getAnimalType("wolf"));
-        Rabbit rabbit = new Rabbit(config.getAnimalType("rabbit"));
+        Wolf wolf = new Wolf(config.getAnimalType(SpeciesKey.WOLF));
+        Rabbit rabbit = new Rabbit(config.getAnimalType(SpeciesKey.RABBIT));
         
-        // Setup: Wolf is hungry (50% energy), faster, and has 100% chance to eat Rabbit
         wolf.setEnergy(wolf.getMaxEnergy() * 0.5);
-        matrix.setChance("wolf", "rabbit", 100);
+        matrix.setChance(SpeciesKey.WOLF, SpeciesKey.RABBIT, 100);
         
         cell.addAnimal(wolf);
         cell.addAnimal(rabbit);
         
         feedingService.run();
         
-        // If Wolf acts first and is faster, Rabbit should be eaten
         assertFalse(rabbit.isAlive(), "Rabbit should be eaten by Wolf");
         assertEquals(1, cell.getAnimalCount(), "Only Wolf should remain");
     }
@@ -57,32 +52,27 @@ class TrophicFeedingTest {
     @DisplayName("Test escape protection: prey hides after failed attack")
     void testEscapeAndHide() {
         Cell cell = island.getCell(0, 0);
-        Wolf wolf = new Wolf(config.getAnimalType("wolf"));
-        Fox fox = new Fox(config.getAnimalType("fox"));
-        Rabbit rabbit = new Rabbit(config.getAnimalType("rabbit"));
+        Wolf wolf = new Wolf(config.getAnimalType(SpeciesKey.WOLF));
+        Fox fox = new Fox(config.getAnimalType(SpeciesKey.FOX));
+        Rabbit rabbit = new Rabbit(config.getAnimalType(SpeciesKey.RABBIT));
         
-        // Ensure predators are hungry and will attack
         wolf.setEnergy(0.5);
         fox.setEnergy(0.5);
 
-        // Wolf eats Rabbit with 1% chance (forced fail), Fox eats Rabbit (100%)
-        matrix.setChance("wolf", "rabbit", 1); 
-        matrix.setChance("fox", "rabbit", 100);
+        matrix.setChance(SpeciesKey.WOLF, SpeciesKey.RABBIT, 1); 
+        matrix.setChance(SpeciesKey.FOX, SpeciesKey.RABBIT, 100);
         
         cell.addAnimal(wolf);
         cell.addAnimal(fox);
         cell.addAnimal(rabbit);
         
-        // Use a loop to ensure the wolf attack actually triggers (1% chance is small, but if it hits, it fails the 'hide' check if eaten)
-        // We want to test the failure case.
-        for (int i = 0; i < 50; i++) {
+        for (int i = 0; i < 100; i++) {
             feedingService.run();
             if (rabbit.isHiding() || !rabbit.isAlive()) break;
         }
         
         if (rabbit.isAlive()) {
             assertTrue(rabbit.isHiding(), "Rabbit should be hiding after wolf attack attempts");
-            // Check that Fox didn't eat it
             assertTrue(cell.getAnimals().contains(rabbit), "Rabbit should still be in cell because it hid from fox");
         }
     }

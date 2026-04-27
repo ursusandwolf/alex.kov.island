@@ -11,7 +11,6 @@ public abstract class Organism {
     private int age; 
     private final int maxLifespan; 
     private volatile boolean isAlive;
-    protected boolean isHiding = false;
 
     protected Organism(double maxEnergy, int maxLifespan) {
         this(maxEnergy, maxLifespan, BABY_INITIAL_ENERGY_PERCENT / 100.0); 
@@ -28,8 +27,6 @@ public abstract class Organism {
 
     public String getId() { return id; }
     public boolean isAlive() { return isAlive; }
-    public boolean isHiding() { return isHiding; }
-    public void setHiding(boolean h) { this.isHiding = h; }
     protected void die() { this.isAlive = false; }
     public double getCurrentEnergy() { return currentEnergy; }
     public double getMaxEnergy() { return maxEnergy; }
@@ -95,26 +92,16 @@ public abstract class Organism {
         return currentEnergy < DEATH_EPSILON;
     }
 
-    public boolean isHibernating() {
-        return false;
-    }
-
     public double getWeight() { return 1.0; } // Default weight
 
-    /**
-     * Stepped Metabolism Rate: 
-     * Small organisms burn energy slightly faster, large ones slightly slower.
-     */
     public double getDynamicMetabolismRate() {
-        double w = getWeight();
-        if (w < 1.0) return BASE_METABOLISM_PERCENT * METABOLISM_MODIFIER_TINY; 
-        if (w > 300.0) return BASE_METABOLISM_PERCENT * METABOLISM_MODIFIER_LARGE;
-        return BASE_METABOLISM_PERCENT * METABOLISM_MODIFIER_MEDIUM;
+        SizeClass sizeClass = SizeClass.fromWeight(getWeight());
+        return switch (sizeClass) {
+            case SMALL -> BASE_METABOLISM_PERCENT * METABOLISM_MODIFIER_TINY;
+            case MEDIUM -> BASE_METABOLISM_PERCENT * METABOLISM_MODIFIER_MEDIUM;
+            case LARGE, HUGE -> BASE_METABOLISM_PERCENT * METABOLISM_MODIFIER_LARGE;
+        };
     }
 
-    public void checkState() {
-        // Now returns void, logic moved to service for reporting
-    }
-
-    public abstract String getSpeciesKey();
+    public abstract SpeciesKey getSpeciesKey();
 }

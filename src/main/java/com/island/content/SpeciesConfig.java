@@ -1,94 +1,65 @@
 package com.island.content;
 
 import lombok.Getter;
-import java.io.InputStream;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
- * Loads and provides access to species configuration.
+ * Registry proxy for species configuration.
+ * Refactored to delegate to SpeciesRegistry and SpeciesLoader (SRP).
  */
 @Getter
 public final class SpeciesConfig {
     private static final SpeciesConfig INSTANCE = new SpeciesConfig();
-    private final Map<String, AnimalType> animalTypes = new HashMap<>();
-
-    // Plant constants (redundant but used in some classes)
-    private double plantWeight = 1.0;
-    private int plantMaxCount = 200;
-    private double cabbageWeight = 2.0;
-    private int cabbageMaxCount = 100;
+    private final SpeciesRegistry registry;
 
     private SpeciesConfig() {
-        loadFromProperties();
+        this.registry = new SpeciesLoader().load();
     }
 
     public static SpeciesConfig getInstance() { return INSTANCE; }
 
-    private void loadFromProperties() {
-        Properties props = new Properties();
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream("species.properties")) {
-            if (is == null) return;
-            props.load(is);
-            
-            // Hardcoded initial list of species keys
-            String[] speciesKeys = {
-                "wolf", "boa", "fox", "bear", "eagle",
-                "horse", "deer", "rabbit", "mouse", "goat", "sheep", "boar", "buffalo", "duck", "caterpillar"
-            };
-
-            for (String key : speciesKeys) {
-                double weight = Math.max(0.001, Double.parseDouble(props.getProperty(key + ".weight", "1")));
-                int maxCount = Math.max(0, Integer.parseInt(props.getProperty(key + ".maxPerCell", "1")));
-                int speed = Math.max(0, Integer.parseInt(props.getProperty(key + ".speed", "1")));
-                double food = Math.max(0, Double.parseDouble(props.getProperty(key + ".foodForSaturation", "1")));
-                int lifespan = Math.max(1, Integer.parseInt(props.getProperty(key + ".lifespan", "100")));
-                
-                String preyStr = props.getProperty(key + ".prey", "");
-                Map<String, Integer> prey = new HashMap<>();
-                if (!preyStr.isEmpty()) {
-                    for (String part : preyStr.split(",")) {
-                        String[] pair = part.split(":");
-                        prey.put(pair[0], Integer.parseInt(pair[1]));
-                    }
-                }
-                
-                animalTypes.put(key, new AnimalType(key, key.substring(0, 1).toUpperCase() + key.substring(1), 
-                        weight, maxCount, speed, food, lifespan, prey));
-            }
-            
-            // Load specific plant weights if needed
-            plantWeight = Double.parseDouble(props.getProperty("plant.weight", "1.0"));
-            plantMaxCount = Integer.parseInt(props.getProperty("plant.maxPerCell", "200"));
-            cabbageWeight = Double.parseDouble(props.getProperty("cabbage.weight", "2.0"));
-            cabbageMaxCount = Integer.parseInt(props.getProperty("cabbage.maxPerCell", "100"));
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public AnimalType getAnimalType(SpeciesKey key) {
+        return registry.getAnimalType(key).orElse(null);
     }
 
-    public AnimalType getAnimalType(String key) { return animalTypes.get(key); }
+    /**
+     * Transitional method for String keys.
+     */
+    public AnimalType getAnimalType(String key) {
+        try {
+            return getAnimalType(SpeciesKey.fromCode(key));
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
     
     public Set<String> getAllSpeciesKeys() {
-        Set<String> allKeys = new HashSet<>(animalTypes.keySet());
-        allKeys.add("plant");
-        allKeys.add("cabbage");
-        allKeys.add("caterpillar");
+        Set<String> allKeys = registry.getAllAnimalKeys().stream()
+                .map(SpeciesKey::getCode)
+                .collect(Collectors.toSet());
+        allKeys.add(SpeciesKey.PLANT.getCode());
+        allKeys.add(SpeciesKey.CABBAGE.getCode());
+        allKeys.add(SpeciesKey.CATERPILLAR.getCode());
         return allKeys;
     }
 
-    public int getHuntProbability(String predator, String prey) {
-        AnimalType type = animalTypes.get(predator);
-        return (type != null) ? type.getHuntProbability(prey) : 0;
+    public Set<SpeciesKey> getAllAnimalKeys() {
+        return registry.getAllAnimalKeys();
     }
 
-    // Manual getters to bypass potential Lombok friction in some environments
-    public double getPlantWeight() { return plantWeight; }
-    public int getPlantMaxCount() { return plantMaxCount; }
-    public double getCabbageWeight() { return cabbageWeight; }
-    public int getCabbageMaxCount() { return cabbageMaxCount; }
+    public int getHuntProbability(String predator, String prey) {
+        try {
+            AnimalType type = getAnimalType(SpeciesKey.fromCode(predator));
+            return (type != null) ? type.getHuntProbability(SpeciesKey.fromCode(prey)) : 0;
+        } catch (IllegalArgumentException e) {
+            return 0;
+        }
+    }
+
+    public double getPlantWeight() { return registry.getPlantWeight(SpeciesKey.PLANT); }
+    public int getPlantMaxCount() { return registry.getPlantMaxCount(SpeciesKey.PLANT); }
+    public double getCabbageWeight() { return registry.getPlantWeight(SpeciesKey.CABBAGE); }
+    public int getCabbageMaxCount() { return registry.getPlantMaxCount(SpeciesKey.CABBAGE); }
 }
