@@ -1,6 +1,18 @@
 # Changelog
 
 ## [2026-04-27]
+### Stabilization & UI Refinement
+- **Code Duplication & Architectural Cleanup**:
+    - **Unified Service Hierarchy**: Integrated `FeedingService` into `AbstractService`, eliminating redundant parallel processing logic.
+    - **Polymorphic Lifecycle**: Introduced `Biomass.tick(Cell)` to unify plant growth and insect metamorphosis cycles, removing `instanceof` checks from `LifecycleService`.
+    - **Offspring Logic Refactoring**: Replaced manual type checking in `ReproductionService` with a polymorphic `getOffspringBonus()` method in the `Animal` class.
+    - **Dead Code Elimination**: Removed unused methods (`canOnlyEat`, `checkState`, `ageOneTick`) from the core `Organism` model to improve maintainability.
+- **Console UI & Rendering Optimization**:
+    - **Flicker-Free Dashboard**: Optimized `ConsoleView` to use terminal cursor-positioning and line-clearing escape codes, providing 100% smooth animation.
+    - **Zero-Allocation Rendering**: Replaced heavy object allocation and Stream API usage in `renderCell` with a pre-allocated primitive array for O(1) performance.
+    - **Precision Borders**: Added Unicode borders with corrected 3-character alignment to ensure the map remains perfectly rectangular.
+    - **Enhanced Sparklines**: Improved `ViewUtils.getSparkline` visibility by using `.` for base levels and removing debug characters.
+
 ### Biomass Unification & Swarm Dynamics
 - **Unified Biomass Abstraction**: Replaced the specific `Plant` class with a more versatile `Biomass` base class. 
     - **Shared Logic**: All mass-based organisms (Grass, Cabbage, Caterpillar, Butterfly) now share a unified growth, consumption, and storage model.

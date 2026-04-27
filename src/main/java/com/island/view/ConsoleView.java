@@ -7,6 +7,7 @@ import com.island.model.Cell;
 import com.island.model.Island;
 import com.island.util.ViewUtils;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.LinkedList;
@@ -22,6 +23,9 @@ public class ConsoleView {
     private static final String GREEN = "\u001B[32m";
     private static final String YELLOW = "\u001B[33m";
     private static final String CYAN = "\u001B[36m";
+    private static final String CLEAR_EOL = "\u001B[K";
+    private static final String CURSOR_HOME = "\u001B[H";
+    private static final String CLEAR_DOWN = "\u001B[J";
 
     private static final Map<SpeciesKey, String> ICONS = new EnumMap<>(SpeciesKey.class);
 
@@ -52,8 +56,8 @@ public class ConsoleView {
     private final LinkedList<Integer> totalPopulationHistory = new LinkedList<>();
     private final Map<SpeciesKey, LinkedList<Integer>> populationHistory = new EnumMap<>(SpeciesKey.class);
     private static final int HISTORY_SIZE = 10;
-    private int lastRenderedTick = -1;
-    private static final int RENDER_THROTTLE = 1;
+    
+    private final double[] cellBiomass = new double[SpeciesKey.values().length];
 
     public void setSilent(boolean silent) {
         this.isSilent = silent;
@@ -63,17 +67,16 @@ public class ConsoleView {
         if (isSilent) {
             return;
         }
-        lastRenderedTick = island.getTickCount();
 
         updateHistory(island);
         
         StringBuilder sb = new StringBuilder();
-        sb.append("\033[H\033[2J"); // Clear console
-        sb.append(CYAN).append("=== ISLAND ECOSYSTEM DASHBOARD ===").append(RESET).append("\n");
+        sb.append(CURSOR_HOME); // Move cursor to top-left instead of clearing the screen to prevent flickering
+        sb.append(CYAN).append("=== ISLAND ECOSYSTEM DASHBOARD ===").append(RESET).append(CLEAR_EOL).append("\n");
         
         String totalGraph = ViewUtils.getSparkline(totalPopulationHistory, HISTORY_SIZE * 2);
-        sb.append(String.format("Tick: %d | Total Organisms: %d %s\n", 
-                island.getTickCount(), island.getTotalOrganismCount(), totalGraph));
+        sb.append(String.format("Tick: %d | Total Organisms: %d %s", 
+                island.getTickCount(), island.getTotalOrganismCount(), totalGraph)).append(CLEAR_EOL).append("\n");
         
         // Hunger Stats
         double satiety = island.getGlobalSatiety();
@@ -83,35 +86,39 @@ public class ConsoleView {
         sb.append(String.format("Global Satiety: %s%3.1f%%%s [", satietyColor, satiety, RESET));
         int progress = (int) (satiety / 5);
         sb.append(satietyColor).append("#".repeat(progress)).append(".".repeat(20 - progress)).append(RESET).append("] ");
-        sb.append(String.format("| Starving: %s%d%s\n", (starving > 0 ? "\u001B[31m" : GREEN), starving, RESET));
+        sb.append(String.format("| Starving: %s%d%s", (starving > 0 ? "\u001B[31m" : GREEN), starving, RESET)).append(CLEAR_EOL).append("\n");
         
         int hungerTotal = island.getTotalAnimalDeathCount(com.island.content.DeathCause.HUNGER);
         int ageTotal = island.getTotalAnimalDeathCount(com.island.content.DeathCause.AGE);
         int eatenTotal = island.getTotalAnimalDeathCount(com.island.content.DeathCause.EATEN);
         int exhaustTotal = island.getTotalAnimalDeathCount(com.island.content.DeathCause.MOVEMENT_EXHAUSTION);
 
-        sb.append(String.format("Total Deaths: Hunger: %s%d%s | Old Age: %s%d%s | Exhausted: %s%d%s\n", 
+        sb.append(String.format("Total Deaths: Hunger: %s%d%s | Old Age: %s%d%s | Exhausted: %s%d%s", 
                 "\u001B[31m", hungerTotal, RESET, 
                 YELLOW, ageTotal, RESET,
-                "\u001B[35m", exhaustTotal, RESET)); 
-        sb.append(String.format("Total Hunts (Eaten Animals): %s%d%s\n", 
-                GREEN, eatenTotal, RESET));
+                "\u001B[35m", exhaustTotal, RESET)).append(CLEAR_EOL).append("\n"); 
+        sb.append(String.format("Total Hunts (Eaten Animals): %s%d%s", 
+                GREEN, eatenTotal, RESET)).append(CLEAR_EOL).append("\n");
 
-        sb.append("-".repeat(60)).append("\n");
+        sb.append("-".repeat(60)).append(CLEAR_EOL).append("\n");
 
         Map<SpeciesKey, Integer> currentCounts = new TreeMap<>(island.getSpeciesCounts());
 
         renderStatsWithGraphs(sb, currentCounts);
 
-        sb.append("-".repeat(60)).append("\n");
-        sb.append(YELLOW).append("Map View:").append(RESET).append("\n");
+        sb.append("-".repeat(60)).append(CLEAR_EOL).append("\n");
+        sb.append(YELLOW).append("Map View:").append(RESET).append(CLEAR_EOL).append("\n");
         
+        sb.append("╔").append("═══".repeat(island.getWidth())).append("╗").append(CLEAR_EOL).append("\n");
         for (int y = 0; y < island.getHeight(); y++) {
+            sb.append("║");
             for (int x = 0; x < island.getWidth(); x++) {
                 renderCell(sb, island.getGrid()[x][y]);
             }
-            sb.append("\n");
+            sb.append("║").append(CLEAR_EOL).append("\n");
         }
+        sb.append("╚").append("═══".repeat(island.getWidth())).append("╝").append(CLEAR_EOL).append("\n");
+        sb.append(CLEAR_DOWN); 
         
         System.out.print(sb.toString());
         System.out.flush();
@@ -146,49 +153,57 @@ public class ConsoleView {
             
             sb.append(String.format("%s %-11s: %-5d %s  ", icon, species.getCode(), count, graph));
             if (++col % 2 == 0) {
-                sb.append("\n");
+                sb.append(CLEAR_EOL).append("\n");
             }
         }
         if (col % 2 != 0) {
-            sb.append("\n");
+            sb.append(CLEAR_EOL).append("\n");
         }
     }
 
     private void renderCell(StringBuilder sb, Cell cell) {
-        Map<SpeciesKey, Double> biomassMap = new EnumMap<>(SpeciesKey.class);
+        Arrays.fill(cellBiomass, 0.0);
+        boolean hasBiomass = false;
         
         for (Animal a : cell.getAnimals()) {
             if (a.isAlive()) {
-                biomassMap.put(a.getSpeciesKey(), 
-                        biomassMap.getOrDefault(a.getSpeciesKey(), 0.0) + a.getWeight());
+                cellBiomass[a.getSpeciesKey().ordinal()] += a.getWeight();
+                hasBiomass = true;
             }
         }
 
         for (Biomass p : cell.getBiomassContainers()) {
-            if (p.isAlive()) {
-                biomassMap.put(p.getSpeciesKey(), 
-                        biomassMap.getOrDefault(p.getSpeciesKey(), 0.0) + p.getBiomass());
+            if (p.isAlive() && p.getBiomass() > 0) {
+                cellBiomass[p.getSpeciesKey().ordinal()] += p.getBiomass();
+                hasBiomass = true;
             }
         }
 
-        if (!biomassMap.isEmpty()) {
-            List<SpeciesKey> topSpeciesList = biomassMap.entrySet().stream()
-                    .sorted((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()))
-                    .limit(3)
-                    .map(Map.Entry::getKey)
-                    .toList();
+        if (hasBiomass) {
+            int topIndex = -1;
+            double topWeight = -1.0;
             
-            int displayIndex = (lastRenderedTick / RENDER_THROTTLE) % topSpeciesList.size();
-            SpeciesKey speciesToDisplay = topSpeciesList.get(displayIndex);
-            String icon = ICONS.getOrDefault(speciesToDisplay, "?");
+            for (int i = 0; i < cellBiomass.length; i++) {
+                if (cellBiomass[i] > topWeight) {
+                    topWeight = cellBiomass[i];
+                    topIndex = i;
+                }
+            }
             
-            if (isGreen(speciesToDisplay)) {
-                sb.append(GREEN).append(icon).append(RESET).append(" ");
+            if (topIndex != -1) {
+                SpeciesKey speciesToDisplay = SpeciesKey.values()[topIndex];
+                String icon = ICONS.getOrDefault(speciesToDisplay, "?");
+                
+                if (isGreen(speciesToDisplay)) {
+                    sb.append(GREEN).append(icon).append(RESET).append(" ");
+                } else {
+                    sb.append(icon).append(" ");
+                }
             } else {
-                sb.append(icon).append(" ");
+                sb.append("🏜️ ");
             }
         } else {
-            sb.append(". ");
+            sb.append("🏜️ ");
         }
     }
 
