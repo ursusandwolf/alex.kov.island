@@ -148,16 +148,9 @@ public class Island {
 
     public int getTotalAnimalDeathCount(DeathCause cause) {
         return totalDeathStats.get(cause).entrySet().stream()
-                .filter(e -> !isPlantKey(e.getKey()))
+                .filter(e -> !e.getKey().isBiomass())
                 .mapToInt(e -> e.getValue().get())
                 .sum();
-    }
-
-    private boolean isPlantKey(SpeciesKey key) {
-        return key == SpeciesKey.PLANT 
-               || key == SpeciesKey.CABBAGE 
-               || key == SpeciesKey.CATERPILLAR 
-               || key == SpeciesKey.GRASS;
     }
 
     public Map<SpeciesKey, Integer> getDeathsBySpecies(DeathCause cause) {

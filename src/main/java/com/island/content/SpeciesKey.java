@@ -38,8 +38,17 @@ public enum SpeciesKey {
     }
 
     public boolean isPredator() {
-        return predator;
+        return isPredator;
     }
+
+    public boolean isPlant() {
+        return this == PLANT || this == GRASS || this == CABBAGE;
+    }
+
+    public boolean isBiomass() {
+        return isPlant() || this == CATERPILLAR;
+    }
+
 
     public static SpeciesKey fromCode(String code) {
         for (SpeciesKey key : values()) {
