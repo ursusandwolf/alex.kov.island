@@ -1,8 +1,14 @@
 package com.island.content.animals.herbivores;
 
-import com.island.content.plants.Plant;
-import com.island.content.SpeciesKey;
+import static com.island.config.SimulationConstants.CATERPILLAR_FEED_EFFICIENCY;
+import static com.island.config.SimulationConstants.CATERPILLAR_FERTILIZER_EFFICIENCY;
+import static com.island.config.SimulationConstants.CATERPILLAR_METABOLISM_RATE;
+
 import com.island.content.SpeciesConfig;
+import com.island.content.SpeciesKey;
+import com.island.content.plants.Plant;
+import com.island.model.Cell;
+import java.util.List;
 
 /**
  * Optimized Caterpillar: Now acts as a biomass container (like plants).
@@ -11,37 +17,32 @@ import com.island.content.SpeciesConfig;
 public class Caterpillar extends Plant {
     public Caterpillar() {
         super("Caterpillar", SpeciesKey.CATERPILLAR,
-              SpeciesConfig.getInstance().getAnimalType(SpeciesKey.CATERPILLAR).getWeight() * 
-              SpeciesConfig.getInstance().getAnimalType(SpeciesKey.CATERPILLAR).getMaxPerCell());
+                SpeciesConfig.getInstance().getAnimalType(SpeciesKey.CATERPILLAR).getWeight() 
+                * SpeciesConfig.getInstance().getAnimalType(SpeciesKey.CATERPILLAR).getMaxPerCell());
     }
 
     /**
      * The Pendulum Logic: 
      * 1. Lose mass (natural decay/metabolism).
-     * 2. Consume other plants in the cell to gain mass.
+     * 2. Consume other plants (Grass, Cabbage).
+     * 3. Mass increases (breeding/growth).
      */
-    public void processPendulum(com.island.model.Cell cell) {
-        // 1. Natural Decay (Metabolism)
-        double decayAmount = biomass * com.island.config.SimulationConstants.CATERPILLAR_METABOLISM_RATE;
-        biomass -= decayAmount;
-        
-        // 2. Return nutrients to Grass (Fertilizer)
-        for (Plant p : cell.getPlants()) {
-            if (p instanceof com.island.content.plants.Grass) {
-                p.addBiomass(decayAmount * com.island.config.SimulationConstants.CATERPILLAR_FERTILIZER_EFFICIENCY);
-                break;
-            }
-        }
+    public void processPendulum(Cell cell) {
+        // 1. Natural metabolic loss
+        double metabolicLoss = biomass * CATERPILLAR_METABOLISM_RATE;
+        biomass -= metabolicLoss;
 
-        // 3. Consume Plants to grow
-        double appetite = maxBiomass * 0.15; // Target growth effort
-        for (Plant p : cell.getPlants()) {
-            if (p != this && !(p instanceof Caterpillar)) { 
-                double eaten = p.consumeBiomass(appetite);
-                // Apply conversion efficiency
-                biomass = Math.min(maxBiomass, biomass + (eaten * com.island.config.SimulationConstants.CATERPILLAR_FEED_EFFICIENCY));
+        // 2. Feed on actual plants in the same cell
+        double appetite = maxBiomass * 0.10; 
+        List<Plant> availablePlants = cell.getPlants();
+        for (Plant p : availablePlants) {
+            if (p != this && p.isAlive()) {
+                double eaten = p.consumeBiomass(appetite * (1.0 / CATERPILLAR_FEED_EFFICIENCY));
+                biomass = Math.min(maxBiomass, biomass + (eaten * CATERPILLAR_FEED_EFFICIENCY));
                 appetite -= eaten;
-                if (appetite <= 0) break;
+                if (appetite <= 0) {
+                    break;
+                }
             }
         }
     }

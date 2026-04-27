@@ -1,9 +1,13 @@
 package com.island.content;
 
+import static com.island.config.SimulationConstants.PREY_RELATIVE_SPEED_HUNT_COST_STEP_PERCENT;
+
 import com.island.content.animals.herbivores.Caterpillar;
 import com.island.util.InteractionMatrix;
-import static com.island.config.SimulationConstants.*;
 
+/**
+ * Default implementation of hunting logic.
+ */
 public class DefaultHuntingStrategy implements HuntingStrategy {
     private final InteractionMatrix interactionMatrix;
 

@@ -1,10 +1,13 @@
 package com.island.content.plants;
 
+import static com.island.config.SimulationConstants.PLANT_GROWTH_RATE_MAX;
+import static com.island.config.SimulationConstants.PLANT_GROWTH_RATE_MIN;
+import static com.island.config.SimulationConstants.PLANT_INITIAL_BIOMASS_FACTOR;
+
 import com.island.content.Organism;
 import com.island.content.Reproducible;
 import com.island.content.SpeciesKey;
 import com.island.util.RandomUtils;
-import static com.island.config.SimulationConstants.*;
 
 /**
  * Base class for plants. 
@@ -26,10 +29,14 @@ public abstract class Plant extends Organism implements Reproducible<Plant> {
     }
 
     @Override
-    public String getTypeName() { return typeName; }
+    public String getTypeName() {
+        return typeName;
+    }
 
     @Override
-    public SpeciesKey getSpeciesKey() { return speciesKey; }
+    public SpeciesKey getSpeciesKey() {
+        return speciesKey;
+    }
 
     @Override
     public double getEnergyPercentage() {
@@ -40,38 +47,21 @@ public abstract class Plant extends Organism implements Reproducible<Plant> {
         return biomass;
     }
 
-    public double getMaxBiomass() {
-        return maxBiomass;
-    }
-
-    public void addBiomass(double amount) {
-        biomass = Math.min(maxBiomass, biomass + amount);
-    }
-
-    public double consumeBiomass(double amount) {
-        double actual = Math.min(biomass, amount);
-        biomass -= actual;
-        // Plant "dies" only if biomass reaches zero, but usually it grows back
-        return actual;
-    }
-
-    @Override
-    public boolean isAlive() {
-        return true; // The root system is immortal in this model
-    }
-
-    /**
-     * Growth logic: increases biomass by percentage of maximum biomass.
-     */
     public void grow() {
         double growthRate = PLANT_GROWTH_RATE_MIN 
-            + (RandomUtils.nextDouble() * (PLANT_GROWTH_RATE_MAX - PLANT_GROWTH_RATE_MIN));
+                + (RandomUtils.nextDouble() * (PLANT_GROWTH_RATE_MAX - PLANT_GROWTH_RATE_MIN));
         biomass = Math.min(maxBiomass, biomass + (maxBiomass * growthRate));
     }
 
     public void checkState() {
         ageOneTick();
         grow();
+    }
+
+    public double consumeBiomass(double amount) {
+        double actualEaten = Math.min(biomass, amount);
+        biomass -= actualEaten;
+        return actualEaten;
     }
 
     @Override

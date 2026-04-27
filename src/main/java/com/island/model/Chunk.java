@@ -7,8 +7,12 @@ import java.util.List;
  * Composite: Chunk consists of cells.
  */
 public class Chunk {
-    private final int chunkIdX, chunkIdY;
-    private final int startX, endX, startY, endY;
+    private final int chunkIdX;
+    private final int chunkIdY;
+    private final int startX;
+    private final int endX;
+    private final int startY;
+    private final int endY;
     private final Island island;
     private final List<Cell> cells = new ArrayList<>();
 
@@ -20,10 +24,10 @@ public class Chunk {
         this.startY = sy;
         this.endY = ey;
         this.island = island;
-        initializeCells();
+        initCells();
     }
 
-    private void initializeCells() {
+    private void initCells() {
         for (int x = startX; x < endX; x++) {
             for (int y = startY; y < endY; y++) {
                 cells.add(island.getGrid()[x][y]);
@@ -31,9 +35,17 @@ public class Chunk {
         }
     }
 
-    public List<Cell> getCells() { return cells; }
-    public int getChunkIdX() { return chunkIdX; }
-    public int getChunkIdY() { return chunkIdY; }
+    public List<Cell> getCells() {
+        return cells;
+    }
+
+    public int getChunkIdX() {
+        return chunkIdX;
+    }
+
+    public int getChunkIdY() {
+        return chunkIdY;
+    }
 
     @Override
     public String toString() {
