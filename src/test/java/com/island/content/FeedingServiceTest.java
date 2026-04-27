@@ -58,9 +58,9 @@ class FeedingServiceTest {
         rabbit.setEnergy(rabbit.getMaxEnergy() * 0.5);
         double initialEnergy = rabbit.getCurrentEnergy();
         
-        Grass grass = new Grass(registry.getPlantWeight(SpeciesKey.PLANT) * registry.getPlantMaxCount(SpeciesKey.PLANT));
+        Grass grass = new Grass(registry.getPlantWeight(SpeciesKey.PLANT) * registry.getPlantMaxCount(SpeciesKey.PLANT), 0);
         cell.addAnimal(rabbit);
-        cell.addPlant(grass);
+        cell.addBiomass(grass);
         
         service.run();
         

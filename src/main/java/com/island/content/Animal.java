@@ -5,7 +5,6 @@ import static com.island.config.SimulationConstants.HERBIVORE_METABOLISM_MODIFIE
 import static com.island.config.SimulationConstants.SPEED_MOVE_COST_STEP_PERCENT;
 
 import com.island.config.EnergyPolicy;
-import com.island.content.plants.Plant;
 
 /**
  * Base class for all animals in the simulation.

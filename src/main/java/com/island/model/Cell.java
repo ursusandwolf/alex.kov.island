@@ -2,9 +2,9 @@ package com.island.model;
 
 import com.island.content.Animal;
 import com.island.content.AnimalType;
+import com.island.content.Biomass;
 import com.island.content.SizeClass;
 import com.island.content.SpeciesKey;
-import com.island.content.plants.Plant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -27,11 +27,11 @@ public class Cell {
     private final Map<SizeClass, List<Animal>> animalsBySize = new EnumMap<>(SizeClass.class);
     private final List<Animal> predators = new ArrayList<>();
     private final List<Animal> herbivores = new ArrayList<>();
-    private final Map<SpeciesKey, Plant> plantsBySpecies = new EnumMap<>(SpeciesKey.class);
+    private final Map<SpeciesKey, Biomass> biomassBySpecies = new EnumMap<>(SpeciesKey.class);
     
     // Flat list for general iteration
     private final List<Animal> allAnimals = new ArrayList<>();
-    private final List<Plant> allPlants = new ArrayList<>();
+    private final List<Biomass> allBiomass = new ArrayList<>();
     
     private final ReentrantLock lock = new ReentrantLock();
 
@@ -166,13 +166,29 @@ public class Cell {
         return allAnimals.size();
     }
 
-    public boolean addPlant(Plant plant) {
+    public boolean addBiomass(Biomass b) {
         lock.lock();
         try {
-            SpeciesKey key = plant.getSpeciesKey();
-            if (!plantsBySpecies.containsKey(key)) {
-                plantsBySpecies.put(key, plant);
-                allPlants.add(plant);
+            SpeciesKey key = b.getSpeciesKey();
+            Biomass existing = biomassBySpecies.get(key);
+            if (existing != null) {
+                existing.addBiomass(b.getBiomass());
+                return true;
+            } else {
+                biomassBySpecies.put(key, b);
+                allBiomass.add(b);
+                return true;
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public boolean removeBiomass(Biomass b) {
+        lock.lock();
+        try {
+            if (biomassBySpecies.remove(b.getSpeciesKey()) != null) {
+                allBiomass.remove(b);
                 return true;
             }
             return false;
@@ -181,18 +197,18 @@ public class Cell {
         }
     }
 
-    public List<Plant> getPlants() {
-        return new ArrayList<>(allPlants);
+    public List<Biomass> getBiomassContainers() {
+        return new ArrayList<>(allBiomass);
     }
 
-    public Plant getPlant(SpeciesKey key) {
-        return plantsBySpecies.get(key);
+    public Biomass getBiomass(SpeciesKey key) {
+        return biomassBySpecies.get(key);
     }
 
     public int getPlantCount() { 
         double total = 0;
-        for (Plant p : allPlants) {
-            total += p.getBiomass();
+        for (Biomass b : allBiomass) {
+            total += b.getBiomass();
         }
         return (int) total; 
     }
@@ -215,6 +231,6 @@ public class Cell {
     }
 
     public String getStatistics() {
-        return String.format("Cell[%d,%d]: Животные=%d, Растения=%d", x, y, allAnimals.size(), allPlants.size());
+        return String.format("Cell[%d,%d]: Животные=%d, Биомасса=%d", x, y, allAnimals.size(), (int) getPlantCount());
     }
 }

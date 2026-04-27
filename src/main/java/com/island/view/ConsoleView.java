@@ -2,7 +2,7 @@ package com.island.view;
 
 import com.island.content.Animal;
 import com.island.content.SpeciesKey;
-import com.island.content.plants.Plant;
+import com.island.content.Biomass;
 import com.island.model.Cell;
 import com.island.model.Island;
 import com.island.util.ViewUtils;
@@ -164,7 +164,7 @@ public class ConsoleView {
             }
         }
 
-        for (Plant p : cell.getPlants()) {
+        for (Biomass p : cell.getBiomassContainers()) {
             if (p.isAlive()) {
                 biomassMap.put(p.getSpeciesKey(), 
                         biomassMap.getOrDefault(p.getSpeciesKey(), 0.0) + p.getBiomass());

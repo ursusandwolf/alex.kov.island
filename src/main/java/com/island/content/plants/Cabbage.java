@@ -1,13 +1,13 @@
 package com.island.content.plants;
 
-
+import com.island.content.Biomass;
 import com.island.content.SpeciesKey;
 
 /**
  * Cabbage implementation.
  */
-public class Cabbage extends Plant {
-    public Cabbage(double maxBiomass) {
-        super("Cabbage", SpeciesKey.CABBAGE, maxBiomass);
+public class Cabbage extends Biomass {
+    public Cabbage(double maxBiomass, int speed) {
+        super("Cabbage", SpeciesKey.CABBAGE, maxBiomass, speed);
     }
 }

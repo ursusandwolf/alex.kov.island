@@ -1,11 +1,10 @@
 package com.island.content;
 
 import com.island.content.animals.herbivores.Caterpillar;
-import com.island.content.plants.Plant;
+import com.island.content.Biomass;
 import com.island.model.Cell;
 import com.island.util.InteractionMatrix;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
@@ -50,12 +49,12 @@ public class PreyProvider {
         }
 
         // 2. Check Caterpillar and Butterfly Biomass (Special cases)
-        Plant caterpillar = cell.getPlant(SpeciesKey.CATERPILLAR);
+        Biomass caterpillar = cell.getBiomass(SpeciesKey.CATERPILLAR);
         if (caterpillar != null && caterpillar.isAlive() && matrix.getChance(predKey, SpeciesKey.CATERPILLAR) > 0) {
             buffet.add(caterpillar);
         }
 
-        Plant butterfly = cell.getPlant(SpeciesKey.BUTTERFLY);
+        Biomass butterfly = cell.getBiomass(SpeciesKey.BUTTERFLY);
         if (butterfly != null && butterfly.isAlive() && matrix.getChance(predKey, SpeciesKey.BUTTERFLY) > 0) {
             buffet.add(butterfly);
         }

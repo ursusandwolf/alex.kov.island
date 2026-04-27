@@ -1,6 +1,7 @@
 package com.island.service;
 
 import com.island.content.Animal;
+import com.island.content.Biomass;
 import com.island.content.DeathCause;
 import com.island.model.Cell;
 import com.island.model.Island;
@@ -13,7 +14,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Service responsible for animal movement.
+ * Service responsible for animal and mobile biomass movement.
  */
 public class MovementService extends AbstractService {
 
@@ -23,7 +24,12 @@ public class MovementService extends AbstractService {
 
     @Override
     protected void processCell(Cell cell) {
-        // Use a snapshot to avoid ConcurrentModificationException or missed animals
+        processAnimals(cell);
+        processMobileBiomass(cell);
+    }
+
+    private void processAnimals(Cell cell) {
+        // Use a snapshot to avoid ConcurrentModificationException
         List<Animal> animals = new java.util.ArrayList<>(cell.getAnimals());
         Island island = cell.getIsland();
         int islandArea = island.getWidth() * island.getHeight();
@@ -48,20 +54,39 @@ public class MovementService extends AbstractService {
                 // --- Red Book Mobility Bonus ---
                 int currentCount = island.getSpeciesCount(animal.getSpeciesKey());
                 int globalCapacity = islandArea * animal.getMaxPerCell();
-                if (currentCount < globalCapacity * 0.05) {
+                if (currentCount > 0 && currentCount < globalCapacity * 0.05) {
                     speed += 2; 
                 }
 
                 if (speed > 0) {
-                    int dx = ThreadLocalRandom.current().nextInt(-speed, speed + 1);
-                    int dy = ThreadLocalRandom.current().nextInt(-speed, speed + 1);
-                    
-                    Cell target = island.getCell(cell.getX() + dx, cell.getY() + dy);
+                    Cell target = selectTargetCell(cell, speed);
                     if (target != cell) {
                         island.moveOrganism(animal, cell, target);
                     }
                 }
             }
         }
+    }
+
+    private void processMobileBiomass(Cell cell) {
+        List<Biomass> containers = cell.getBiomassContainers();
+        Island island = cell.getIsland();
+
+        for (Biomass b : containers) {
+            if (b.isAlive() && b.getSpeed() > 0 && b.getBiomass() > 0) {
+                // To avoid the entire biomass moving back and forth in the same tick if multiple cells are processed,
+                // we could use a marker, but for simplicity we move the whole "swarm" once.
+                Cell target = selectTargetCell(cell, b.getSpeed());
+                if (target != cell) {
+                    island.moveBiomass(b, cell, target);
+                }
+            }
+        }
+    }
+
+    private Cell selectTargetCell(Cell cell, int speed) {
+        int dx = ThreadLocalRandom.current().nextInt(-speed, speed + 1);
+        int dy = ThreadLocalRandom.current().nextInt(-speed, speed + 1);
+        return cell.getIsland().getCell(cell.getX() + dx, cell.getY() + dy);
     }
 }

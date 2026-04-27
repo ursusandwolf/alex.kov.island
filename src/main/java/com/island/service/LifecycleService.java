@@ -2,7 +2,7 @@ package com.island.service;
 
 import com.island.content.Animal;
 import com.island.content.DeathCause;
-import com.island.content.plants.Plant;
+import com.island.content.Biomass;
 import com.island.model.Cell;
 import com.island.model.Island;
 import java.util.List;
@@ -42,8 +42,8 @@ public class LifecycleService extends AbstractService {
         }
 
         // Process Plants (Growth & Pendulum)
-        List<Plant> plants = cell.getPlants();
-        for (Plant plant : plants) {
+        List<Biomass> plants = cell.getBiomassContainers();
+        for (Biomass plant : plants) {
             if (plant instanceof com.island.content.animals.herbivores.Caterpillar caterpillar) {
                 caterpillar.processPendulum(cell);
             } else if (plant instanceof com.island.content.animals.herbivores.Butterfly butterfly) {

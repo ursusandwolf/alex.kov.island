@@ -8,7 +8,7 @@ import com.island.content.animals.herbivores.Butterfly;
 import com.island.content.animals.herbivores.Caterpillar;
 import com.island.content.plants.Cabbage;
 import com.island.content.plants.Grass;
-import com.island.content.plants.Plant;
+import com.island.content.Biomass;
 import com.island.model.Cell;
 import com.island.model.Chunk;
 import com.island.model.Island;
@@ -167,7 +167,7 @@ public class FeedingService implements Runnable {
         int canEatPlants = interactionMatrix.getChance(consumerKey, SpeciesKey.PLANT);
         if (canEatPlants > 0) {
             // 1. Try eating Cabbage first
-            Plant cabbage = cell.getPlant(SpeciesKey.CABBAGE);
+            Biomass cabbage = cell.getBiomass(SpeciesKey.CABBAGE);
             if (cabbage != null && cabbage.isAlive()) {
                 if (!isPlantProtected(cabbage, protectionMap)) {
                     double eaten = cabbage.consumeBiomass(foodNeeded);
@@ -180,7 +180,7 @@ public class FeedingService implements Runnable {
             }
 
             // 2. Try eating Grass 
-            Plant grass = cell.getPlant(SpeciesKey.GRASS);
+            Biomass grass = cell.getBiomass(SpeciesKey.GRASS);
             if (grass != null && grass.isAlive()) {
                 if (!isPlantProtected(grass, protectionMap)) {
                     double eaten = grass.consumeBiomass(foodNeeded);
@@ -190,7 +190,7 @@ public class FeedingService implements Runnable {
         }
     }
 
-    private boolean isPlantProtected(Plant plant, Map<SpeciesKey, Double> protectionMap) {
+    private boolean isPlantProtected(Biomass plant, Map<SpeciesKey, Double> protectionMap) {
         Double hideChance = protectionMap.get(plant.getSpeciesKey());
         return hideChance != null && ThreadLocalRandom.current().nextDouble() < hideChance;
     }

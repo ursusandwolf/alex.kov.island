@@ -2,10 +2,10 @@ package com.island.model;
 
 import com.island.content.Animal;
 import com.island.content.AnimalType;
+import com.island.content.Biomass;
 import com.island.content.DeathCause;
 import com.island.content.SpeciesRegistry;
 import com.island.content.SpeciesKey;
-import com.island.content.plants.Plant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -241,9 +241,9 @@ public class Island {
         // Add Biomass (Plants, Caterpillars) - sum their total mass across the island
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
-                for (Plant p : grid[x][y].getPlants()) {
-                    if (p.isAlive() && p.getBiomass() > 0) {
-                        counts.merge(p.getSpeciesKey(), (int) p.getBiomass(), Integer::sum);
+                for (Biomass b : grid[x][y].getBiomassContainers()) {
+                    if (b.isAlive() && b.getBiomass() > 0) {
+                        counts.merge(b.getSpeciesKey(), (int) b.getBiomass(), Integer::sum);
                     }
                 }
             }
@@ -261,8 +261,8 @@ public class Island {
         int biomassTotal = 0;
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
-                for (Plant p : grid[x][y].getPlants()) {
-                    biomassTotal += (int) p.getBiomass();
+                for (Biomass b : grid[x][y].getBiomassContainers()) {
+                    biomassTotal += (int) b.getBiomass();
                 }
             }
         }
@@ -287,6 +287,42 @@ public class Island {
                             animal.tryConsumeEnergy(animal.getCurrentEnergy()); 
                             reportDeath(animal.getSpeciesKey(), DeathCause.MOVEMENT_EXHAUSTION);
                         }
+                    }
+                }
+            } finally {
+                second.getLock().unlock();
+            }
+        } finally {
+            first.getLock().unlock();
+        }
+    }
+
+    public void moveBiomass(Biomass b, Cell from, Cell to) {
+        if (from == to || b.getBiomass() <= 0) {
+            return;
+        }
+
+        Cell first = (from.getX() < to.getX() || (from.getX() == to.getX() && from.getY() < to.getY())) ? from : to;
+        Cell second = (first == from) ? to : from;
+
+        first.getLock().lock();
+        try {
+            second.getLock().lock();
+            try {
+                double amount = b.getBiomass();
+                // In this optimized model, we move the entire container's mass
+                // to the target cell's container of the same species.
+                // We create a temporary Biomass object to represent the "moving" mass
+                // although in this specific swarm model, we can just transfer the value.
+                
+                // We use the addBiomass logic of the target cell which handles merging.
+                // But we need to ensure we don't duplicate the object itself if it's a new species in 'to'.
+                
+                // Create a temporary object if target doesn't have it, or just use 'b' if we remove it from 'from'.
+                if (from.removeBiomass(b)) {
+                    if (!to.addBiomass(b)) {
+                        // If somehow it failed to add (shouldn't with merging logic), try to return it.
+                        from.addBiomass(b);
                     }
                 }
             } finally {

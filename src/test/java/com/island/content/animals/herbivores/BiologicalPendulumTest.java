@@ -18,12 +18,12 @@ class BiologicalPendulumTest {
         Island island = new Island(1, 1);
         Cell cell = island.getCell(0, 0);
         
-        Grass grass = new Grass(registry.getPlantWeight(SpeciesKey.PLANT) * registry.getPlantMaxCount(SpeciesKey.PLANT));
+        Grass grass = new Grass(registry.getPlantWeight(SpeciesKey.PLANT) * registry.getPlantMaxCount(SpeciesKey.PLANT), 0);
         Caterpillar caterpillar = new Caterpillar(registry.getAnimalType(SpeciesKey.CATERPILLAR).orElseThrow().getWeight() 
-                * registry.getAnimalType(SpeciesKey.CATERPILLAR).orElseThrow().getMaxPerCell());
+                * registry.getAnimalType(SpeciesKey.CATERPILLAR).orElseThrow().getMaxPerCell(), 0);
         
-        cell.addPlant(grass);
-        cell.addPlant(caterpillar);
+        cell.addBiomass(grass);
+        cell.addBiomass(caterpillar);
         
         double initialBiomass = caterpillar.getBiomass();
         double initialGrass = grass.getBiomass();

@@ -99,12 +99,12 @@ public class WorldInitializer {
         }
         
         // Initialize plants with mass from registry
-        cell.addPlant(new Grass(registry.getPlantWeight(SpeciesKey.GRASS) * registry.getPlantMaxCount(SpeciesKey.GRASS)));
-        cell.addPlant(new Cabbage(registry.getPlantWeight(SpeciesKey.CABBAGE) * registry.getPlantMaxCount(SpeciesKey.CABBAGE)));
+        cell.addBiomass(new Grass(registry.getPlantWeight(SpeciesKey.GRASS) * registry.getPlantMaxCount(SpeciesKey.GRASS), registry.getPlantSpeed(SpeciesKey.GRASS)));
+        cell.addBiomass(new Cabbage(registry.getPlantWeight(SpeciesKey.CABBAGE) * registry.getPlantMaxCount(SpeciesKey.CABBAGE), registry.getPlantSpeed(SpeciesKey.CABBAGE)));
         
         // Caterpillar is also a biomass container
         registry.getAnimalType(SpeciesKey.CATERPILLAR).ifPresent(type -> {
-            cell.addPlant(new Caterpillar(type.getWeight() * type.getMaxPerCell()));
+            cell.addBiomass(new Caterpillar(type.getWeight() * type.getMaxPerCell(), type.getSpeed()));
         });
     }
 }

@@ -3,8 +3,8 @@ package com.island.content.animals.herbivores;
 import static com.island.config.SimulationConstants.CATERPILLAR_FEED_EFFICIENCY;
 import static com.island.config.SimulationConstants.CATERPILLAR_METABOLISM_RATE;
 
+import com.island.content.Biomass;
 import com.island.content.SpeciesKey;
-import com.island.content.plants.Plant;
 import com.island.model.Cell;
 import java.util.List;
 
@@ -12,12 +12,12 @@ import java.util.List;
  * Optimized Caterpillar: Now acts as a biomass container with stages.
  * Life cycle: 40 ticks active -> 20 ticks sleep (50% probability) -> Butterfly.
  */
-public class Caterpillar extends Plant {
+public class Caterpillar extends Biomass {
     private final double[] activeStages = new double[40];
     private final double[] sleepStages = new double[20];
 
-    public Caterpillar(double maxBiomass) {
-        super("Caterpillar", SpeciesKey.CATERPILLAR, maxBiomass);
+    public Caterpillar(double maxBiomass, int speed) {
+        super("Caterpillar", SpeciesKey.CATERPILLAR, maxBiomass, speed);
         // Distribute initial biomass across active stages for realistic start
         activeStages[0] = maxBiomass;
         this.biomass = maxBiomass;
@@ -34,8 +34,8 @@ public class Caterpillar extends Plant {
         // 2. Feed on actual plants (increases biomass in the first active stage)
         double appetite = totalActive * 0.10; 
         if (appetite > 0) {
-            List<Plant> availablePlants = cell.getPlants();
-            for (Plant p : availablePlants) {
+            List<Biomass> availablePlants = cell.getBiomassContainers();
+            for (Biomass p : availablePlants) {
                 if (p != this && p.isAlive() && !(p instanceof Butterfly)) {
                     double eaten = p.consumeBiomass(appetite * (1.0 / CATERPILLAR_FEED_EFFICIENCY));
                     activeStages[0] += (eaten * CATERPILLAR_FEED_EFFICIENCY);
@@ -58,10 +58,10 @@ public class Caterpillar extends Plant {
         // --- Sleep to Butterfly transition ---
         double emergingButterflies = sleepStages[sleepStages.length - 1];
         if (emergingButterflies > 0) {
-            Butterfly b = (Butterfly) cell.getPlant(SpeciesKey.BUTTERFLY);
+            Butterfly b = (Butterfly) cell.getBiomass(SpeciesKey.BUTTERFLY);
             if (b == null) {
-                b = new Butterfly(0);
-                cell.addPlant(b);
+                b = new Butterfly(0, this.speed);
+                cell.addBiomass(b);
             }
             b.addBiomass(emergingButterflies);
         }
@@ -127,3 +127,4 @@ public class Caterpillar extends Plant {
         return actual;
     }
 }
+

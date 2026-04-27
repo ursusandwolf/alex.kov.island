@@ -14,13 +14,16 @@ public class SpeciesRegistry {
     private final Map<SpeciesKey, AnimalType> animalTypes;
     private final Map<SpeciesKey, Double> plantWeights;
     private final Map<SpeciesKey, Integer> plantMaxCounts;
+    private final Map<SpeciesKey, Integer> plantSpeeds;
 
     public SpeciesRegistry(Map<SpeciesKey, AnimalType> animalTypes, 
                            Map<SpeciesKey, Double> plantWeights, 
-                           Map<SpeciesKey, Integer> plantMaxCounts) {
+                           Map<SpeciesKey, Integer> plantMaxCounts,
+                           Map<SpeciesKey, Integer> plantSpeeds) {
         this.animalTypes = Collections.unmodifiableMap(new EnumMap<>(animalTypes));
         this.plantWeights = Collections.unmodifiableMap(new EnumMap<>(plantWeights));
         this.plantMaxCounts = Collections.unmodifiableMap(new EnumMap<>(plantMaxCounts));
+        this.plantSpeeds = Collections.unmodifiableMap(new EnumMap<>(plantSpeeds));
     }
 
     public Optional<AnimalType> getAnimalType(SpeciesKey key) {
@@ -33,6 +36,10 @@ public class SpeciesRegistry {
 
     public int getPlantMaxCount(SpeciesKey key) {
         return plantMaxCounts.getOrDefault(key, 0);
+    }
+
+    public int getPlantSpeed(SpeciesKey key) {
+        return plantSpeeds.getOrDefault(key, 0);
     }
 
     public Set<SpeciesKey> getAllAnimalKeys() {

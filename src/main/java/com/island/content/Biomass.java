@@ -1,29 +1,28 @@
-package com.island.content.plants;
+package com.island.content;
 
 import static com.island.config.SimulationConstants.PLANT_GROWTH_RATE;
 import static com.island.config.SimulationConstants.PLANT_INITIAL_BIOMASS_FACTOR;
 
-import com.island.content.Organism;
-import com.island.content.SpeciesKey;
 import com.island.util.RandomUtils;
 
 /**
- * Base class for plants. 
- * Plants are unique as they represent the total biomass of their type in a cell.
- * They don't consume energy; they produce it through growth.
+ * Base class for all biomass-based organisms (Plants, Insects).
+ * Represents the total biomass of their type in a cell.
  */
-public abstract class Plant extends Organism {
+public abstract class Biomass extends Organism {
     protected final String typeName;
     protected final SpeciesKey speciesKey;
     protected double biomass;
     protected final double maxBiomass;
+    protected final int speed;
 
-    protected Plant(String typeName, SpeciesKey speciesKey, double maxBiomass) {
+    protected Biomass(String typeName, SpeciesKey speciesKey, double maxBiomass, int speed) {
         super(1.0, 0, PLANT_INITIAL_BIOMASS_FACTOR); 
         this.typeName = typeName;
         this.speciesKey = speciesKey;
         this.maxBiomass = maxBiomass;
         this.biomass = maxBiomass * PLANT_INITIAL_BIOMASS_FACTOR; 
+        this.speed = speed;
     }
 
     @Override
@@ -38,11 +37,19 @@ public abstract class Plant extends Organism {
 
     @Override
     public double getEnergyPercentage() {
-        return 100.0; // Plants always have full energy
+        return 100.0; // Biomass always has full energy for logic purposes
     }
 
     public double getBiomass() {
         return biomass;
+    }
+
+    public void setBiomass(double biomass) {
+        this.biomass = Math.max(0, Math.min(maxBiomass, biomass));
+    }
+
+    public int getSpeed() {
+        return speed;
     }
 
     public void grow() {
@@ -61,8 +68,12 @@ public abstract class Plant extends Organism {
         return actualEaten;
     }
 
+    public void addBiomass(double amount) {
+        this.biomass = Math.min(maxBiomass, this.biomass + amount);
+    }
+
     @Override
     public void consumeEnergy(double amount) {
-        // Plants don't consume energy
+        // Biomass doesn't consume energy in the traditional sense
     }
 }
