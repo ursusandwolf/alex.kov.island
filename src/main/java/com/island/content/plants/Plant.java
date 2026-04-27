@@ -1,7 +1,6 @@
 package com.island.content.plants;
 
-import static com.island.config.SimulationConstants.PLANT_GROWTH_RATE_MAX;
-import static com.island.config.SimulationConstants.PLANT_GROWTH_RATE_MIN;
+import static com.island.config.SimulationConstants.PLANT_GROWTH_RATE;
 import static com.island.config.SimulationConstants.PLANT_INITIAL_BIOMASS_FACTOR;
 
 import com.island.content.Organism;
@@ -47,9 +46,8 @@ public abstract class Plant extends Organism {
     }
 
     public void grow() {
-        double growthRate = PLANT_GROWTH_RATE_MIN 
-                + (RandomUtils.nextDouble() * (PLANT_GROWTH_RATE_MAX - PLANT_GROWTH_RATE_MIN));
-        biomass = Math.min(maxBiomass, biomass + (maxBiomass * growthRate));
+        // Growth logic centralized around fixed rate for stability
+        biomass = Math.min(maxBiomass, biomass + (maxBiomass * PLANT_GROWTH_RATE));
     }
 
     public void checkState() {

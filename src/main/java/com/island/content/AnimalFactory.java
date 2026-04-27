@@ -5,6 +5,7 @@ import com.island.content.animals.herbivores.Buffalo;
 import com.island.content.animals.herbivores.Deer;
 import com.island.content.animals.herbivores.Duck;
 import com.island.content.animals.herbivores.Goat;
+import com.island.content.animals.herbivores.Hamster;
 import com.island.content.animals.herbivores.Horse;
 import com.island.content.animals.herbivores.Mouse;
 import com.island.content.animals.herbivores.Rabbit;
@@ -39,6 +40,7 @@ public final class AnimalFactory {
         creators.put(SpeciesKey.HORSE, Horse::new);
         creators.put(SpeciesKey.DEER, Deer::new);
         creators.put(SpeciesKey.MOUSE, Mouse::new);
+        creators.put(SpeciesKey.HAMSTER, Hamster::new);
         creators.put(SpeciesKey.GOAT, Goat::new);
         creators.put(SpeciesKey.SHEEP, Sheep::new);
         creators.put(SpeciesKey.BOAR, Boar::new);

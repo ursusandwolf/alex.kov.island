@@ -4,11 +4,11 @@ package com.island.content;
  * Categorizes organisms by weight to unify metabolism and hunt logic.
  */
 public enum SizeClass {
-    TINY(1.25, 5),    // < 1.0 kg (Mouse, Caterpillar)
-    SMALL(1.20, 2),
-    NORMAL(1.00, 1),
-    MEDIUM(1.00, 1),
-    LARGE(0.80, 1),   // 150.0 - 500.0 kg (Horse, Deer, Boar)
+    TINY(1.25, 5),    // <= 0.1 kg (Caterpillar, Mouse)
+    SMALL(1.20, 2),   // <= 1.0 kg (Duck)
+    NORMAL(1.00, 1),  // <= 10.0 kg (Rabbit, Fox, Eagle)
+    MEDIUM(1.00, 1),  // <= 150.0 kg (Boa, Goat, Sheep, Wolf)
+    LARGE(0.80, 1),   // <= 500.0 kg (Horse, Deer, Boar)
     HUGE(0.80, 1);    // > 500.0 kg (Bear, Buffalo)
 
     private final double metabolismModifier;
@@ -28,19 +28,19 @@ public enum SizeClass {
     }
 
     public static SizeClass fromWeight(double weight) {
-        if (weight < 1.0) {
+        if (weight <= 0.1) {
             return TINY;
         }
-        if (weight < 5.0) {
+        if (weight <= 1.0) {
             return SMALL;
         }
-        if (weight < 10.0) {
+        if (weight <= 10.0) {
             return NORMAL;
         }
-        if (weight < 150.0) {
+        if (weight <= 150.0) {
             return MEDIUM;
         }
-        if (weight < 500.0) {
+        if (weight <= 500.0) {
             return LARGE;
         }
         return HUGE;

@@ -35,6 +35,7 @@ public class ConsoleView {
         ICONS.put(SpeciesKey.DEER, "🦌");
         ICONS.put(SpeciesKey.RABBIT, "🐇");
         ICONS.put(SpeciesKey.MOUSE, "🐁");
+        ICONS.put(SpeciesKey.HAMSTER, "🐹");
         ICONS.put(SpeciesKey.GOAT, "🐐");
         ICONS.put(SpeciesKey.SHEEP, "🐑");
         ICONS.put(SpeciesKey.BOAR, "🐗");

@@ -35,10 +35,10 @@ public class PreyProvider {
         List<Organism> buffet = new ArrayList<>();
         SpeciesKey predKey = predator.getSpeciesKey();
 
-        // 1. Check Animals by size (Descending: HUGE -> SMALL)
-        // This naturally prioritizes prey with higher potential energy gain
-        SizeClass[] sizes = {SizeClass.HUGE, SizeClass.LARGE, SizeClass.MEDIUM, SizeClass.SMALL};
-        for (SizeClass size : sizes) {
+        // 1. Check Animals by size (Descending order for better ROI)
+        SizeClass[] sizes = SizeClass.values();
+        for (int i = sizes.length - 1; i >= 0; i--) {
+            SizeClass size = sizes[i];
             List<Animal> potentialPrey = cell.getAnimalsBySize(size);
             for (Animal p : potentialPrey) {
                 if (p != predator && p.isAlive() && matrix.getChance(predKey, p.getSpeciesKey()) > 0) {

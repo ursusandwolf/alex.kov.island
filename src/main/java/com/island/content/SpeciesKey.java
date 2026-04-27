@@ -14,6 +14,7 @@ public enum SpeciesKey {
     DEER("deer", false),
     RABBIT("rabbit", false),
     MOUSE("mouse", false),
+    HAMSTER("hamster", false),
     GOAT("goat", false),
     SHEEP("sheep", false),
     BOAR("boar", false),

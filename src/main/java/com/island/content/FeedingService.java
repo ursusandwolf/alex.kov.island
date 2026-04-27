@@ -1,9 +1,9 @@
 package com.island.content;
 
-import static com.island.config.SimulationConstants.ESCAPE_ENERGY_COST_PERCENT;
 import static com.island.config.SimulationConstants.HUNT_FATIGUE_COST_MULTIPLIER;
 import static com.island.config.SimulationConstants.HUNT_FATIGUE_THRESHOLD;
 
+import com.island.config.EnergyPolicy;
 import com.island.content.animals.herbivores.Caterpillar;
 import com.island.content.plants.Cabbage;
 import com.island.content.plants.Grass;
@@ -144,7 +144,7 @@ public class FeedingService implements Runnable {
                 
                 if (!success && prey instanceof Animal a) {
                     preyProvider.markAsHiding(a);
-                    a.tryConsumeEnergy(a.getMaxEnergy() * ESCAPE_ENERGY_COST_PERCENT);
+                    a.tryConsumeEnergy(a.getMaxEnergy() * EnergyPolicy.ESCAPE_LOSS.getFactor());
                 }
             }
         }

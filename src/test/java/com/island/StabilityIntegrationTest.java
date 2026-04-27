@@ -2,7 +2,6 @@ package com.island;
 
 import com.island.engine.SimulationBootstrap;
 import com.island.engine.SimulationContext;
-import com.island.config.SimulationConstants;
 import com.island.content.SpeciesKey;
 import org.junit.jupiter.api.Test;
 
@@ -11,23 +10,13 @@ import java.util.Map;
 public class StabilityIntegrationTest {
 
     @Test
-    void runStabilitySweep() {
-        double[] reproThresholds = {70.0, 90.0};
-        double[] metabolismRates = {0.015, 0.02}; // Fixed metabolism rates to be realistic
-
-        System.out.println("=== STABILITY SWEEP REPORT (40 Ticks) ===");
-        System.out.println("Repro% | Metal% | Survived | Extinct Species");
+    void runStabilityCheck() {
+        System.out.println("=== STABILITY CHECK REPORT (40 Ticks) ===");
+        System.out.println("Survived | Extinct Species");
         System.out.println("------------------------------------------");
 
-        for (double repro : reproThresholds) {
-            for (double metabolism : metabolismRates) {
-                SimulationConstants.REPRODUCTION_MIN_ENERGY_PERCENT = repro;
-                SimulationConstants.BASE_METABOLISM_PERCENT = metabolism;
-
-                String result = runSimulationSession(40);
-                System.out.printf("%-6.1f | %-6.3f | %s\n", repro, metabolism, result);
-            }
-        }
+        String result = runSimulationSession(40);
+        System.out.println(result);
     }
 
     private String runSimulationSession(int maxTicks) {

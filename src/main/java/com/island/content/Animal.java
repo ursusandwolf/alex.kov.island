@@ -2,10 +2,9 @@ package com.island.content;
 
 import static com.island.config.SimulationConstants.BASE_MOVE_COST_PERCENT;
 import static com.island.config.SimulationConstants.HERBIVORE_METABOLISM_MODIFIER;
-import static com.island.config.SimulationConstants.REPRODUCTION_COST_PERCENT;
-import static com.island.config.SimulationConstants.REPRODUCTION_MIN_ENERGY_PERCENT;
 import static com.island.config.SimulationConstants.SPEED_MOVE_COST_STEP_PERCENT;
 
+import com.island.config.EnergyPolicy;
 import com.island.content.plants.Plant;
 
 /**
@@ -44,7 +43,7 @@ public abstract class Animal extends Organism {
     }
 
     public boolean canInitiateReproduction() {
-        return isAlive() && getEnergyPercentage() >= REPRODUCTION_MIN_ENERGY_PERCENT;
+        return isAlive() && getEnergyPercentage() >= EnergyPolicy.REPRODUCTION_MIN.getPercent();
     }
 
     public boolean isProtected(int currentTick) {

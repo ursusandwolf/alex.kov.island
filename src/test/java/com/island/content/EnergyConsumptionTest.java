@@ -1,5 +1,6 @@
 package com.island.content;
 
+import com.island.config.EnergyPolicy;
 import com.island.content.animals.predators.Wolf;
 import com.island.content.animals.herbivores.Rabbit;
 import org.junit.jupiter.api.DisplayName;
@@ -14,15 +15,15 @@ class EnergyConsumptionTest {
     @Test
     @DisplayName("Test energy consumption during movement based on speed")
     void testMovementEnergyCost() {
-        Wolf wolf = new Wolf(registry.getAnimalType(SpeciesKey.WOLF).orElseThrow()); 
+        Wolf wolf = new Wolf(registry.getAnimalType(SpeciesKey.WOLF).orElseThrow());
         double initialEnergy = wolf.getCurrentEnergy();
         double expectedCost = wolf.getMaxEnergy() * (BASE_MOVE_COST_PERCENT + (wolf.getSpeed() * SPEED_MOVE_COST_STEP_PERCENT));
-        
+
         // Simulating the energy cost logic now handled by MovementService
         if (wolf.canPerformAction()) {
             wolf.consumeEnergy(expectedCost);
         }
-        
+
         assertEquals(initialEnergy - expectedCost, wolf.getCurrentEnergy(), 0.001);
     }
 
@@ -30,20 +31,19 @@ class EnergyConsumptionTest {
     @DisplayName("Test reproduction energy cost")
     void testReproductionEnergyCost() {
         Rabbit rabbit = new Rabbit(registry.getAnimalType(SpeciesKey.RABBIT).orElseThrow());
-        rabbit.addEnergy(rabbit.getMaxEnergy()); 
+        rabbit.addEnergy(rabbit.getMaxEnergy());
         double initialEnergy = rabbit.getCurrentEnergy();
-        double cost = rabbit.getMaxEnergy() * REPRODUCTION_COST_PERCENT;
-        
+        double cost = rabbit.getMaxEnergy() * EnergyPolicy.REPRODUCTION_COST.getFactor();
+
         // Simulating the energy cost logic now handled by ReproductionService
         if (rabbit.canInitiateReproduction()) {
             if (rabbit.getCurrentEnergy() > cost) {
                 rabbit.consumeEnergy(cost);
             }
         }
-        
+
         assertEquals(initialEnergy - cost, rabbit.getCurrentEnergy(), 0.001);
     }
-
     @Test
     @DisplayName("Test organism dies when energy reaches zero")
     void testDeathByEnergyExhaustion() {
