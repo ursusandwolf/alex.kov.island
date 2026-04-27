@@ -1,6 +1,21 @@
 # Changelog
 
 ## [2026-04-27]
+### Biological Diversity & Lifecycle 
+- **Hamster Species**: Added `Hamster` (🐹) with optimized small-mammal metrics (0.1kg weight, high density, mouse-like diet).
+- **Complex Metamorphosis**: Implemented a staged life cycle for `Caterpillar` (🐛) and `Butterfly` (🦋). 
+    - **Staged Biomass**: Refactored `Caterpillar` to use an internal state-bucket system (40 ticks active, 20 ticks sleep).
+    - **Pupation**: 50% of maturing caterpillars enter a 20-tick hibernation phase before emerging as butterflies.
+    - **Unique Predation**: Butterflies are now part of the ecosystem biomass, specifically targeted only by Ducks (🦆).
+- **Population Pyramid Initialization**: Rebalanced `WorldInitializer` to implement a density-based "pyramid" (TINY: 60-95%, SMALL: 40-70%, NORMAL: 20-45%), ensuring a sustainable food base for predators from tick 1.
+
+### Architectural Stabilization & Consistency
+- **Unified Energy Policy**: Introduced `EnergyPolicy` Enum to replace loose constants. Centralized thresholds for action (15%), reproduction (70%), and escape energy loss (5%).
+- **Finalized Simulation Constants**: Converted all `SimulationConstants` to `static final` to prevent runtime mutation and ensure thread-safety.
+- **Improved Size Classification**: Refined `SizeClass` thresholds to align Duck (1.0kg) with the base `NORMAL` metabolism (1.00x), and categorized Hamsters/Mice as `TINY` for high reproduction.
+- **Biomass Statistics Engine**: Rewrote `Island.getSpeciesCounts()` and `getTotalOrganismCount()` to accurately sum total mass (kg) for biomass species, ensuring dashboard numbers exactly match the population list.
+- **Safe Extinction Monitoring**: Updated `SimulatorMain` to exclude biomass species from the global extinction check, preventing premature simulation termination when caterpillars pupate or plants are grazed.
+
 ### Architectural Refinement & Optimization
 - **Decoupled Species Management**: Fully eliminated the `SpeciesConfig` Singleton. Replaced it with an immutable `SpeciesRegistry` and a dedicated `SpeciesLoader`. All dependencies are now handled via constructor injection, significantly improving testability and adhering to SRP.
 - **ROI-Driven Hunting Optimization**: Refactored `PreyProvider` to utilize the new `SizeClass` indexing in `Cell`. Predators now scan potential prey starting from the largest size (HUGE -> SMALL), drastically reducing loop iterations in `FeedingService` by reaching satiety sooner.
