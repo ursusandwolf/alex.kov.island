@@ -1,21 +1,27 @@
 package com.island.content;
-import com.island.util.RandomUtils;import com.island.content.plants.*;
+
+import static com.island.config.SimulationConstants.ESCAPE_ENERGY_COST_PERCENT;
+import static com.island.config.SimulationConstants.HUNT_FATIGUE_COST_MULTIPLIER;
+import static com.island.config.SimulationConstants.HUNT_FATIGUE_THRESHOLD;
+
 import com.island.content.animals.herbivores.Caterpillar;
+import com.island.content.plants.Cabbage;
+import com.island.content.plants.Grass;
+import com.island.content.plants.Plant;
 import com.island.model.Cell;
 import com.island.model.Chunk;
 import com.island.model.Island;
 import com.island.util.InteractionMatrix;
-import static com.island.config.SimulationConstants.*;
-
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadLocalRandom;
 
-
+/**
+ * Service responsible for feeding logic of all animals.
+ */
 public class FeedingService implements Runnable {
     private final Island island;
     private final InteractionMatrix interactionMatrix;
@@ -32,7 +38,9 @@ public class FeedingService implements Runnable {
 
     @Override
     public void run() {
-        if (executor.isShutdown()) return;
+        if (executor.isShutdown()) {
+            return;
+        }
 
         // Centralized: calculate protection map once per tick
         Map<SpeciesKey, Double> protectionMap = island.getProtectionMap(speciesConfig);
@@ -58,52 +66,56 @@ public class FeedingService implements Runnable {
     }
 
     private void processCell(Cell cell, Map<SpeciesKey, Double> protectionMap) {
-        List<Animal> predators;
+        List<Animal> consumers;
         cell.getLock().lock();
         try {
-            // Predators act in randomized order for fairness
-            predators = new ArrayList<>(cell.getPredators());
+            // All animals act in randomized order for fairness
+            consumers = new ArrayList<>(cell.getAnimals());
         } finally {
             cell.getLock().unlock();
         }
         
         // Sorting by initiative (jittered weight + speed)
-        predators.sort((a, b) -> {
-            double initiativeA = (a.getWeight() * 0.7 + a.getSpeed() * 0.3) * (0.8 + ThreadLocalRandom.current().nextDouble() * 0.4);
-            double initiativeB = (b.getWeight() * 0.7 + b.getSpeed() * 0.3) * (0.8 + ThreadLocalRandom.current().nextDouble() * 0.4);
+        consumers.sort((a, b) -> {
+            double initiativeA = (a.getWeight() * 0.7 + a.getSpeed() * 0.3) 
+                * (0.8 + ThreadLocalRandom.current().nextDouble() * 0.4);
+            double initiativeB = (b.getWeight() * 0.7 + b.getSpeed() * 0.3) 
+                * (0.8 + ThreadLocalRandom.current().nextDouble() * 0.4);
             return Double.compare(initiativeB, initiativeA);
         });
 
         PreyProvider preyProvider = new PreyProvider(cell, interactionMatrix, island.getTickCount(), protectionMap);
 
-        for (Animal predator : predators) {
-            if (predator.isAlive() && !predator.isHibernating()) {
-                tryEat(predator, cell, preyProvider, protectionMap);
+        for (Animal consumer : consumers) {
+            if (consumer.isAlive() && !consumer.isHibernating()) {
+                tryEat(consumer, cell, preyProvider, protectionMap);
             }
         }
     }
 
-    private void tryEat(Animal predator, Cell cell, PreyProvider preyProvider, Map<SpeciesKey, Double> protectionMap) {
+    private void tryEat(Animal consumer, Cell cell, PreyProvider preyProvider, Map<SpeciesKey, Double> protectionMap) {
         int attemptsInTick = 0;
-        for (Organism prey : preyProvider.getPreyFor(predator)) {
-            if (predator == prey || !prey.isAlive()) continue;
+        for (Organism prey : preyProvider.getPreyFor(consumer)) {
+            if (consumer == prey || !prey.isAlive()) {
+                continue;
+            }
             attemptsInTick++;
 
-            double successRate = huntingStrategy.calculateSuccessRate(predator, prey);
+            double successRate = huntingStrategy.calculateSuccessRate(consumer, prey);
             if (successRate > 0) {
-                double totalEffort = huntingStrategy.calculateHuntCost(predator, prey);
+                double totalEffort = huntingStrategy.calculateHuntCost(consumer, prey);
                 
                 if (attemptsInTick > HUNT_FATIGUE_THRESHOLD) {
                     int extraBlocks = (attemptsInTick - 1) / HUNT_FATIGUE_THRESHOLD;
                     totalEffort *= Math.pow(HUNT_FATIGUE_COST_MULTIPLIER, extraBlocks);
                 }
 
-                if (!huntingStrategy.isWorthHunting(predator, prey, successRate, totalEffort)) {
+                if (!huntingStrategy.isWorthHunting(consumer, prey, successRate, totalEffort)) {
                     continue; 
                 }
 
-                if (!predator.tryConsumeEnergy(totalEffort)) {
-                    island.reportDeath(predator.getSpeciesKey(), DeathCause.HUNGER);
+                if (!consumer.tryConsumeEnergy(totalEffort)) {
+                    island.reportDeath(consumer.getSpeciesKey(), DeathCause.HUNGER);
                     return; 
                 }
 
@@ -115,16 +127,16 @@ public class FeedingService implements Runnable {
                         if (prey instanceof Animal a) {
                             if (a.isAlive() && cell.removeAnimal(a)) {
                                 a.die();
-                                predator.addEnergy(a.getWeight());
+                                consumer.addEnergy(a.getWeight());
                                 preyProvider.markAsEaten(a);
                                 island.reportDeath(a.getSpeciesKey(), DeathCause.EATEN);
                                 success = true;
                             }
                         } else if (prey instanceof Caterpillar c) {
                             if (c.isAlive()) {
-                                double foodNeeded = predator.getFoodForSaturation() - predator.getCurrentEnergy();
+                                double foodNeeded = consumer.getFoodForSaturation() - consumer.getCurrentEnergy();
                                 double eaten = c.consumeBiomass(foodNeeded);
-                                predator.addEnergy(eaten);
+                                consumer.addEnergy(eaten);
                                 success = true;
                             }
                         }
@@ -132,7 +144,7 @@ public class FeedingService implements Runnable {
                         cell.getLock().unlock();
                     }
                     
-                    if (success && predator.getCurrentEnergy() >= predator.getFoodForSaturation()) {
+                    if (success && consumer.getCurrentEnergy() >= consumer.getFoodForSaturation()) {
                         return; 
                     }
                 } 
@@ -145,20 +157,24 @@ public class FeedingService implements Runnable {
         }
 
         // --- Plant Feeding Logic ---
-        SpeciesKey predatorKey = predator.getSpeciesKey();
-        double foodNeeded = predator.getFoodForSaturation() - predator.getCurrentEnergy();
-        if (foodNeeded <= 0) return;
+        SpeciesKey consumerKey = consumer.getSpeciesKey();
+        double foodNeeded = consumer.getFoodForSaturation() - consumer.getCurrentEnergy();
+        if (foodNeeded <= 0) {
+            return;
+        }
 
-        int canEatPlants = interactionMatrix.getChance(predatorKey, SpeciesKey.PLANT);
+        int canEatPlants = interactionMatrix.getChance(consumerKey, SpeciesKey.PLANT);
         if (canEatPlants > 0) {
             // 1. Try eating Cabbage first
             Plant cabbage = cell.getPlant(SpeciesKey.CABBAGE);
             if (cabbage != null && cabbage.isAlive()) {
                 if (!isPlantProtected(cabbage, protectionMap)) {
                     double eaten = cabbage.consumeBiomass(foodNeeded);
-                    predator.addEnergy(eaten);
+                    consumer.addEnergy(eaten);
                     foodNeeded -= eaten;
-                    if (foodNeeded <= 0) return;
+                    if (foodNeeded <= 0) {
+                        return;
+                    }
                 }
             }
 
@@ -167,7 +183,7 @@ public class FeedingService implements Runnable {
             if (grass != null && grass.isAlive()) {
                 if (!isPlantProtected(grass, protectionMap)) {
                     double eaten = grass.consumeBiomass(foodNeeded);
-                    predator.addEnergy(eaten);
+                    consumer.addEnergy(eaten);
                 }
             }
         }

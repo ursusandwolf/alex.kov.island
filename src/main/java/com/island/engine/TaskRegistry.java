@@ -3,7 +3,10 @@ package com.island.engine;
 import com.island.content.AnimalFactory;
 import com.island.content.FeedingService;
 import com.island.model.Island;
-import com.island.service.*;
+import com.island.service.CleanupService;
+import com.island.service.LifecycleService;
+import com.island.service.MovementService;
+import com.island.service.ReproductionService;
 import com.island.util.InteractionMatrix;
 import com.island.view.ConsoleView;
 

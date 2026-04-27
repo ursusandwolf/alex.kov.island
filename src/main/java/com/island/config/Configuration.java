@@ -11,9 +11,17 @@ public class Configuration {
     private int islandHeight = 20;
     private int tickDurationMs = 1000;
 
-    public int getIslandWidth() { return islandWidth; }
-    public int getIslandHeight() { return islandHeight; }
-    public int getTickDurationMs() { return tickDurationMs; }
+    public int getIslandWidth() {
+        return islandWidth;
+    }
+
+    public int getIslandHeight() {
+        return islandHeight;
+    }
+
+    public int getTickDurationMs() {
+        return tickDurationMs;
+    }
 
     public static Configuration load() {
         Configuration config = new Configuration();

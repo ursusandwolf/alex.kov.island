@@ -3,27 +3,32 @@ package com.island.service;
 import com.island.model.Cell;
 import com.island.model.Chunk;
 import com.island.model.Island;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
 /**
- * Base class for services that process the island cell by cell in parallel.
+ * Base class for all simulation services.
  */
 public abstract class AbstractService implements Runnable {
-    protected final Island island;
-    protected final ExecutorService executor;
+    private final Island island;
+    private final ExecutorService executor;
 
     protected AbstractService(Island island, ExecutorService executor) {
         this.island = island;
         this.executor = executor;
     }
 
+    public Island getIsland() {
+        return island;
+    }
+
     @Override
     public void run() {
-        if (executor.isShutdown()) return;
+        if (executor.isShutdown()) {
+            return;
+        }
 
         List<Callable<Void>> tasks = new ArrayList<>();
         for (Chunk chunk : island.getChunks()) {

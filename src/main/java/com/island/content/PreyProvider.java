@@ -1,8 +1,9 @@
 package com.island.content;
 
+import com.island.content.animals.herbivores.Caterpillar;
+import com.island.content.plants.Plant;
 import com.island.model.Cell;
 import com.island.util.InteractionMatrix;
-import com.island.content.plants.Plant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -39,7 +40,9 @@ public class PreyProvider {
         Collections.shuffle(herbivores, ThreadLocalRandom.current());
         for (Animal h : herbivores) {
             if (h.isAlive() && matrix.getChance(predKey, h.getSpeciesKey()) > 0) {
-                if (isProtected(h)) continue;
+                if (isProtected(h)) {
+                    continue;
+                }
                 buffet.add(h);
             }
         }
@@ -49,7 +52,9 @@ public class PreyProvider {
         Collections.shuffle(predators, ThreadLocalRandom.current());
         for (Animal p : predators) {
             if (p != predator && p.isAlive() && matrix.getChance(predKey, p.getSpeciesKey()) > 0) {
-                if (isProtected(p)) continue;
+                if (isProtected(p)) {
+                    continue;
+                }
                 buffet.add(p);
             }
         }
@@ -57,14 +62,16 @@ public class PreyProvider {
         // 3. Check Caterpillar Biomass (Special case)
         Plant caterpillar = cell.getPlant(SpeciesKey.CATERPILLAR);
         if (caterpillar != null && caterpillar.isAlive() && matrix.getChance(predKey, SpeciesKey.CATERPILLAR) > 0) {
-             buffet.add(caterpillar);
+            buffet.add(caterpillar);
         }
 
         return buffet;
     }
 
     private boolean isProtected(Animal prey) {
-        if (prey.isProtected(currentTick)) return true;
+        if (prey.isProtected(currentTick)) {
+            return true;
+        }
         Double hideChance = protectionMap.get(prey.getSpeciesKey());
         return hideChance != null && ThreadLocalRandom.current().nextDouble() < hideChance;
     }

@@ -7,7 +7,8 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public final class RandomUtils {
     
-    private RandomUtils() {}
+    private RandomUtils() {
+    }
 
     public static int nextInt(int bound) {
         return ThreadLocalRandom.current().nextInt(bound);
@@ -26,8 +27,12 @@ public final class RandomUtils {
     }
 
     public static boolean checkChance(int chance) {
-        if (chance <= 0) return false;
-        if (chance >= 100) return true;
+        if (chance <= 0) {
+            return false;
+        }
+        if (chance >= 100) {
+            return true;
+        }
         return nextInt(100) < chance;
     }
 }

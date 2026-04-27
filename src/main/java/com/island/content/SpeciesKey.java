@@ -38,7 +38,9 @@ public enum SpeciesKey {
 
     public static SpeciesKey fromCode(String code) {
         for (SpeciesKey key : values()) {
-            if (key.code.equalsIgnoreCase(code)) return key;
+            if (key.code.equalsIgnoreCase(code)) {
+                return key;
+            }
         }
         throw new IllegalArgumentException("Unknown species code: " + code);
     }

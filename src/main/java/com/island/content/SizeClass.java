@@ -10,9 +10,15 @@ public enum SizeClass {
     HUGE;    // > 450.0 kg
 
     public static SizeClass fromWeight(double weight) {
-        if (weight < 5.0) return SMALL;
-        if (weight < 100.0) return MEDIUM;
-        if (weight < 450.0) return LARGE;
+        if (weight < 5.0) {
+            return SMALL;
+        }
+        if (weight < 100.0) {
+            return MEDIUM;
+        }
+        if (weight < 450.0) {
+            return LARGE;
+        }
         return HUGE;
     }
 }

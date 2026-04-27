@@ -18,7 +18,9 @@ public final class SpeciesConfig {
         this.registry = new SpeciesLoader().load();
     }
 
-    public static SpeciesConfig getInstance() { return INSTANCE; }
+    public static SpeciesConfig getInstance() {
+        return INSTANCE;
+    }
 
     public AnimalType getAnimalType(SpeciesKey key) {
         return registry.getAnimalType(key).orElse(null);
@@ -58,8 +60,19 @@ public final class SpeciesConfig {
         }
     }
 
-    public double getPlantWeight() { return registry.getPlantWeight(SpeciesKey.PLANT); }
-    public int getPlantMaxCount() { return registry.getPlantMaxCount(SpeciesKey.PLANT); }
-    public double getCabbageWeight() { return registry.getPlantWeight(SpeciesKey.CABBAGE); }
-    public int getCabbageMaxCount() { return registry.getPlantMaxCount(SpeciesKey.CABBAGE); }
+    public double getPlantWeight() {
+        return registry.getPlantWeight(SpeciesKey.PLANT);
+    }
+
+    public int getPlantMaxCount() {
+        return registry.getPlantMaxCount(SpeciesKey.PLANT);
+    }
+
+    public double getCabbageWeight() {
+        return registry.getPlantWeight(SpeciesKey.CABBAGE);
+    }
+
+    public int getCabbageMaxCount() {
+        return registry.getPlantMaxCount(SpeciesKey.CABBAGE);
+    }
 }

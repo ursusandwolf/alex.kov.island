@@ -15,7 +15,8 @@ import java.util.concurrent.locks.ReentrantLock;
  * Optimized with indexed storage by species and role for O(1) access and efficient feeding.
  */
 public class Cell {
-    private final int x, y;
+    private final int x;
+    private final int y;
     private final Island island;
     
     // Indexed Storage
@@ -36,12 +37,25 @@ public class Cell {
         this.island = island;
     }
 
-    public int getX() { return x; }
-    public int getY() { return y; }
-    public Island getIsland() { return island; }
-    public ReentrantLock getLock() { return lock; }
+    public int getX() {
+        return x;
+    }
 
-    public String getCoordinates() { return x + "," + y; }
+    public int getY() {
+        return y;
+    }
+
+    public Island getIsland() {
+        return island;
+    }
+
+    public ReentrantLock getLock() {
+        return lock;
+    }
+
+    public String getCoordinates() {
+        return x + "," + y;
+    }
 
     public boolean addAnimal(Animal animal) {
         lock.lock();
@@ -49,7 +63,9 @@ public class Cell {
             SpeciesKey key = animal.getSpeciesKey();
             List<Animal> speciesList = animalsBySpecies.computeIfAbsent(key, k -> new ArrayList<>());
             
-            if (speciesList.size() >= animal.getMaxPerCell()) return false;
+            if (speciesList.size() >= animal.getMaxPerCell()) {
+                return false;
+            }
             
             speciesList.add(animal);
             allAnimals.add(animal);
@@ -62,7 +78,9 @@ public class Cell {
             
             island.onOrganismAdded(key);
             return true;
-        } finally { lock.unlock(); }
+        } finally {
+            lock.unlock();
+        }
     }
 
     public boolean removeAnimal(Animal animal) {
@@ -81,19 +99,31 @@ public class Cell {
                 return true;
             }
             return false;
-        } finally { lock.unlock(); }
+        } finally {
+            lock.unlock();
+        }
     }
 
-    public List<Animal> getAnimals() { return allAnimals; }
-    public List<Animal> getPredators() { return predators; }
-    public List<Animal> getHerbivores() { return herbivores; }
+    public List<Animal> getAnimals() {
+        return allAnimals;
+    }
+
+    public List<Animal> getPredators() {
+        return predators;
+    }
+
+    public List<Animal> getHerbivores() {
+        return herbivores;
+    }
 
     public List<Animal> getAnimalsBySpecies(SpeciesKey key) {
         lock.lock();
         try {
             List<Animal> list = animalsBySpecies.get(key);
             return list != null ? new ArrayList<>(list) : Collections.emptyList();
-        } finally { lock.unlock(); }
+        } finally {
+            lock.unlock();
+        }
     }
 
     public int countAnimalsBySpecies(SpeciesKey key) {
@@ -101,10 +131,14 @@ public class Cell {
         try {
             List<Animal> list = animalsBySpecies.get(key);
             return list != null ? list.size() : 0;
-        } finally { lock.unlock(); }
+        } finally {
+            lock.unlock();
+        }
     }
 
-    public int getAnimalCount() { return allAnimals.size(); }
+    public int getAnimalCount() {
+        return allAnimals.size();
+    }
 
     public boolean addPlant(Plant plant) {
         lock.lock();
@@ -116,15 +150,24 @@ public class Cell {
                 return true;
             }
             return false;
-        } finally { lock.unlock(); }
+        } finally {
+            lock.unlock();
+        }
     }
 
-    public List<Plant> getPlants() { return allPlants; }
-    public Plant getPlant(SpeciesKey key) { return plantsBySpecies.get(key); }
+    public List<Plant> getPlants() {
+        return allPlants;
+    }
+
+    public Plant getPlant(SpeciesKey key) {
+        return plantsBySpecies.get(key);
+    }
 
     public int getPlantCount() { 
         double total = 0;
-        for (Plant p : allPlants) total += p.getBiomass();
+        for (Plant p : allPlants) {
+            total += p.getBiomass();
+        }
         return (int) total; 
     }
 
@@ -137,7 +180,9 @@ public class Cell {
                     removeAnimal(a);
                 }
             }
-        } finally { lock.unlock(); }
+        } finally {
+            lock.unlock();
+        }
     }
 
     public String getStatistics() {

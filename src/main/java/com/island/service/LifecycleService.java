@@ -8,6 +8,9 @@ import com.island.model.Island;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
+/**
+ * Service responsible for age, metabolism and plant growth.
+ */
 public class LifecycleService extends AbstractService {
 
     public LifecycleService(Island island, ExecutorService executor) {

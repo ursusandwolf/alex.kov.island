@@ -56,5 +56,6 @@ public final class SimulationConstants {
     public static double CATERPILLAR_FERTILIZER_EFFICIENCY = 1.0; 
     public static double CATERPILLAR_FEED_EFFICIENCY = 1.0; 
     
-    private SimulationConstants() {}
+    private SimulationConstants() {
+    }
 }

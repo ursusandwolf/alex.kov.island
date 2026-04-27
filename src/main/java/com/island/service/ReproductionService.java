@@ -1,17 +1,24 @@
 package com.island.service;
-import com.island.content.plants.*;
+
+import static com.island.config.SimulationConstants.ENDANGERED_POPULATION_THRESHOLD;
+import static com.island.config.SimulationConstants.ENDANGERED_REPRO_BONUS_PERCENT;
+import static com.island.config.SimulationConstants.HERBIVORE_OFFSPRING_BONUS;
+import static com.island.config.SimulationConstants.OFFSPRING_LARGE_ANIMAL;
+import static com.island.config.SimulationConstants.OFFSPRING_SMALL_ANIMAL;
+import static com.island.config.SimulationConstants.WEIGHT_THRESHOLD_SMALL;
+
 import com.island.content.Animal;
 import com.island.content.AnimalFactory;
 import com.island.content.SpeciesKey;
 import com.island.model.Cell;
 import com.island.model.Island;
-import static com.island.config.SimulationConstants.*;
-
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadLocalRandom;
 
-
+/**
+ * Service responsible for animal reproduction.
+ */
 public class ReproductionService extends AbstractService {
     private final AnimalFactory animalFactory;
 
@@ -35,7 +42,6 @@ public class ReproductionService extends AbstractService {
 
     private void processSpeciesReproduction(Cell cell, SpeciesKey key, List<Animal> mates) {
         int pairs = mates.size() / 2;
-        int babiesCount = 0;
 
         for (int i = 0; i < pairs; i++) {
             Animal parent1 = mates.get(i * 2);
@@ -48,12 +54,13 @@ public class ReproductionService extends AbstractService {
                     // --- Endangered species bonus ---
                     if (isEndangered(parent1)) {
                         offspring = (int) (offspring * (1 + ENDANGERED_REPRO_BONUS_PERCENT / 100.0));
-                        if (offspring == 0) offspring = 1; 
+                        if (offspring == 0) {
+                            offspring = 1; 
+                        }
                     }
 
                     for (int j = 0; j < offspring; j++) {
                         animalFactory.createBaby(key).ifPresent(cell::addAnimal);
-                        babiesCount++;
                     }
                 }
             }

@@ -1,5 +1,5 @@
 package com.island.service;
-import com.island.util.RandomUtils;
+
 import com.island.content.Animal;
 import com.island.content.DeathCause;
 import com.island.model.Cell;
@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * Service responsible for animal movement.
+ */
 public class MovementService extends AbstractService {
 
     public MovementService(Island island, ExecutorService executor) {

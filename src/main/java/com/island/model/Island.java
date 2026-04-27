@@ -19,7 +19,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Composite: Island consists of cells.
  */
 public class Island {
-    private final int width, height;
+    private final int width;
+    private final int height;
     private final Cell[][] grid;
     private final List<Chunk> chunks = new ArrayList<>();
     private int tickCount = 0;
@@ -44,11 +45,25 @@ public class Island {
         }
     }
 
-    public int getWidth() { return width; }
-    public int getHeight() { return height; }
-    public Cell[][] getGrid() { return grid; }
-    public List<Chunk> getChunks() { return chunks; }
-    public int getTickCount() { return tickCount; }
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public Cell[][] getGrid() {
+        return grid;
+    }
+
+    public List<Chunk> getChunks() {
+        return chunks;
+    }
+
+    public int getTickCount() {
+        return tickCount;
+    }
 
     public void setRedBookProtectionEnabled(boolean enabled) {
         this.redBookProtectionEnabled = enabled;
@@ -59,14 +74,18 @@ public class Island {
     }
 
     public Map<SpeciesKey, Double> getProtectionMap(SpeciesConfig config) {
-        if (!redBookProtectionEnabled) return Collections.emptyMap();
+        if (!redBookProtectionEnabled) {
+            return Collections.emptyMap();
+        }
         
         Map<SpeciesKey, Double> protectionMap = new EnumMap<>(SpeciesKey.class);
         int islandArea = width * height;
 
         for (SpeciesKey key : config.getAllAnimalKeys()) {
             AnimalType type = config.getAnimalType(key);
-            if (type == null) continue;
+            if (type == null) {
+                continue;
+            }
 
             int currentCount = getSpeciesCount(key);
             int globalCapacity = islandArea * type.getMaxPerCell();
@@ -135,10 +154,10 @@ public class Island {
     }
 
     private boolean isPlantKey(SpeciesKey key) {
-        return key == SpeciesKey.PLANT || 
-               key == SpeciesKey.CABBAGE || 
-               key == SpeciesKey.CATERPILLAR ||
-               key == SpeciesKey.GRASS;
+        return key == SpeciesKey.PLANT 
+               || key == SpeciesKey.CABBAGE 
+               || key == SpeciesKey.CATERPILLAR 
+               || key == SpeciesKey.GRASS;
     }
 
     public Map<SpeciesKey, Integer> getDeathsBySpecies(DeathCause cause) {
@@ -161,9 +180,11 @@ public class Island {
     }
 
     private void initializeGrid() {
-        for (int x = 0; x < width; x++)
-            for (int y = 0; y < height; y++)
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
                 grid[x][y] = new Cell(x, y, this);
+            }
+        }
     }
 
     private void partitionIntoChunks() {
@@ -186,12 +207,16 @@ public class Island {
 
     public void onOrganismAdded(SpeciesKey key) {
         AtomicInteger count = speciesCounts.get(key);
-        if (count != null) count.incrementAndGet();
+        if (count != null) {
+            count.incrementAndGet();
+        }
     }
 
     public void onOrganismRemoved(SpeciesKey key) {
         AtomicInteger count = speciesCounts.get(key);
-        if (count != null) count.decrementAndGet();
+        if (count != null) {
+            count.decrementAndGet();
+        }
     }
 
     public int getSpeciesCount(SpeciesKey key) {
@@ -202,7 +227,9 @@ public class Island {
     public Map<SpeciesKey, Integer> getSpeciesCounts() {
         Map<SpeciesKey, Integer> counts = new EnumMap<>(SpeciesKey.class);
         speciesCounts.forEach((k, v) -> {
-            if (v.get() > 0) counts.put(k, v.get());
+            if (v.get() > 0) {
+                counts.put(k, v.get());
+            }
         });
         return counts;
     }
@@ -220,7 +247,9 @@ public class Island {
     }
 
     public void moveOrganism(Animal animal, Cell from, Cell to) {
-        if (from == to) return;
+        if (from == to) {
+            return;
+        }
         
         Cell first = (from.getX() < to.getX() || (from.getX() == to.getX() && from.getY() < to.getY())) ? from : to;
         Cell second = (first == from) ? to : from;

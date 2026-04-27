@@ -5,7 +5,7 @@ import com.island.model.Island;
 import com.island.view.ConsoleView;
 
 /**
- * Holder for core simulation components.
+ * Context that holds all major components of a running simulation.
  */
 public class SimulationContext {
     private final Island island;
@@ -20,8 +20,19 @@ public class SimulationContext {
         this.consoleView = consoleView;
     }
 
-    public Island getIsland() { return island; }
-    public GameLoop getGameLoop() { return gameLoop; }
-    public SpeciesConfig getSpeciesConfig() { return speciesConfig; }
-    public ConsoleView getConsoleView() { return consoleView; }
+    public Island getIsland() {
+        return island;
+    }
+
+    public GameLoop getGameLoop() {
+        return gameLoop;
+    }
+
+    public SpeciesConfig getSpeciesConfig() {
+        return speciesConfig;
+    }
+
+    public ConsoleView getConsoleView() {
+        return consoleView;
+    }
 }

@@ -69,7 +69,6 @@ public abstract class Plant extends Organism implements Reproducible<Plant> {
         biomass = Math.min(maxBiomass, biomass + (maxBiomass * growthRate));
     }
 
-    @Override
     public void checkState() {
         ageOneTick();
         grow();

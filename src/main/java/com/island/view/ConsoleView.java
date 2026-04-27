@@ -1,13 +1,22 @@
 package com.island.view;
-import com.island.util.ViewUtils;import com.island.content.plants.*;
+
 import com.island.content.Animal;
 import com.island.content.SpeciesKey;
+import com.island.content.plants.Plant;
 import com.island.model.Cell;
 import com.island.model.Island;
+import com.island.util.ViewUtils;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
+/**
+ * Console visualization of the island ecosystem.
+ */
 public class ConsoleView {
     private static final String RESET = "\u001B[0m";
     private static final String GREEN = "\u001B[32m";
@@ -17,12 +26,24 @@ public class ConsoleView {
     private static final Map<SpeciesKey, String> ICONS = new EnumMap<>(SpeciesKey.class);
 
     static {
-        ICONS.put(SpeciesKey.WOLF, "🐺"); ICONS.put(SpeciesKey.BOA, "🐍"); ICONS.put(SpeciesKey.FOX, "🦊");
-        ICONS.put(SpeciesKey.BEAR, "🐻"); ICONS.put(SpeciesKey.EAGLE, "🦅"); ICONS.put(SpeciesKey.HORSE, "🐎");
-        ICONS.put(SpeciesKey.DEER, "🦌"); ICONS.put(SpeciesKey.RABBIT, "🐇"); ICONS.put(SpeciesKey.MOUSE, "🐁");
-        ICONS.put(SpeciesKey.GOAT, "🐐"); ICONS.put(SpeciesKey.SHEEP, "🐑"); ICONS.put(SpeciesKey.BOAR, "🐗");
-        ICONS.put(SpeciesKey.BUFFALO, "🐃"); ICONS.put(SpeciesKey.DUCK, "🦆"); ICONS.put(SpeciesKey.CATERPILLAR, "🐛");
-        ICONS.put(SpeciesKey.PLANT, "🌿"); ICONS.put(SpeciesKey.GRASS, "☘️"); ICONS.put(SpeciesKey.CABBAGE, "🥬");
+        ICONS.put(SpeciesKey.WOLF, "🐺");
+        ICONS.put(SpeciesKey.BOA, "🐍");
+        ICONS.put(SpeciesKey.FOX, "🦊");
+        ICONS.put(SpeciesKey.BEAR, "🐻");
+        ICONS.put(SpeciesKey.EAGLE, "🦅");
+        ICONS.put(SpeciesKey.HORSE, "🐎");
+        ICONS.put(SpeciesKey.DEER, "🦌");
+        ICONS.put(SpeciesKey.RABBIT, "🐇");
+        ICONS.put(SpeciesKey.MOUSE, "🐁");
+        ICONS.put(SpeciesKey.GOAT, "🐐");
+        ICONS.put(SpeciesKey.SHEEP, "🐑");
+        ICONS.put(SpeciesKey.BOAR, "🐗");
+        ICONS.put(SpeciesKey.BUFFALO, "🐃");
+        ICONS.put(SpeciesKey.DUCK, "🦆");
+        ICONS.put(SpeciesKey.CATERPILLAR, "🐛");
+        ICONS.put(SpeciesKey.PLANT, "🌿");
+        ICONS.put(SpeciesKey.GRASS, "☘️");
+        ICONS.put(SpeciesKey.CABBAGE, "🥬");
     }
 
     private boolean isSilent = false;
@@ -32,10 +53,14 @@ public class ConsoleView {
     private int lastRenderedTick = -1;
     private static final int RENDER_THROTTLE = 1;
 
-    public void setSilent(boolean silent) { this.isSilent = silent; }
+    public void setSilent(boolean silent) {
+        this.isSilent = silent;
+    }
 
     public void display(Island island) {
-        if (isSilent) return;
+        if (isSilent) {
+            return;
+        }
         lastRenderedTick = island.getTickCount();
 
         updateHistory(island);
@@ -118,9 +143,13 @@ public class ConsoleView {
             String graph = ViewUtils.getSparkline(populationHistory.get(species), HISTORY_SIZE);
             
             sb.append(String.format("%s %-11s: %-5d %s  ", icon, species.getCode(), count, graph));
-            if (++col % 2 == 0) sb.append("\n");
+            if (++col % 2 == 0) {
+                sb.append("\n");
+            }
         }
-        if (col % 2 != 0) sb.append("\n");
+        if (col % 2 != 0) {
+            sb.append("\n");
+        }
     }
 
     private void renderCell(StringBuilder sb, Cell cell) {
@@ -151,7 +180,7 @@ public class ConsoleView {
             SpeciesKey speciesToDisplay = topSpeciesList.get(displayIndex);
             String icon = ICONS.getOrDefault(speciesToDisplay, "?");
             
-            if (speciesToDisplay == SpeciesKey.PLANT || speciesToDisplay == SpeciesKey.GRASS || speciesToDisplay == SpeciesKey.CABBAGE) {
+            if (isGreen(speciesToDisplay)) {
                 sb.append(GREEN).append(icon).append(RESET).append(" ");
             } else {
                 sb.append(icon).append(" ");
@@ -159,5 +188,9 @@ public class ConsoleView {
         } else {
             sb.append(". ");
         }
+    }
+
+    private boolean isGreen(SpeciesKey key) {
+        return key == SpeciesKey.PLANT || key == SpeciesKey.GRASS || key == SpeciesKey.CABBAGE;
     }
 }

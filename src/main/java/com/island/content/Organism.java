@@ -3,7 +3,9 @@ package com.island.content;
 import java.util.UUID;
 import static com.island.config.SimulationConstants.*;
 
-// Базовый класс организмов
+/**
+ * Базовый класс организмов.
+ */
 public abstract class Organism {
     private final String id; 
     private volatile double currentEnergy; 
@@ -25,12 +27,29 @@ public abstract class Organism {
         this.isAlive = true;
     }
 
-    public String getId() { return id; }
-    public boolean isAlive() { return isAlive; }
-    protected void die() { this.isAlive = false; }
-    public double getCurrentEnergy() { return currentEnergy; }
-    public double getMaxEnergy() { return maxEnergy; }
-    public int getAge() { return age; }
+    public String getId() {
+        return id;
+    }
+
+    public boolean isAlive() {
+        return isAlive;
+    }
+
+    protected void die() {
+        this.isAlive = false;
+    }
+
+    public double getCurrentEnergy() {
+        return currentEnergy;
+    }
+
+    public double getMaxEnergy() {
+        return maxEnergy;
+    }
+
+    public int getAge() {
+        return age;
+    }
 
     public abstract String getTypeName();
 
@@ -85,14 +104,18 @@ public abstract class Organism {
 
     protected void ageOneTick() {
         age++;
-        if (maxLifespan > 0 && age >= maxLifespan) isAlive = false;
+        if (maxLifespan > 0 && age >= maxLifespan) {
+            isAlive = false;
+        }
     }
 
     public boolean isStarving() {
         return currentEnergy < DEATH_EPSILON;
     }
 
-    public double getWeight() { return 1.0; } // Default weight
+    public double getWeight() {
+        return 1.0;
+    }
 
     public double getDynamicMetabolismRate() {
         SizeClass sizeClass = SizeClass.fromWeight(getWeight());
