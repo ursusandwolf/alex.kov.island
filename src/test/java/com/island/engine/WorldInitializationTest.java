@@ -1,7 +1,8 @@
 package com.island.engine;
 
 import com.island.content.AnimalFactory;
-import com.island.content.SpeciesConfig;
+import com.island.content.SpeciesRegistry;
+import com.island.content.SpeciesLoader;
 import com.island.model.Island;
 import org.junit.jupiter.api.Test;
 
@@ -15,12 +16,12 @@ public class WorldInitializationTest {
     @Test
     public void testWorldInitializationDensity() {
         Island island = new Island(16, 16);
-        SpeciesConfig config = SpeciesConfig.getInstance();
-        AnimalFactory animalFactory = new AnimalFactory(config);
+        SpeciesRegistry registry = new SpeciesLoader().load();
+        AnimalFactory animalFactory = new AnimalFactory(registry);
         ExecutorService executor = Executors.newSingleThreadExecutor();
         
         WorldInitializer initializer = new WorldInitializer();
-        initializer.initialize(island, config, animalFactory, executor);
+        initializer.initialize(island, registry, animalFactory, executor);
         executor.shutdown();
 
         int totalOrganisms = island.getTotalOrganismCount();

@@ -29,35 +29,27 @@ public class PreyProvider {
 
     /**
      * Returns an iterable of potential prey for a given predator.
-     * Uses prioritized buckets (Herbivores, other Predators, Biomass).
+     * Uses the size-indexed storage in Cell to prioritize larger prey (better ROI).
      */
     public Iterable<Organism> getPreyFor(Animal predator) {
         List<Organism> buffet = new ArrayList<>();
         SpeciesKey predKey = predator.getSpeciesKey();
 
-        // 1. Check Herbivores (Primary target)
-        List<Animal> herbivores = cell.getHerbivores();
-        for (Animal h : herbivores) {
-            if (h.isAlive() && matrix.getChance(predKey, h.getSpeciesKey()) > 0) {
-                if (isProtected(h)) {
-                    continue;
+        // 1. Check Animals by size (Descending: HUGE -> SMALL)
+        // This naturally prioritizes prey with higher potential energy gain
+        SizeClass[] sizes = {SizeClass.HUGE, SizeClass.LARGE, SizeClass.MEDIUM, SizeClass.SMALL};
+        for (SizeClass size : sizes) {
+            List<Animal> potentialPrey = cell.getAnimalsBySize(size);
+            for (Animal p : potentialPrey) {
+                if (p != predator && p.isAlive() && matrix.getChance(predKey, p.getSpeciesKey()) > 0) {
+                    if (!isProtected(p)) {
+                        buffet.add(p);
+                    }
                 }
-                buffet.add(h);
             }
         }
 
-        // 2. Check other Predators (Intraspecies or interspecies competition)
-        List<Animal> predators = cell.getPredators();
-        for (Animal p : predators) {
-            if (p != predator && p.isAlive() && matrix.getChance(predKey, p.getSpeciesKey()) > 0) {
-                if (isProtected(p)) {
-                    continue;
-                }
-                buffet.add(p);
-            }
-        }
-
-        // 3. Check Caterpillar Biomass (Special case)
+        // 2. Check Caterpillar Biomass (Special case)
         Plant caterpillar = cell.getPlant(SpeciesKey.CATERPILLAR);
         if (caterpillar != null && caterpillar.isAlive() && matrix.getChance(predKey, SpeciesKey.CATERPILLAR) > 0) {
             buffet.add(caterpillar);

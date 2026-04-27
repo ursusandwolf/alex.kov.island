@@ -1,6 +1,6 @@
 package com.island.engine;
 
-import com.island.content.SpeciesConfig;
+import com.island.content.SpeciesRegistry;
 import com.island.model.Island;
 import com.island.view.ConsoleView;
 
@@ -10,13 +10,13 @@ import com.island.view.ConsoleView;
 public class SimulationContext {
     private final Island island;
     private final GameLoop gameLoop;
-    private final SpeciesConfig speciesConfig;
+    private final SpeciesRegistry speciesRegistry;
     private final ConsoleView consoleView;
 
-    public SimulationContext(Island island, GameLoop gameLoop, SpeciesConfig speciesConfig, ConsoleView consoleView) {
+    public SimulationContext(Island island, GameLoop gameLoop, SpeciesRegistry speciesRegistry, ConsoleView consoleView) {
         this.island = island;
         this.gameLoop = gameLoop;
-        this.speciesConfig = speciesConfig;
+        this.speciesRegistry = speciesRegistry;
         this.consoleView = consoleView;
     }
 
@@ -28,8 +28,8 @@ public class SimulationContext {
         return gameLoop;
     }
 
-    public SpeciesConfig getSpeciesConfig() {
-        return speciesConfig;
+    public SpeciesRegistry getSpeciesRegistry() {
+        return speciesRegistry;
     }
 
     public ConsoleView getConsoleView() {

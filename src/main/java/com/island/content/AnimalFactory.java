@@ -24,25 +24,25 @@ import java.util.function.Function;
  * Factory for creating animal instances based on SpeciesKey.
  */
 public final class AnimalFactory {
-    private final SpeciesConfig config;
-    private final Map<SpeciesKey, Function<AnimalType, Animal>> registry = new EnumMap<>(SpeciesKey.class);
+    private final SpeciesRegistry speciesRegistry;
+    private final Map<SpeciesKey, Function<AnimalType, Animal>> creators = new EnumMap<>(SpeciesKey.class);
 
-    public AnimalFactory(SpeciesConfig config) {
-        this.config = config;
-        registry.put(SpeciesKey.WOLF, Wolf::new);
-        registry.put(SpeciesKey.RABBIT, Rabbit::new);
-        registry.put(SpeciesKey.DUCK, Duck::new);
-        registry.put(SpeciesKey.FOX, Fox::new);
-        registry.put(SpeciesKey.BOA, Boa::new);
-        registry.put(SpeciesKey.BEAR, Bear::new);
-        registry.put(SpeciesKey.EAGLE, Eagle::new);
-        registry.put(SpeciesKey.HORSE, Horse::new);
-        registry.put(SpeciesKey.DEER, Deer::new);
-        registry.put(SpeciesKey.MOUSE, Mouse::new);
-        registry.put(SpeciesKey.GOAT, Goat::new);
-        registry.put(SpeciesKey.SHEEP, Sheep::new);
-        registry.put(SpeciesKey.BOAR, Boar::new);
-        registry.put(SpeciesKey.BUFFALO, Buffalo::new);
+    public AnimalFactory(SpeciesRegistry speciesRegistry) {
+        this.speciesRegistry = speciesRegistry;
+        creators.put(SpeciesKey.WOLF, Wolf::new);
+        creators.put(SpeciesKey.RABBIT, Rabbit::new);
+        creators.put(SpeciesKey.DUCK, Duck::new);
+        creators.put(SpeciesKey.FOX, Fox::new);
+        creators.put(SpeciesKey.BOA, Boa::new);
+        creators.put(SpeciesKey.BEAR, Bear::new);
+        creators.put(SpeciesKey.EAGLE, Eagle::new);
+        creators.put(SpeciesKey.HORSE, Horse::new);
+        creators.put(SpeciesKey.DEER, Deer::new);
+        creators.put(SpeciesKey.MOUSE, Mouse::new);
+        creators.put(SpeciesKey.GOAT, Goat::new);
+        creators.put(SpeciesKey.SHEEP, Sheep::new);
+        creators.put(SpeciesKey.BOAR, Boar::new);
+        creators.put(SpeciesKey.BUFFALO, Buffalo::new);
     }
 
     public Optional<Animal> createAnimal(SpeciesKey key) {
@@ -61,12 +61,12 @@ public final class AnimalFactory {
     }
 
     private Optional<Animal> createAnimal(SpeciesKey key, double energyFactor) {
-        Function<AnimalType, Animal> creator = registry.get(key);
+        Function<AnimalType, Animal> creator = creators.get(key);
         if (creator == null) {
             return Optional.empty();
         }
         
-        AnimalType type = config.getAnimalType(key);
+        AnimalType type = speciesRegistry.getAnimalType(key).orElse(null);
         if (type == null) {
             return Optional.empty();
         }
@@ -87,6 +87,6 @@ public final class AnimalFactory {
     }
 
     public Set<SpeciesKey> getRegisteredSpecies() {
-        return registry.keySet();
+        return creators.keySet();
     }
 }

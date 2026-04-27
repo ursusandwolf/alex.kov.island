@@ -5,6 +5,7 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Immutable registry of species data.
@@ -36,5 +37,20 @@ public class SpeciesRegistry {
 
     public Set<SpeciesKey> getAllAnimalKeys() {
         return animalTypes.keySet();
+    }
+
+    public Set<String> getAllSpeciesCodes() {
+        Set<String> allCodes = animalTypes.keySet().stream()
+                .map(SpeciesKey::getCode)
+                .collect(Collectors.toSet());
+        allCodes.add(SpeciesKey.PLANT.getCode());
+        allCodes.add(SpeciesKey.CABBAGE.getCode());
+        allCodes.add(SpeciesKey.CATERPILLAR.getCode());
+        return allCodes;
+    }
+
+    public int getHuntProbability(SpeciesKey predator, SpeciesKey prey) {
+        AnimalType type = animalTypes.get(predator);
+        return (type != null) ? type.getHuntProbability(prey) : 0;
     }
 }

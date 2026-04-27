@@ -12,7 +12,7 @@ import static com.island.config.SimulationConstants.WEIGHT_THRESHOLD_SMALL;
 import com.island.content.Animal;
 import com.island.content.AnimalFactory;
 import com.island.content.AnimalType;
-import com.island.content.SpeciesConfig;
+import com.island.content.SpeciesRegistry;
 import com.island.content.SpeciesKey;
 import com.island.model.Cell;
 import com.island.model.Island;
@@ -25,20 +25,20 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class ReproductionService extends AbstractService {
     private final AnimalFactory animalFactory;
-    private final SpeciesConfig speciesConfig;
+    private final SpeciesRegistry speciesRegistry;
 
     public ReproductionService(Island island, AnimalFactory animalFactory, 
-                               SpeciesConfig speciesConfig, ExecutorService executor) {
+                               SpeciesRegistry speciesRegistry, ExecutorService executor) {
         super(island, executor);
         this.animalFactory = animalFactory;
-        this.speciesConfig = speciesConfig;
+        this.speciesRegistry = speciesRegistry;
     }
 
     @Override
     protected void processCell(Cell cell) {
         // Reproduce by species groups in the cell
         for (SpeciesKey speciesKey : animalFactory.getRegisteredSpecies()) {
-            AnimalType type = speciesConfig.getAnimalType(speciesKey);
+            AnimalType type = speciesRegistry.getAnimalType(speciesKey).orElse(null);
             List<Animal> potentialMates = cell.getAnimalsByType(type);
             
             // Need at least 2 to reproduce

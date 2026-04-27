@@ -2,7 +2,8 @@ package com.island.service;
 
 import com.island.content.Animal;
 import com.island.content.AnimalFactory;
-import com.island.content.SpeciesConfig;
+import com.island.content.SpeciesRegistry;
+import com.island.content.SpeciesLoader;
 import com.island.content.SpeciesKey;
 import com.island.content.animals.herbivores.Rabbit;
 import com.island.model.Cell;
@@ -13,8 +14,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ReproductionServiceTest {
-    private final SpeciesConfig config = SpeciesConfig.getInstance();
-    private final AnimalFactory factory = new AnimalFactory(config);
+    private final SpeciesRegistry registry = new SpeciesLoader().load();
+    private final AnimalFactory factory = new AnimalFactory(registry);
 
     @Test
     void testReproductionWithMaxEnergy() {
@@ -22,8 +23,8 @@ class ReproductionServiceTest {
         island.setRedBookProtectionEnabled(false);
         Cell cell = island.getCell(0, 0);
         
-        Animal r1 = new Rabbit(config.getAnimalType(SpeciesKey.RABBIT));
-        Animal r2 = new Rabbit(config.getAnimalType(SpeciesKey.RABBIT));
+        Animal r1 = new Rabbit(registry.getAnimalType(SpeciesKey.RABBIT).orElseThrow());
+        Animal r2 = new Rabbit(registry.getAnimalType(SpeciesKey.RABBIT).orElseThrow());
         
         r1.setEnergy(r1.getMaxEnergy());
         r2.setEnergy(r2.getMaxEnergy());
@@ -31,7 +32,7 @@ class ReproductionServiceTest {
         cell.addAnimal(r1);
         cell.addAnimal(r2);
         
-        ReproductionService service = new ReproductionService(island, factory, config, java.util.concurrent.Executors.newSingleThreadExecutor());
+        ReproductionService service = new ReproductionService(island, factory, registry, java.util.concurrent.Executors.newSingleThreadExecutor());
         service.run();
         
         // Expected: 2 parents + (1 to 3) babies.
@@ -44,8 +45,8 @@ class ReproductionServiceTest {
         island.setRedBookProtectionEnabled(false);
         Cell cell = island.getCell(0, 0);
         
-        Animal r1 = new Rabbit(config.getAnimalType(SpeciesKey.RABBIT));
-        Animal r2 = new Rabbit(config.getAnimalType(SpeciesKey.RABBIT));
+        Animal r1 = new Rabbit(registry.getAnimalType(SpeciesKey.RABBIT).orElseThrow());
+        Animal r2 = new Rabbit(registry.getAnimalType(SpeciesKey.RABBIT).orElseThrow());
         
         r1.setEnergy(0.01);
         r2.setEnergy(0.01);
@@ -53,7 +54,7 @@ class ReproductionServiceTest {
         cell.addAnimal(r1);
         cell.addAnimal(r2);
         
-        ReproductionService service = new ReproductionService(island, factory, config, java.util.concurrent.Executors.newSingleThreadExecutor());
+        ReproductionService service = new ReproductionService(island, factory, registry, java.util.concurrent.Executors.newSingleThreadExecutor());
         service.run();
         
         assertEquals(2, cell.getAnimalCount(), "Starving animals should not reproduce");

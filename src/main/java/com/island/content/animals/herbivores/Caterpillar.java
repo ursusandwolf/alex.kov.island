@@ -3,7 +3,7 @@ package com.island.content.animals.herbivores;
 import static com.island.config.SimulationConstants.CATERPILLAR_FEED_EFFICIENCY;
 import static com.island.config.SimulationConstants.CATERPILLAR_METABOLISM_RATE;
 
-import com.island.content.SpeciesConfig;
+
 import com.island.content.SpeciesKey;
 import com.island.content.plants.Plant;
 import com.island.model.Cell;
@@ -14,10 +14,8 @@ import java.util.List;
  * This eliminates millions of individual objects from the simulation.
  */
 public class Caterpillar extends Plant {
-    public Caterpillar() {
-        super("Caterpillar", SpeciesKey.CATERPILLAR,
-                SpeciesConfig.getInstance().getAnimalType(SpeciesKey.CATERPILLAR).getWeight() 
-                * SpeciesConfig.getInstance().getAnimalType(SpeciesKey.CATERPILLAR).getMaxPerCell());
+    public Caterpillar(double maxBiomass) {
+        super("Caterpillar", SpeciesKey.CATERPILLAR, maxBiomass);
     }
 
     /**

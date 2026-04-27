@@ -26,13 +26,15 @@ public class FeedingService implements Runnable {
     private final Island island;
     private final InteractionMatrix interactionMatrix;
     private final ExecutorService executor;
-    private final SpeciesConfig speciesConfig = SpeciesConfig.getInstance();
+    private final SpeciesRegistry speciesRegistry;
     private final HuntingStrategy huntingStrategy;
 
-    public FeedingService(Island island, InteractionMatrix interactionMatrix, ExecutorService executor) {
+    public FeedingService(Island island, InteractionMatrix interactionMatrix, 
+                          SpeciesRegistry speciesRegistry, ExecutorService executor) {
         this.island = island;
         this.interactionMatrix = interactionMatrix;
         this.executor = executor;
+        this.speciesRegistry = speciesRegistry;
         this.huntingStrategy = new DefaultHuntingStrategy(interactionMatrix);
     }
 
@@ -43,7 +45,7 @@ public class FeedingService implements Runnable {
         }
 
         // Centralized: calculate protection map once per tick
-        Map<SpeciesKey, Double> protectionMap = island.getProtectionMap(speciesConfig);
+        Map<SpeciesKey, Double> protectionMap = island.getProtectionMap(speciesRegistry);
 
         List<Callable<Void>> tasks = new ArrayList<>();
         for (Chunk chunk : island.getChunks()) {

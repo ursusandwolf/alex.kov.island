@@ -3,7 +3,7 @@ package com.island.model;
 import com.island.content.Animal;
 import com.island.content.AnimalType;
 import com.island.content.DeathCause;
-import com.island.content.SpeciesConfig;
+import com.island.content.SpeciesRegistry;
 import com.island.content.SpeciesKey;
 import com.island.content.plants.Plant;
 import java.util.ArrayList;
@@ -73,7 +73,7 @@ public class Island {
         return redBookProtectionEnabled;
     }
 
-    public Map<SpeciesKey, Double> getProtectionMap(SpeciesConfig config) {
+    public Map<SpeciesKey, Double> getProtectionMap(SpeciesRegistry registry) {
         if (!redBookProtectionEnabled) {
             return Collections.emptyMap();
         }
@@ -81,8 +81,8 @@ public class Island {
         Map<SpeciesKey, Double> protectionMap = new EnumMap<>(SpeciesKey.class);
         int islandArea = width * height;
 
-        for (SpeciesKey key : config.getAllAnimalKeys()) {
-            AnimalType type = config.getAnimalType(key);
+        for (SpeciesKey key : registry.getAllAnimalKeys()) {
+            AnimalType type = registry.getAnimalType(key).orElse(null);
             if (type == null) {
                 continue;
             }

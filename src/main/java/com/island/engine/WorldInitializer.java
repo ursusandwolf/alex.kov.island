@@ -2,8 +2,8 @@ package com.island.engine;
 
 import com.island.content.AnimalFactory;
 import com.island.content.AnimalType;
-import com.island.content.SpeciesConfig;
 import com.island.content.SpeciesKey;
+import com.island.content.SpeciesRegistry;
 import com.island.content.animals.herbivores.Caterpillar;
 import com.island.content.plants.Cabbage;
 import com.island.content.plants.Grass;
@@ -21,13 +21,13 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class WorldInitializer {
 
-    public void initialize(Island island, SpeciesConfig config, AnimalFactory animalFactory, ExecutorService executor) {
+    public void initialize(Island island, SpeciesRegistry registry, AnimalFactory animalFactory, ExecutorService executor) {
         List<Callable<Void>> tasks = new ArrayList<>();
         
         for (Chunk chunk : island.getChunks()) {
             tasks.add(() -> {
                 for (Cell cell : chunk.getCells()) {
-                    initializeCell(cell, config, animalFactory);
+                    initializeCell(cell, registry, animalFactory);
                 }
                 return null;
             });
@@ -41,9 +41,9 @@ public class WorldInitializer {
         }
     }
 
-    private void initializeCell(Cell cell, SpeciesConfig config, AnimalFactory animalFactory) {
+    private void initializeCell(Cell cell, SpeciesRegistry registry, AnimalFactory animalFactory) {
         for (SpeciesKey species : animalFactory.getRegisteredSpecies()) {
-            AnimalType type = config.getAnimalType(species);
+            AnimalType type = registry.getAnimalType(species).orElse(null);
             if (type == null) {
                 continue;
             }
@@ -79,8 +79,13 @@ public class WorldInitializer {
             }
         }
         
-        cell.addPlant(new Grass());
-        cell.addPlant(new Cabbage());
-        cell.addPlant(new Caterpillar());
+        // Initialize plants with mass from registry
+        cell.addPlant(new Grass(registry.getPlantWeight(SpeciesKey.PLANT) * registry.getPlantMaxCount(SpeciesKey.PLANT)));
+        cell.addPlant(new Cabbage(registry.getPlantWeight(SpeciesKey.CABBAGE) * registry.getPlantMaxCount(SpeciesKey.CABBAGE)));
+        
+        // Caterpillar is also a biomass container
+        registry.getAnimalType(SpeciesKey.CATERPILLAR).ifPresent(type -> {
+            cell.addPlant(new Caterpillar(type.getWeight() * type.getMaxPerCell()));
+        });
     }
 }

@@ -3,7 +3,7 @@ package com.island;
 import com.island.engine.SimulationBootstrap;
 import com.island.engine.SimulationContext;
 import com.island.model.Island;
-import com.island.content.SpeciesConfig;
+import com.island.content.SpeciesRegistry;
 import com.island.content.SpeciesKey;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -17,7 +17,7 @@ public class EcosystemStabilityTest {
         SimulationBootstrap bootstrap = new SimulationBootstrap();
         SimulationContext context = bootstrap.setup(); // Default is 100x20
         Island island = context.getIsland();
-        SpeciesConfig speciesConfig = context.getSpeciesConfig();
+        SpeciesRegistry speciesRegistry = context.getSpeciesRegistry();
         
         context.getConsoleView().setSilent(true);
 
@@ -42,7 +42,7 @@ public class EcosystemStabilityTest {
             if (key == SpeciesKey.PLANT || key == SpeciesKey.CABBAGE || key == SpeciesKey.CATERPILLAR || key == SpeciesKey.GRASS) continue;
             
             int count = entry.getValue();
-            int maxPerCell = speciesConfig.getAnimalType(key).getMaxPerCell();
+            int maxPerCell = speciesRegistry.getAnimalType(key).orElseThrow().getMaxPerCell();
             int globalCapacity = maxPerCell * islandArea;
             
             assertTrue(count < globalCapacity * 3.0, "Overpopulation of " + key + ": " + count);

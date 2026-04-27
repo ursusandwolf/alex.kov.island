@@ -2,66 +2,69 @@ package com.island.content;
 
 import com.island.content.animals.herbivores.Rabbit;
 import com.island.content.animals.predators.Wolf;
-import com.island.util.InteractionMatrix;
+import com.island.content.plants.Grass;
 import com.island.model.Cell;
 import com.island.model.Island;
+import com.island.util.InteractionMatrix;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.util.concurrent.Executors;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class FeedingServiceTest {
     private Island island;
     private InteractionMatrix matrix;
     private FeedingService service;
-    private final SpeciesConfig config = SpeciesConfig.getInstance();
+    private final SpeciesRegistry registry = new SpeciesLoader().load();
 
     @BeforeEach
     void setUp() {
         island = new Island(1, 1);
         island.setRedBookProtectionEnabled(false);
         matrix = new InteractionMatrix();
+        // Wolf eats Rabbit with 100% chance
         matrix.setChance(SpeciesKey.WOLF, SpeciesKey.RABBIT, 100);
-        service = new FeedingService(island, matrix, java.util.concurrent.Executors.newSingleThreadExecutor());
+        // Rabbit eats Grass with 100% chance
+        matrix.setChance(SpeciesKey.RABBIT, SpeciesKey.PLANT, 100);
+        service = new FeedingService(island, matrix, registry, Executors.newSingleThreadExecutor());
     }
 
     @Test
     void testWolfEatsRabbit() {
         Cell cell = island.getCell(0, 0);
-        Wolf wolf = new Wolf(config.getAnimalType(SpeciesKey.WOLF));
-        Rabbit rabbit = new Rabbit(config.getAnimalType(SpeciesKey.RABBIT));
+        Wolf wolf = new Wolf(registry.getAnimalType(SpeciesKey.WOLF).orElseThrow());
+        Rabbit rabbit = new Rabbit(registry.getAnimalType(SpeciesKey.RABBIT).orElseThrow());
+        
+        // Ensure wolf is hungry but has enough energy to hunt
+        wolf.setEnergy(wolf.getMaxEnergy() * 0.5);
+        double initialEnergy = wolf.getCurrentEnergy();
         
         cell.addAnimal(wolf);
         cell.addAnimal(rabbit);
         
-        wolf.consumeEnergy(2.0); 
-        double initialEnergy = wolf.getCurrentEnergy();
-        
         service.run();
         
-        assertEquals(1, cell.getAnimalCount());
-        assertTrue(cell.getAnimals().contains(wolf));
-        assertTrue(wolf.getCurrentEnergy() > initialEnergy);
+        assertTrue(wolf.getCurrentEnergy() > initialEnergy, "Wolf energy should increase after eating rabbit");
+        assertEquals(0, cell.getHerbivores().size(), "Rabbit should be eaten and removed from cell");
+        assertFalse(rabbit.isAlive(), "Rabbit should be dead");
     }
 
     @Test
     void testRabbitEatsGrass() {
         Cell cell = island.getCell(0, 0);
-        Rabbit rabbit = new Rabbit(config.getAnimalType(SpeciesKey.RABBIT));
-        rabbit.setEnergy(0.05); 
+        Rabbit rabbit = new Rabbit(registry.getAnimalType(SpeciesKey.RABBIT).orElseThrow());
+        rabbit.setEnergy(rabbit.getMaxEnergy() * 0.5);
         double initialEnergy = rabbit.getCurrentEnergy();
-
-        com.island.content.plants.Grass grass = new com.island.content.plants.Grass();
-        double initialBiomass = grass.getBiomass();
-        cell.addPlant(grass);
+        
+        Grass grass = new Grass(registry.getPlantWeight(SpeciesKey.PLANT) * registry.getPlantMaxCount(SpeciesKey.PLANT));
         cell.addAnimal(rabbit);
-
-        matrix.setChance(SpeciesKey.RABBIT, SpeciesKey.PLANT, 100);
-
+        cell.addPlant(grass);
+        
         service.run();
-
-        assertTrue(rabbit.getCurrentEnergy() > initialEnergy, "Rabbit should have gained energy from eating grass");
-        assertTrue(grass.getBiomass() < initialBiomass, "Grass biomass should have decreased");
+        
+        assertTrue(rabbit.getCurrentEnergy() > initialEnergy, "Rabbit energy should increase after eating grass");
+        assertTrue(grass.getBiomass() < registry.getPlantWeight(SpeciesKey.PLANT) * registry.getPlantMaxCount(SpeciesKey.PLANT), "Grass biomass should decrease");
     }
 }

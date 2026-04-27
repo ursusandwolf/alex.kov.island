@@ -3,7 +3,8 @@ package com.island.engine;
 import com.island.config.ConfigLoader;
 import com.island.config.Configuration;
 import com.island.content.AnimalFactory;
-import com.island.content.SpeciesConfig;
+import com.island.content.SpeciesLoader;
+import com.island.content.SpeciesRegistry;
 import com.island.model.Island;
 import com.island.util.InteractionMatrix;
 import com.island.view.ConsoleView;
@@ -20,28 +21,28 @@ public class SimulationBootstrap {
     }
 
     public SimulationContext setup(Configuration config) {
-        // 1. Load configuration
-        SpeciesConfig speciesConfig = SpeciesConfig.getInstance();
+        // 1. Load configuration and species registry
+        SpeciesRegistry registry = new SpeciesLoader().load();
         
         // 2. Setup interaction matrix
-        InteractionMatrix matrix = configLoader.loadInteractionMatrix(speciesConfig);
+        InteractionMatrix matrix = configLoader.loadInteractionMatrix(registry);
 
         // 3. Create core models
         Island island = new Island(config.getIslandWidth(), config.getIslandHeight());
-        AnimalFactory animalFactory = new AnimalFactory(speciesConfig);
+        AnimalFactory animalFactory = new AnimalFactory(registry);
 
         // 4. Setup GameLoop and View
-        GameLoop gameLoop = new GameLoop(config.getTickDurationMs());
         ConsoleView consoleView = new ConsoleView();
+        GameLoop gameLoop = new GameLoop(config.getTickDurationMs());
 
         // 5. Initialize world population
         WorldInitializer initializer = new WorldInitializer();
-        initializer.initialize(island, speciesConfig, animalFactory, gameLoop.getTaskExecutor());
+        initializer.initialize(island, registry, animalFactory, gameLoop.getTaskExecutor());
 
         // 6. Register simulation tasks
-        TaskRegistry taskRegistry = new TaskRegistry(gameLoop, island, matrix, animalFactory, speciesConfig, consoleView);
+        TaskRegistry taskRegistry = new TaskRegistry(gameLoop, island, matrix, animalFactory, registry, consoleView);
         taskRegistry.registerAll();
 
-        return new SimulationContext(island, gameLoop, speciesConfig, consoleView);
+        return new SimulationContext(island, gameLoop, registry, consoleView);
     }
 }

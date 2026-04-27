@@ -2,7 +2,8 @@ package com.island.model;
 
 import com.island.content.AnimalType;
 import com.island.content.animals.predators.Wolf;
-import com.island.content.SpeciesConfig;
+import com.island.content.SpeciesRegistry;
+import com.island.content.SpeciesLoader;
 import com.island.content.SpeciesKey;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class CellTest {
     private Cell cell;
-    private final SpeciesConfig config = SpeciesConfig.getInstance();
+    private final SpeciesRegistry registry = new SpeciesLoader().load();
 
     @BeforeEach
     void setUp() {
@@ -21,7 +22,7 @@ class CellTest {
 
     @Test
     void testAddAnimal() {
-        AnimalType wolfType = config.getAnimalType(SpeciesKey.WOLF);
+        AnimalType wolfType = registry.getAnimalType(SpeciesKey.WOLF).orElseThrow();
         Wolf wolf = new Wolf(wolfType);
         boolean added = cell.addAnimal(wolf);
         assertTrue(added);
@@ -31,16 +32,16 @@ class CellTest {
 
     @Test
     void testAddAnimalExceedingLimit() {
-        int max = config.getAnimalType(SpeciesKey.WOLF).getMaxPerCell();
+        int max = registry.getAnimalType(SpeciesKey.WOLF).orElseThrow().getMaxPerCell();
         for (int i = 0; i < max; i++) {
-            assertTrue(cell.addAnimal(new Wolf(config.getAnimalType(SpeciesKey.WOLF))), "Should be able to add wolf " + i);
+            assertTrue(cell.addAnimal(new Wolf(registry.getAnimalType(SpeciesKey.WOLF).orElseThrow())), "Should be able to add wolf " + i);
         }
-        assertFalse(cell.addAnimal(new Wolf(config.getAnimalType(SpeciesKey.WOLF))), "Should not be able to add wolf exceeding limit");
+        assertFalse(cell.addAnimal(new Wolf(registry.getAnimalType(SpeciesKey.WOLF).orElseThrow())), "Should not be able to add wolf exceeding limit");
     }
 
     @Test
     void testRemoveAnimal() {
-        Wolf wolf = new Wolf(config.getAnimalType(SpeciesKey.WOLF));
+        Wolf wolf = new Wolf(registry.getAnimalType(SpeciesKey.WOLF).orElseThrow());
         cell.addAnimal(wolf);
         boolean removed = cell.removeAnimal(wolf);
         assertTrue(removed);
@@ -49,8 +50,8 @@ class CellTest {
 
     @Test
     void testCleanupDeadOrganisms() {
-        Wolf aliveWolf = new Wolf(config.getAnimalType(SpeciesKey.WOLF));
-        Wolf deadWolf = new Wolf(config.getAnimalType(SpeciesKey.WOLF));
+        Wolf aliveWolf = new Wolf(registry.getAnimalType(SpeciesKey.WOLF).orElseThrow());
+        Wolf deadWolf = new Wolf(registry.getAnimalType(SpeciesKey.WOLF).orElseThrow());
         deadWolf.consumeEnergy(deadWolf.getMaxEnergy()); // Kill it
         
         cell.addAnimal(aliveWolf);
