@@ -2,7 +2,11 @@ package com.island.content;
 
 import lombok.Getter;
 import java.io.InputStream;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 
 /**
  * Loads and provides access to species configuration.
@@ -37,11 +41,11 @@ public final class SpeciesConfig {
             };
 
             for (String key : speciesKeys) {
-                double weight = Double.parseDouble(props.getProperty(key + ".weight", "1"));
-                int maxCount = Integer.parseInt(props.getProperty(key + ".maxPerCell", "1"));
-                int speed = Integer.parseInt(props.getProperty(key + ".speed", "1"));
-                double food = Double.parseDouble(props.getProperty(key + ".foodForSaturation", "1"));
-                int lifespan = Integer.parseInt(props.getProperty(key + ".lifespan", "100"));
+                double weight = Math.max(0.001, Double.parseDouble(props.getProperty(key + ".weight", "1")));
+                int maxCount = Math.max(0, Integer.parseInt(props.getProperty(key + ".maxPerCell", "1")));
+                int speed = Math.max(0, Integer.parseInt(props.getProperty(key + ".speed", "1")));
+                double food = Math.max(0, Double.parseDouble(props.getProperty(key + ".foodForSaturation", "1")));
+                int lifespan = Math.max(1, Integer.parseInt(props.getProperty(key + ".lifespan", "100")));
                 
                 String preyStr = props.getProperty(key + ".prey", "");
                 Map<String, Integer> prey = new HashMap<>();

@@ -1,0 +1,38 @@
+package com.island.engine;
+
+import com.island.content.AnimalFactory;
+import com.island.content.FeedingService;
+import com.island.model.Island;
+import com.island.service.*;
+import com.island.util.InteractionMatrix;
+import com.island.view.ConsoleView;
+
+/**
+ * Responsible for registering simulation tasks in the game loop.
+ */
+public class TaskRegistry {
+    private final GameLoop gameLoop;
+    private final Island island;
+    private final InteractionMatrix matrix;
+    private final AnimalFactory animalFactory;
+    private final ConsoleView view;
+
+    public TaskRegistry(GameLoop gameLoop, Island island, InteractionMatrix matrix, 
+                        AnimalFactory animalFactory, ConsoleView view) {
+        this.gameLoop = gameLoop;
+        this.island = island;
+        this.matrix = matrix;
+        this.animalFactory = animalFactory;
+        this.view = view;
+    }
+
+    public void registerAll() {
+        gameLoop.addRecurringTask(island::nextTick);
+        gameLoop.addRecurringTask(new LifecycleService(island, gameLoop.getTaskExecutor()));
+        gameLoop.addRecurringTask(new FeedingService(island, matrix, gameLoop.getTaskExecutor()));
+        gameLoop.addRecurringTask(new MovementService(island, gameLoop.getTaskExecutor()));
+        gameLoop.addRecurringTask(new ReproductionService(island, animalFactory, gameLoop.getTaskExecutor()));
+        gameLoop.addRecurringTask(new CleanupService(island, gameLoop.getTaskExecutor()));
+        gameLoop.addRecurringTask(() -> view.display(island));
+    }
+}

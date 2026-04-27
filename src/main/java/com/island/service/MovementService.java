@@ -1,6 +1,7 @@
 package com.island.service;
 import com.island.util.RandomUtils;
 import com.island.content.Animal;
+import com.island.content.DeathCause;
 import com.island.model.Cell;
 import com.island.model.Island;
 import java.util.List;
@@ -20,7 +21,14 @@ public class MovementService extends AbstractService {
         int islandArea = island.getWidth() * island.getHeight();
 
         for (Animal animal : animals) {
-            if (animal.isAlive() && animal.move()) {
+            if (animal.isAlive()) {
+                if (!animal.move()) {
+                    if (!animal.isAlive()) {
+                        island.reportDeath(animal.getSpeciesKey(), DeathCause.MOVEMENT_EXHAUSTION);
+                    }
+                    continue;
+                }
+                
                 int speed = animal.getSpeed();
                 
                 // --- Red Book Mobility Bonus ---

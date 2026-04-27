@@ -4,7 +4,11 @@ import com.island.content.Animal;
 import com.island.content.AnimalType;
 import com.island.content.SpeciesConfig;
 import com.island.content.plants.Plant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -20,9 +24,8 @@ public class Island {
     private boolean redBookProtectionEnabled = true;
     
     private final Map<String, AtomicInteger> speciesCounts = new ConcurrentHashMap<>();
-    private final AtomicInteger hungerDeaths = new AtomicInteger(0);
-    private final AtomicInteger ageDeaths = new AtomicInteger(0);
-    private final AtomicInteger eatenAnimals = new AtomicInteger(0);
+    private final Map<com.island.content.DeathCause, Map<String, AtomicInteger>> deathStats = new ConcurrentHashMap<>();
+    private final Map<com.island.content.DeathCause, Map<String, AtomicInteger>> totalDeathStats = new ConcurrentHashMap<>();
 
     public Island(int width, int height) {
         this.width = width;
@@ -30,6 +33,10 @@ public class Island {
         this.grid = new Cell[width][height];
         initializeGrid();
         partitionIntoChunks();
+        for (com.island.content.DeathCause cause : com.island.content.DeathCause.values()) {
+            deathStats.put(cause, new ConcurrentHashMap<>());
+            totalDeathStats.put(cause, new ConcurrentHashMap<>());
+        }
     }
 
     public int getWidth() { return width; }
@@ -102,19 +109,49 @@ public class Island {
         return starving;
     }
 
-    public void reportHungerDeath() { hungerDeaths.incrementAndGet(); }
-    public void reportAgeDeath() { ageDeaths.incrementAndGet(); }
-    public void reportEatenAnimal() { eatenAnimals.incrementAndGet(); }
-    
-    public int getHungerDeaths() { return hungerDeaths.get(); }
-    public int getAgeDeaths() { return ageDeaths.get(); }
-    public int getEatenAnimals() { return eatenAnimals.get(); }
+    public void reportDeath(String speciesKey, com.island.content.DeathCause cause) {
+        deathStats.get(cause)
+                 .computeIfAbsent(speciesKey, k -> new AtomicInteger(0))
+                 .incrementAndGet();
+        totalDeathStats.get(cause)
+                 .computeIfAbsent(speciesKey, k -> new AtomicInteger(0))
+                 .incrementAndGet();
+    }
+
+    public int getDeathCount(com.island.content.DeathCause cause) {
+        return deathStats.get(cause).values().stream().mapToInt(AtomicInteger::get).sum();
+    }
+
+    public int getTotalAnimalDeathCount(com.island.content.DeathCause cause) {
+        return totalDeathStats.get(cause).entrySet().stream()
+                .filter(e -> !isPlantKey(e.getKey()))
+                .mapToInt(e -> e.getValue().get())
+                .sum();
+    }
+
+    private boolean isPlantKey(String key) {
+        return key.equalsIgnoreCase("plant") || 
+               key.equalsIgnoreCase("cabbage") || 
+               key.equalsIgnoreCase("caterpillar");
+    }
+
+    public Map<String, Integer> getDeathsBySpecies(com.island.content.DeathCause cause) {
+        Map<String, Integer> result = new HashMap<>();
+        deathStats.get(cause).forEach((k, v) -> result.put(k, v.get()));
+        return result;
+    }
+
+    public Map<String, Integer> getTotalDeathsBySpecies(com.island.content.DeathCause cause) {
+        Map<String, Integer> result = new HashMap<>();
+        totalDeathStats.get(cause).forEach((k, v) -> result.put(k, v.get()));
+        return result;
+    }
 
     public void nextTick() {
         tickCount++;
-        hungerDeaths.set(0);
-        ageDeaths.set(0);
-        eatenAnimals.set(0);
+        for (Map<String, AtomicInteger> stats : deathStats.values()) {
+            stats.clear();
+        }
     }
 
     private void initializeGrid() {

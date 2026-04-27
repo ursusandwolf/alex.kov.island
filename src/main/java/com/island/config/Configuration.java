@@ -21,9 +21,9 @@ public class Configuration {
         try (InputStream is = Configuration.class.getClassLoader().getResourceAsStream("species.properties")) {
             if (is != null) {
                 props.load(is);
-                config.islandWidth = Integer.parseInt(props.getProperty("island.width", "100"));
-                config.islandHeight = Integer.parseInt(props.getProperty("island.height", "20"));
-                config.tickDurationMs = Integer.parseInt(props.getProperty("island.tickDurationMs", "1000"));
+                config.islandWidth = Math.max(1, Integer.parseInt(props.getProperty("island.width", "100")));
+                config.islandHeight = Math.max(1, Integer.parseInt(props.getProperty("island.height", "20")));
+                config.tickDurationMs = Math.max(1, Integer.parseInt(props.getProperty("island.tickDurationMs", "1000")));
             }
         } catch (Exception e) {
             System.err.println("Ошибка загрузки конфигурации, используются значения по умолчанию: " + e.getMessage());

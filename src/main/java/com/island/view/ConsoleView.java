@@ -69,11 +69,17 @@ public class ConsoleView {
         sb.append(satietyColor).append("#".repeat(progress)).append(".".repeat(20 - progress)).append(RESET).append("] ");
         sb.append(String.format("| Starving: %s%d%s\n", (starving > 0 ? "\u001B[31m" : GREEN), starving, RESET));
         
-        sb.append(String.format("Deaths Last Tick: Hunger: %s%d%s | Old Age: %s%d%s\n", 
-                "\u001B[31m", island.getHungerDeaths(), RESET, 
-                YELLOW, island.getAgeDeaths(), RESET));
-        sb.append(String.format("Hunts Successful: %s%d%s\n", 
-                GREEN, island.getEatenAnimals(), RESET));
+        int hungerTotal = island.getTotalAnimalDeathCount(com.island.content.DeathCause.HUNGER);
+        int ageTotal = island.getTotalAnimalDeathCount(com.island.content.DeathCause.AGE);
+        int eatenTotal = island.getTotalAnimalDeathCount(com.island.content.DeathCause.EATEN);
+        int exhaustTotal = island.getTotalAnimalDeathCount(com.island.content.DeathCause.MOVEMENT_EXHAUSTION);
+
+        sb.append(String.format("Total Deaths: Hunger: %s%d%s | Old Age: %s%d%s | Exhausted: %s%d%s\n", 
+                "\u001B[31m", hungerTotal, RESET, 
+                YELLOW, ageTotal, RESET,
+                "\u001B[35m", exhaustTotal, RESET)); // Magenta for exhaustion
+        sb.append(String.format("Total Hunts (Eaten Animals): %s%d%s\n", 
+                GREEN, eatenTotal, RESET));
 
         sb.append("-".repeat(60)).append("\n");
 

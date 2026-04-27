@@ -1,6 +1,7 @@
 package com.island.service;
 
 import com.island.content.Animal;
+import com.island.content.DeathCause;
 import com.island.content.plants.Plant;
 import com.island.model.Cell;
 import com.island.model.Island;
@@ -25,18 +26,15 @@ public class LifecycleService extends AbstractService {
                 
                 // 1. Check Age Death
                 if (animal.checkAgeDeath()) {
-                    island.reportAgeDeath();
+                    island.reportDeath(animal.getSpeciesKey(), DeathCause.AGE);
                     continue;
                 }
 
-                // 2. Consume Metabolism Energy (Kleiber's Law)
+                // 2. Consume Metabolism Energy
                 if (!animal.isHibernating()) {
-                    animal.consumeEnergy(animal.getMaxEnergy() * animal.getDynamicMetabolismRate());
-                }
-                
-                // 3. Check Hunger Death
-                if (!animal.isAlive() && animal.isStarving()) {
-                    island.reportHungerDeath();
+                    if (!animal.tryConsumeEnergy(animal.getMaxEnergy() * animal.getDynamicMetabolismRate())) {
+                        island.reportDeath(animal.getSpeciesKey(), DeathCause.HUNGER);
+                    }
                 }
             }
         }

@@ -54,11 +54,16 @@ public abstract class Organism {
         this.currentEnergy = maxEnergy * Math.max(0.0, Math.min(1.0, factor));
     }
 
-    public synchronized void consumeEnergy(double amount) {
+    public synchronized boolean tryConsumeEnergy(double amount) {
         currentEnergy = Math.max(0, currentEnergy - amount);
         if (currentEnergy < DEATH_EPSILON && isAlive) {
             isAlive = false;
         }
+        return isAlive;
+    }
+
+    public synchronized void consumeEnergy(double amount) {
+        tryConsumeEnergy(amount);
     }
 
     public void setEnergy(double energy) {

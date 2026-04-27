@@ -3,7 +3,10 @@ package com.island.content;
 import com.island.model.Cell;
 import com.island.model.Island;
 import com.island.util.InteractionMatrix;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Optimized food provider that simulates a mixed "buffet" with competition.

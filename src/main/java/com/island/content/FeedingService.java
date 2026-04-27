@@ -1,5 +1,6 @@
 package com.island.content;
 import com.island.util.RandomUtils;import com.island.content.plants.*;
+import com.island.content.DeathCause;
 import com.island.content.animals.herbivores.Caterpillar;
 import com.island.model.Cell;
 import com.island.model.Chunk;
@@ -20,11 +21,13 @@ public class FeedingService implements Runnable {
     private final InteractionMatrix interactionMatrix;
     private final ExecutorService executor;
     private final SpeciesConfig speciesConfig = SpeciesConfig.getInstance();
+    private final HuntingStrategy huntingStrategy;
 
     public FeedingService(Island island, InteractionMatrix interactionMatrix, ExecutorService executor) {
         this.island = island;
         this.interactionMatrix = interactionMatrix;
         this.executor = executor;
+        this.huntingStrategy = new DefaultHuntingStrategy(interactionMatrix);
     }
 
     @Override
@@ -82,38 +85,15 @@ public class FeedingService implements Runnable {
     }
 
     private void tryEat(Animal predator, Cell cell, PreyProvider preyProvider, Map<String, Double> protectionMap) {
-        // Upfront search cost is removed to avoid "absurd" losses on small prey.
-        // Predators now pay per attempt based on prey size and difficulty.
-
         // Try hunting organisms (Animals and Smart Biomass like Caterpillar) provided by the mediator
         int attemptsInTick = 0;
         for (Organism prey : preyProvider.getPreyFor(predator)) {
             if (predator == prey || !prey.isAlive()) continue;
             attemptsInTick++;
 
-            int chance = interactionMatrix.getChance(predator.getSpeciesKey(), prey.getSpeciesKey());
-            if (chance > 0) {
-                // 1. Calculate costs and gains
-                double preyWeight;
-                if (prey instanceof Animal a) preyWeight = a.getWeight();
-                else if (prey instanceof Caterpillar c) preyWeight = 0.01; 
-                else preyWeight = 0;
-
-                // Strike effort
-                double strikeCost = Math.min(preyWeight * 0.1, predator.getMaxEnergy() * 0.005);
-                
-                // Chase cost (only for animals)
-                double chaseCost = 0;
-                
-                if (prey instanceof Animal a) {
-                    int speedDifference = a.getSpeed() - predator.getSpeed();
-                    if (speedDifference > 0) {
-                        // Linear cost based on speed difference
-                        chaseCost = predator.getMaxEnergy() * (speedDifference * PREY_RELATIVE_SPEED_HUNT_COST_STEP_PERCENT);
-                    }
-                }
-
-                double totalEffort = strikeCost + chaseCost;
+            double successRate = huntingStrategy.calculateSuccessRate(predator, prey);
+            if (successRate > 0) {
+                double totalEffort = huntingStrategy.calculateHuntCost(predator, prey);
                 
                 // --- Hunt Fatigue Logic ---
                 if (attemptsInTick > HUNT_FATIGUE_THRESHOLD) {
@@ -122,37 +102,48 @@ public class FeedingService implements Runnable {
                 }
 
                 // --- Strict Efficiency (ROI) Check ---
-                // Expected profit must be at least 10% higher than effort to justify the risk.
-                // Formula: (PreyWeight * SuccessChance) >= (TotalEffort * 1.1)
-                double expectedGain = preyWeight * (chance / 100.0);
-                if (expectedGain < totalEffort * 1.1) {
+                if (!huntingStrategy.isWorthHunting(predator, prey, successRate, totalEffort)) {
                     continue; // "Not worth the risk": skip this prey
                 }
 
                 predator.consumeEnergy(totalEffort);
-                if (!predator.isAlive()) return; // Stop if dead or energy exhausted
+                if (!predator.isAlive()) {
+                    island.reportDeath(predator.getSpeciesKey(), DeathCause.HUNGER);
+                    return; // Stop if dead or energy exhausted
+                }
 
-                // 2. Execution
-                if (RandomUtils.checkChance(chance)) {
-                    if (prey instanceof Animal a) {
-                        if (cell.removeAnimal(a)) {
-                            a.die();
-                            predator.addEnergy(a.getWeight());
-                            preyProvider.markAsEaten(a);
-                            island.reportEatenAnimal();
+                // 2. Execution with atomic check-and-consume
+                boolean success = false;
+                if (RandomUtils.nextDouble() < successRate) {
+                    cell.getLock().lock();
+                    try {
+                        if (prey instanceof Animal a) {
+                            if (a.isAlive() && cell.removeAnimal(a)) {
+                                a.die();
+                                predator.addEnergy(a.getWeight());
+                                preyProvider.markAsEaten(a);
+                                island.reportDeath(a.getSpeciesKey(), DeathCause.EATEN);
+                                success = true;
+                            }
+                        } else if (prey instanceof Caterpillar c) {
+                            if (c.isAlive()) {
+                                double foodNeeded = predator.getFoodForSaturation() - predator.getCurrentEnergy();
+                                double eaten = c.consumeBiomass(foodNeeded);
+                                predator.addEnergy(eaten);
+                                success = true;
+                            }
                         }
-                    } else if (prey instanceof Caterpillar c) {
-                        double foodNeeded = predator.getFoodForSaturation() - predator.getCurrentEnergy();
-                        double eaten = c.consumeBiomass(foodNeeded);
-                        predator.addEnergy(eaten);
-                        // For caterpillars, they stay in the cell but mass decreases
+                    } finally {
+                        cell.getLock().unlock();
                     }
                     
                     // Check if satiated
-                    if (predator.getCurrentEnergy() >= predator.getFoodForSaturation()) {
+                    if (success && predator.getCurrentEnergy() >= predator.getFoodForSaturation()) {
                         return; 
                     }
-                } else if (prey instanceof Animal a) {
+                } 
+                
+                if (!success && prey instanceof Animal a) {
                     // Hunt failed! Prey escapes and hides.
                     preyProvider.markAsHiding(a);
                     a.consumeEnergy(a.getMaxEnergy() * ESCAPE_ENERGY_COST_PERCENT);

@@ -1,6 +1,8 @@
 package com.island.content;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import com.island.content.animals.predators.*;
 import com.island.content.animals.herbivores.*;
 

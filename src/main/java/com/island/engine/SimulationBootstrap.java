@@ -1,21 +1,22 @@
 package com.island.engine;
 
+import com.island.config.ConfigLoader;
 import com.island.config.Configuration;
 import com.island.content.AnimalFactory;
-import com.island.content.FeedingService;
 import com.island.content.SpeciesConfig;
 import com.island.model.Island;
-import com.island.service.*;
 import com.island.util.InteractionMatrix;
 import com.island.view.ConsoleView;
 
 /**
  * Responsible for initializing all components of the simulation.
+ * Adheres to SRP by delegating to specialized loaders and registries.
  */
 public class SimulationBootstrap {
+    private final ConfigLoader configLoader = new ConfigLoader();
 
     public SimulationContext setup() {
-        return setup(Configuration.load());
+        return setup(configLoader.loadGeneralConfig());
     }
 
     public SimulationContext setup(Configuration config) {
@@ -23,8 +24,7 @@ public class SimulationBootstrap {
         SpeciesConfig speciesConfig = SpeciesConfig.getInstance();
         
         // 2. Setup interaction matrix
-        InteractionMatrix matrix = new InteractionMatrix();
-        initInteractionMatrix(matrix, speciesConfig);
+        InteractionMatrix matrix = configLoader.loadInteractionMatrix(speciesConfig);
 
         // 3. Create core models
         Island island = new Island(config.getIslandWidth(), config.getIslandHeight());
@@ -39,37 +39,9 @@ public class SimulationBootstrap {
         initializer.initialize(island, speciesConfig, animalFactory, gameLoop.getTaskExecutor());
 
         // 6. Register simulation tasks
-        registerTasks(gameLoop, island, matrix, animalFactory, consoleView);
+        TaskRegistry taskRegistry = new TaskRegistry(gameLoop, island, matrix, animalFactory, consoleView);
+        taskRegistry.registerAll();
 
         return new SimulationContext(island, gameLoop, speciesConfig, consoleView);
-    }
-
-    private void initInteractionMatrix(InteractionMatrix matrix, SpeciesConfig config) {
-        for (String predatorKey : config.getAllSpeciesKeys()) {
-            for (String preyKey : config.getAllSpeciesKeys()) {
-                int chance = config.getHuntProbability(predatorKey, preyKey);
-                if (chance > 0) {
-                    matrix.setChance(predatorKey, preyKey, chance);
-                }
-            }
-            // Default plant eating chance if configured in properties or hardcoded fallback
-            int plantChance = config.getHuntProbability(predatorKey, "plant");
-            if (plantChance > 0) {
-                matrix.setChance(predatorKey, "Plant", plantChance);
-            } else if (predatorKey.equals("rabbit") || predatorKey.equals("duck") || predatorKey.equals("goat")) {
-                matrix.setChance(predatorKey, "Plant", 100);
-            }
-        }
-    }
-
-    private void registerTasks(GameLoop loop, Island island, InteractionMatrix matrix, 
-                               AnimalFactory factory, ConsoleView view) {
-        loop.addRecurringTask(island::nextTick);
-        loop.addRecurringTask(new LifecycleService(island, loop.getTaskExecutor()));
-        loop.addRecurringTask(new FeedingService(island, matrix, loop.getTaskExecutor()));
-        loop.addRecurringTask(new MovementService(island, loop.getTaskExecutor()));
-        loop.addRecurringTask(new ReproductionService(island, factory, loop.getTaskExecutor()));
-        loop.addRecurringTask(new CleanupService(island, loop.getTaskExecutor()));
-        loop.addRecurringTask(() -> view.display(island));
     }
 }

@@ -1,6 +1,9 @@
 package com.island.content;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Flyweight: common data for a species.

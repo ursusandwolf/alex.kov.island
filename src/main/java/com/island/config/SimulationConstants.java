@@ -5,7 +5,7 @@ public final class SimulationConstants {
     public static double BASE_MOVE_COST_PERCENT = 0.05;
     public static double SPEED_MOVE_COST_STEP_PERCENT = 0.01;
     
-    public static double REPRODUCTION_COST_PERCENT = 0.30;
+    public static double REPRODUCTION_COST_PERCENT = 0.15; // Lowered from 0.30
     
     public static double BASE_HUNT_COST_PERCENT = 0.01; 
     public static double PREDATOR_SPEED_HUNT_COST_STEP_PERCENT = 0.005; 
@@ -25,7 +25,7 @@ public final class SimulationConstants {
     
     // Thresholds
     public static double ACTION_MIN_ENERGY_PERCENT = 15.0; 
-    public static double REPRODUCTION_MIN_ENERGY_PERCENT = 60.0; // Restored to 60%
+    public static double REPRODUCTION_MIN_ENERGY_PERCENT = 70.0; // Higher requirement to slow down
     public static double BABY_INITIAL_ENERGY_PERCENT = 50.0; 
     public static double DEATH_EPSILON = 0.00001;
     public static double ESCAPE_ENERGY_COST_PERCENT = 0.05;
@@ -34,22 +34,22 @@ public final class SimulationConstants {
     public static double ENDANGERED_POPULATION_THRESHOLD = 0.05; 
     public static double ENDANGERED_REPRO_BONUS_PERCENT = 20.0; 
 
-    // Reproduction Scaling (Restored fertile values)
-    public static int OFFSPRING_SMALL_ANIMAL = 4; 
-    public static int OFFSPRING_LARGE_ANIMAL = 2; 
-    public static int OFFSPRING_INSECT = 15; 
+    // Reproduction Scaling (More controlled)
+    public static int OFFSPRING_SMALL_ANIMAL = 2; 
+    public static int OFFSPRING_LARGE_ANIMAL = 1; 
+    public static int OFFSPRING_INSECT = 5; 
     public static double WEIGHT_THRESHOLD_SMALL = 6.0;
-    public static int HERBIVORE_OFFSPRING_BONUS = 2; 
+    public static int HERBIVORE_OFFSPRING_BONUS = 1; 
 
-    // Plants logic (Restored healthy growth)
+    // Plants logic (Optimal growth from review)
     public static double PLANT_INITIAL_BIOMASS_FACTOR = 0.5; 
-    public static double PLANT_GROWTH_RATE_MIN = 0.40; 
-    public static double PLANT_GROWTH_RATE_MAX = 0.80; 
+    public static double PLANT_GROWTH_RATE_MIN = 0.10; 
+    public static double PLANT_GROWTH_RATE_MAX = 0.10; 
 
     public static final double GRASS_WEIGHT = 1.0;
-    public static final int GRASS_MAX_COUNT = 1000; 
+    public static final int GRASS_MAX_COUNT = 200; 
     public static final double CABBAGE_WEIGHT = 2.0;
-    public static final int CABBAGE_MAX_COUNT = 500; 
+    public static final int CABBAGE_MAX_COUNT = 100; 
     
     // Caterpillar (Smart Biomass) Pendulum Constants
     public static double CATERPILLAR_METABOLISM_RATE = 0.05;
