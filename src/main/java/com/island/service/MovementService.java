@@ -74,11 +74,30 @@ public class MovementService extends AbstractService {
 
         for (Biomass b : containers) {
             if (b.isAlive() && b.getSpeed() > 0 && b.getBiomass() > 0) {
-                // To avoid the entire biomass moving back and forth in the same tick if multiple cells are processed,
-                // we could use a marker, but for simplicity we move the whole "swarm" once.
-                Cell target = selectTargetCell(cell, b.getSpeed());
-                if (target != cell) {
-                    island.moveBiomass(b, cell, target);
+                // Logic: Move exactly one 25% chunk in one random direction.
+                double totalMass = b.getBiomass();
+                double chunk = totalMass * 0.25;
+
+                int direction = ThreadLocalRandom.current().nextInt(4); // 0: Up, 1: Down, 2: Left, 3: Right
+                int dx = 0;
+                int dy = 0;
+                switch (direction) {
+                    case 0 -> dy = -1;
+                    case 1 -> dy = 1;
+                    case 2 -> dx = -1;
+                    case 3 -> dx = 1;
+                    default -> { /* Should not happen */ }
+                }
+
+                int tx = cell.getX() + dx;
+                int ty = cell.getY() + dy;
+
+                // "Если на краю карты показалось неправильное направление, то пропуск хода"
+                if (tx >= 0 && tx < island.getWidth() && ty >= 0 && ty < island.getHeight()) {
+                    Cell target = island.getCell(tx, ty);
+                    if (target != cell) {
+                        island.moveBiomassPartially(b, cell, target, chunk);
+                    }
                 }
             }
         }

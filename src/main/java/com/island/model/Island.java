@@ -298,7 +298,11 @@ public class Island {
     }
 
     public void moveBiomass(Biomass b, Cell from, Cell to) {
-        if (from == to || b.getBiomass() <= 0) {
+        moveBiomassPartially(b, from, to, b.getBiomass());
+    }
+
+    public void moveBiomassPartially(Biomass b, Cell from, Cell to, double amount) {
+        if (from == to || amount <= 0 || b.getBiomass() <= 0) {
             return;
         }
 
@@ -309,21 +313,26 @@ public class Island {
         try {
             second.getLock().lock();
             try {
-                double amount = b.getBiomass();
-                // In this optimized model, we move the entire container's mass
-                // to the target cell's container of the same species.
-                // We create a temporary Biomass object to represent the "moving" mass
-                // although in this specific swarm model, we can just transfer the value.
+                // In this optimized model, we can just transfer the value.
+                double actualToMove = Math.min(b.getBiomass(), amount);
+                b.consumeBiomass(actualToMove);
                 
-                // We use the addBiomass logic of the target cell which handles merging.
-                // But we need to ensure we don't duplicate the object itself if it's a new species in 'to'.
-                
-                // Create a temporary object if target doesn't have it, or just use 'b' if we remove it from 'from'.
-                if (from.removeBiomass(b)) {
-                    if (!to.addBiomass(b)) {
-                        // If somehow it failed to add (shouldn't with merging logic), try to return it.
-                        from.addBiomass(b);
-                    }
+                // Create a temporary object to pass to addBiomass (which merges it)
+                // We use the same speed and type info.
+                try {
+                    // Using reflection or a factory would be better, but for this specific model,
+                    // we can assume the recipient cell's addBiomass handles the merge.
+                    // We need a way to pass the mass. Let's make addBiomass take a SpeciesKey and amount too?
+                    // Or just use the existing addBiomass with a "dummy" container.
+                    
+                    // Let's improve Cell.addBiomass to be more flexible if needed, 
+                    // but for now, we'll create a lightweight copy for the transfer.
+                    Biomass dummy = (Biomass) b.getClass().getConstructor(double.class, int.class)
+                                            .newInstance(actualToMove, b.getSpeed());
+                    to.addBiomass(dummy);
+                } catch (Exception e) {
+                    // Fallback: if reflection fails, return the biomass
+                    b.addBiomass(actualToMove);
                 }
             } finally {
                 second.getLock().unlock();
