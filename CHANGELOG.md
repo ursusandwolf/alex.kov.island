@@ -1,6 +1,17 @@
 # Changelog
 
 ## [2026-04-27]
+### Biomass Unification & Swarm Dynamics
+- **Unified Biomass Abstraction**: Replaced the specific `Plant` class with a more versatile `Biomass` base class. 
+    - **Shared Logic**: All mass-based organisms (Grass, Cabbage, Caterpillar, Butterfly) now share a unified growth, consumption, and storage model.
+    - **O(1) Species Access**: Refactored `Cell` to store biomass in an `EnumMap`, providing constant-time access for feeding and lifecycle services.
+- **Swarm Movement Implementation**: Introduced mobile biomass dynamics.
+    - **`moveBiomass` Logic**: `Island` now supports atomic transfer of entire species "swarms" between cells, enabling movement for butterflies.
+    - **Enhanced `MovementService`**: Butterflies now utilize their speed attribute (defined in `species.properties`) to traverse the island.
+- **Architectural Cleanup**:
+    - **Registry-Driven Mobility**: Added `plantSpeed` to `SpeciesRegistry` and `SpeciesLoader`, allowing biomass mobility to be configured externally.
+    - **Test Synchronization**: Updated `FeedingServiceTest` and `BiologicalPendulumTest` to reflect the new biomass container architecture, ensuring full suite stability.
+
 ### Biological Diversity & Lifecycle 
 - **Hamster Species**: Added `Hamster` (🐹) with optimized small-mammal metrics (0.1kg weight, high density, mouse-like diet).
 - **Complex Metamorphosis**: Implemented a staged life cycle for `Caterpillar` (🐛) and `Butterfly` (🦋). 
