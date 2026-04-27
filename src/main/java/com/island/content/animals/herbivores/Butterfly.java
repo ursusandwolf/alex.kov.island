@@ -1,5 +1,6 @@
 package com.island.content.animals.herbivores;
 
+import static com.island.config.SimulationConstants.BUTTERFLY_REPRODUCTION_RATE;
 import static com.island.config.SimulationConstants.CATERPILLAR_FEED_EFFICIENCY;
 import static com.island.config.SimulationConstants.CATERPILLAR_METABOLISM_RATE;
 
@@ -36,6 +37,24 @@ public class Butterfly extends Biomass {
                     }
                 }
             }
+        }
+
+        // 3. Reproduction (lay eggs)
+        reproduce(cell);
+    }
+
+    private void reproduce(Cell cell) {
+        if (biomass > 0) {
+            double offspringBiomass = biomass * BUTTERFLY_REPRODUCTION_RATE;
+            biomass -= offspringBiomass; // Conversion of mass
+
+            Caterpillar c = (Caterpillar) cell.getBiomass(SpeciesKey.CATERPILLAR);
+            if (c == null) {
+                // If no caterpillars exist, create a new container
+                c = new Caterpillar(0, 0); // Speed 0 for caterpillars
+                cell.addBiomass(c);
+            }
+            c.spawn(offspringBiomass);
         }
     }
 

@@ -30,6 +30,7 @@ public final class SimulationConstants {
     // Caterpillar Pendulum Constants
     public static final double CATERPILLAR_METABOLISM_RATE = 0.05;
     public static final double CATERPILLAR_FEED_EFFICIENCY = 1.0; 
+    public static final double BUTTERFLY_REPRODUCTION_RATE = 0.10; 
     
     private SimulationConstants() {
     }

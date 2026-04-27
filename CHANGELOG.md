@@ -7,8 +7,11 @@
     - **O(1) Species Access**: Refactored `Cell` to store biomass in an `EnumMap`, providing constant-time access for feeding and lifecycle services.
 - **Swarm Movement Implementation**: Introduced mobile biomass dynamics.
     - **`moveBiomass` Logic**: `Island` now supports atomic transfer of entire species "swarms" between cells, enabling movement for butterflies.
-    - **Enhanced `MovementService`**: Butterflies now utilize their speed attribute (defined in `species.properties`) to traverse the island.
+    - **Enhanced `MovementService`**: Butterflies now utilize their speed attribute (defined in `species.properties`) to traverse the island via a 25% mass-flow "diffusion" model.
+- **Closed Biological Loop**: Butterflies now reproduce by converting a portion of their biomass back into caterpillars, ensuring life cycle continuity.
 - **Architectural Cleanup**:
+    - **Simplified Energy Costs**: Refactored animal movement costs to a unified formula `(1 + speed) * coef`, eliminating redundant constants.
+    - **Metabolism Refactoring**: Unified `getDynamicMetabolismRate` in `Organism` using a template method pattern for specialized modifiers (e.g., Herbivore bonus), eliminating `instanceof` checks in hot loops.
     - **Registry-Driven Mobility**: Added `plantSpeed` to `SpeciesRegistry` and `SpeciesLoader`, allowing biomass mobility to be configured externally.
     - **Test Synchronization**: Updated `FeedingServiceTest` and `BiologicalPendulumTest` to reflect the new biomass container architecture, ensuring full suite stability.
 

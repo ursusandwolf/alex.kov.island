@@ -111,6 +111,13 @@ public class Caterpillar extends Biomass {
         // Handled via processPendulum
     }
 
+    public void spawn(double amount) {
+        if (amount > 0) {
+            activeStages[0] += amount;
+            updateTotalBiomass();
+        }
+    }
+
     @Override
     public double consumeBiomass(double amount) {
         double actual = super.consumeBiomass(amount);
