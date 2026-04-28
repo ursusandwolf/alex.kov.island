@@ -1,10 +1,13 @@
 package com.island.content.plants;
 
-import com.island.content.SpeciesConfig;
+import com.island.content.Biomass;
+import com.island.content.SpeciesKey;
 
-public class Grass extends Plant {
-    public Grass() {
-        super("Grass", "plant", 
-              SpeciesConfig.getInstance().getPlantWeight() * SpeciesConfig.getInstance().getPlantMaxCount()); 
+/**
+ * Grass implementation.
+ */
+public class Grass extends Biomass {
+    public Grass(double maxBiomass, int speed) {
+        super("Grass", SpeciesKey.GRASS, maxBiomass, speed);
     }
 }

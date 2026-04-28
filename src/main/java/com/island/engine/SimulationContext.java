@@ -1,27 +1,43 @@
 package com.island.engine;
 
-import com.island.content.SpeciesConfig;
+import com.island.content.SpeciesRegistry;
 import com.island.model.Island;
-import com.island.view.ConsoleView;
+import com.island.view.SimulationView;
 
 /**
- * Holder for core simulation components.
+ * Context that holds all major components of a running simulation.
  */
 public class SimulationContext {
     private final Island island;
     private final GameLoop gameLoop;
-    private final SpeciesConfig speciesConfig;
-    private final ConsoleView consoleView;
+    private final SpeciesRegistry speciesRegistry;
+    private final SimulationView view;
 
-    public SimulationContext(Island island, GameLoop gameLoop, SpeciesConfig speciesConfig, ConsoleView consoleView) {
+    public SimulationContext(Island island, GameLoop gameLoop, SpeciesRegistry speciesRegistry, SimulationView view) {
         this.island = island;
         this.gameLoop = gameLoop;
-        this.speciesConfig = speciesConfig;
-        this.consoleView = consoleView;
+        this.speciesRegistry = speciesRegistry;
+        this.view = view;
     }
 
-    public Island getIsland() { return island; }
-    public GameLoop getGameLoop() { return gameLoop; }
-    public SpeciesConfig getSpeciesConfig() { return speciesConfig; }
-    public ConsoleView getConsoleView() { return consoleView; }
+    public Island getIsland() {
+        return island;
+    }
+
+    public GameLoop getGameLoop() {
+        return gameLoop;
+    }
+
+    public SpeciesRegistry getSpeciesRegistry() {
+        return speciesRegistry;
+    }
+
+    public SimulationView getView() {
+        return view;
+    }
+
+    @Deprecated
+    public SimulationView getConsoleView() {
+        return view;
+    }
 }

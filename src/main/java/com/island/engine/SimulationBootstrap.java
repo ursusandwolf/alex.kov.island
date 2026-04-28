@@ -1,75 +1,49 @@
 package com.island.engine;
 
+import com.island.config.ConfigLoader;
 import com.island.config.Configuration;
 import com.island.content.AnimalFactory;
-import com.island.content.FeedingService;
-import com.island.content.SpeciesConfig;
+import com.island.content.SpeciesLoader;
+import com.island.content.SpeciesRegistry;
 import com.island.model.Island;
-import com.island.service.*;
 import com.island.util.InteractionMatrix;
 import com.island.view.ConsoleView;
+import com.island.view.SimulationView;
 
 /**
  * Responsible for initializing all components of the simulation.
+ * Adheres to SRP by delegating to specialized loaders and registries.
  */
 public class SimulationBootstrap {
+    private final ConfigLoader configLoader = new ConfigLoader();
 
     public SimulationContext setup() {
-        return setup(Configuration.load());
+        return setup(configLoader.loadGeneralConfig());
     }
 
     public SimulationContext setup(Configuration config) {
-        // 1. Load configuration
-        SpeciesConfig speciesConfig = SpeciesConfig.getInstance();
+        // 1. Load configuration and species registry
+        SpeciesRegistry registry = new SpeciesLoader().load();
         
         // 2. Setup interaction matrix
-        InteractionMatrix matrix = new InteractionMatrix();
-        initInteractionMatrix(matrix, speciesConfig);
+        InteractionMatrix matrix = configLoader.loadInteractionMatrix(registry);
 
         // 3. Create core models
         Island island = new Island(config.getIslandWidth(), config.getIslandHeight());
-        AnimalFactory animalFactory = new AnimalFactory(speciesConfig);
+        AnimalFactory animalFactory = new AnimalFactory(registry);
 
         // 4. Setup GameLoop and View
+        SimulationView view = new ConsoleView();
         GameLoop gameLoop = new GameLoop(config.getTickDurationMs());
-        ConsoleView consoleView = new ConsoleView();
 
         // 5. Initialize world population
         WorldInitializer initializer = new WorldInitializer();
-        initializer.initialize(island, speciesConfig, animalFactory, gameLoop.getTaskExecutor());
+        initializer.initialize(island, registry, animalFactory, gameLoop.getTaskExecutor());
 
         // 6. Register simulation tasks
-        registerTasks(gameLoop, island, matrix, animalFactory, consoleView);
+        TaskRegistry taskRegistry = new TaskRegistry(gameLoop, island, matrix, animalFactory, registry, view);
+        taskRegistry.registerAll();
 
-        return new SimulationContext(island, gameLoop, speciesConfig, consoleView);
-    }
-
-    private void initInteractionMatrix(InteractionMatrix matrix, SpeciesConfig config) {
-        for (String predatorKey : config.getAllSpeciesKeys()) {
-            for (String preyKey : config.getAllSpeciesKeys()) {
-                int chance = config.getHuntProbability(predatorKey, preyKey);
-                if (chance > 0) {
-                    matrix.setChance(predatorKey, preyKey, chance);
-                }
-            }
-            // Default plant eating chance if configured in properties or hardcoded fallback
-            int plantChance = config.getHuntProbability(predatorKey, "plant");
-            if (plantChance > 0) {
-                matrix.setChance(predatorKey, "Plant", plantChance);
-            } else if (predatorKey.equals("rabbit") || predatorKey.equals("duck") || predatorKey.equals("goat")) {
-                matrix.setChance(predatorKey, "Plant", 100);
-            }
-        }
-    }
-
-    private void registerTasks(GameLoop loop, Island island, InteractionMatrix matrix, 
-                               AnimalFactory factory, ConsoleView view) {
-        loop.addRecurringTask(island::nextTick);
-        loop.addRecurringTask(new LifecycleService(island, loop.getTaskExecutor()));
-        loop.addRecurringTask(new FeedingService(island, matrix, loop.getTaskExecutor()));
-        loop.addRecurringTask(new MovementService(island, loop.getTaskExecutor()));
-        loop.addRecurringTask(new ReproductionService(island, factory, loop.getTaskExecutor()));
-        loop.addRecurringTask(new CleanupService(island, loop.getTaskExecutor()));
-        loop.addRecurringTask(() -> view.display(island));
+        return new SimulationContext(island, gameLoop, registry, view);
     }
 }

@@ -1,120 +1,139 @@
 package com.island.view;
-import com.island.util.RandomUtils;
-import com.island.util.ViewUtils;import com.island.content.plants.*;
+
 import com.island.content.Animal;
-import com.island.content.plants.Plant;
+import com.island.content.SpeciesKey;
+import com.island.content.Biomass;
 import com.island.model.Cell;
 import com.island.model.Island;
+import com.island.util.ViewUtils;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
-import java.util.*;
-
-public class ConsoleView {
+/**
+ * Console visualization of the island ecosystem.
+ */
+public class ConsoleView implements SimulationView {
     private static final String RESET = "\u001B[0m";
     private static final String GREEN = "\u001B[32m";
     private static final String YELLOW = "\u001B[33m";
     private static final String CYAN = "\u001B[36m";
+    private static final String CLEAR_EOL = "\u001B[K";
+    private static final String CURSOR_HOME = "\u001B[H";
+    private static final String CLEAR_DOWN = "\u001B[J";
 
-    private static final Map<String, String> ICONS = new HashMap<>();
+    private static final Map<SpeciesKey, String> ICONS = new HashMap<>();
 
     static {
-        ICONS.put("wolf", "🐺"); ICONS.put("boa", "🐍"); ICONS.put("fox", "🦊");
-        ICONS.put("bear", "🐻"); ICONS.put("eagle", "🦅"); ICONS.put("horse", "🐎");
-        ICONS.put("deer", "🦌"); ICONS.put("rabbit", "🐇"); ICONS.put("mouse", "🐁");
-        ICONS.put("goat", "🐐"); ICONS.put("sheep", "🐑"); ICONS.put("boar", "🐗");
-        ICONS.put("buffalo", "🐃"); ICONS.put("duck", "🦆"); ICONS.put("caterpillar", "🐛");
-        ICONS.put("plant", "🌿"); ICONS.put("cabbage", "🥬");
+        ICONS.put(SpeciesKey.WOLF, "🐺");
+        ICONS.put(SpeciesKey.BOA, "🐍");
+        ICONS.put(SpeciesKey.FOX, "🦊");
+        ICONS.put(SpeciesKey.BEAR, "🐻");
+        ICONS.put(SpeciesKey.EAGLE, "🦅");
+        ICONS.put(SpeciesKey.HORSE, "🐎");
+        ICONS.put(SpeciesKey.DEER, "🦌");
+        ICONS.put(SpeciesKey.RABBIT, "🐇");
+        ICONS.put(SpeciesKey.MOUSE, "🐁");
+        ICONS.put(SpeciesKey.HAMSTER, "🐹");
+        ICONS.put(SpeciesKey.GOAT, "🐐");
+        ICONS.put(SpeciesKey.SHEEP, "🐑");
+        ICONS.put(SpeciesKey.BOAR, "🐗");
+        ICONS.put(SpeciesKey.BUFFALO, "🐃");
+        ICONS.put(SpeciesKey.DUCK, "🦆");
+        ICONS.put(SpeciesKey.FROG, "🐸");
+        ICONS.put(SpeciesKey.CHAMELEON, "🦎");
+        ICONS.put(SpeciesKey.CATERPILLAR, "🐛");
+        ICONS.put(SpeciesKey.BUTTERFLY, "🦋");
+        ICONS.put(SpeciesKey.PLANT, "🌿");
+        ICONS.put(SpeciesKey.GRASS, "☘️");
+        ICONS.put(SpeciesKey.CABBAGE, "🥬");
     }
 
-    private int lastRenderedTick = -1;
-    private static final int RENDER_THROTTLE = 5;
-    private boolean silent = false;
-
-    private final Map<String, LinkedList<Integer>> populationHistory = new HashMap<>();
+    private boolean isSilent = false;
     private final LinkedList<Integer> totalPopulationHistory = new LinkedList<>();
-    private static final int HISTORY_SIZE = 15;
+    private final Map<SpeciesKey, LinkedList<Integer>> populationHistory = new HashMap<>();
+    private static final int HISTORY_SIZE = 10;
+    
+    private final Map<SpeciesKey, Double> cellBiomassMap = new HashMap<>();
 
     public void setSilent(boolean silent) {
-        this.silent = silent;
+        this.isSilent = silent;
     }
 
     public void display(Island island) {
-        if (silent) return;
+        if (isSilent) {
+            return;
+        }
+
+        updateHistory(island);
         
-        // Update history every render tick
-        if (island.getTickCount() % RENDER_THROTTLE == 0 || lastRenderedTick == -1) {
-            updateHistory(island);
-        }
-
-        // Only update UI every RENDER_THROTTLE ticks to reduce flicker
-        if (island.getTickCount() > 0 && island.getTickCount() % RENDER_THROTTLE != 0 && island.getTickCount() != lastRenderedTick + 1) {
-            if (lastRenderedTick != -1) return; 
-        }
-        lastRenderedTick = island.getTickCount();
-
         StringBuilder sb = new StringBuilder();
-        sb.append("\033[H"); 
+        sb.append(CURSOR_HOME); // Move cursor to top-left instead of clearing the screen to prevent flickering
+        sb.append(CYAN).append("=== ISLAND ECOSYSTEM DASHBOARD ===").append(RESET).append(CLEAR_EOL).append("\n");
         
-        sb.append(CYAN).append("=== ISLAND ECOSYSTEM DASHBOARD ===").append(RESET).append("\n");
         String totalGraph = ViewUtils.getSparkline(totalPopulationHistory, HISTORY_SIZE * 2);
-        sb.append(String.format("Tick: %-5d | Total Population: %-6d %s\n", 
-                island.getTickCount(), island.getTotalOrganismCount(), totalGraph));
+        sb.append(String.format("Tick: %d | Total Organisms: %d %s", 
+                island.getTickCount(), island.getTotalOrganismCount(), totalGraph)).append(CLEAR_EOL).append("\n");
         
         // Hunger Stats
         double satiety = island.getGlobalSatiety();
         int starving = island.getStarvingCount();
-        String satietyColor = satiety > 70 ? GREEN : (satiety > 40 ? YELLOW : "\u001B[31m"); // Red if < 40%
+        String satietyColor = satiety > 70 ? GREEN : (satiety > 40 ? YELLOW : "\u001B[31m"); 
         
         sb.append(String.format("Global Satiety: %s%3.1f%%%s [", satietyColor, satiety, RESET));
         int progress = (int) (satiety / 5);
         sb.append(satietyColor).append("#".repeat(progress)).append(".".repeat(20 - progress)).append(RESET).append("] ");
-        sb.append(String.format("| Starving: %s%d%s\n", (starving > 0 ? "\u001B[31m" : GREEN), starving, RESET));
+        sb.append(String.format("| Starving: %s%d%s", (starving > 0 ? "\u001B[31m" : GREEN), starving, RESET)).append(CLEAR_EOL).append("\n");
         
-        sb.append(String.format("Deaths Last Tick: Hunger: %s%d%s | Old Age: %s%d%s\n", 
-                "\u001B[31m", island.getHungerDeaths(), RESET, 
-                YELLOW, island.getAgeDeaths(), RESET));
-        sb.append(String.format("Hunts Successful: %s%d%s\n", 
-                GREEN, island.getEatenAnimals(), RESET));
+        int hungerTotal = island.getTotalAnimalDeathCount(com.island.content.DeathCause.HUNGER);
+        int ageTotal = island.getTotalAnimalDeathCount(com.island.content.DeathCause.AGE);
+        int eatenTotal = island.getTotalAnimalDeathCount(com.island.content.DeathCause.EATEN);
+        int exhaustTotal = island.getTotalAnimalDeathCount(com.island.content.DeathCause.MOVEMENT_EXHAUSTION);
 
-        sb.append("-".repeat(60)).append("\n");
+        sb.append(String.format("Total Deaths: Hunger: %s%d%s | Old Age: %s%d%s | Exhausted: %s%d%s", 
+                "\u001B[31m", hungerTotal, RESET, 
+                YELLOW, ageTotal, RESET,
+                "\u001B[35m", exhaustTotal, RESET)).append(CLEAR_EOL).append("\n"); 
+        sb.append(String.format("Total Hunts (Eaten Animals): %s%d%s", 
+                GREEN, eatenTotal, RESET)).append(CLEAR_EOL).append("\n");
 
-        Map<String, Integer> currentCounts = new TreeMap<>(island.getSpeciesCounts());
+        sb.append("-".repeat(60)).append(CLEAR_EOL).append("\n");
+
+        Map<SpeciesKey, Integer> currentCounts = new TreeMap<>(island.getSpeciesCounts());
 
         renderStatsWithGraphs(sb, currentCounts);
 
-        sb.append("-".repeat(60)).append("\n");
-        sb.append(YELLOW).append("Map View:").append(RESET).append("\n");
+        sb.append("-".repeat(60)).append(CLEAR_EOL).append("\n");
+        sb.append(YELLOW).append("Map View:").append(RESET).append(CLEAR_EOL).append("\n");
         
-        int midX = island.getWidth() / 2;
-        int midY = island.getHeight() / 2;
-
+        sb.append("╔").append("═══".repeat(island.getWidth())).append("╗").append(CLEAR_EOL).append("\n");
         for (int y = 0; y < island.getHeight(); y++) {
-            if (y > 0 && y == midY) {
-                sb.append("---".repeat(island.getWidth() + 1)).append("\n");
-            }
+            sb.append("║");
             for (int x = 0; x < island.getWidth(); x++) {
-                if (x > 0 && x == midX) {
-                    sb.append("| ");
-                }
-                renderCell(sb, island.getCell(x, y));
+                renderCell(sb, island.getGrid()[x][y]);
             }
-            sb.append("\n");
+            sb.append("║").append(CLEAR_EOL).append("\n");
         }
+        sb.append("╚").append("═══".repeat(island.getWidth())).append("╝").append(CLEAR_EOL).append("\n");
+        sb.append(CLEAR_DOWN); 
         
         System.out.print(sb.toString());
         System.out.flush();
     }
 
     private void updateHistory(Island island) {
-        // Update Total History
         totalPopulationHistory.add(island.getTotalOrganismCount());
         if (totalPopulationHistory.size() > HISTORY_SIZE * 2) {
             totalPopulationHistory.removeFirst();
         }
 
-        // Update Species History
-        Map<String, Integer> currentCounts = island.getSpeciesCounts();
-        List<String> allSpecies = new ArrayList<>(com.island.content.SpeciesConfig.getInstance().getAllSpeciesKeys());
-        for (String species : allSpecies) {
+        Map<SpeciesKey, Integer> currentCounts = island.getSpeciesCounts();
+        for (SpeciesKey species : SpeciesKey.values()) {
             populationHistory.putIfAbsent(species, new LinkedList<>());
             LinkedList<Integer> history = populationHistory.get(species);
             history.add(currentCounts.getOrDefault(species, 0));
@@ -124,80 +143,72 @@ public class ConsoleView {
         }
     }
 
-    private void renderStatsWithGraphs(StringBuilder sb, Map<String, Integer> currentCounts) {
+    private void renderStatsWithGraphs(StringBuilder sb, Map<SpeciesKey, Integer> currentCounts) {
         int col = 0;
-        List<String> allSpecies = new ArrayList<>(com.island.content.SpeciesConfig.getInstance().getAllSpeciesKeys());
+        List<SpeciesKey> allSpecies = new ArrayList<>(currentCounts.keySet());
         Collections.sort(allSpecies);
 
-        for (String species : allSpecies) {
+        for (SpeciesKey species : allSpecies) {
             int count = currentCounts.getOrDefault(species, 0);
-            String icon = ICONS.getOrDefault(species, species.substring(0, 1).toUpperCase());
+            String icon = ICONS.getOrDefault(species, "?");
             String graph = ViewUtils.getSparkline(populationHistory.get(species), HISTORY_SIZE);
             
-            sb.append(String.format("%s %-11s: %-5d %s  ", icon, species, count, graph));
-            if (++col % 2 == 0) sb.append("\n");
+            sb.append(String.format("%s %-11s: %-5d %s  ", icon, species.getCode(), count, graph));
+            if (++col % 2 == 0) {
+                sb.append(CLEAR_EOL).append("\n");
+            }
         }
-        if (col % 2 != 0) sb.append("\n");
-    }
-
-    private String getSparkline(String species) {
-        LinkedList<Integer> history = populationHistory.get(species);
-        if (history == null || history.size() < 2) return "      ";
-        
-        int min = history.stream().min(Integer::compare).orElse(0);
-        int max = history.stream().max(Integer::compare).orElse(1);
-        int range = Math.max(1, max - min);
-
-        char[] sparkChars = {' ', '▂', '▃', '▄', '▅', '▆', '▇', '█'};
-        StringBuilder sparkline = new StringBuilder();
-        for (int val : history) {
-            int idx = (int) (((double) (val - min) / range) * (sparkChars.length - 1));
-            sparkline.append(sparkChars[idx]);
+        if (col % 2 != 0) {
+            sb.append(CLEAR_EOL).append("\n");
         }
-        // Pad to consistent width
-        while (sparkline.length() < HISTORY_SIZE) sparkline.insert(0, " ");
-        return sparkline.toString();
     }
 
     private void renderCell(StringBuilder sb, Cell cell) {
-        // Calculate total biomass per species in this cell
-        Map<String, Double> biomassMap = new HashMap<>();
+        cellBiomassMap.clear();
+        boolean hasBiomass = false;
         
         for (Animal a : cell.getAnimals()) {
             if (a.isAlive()) {
-                biomassMap.put(a.getSpeciesKey(), 
-                    biomassMap.getOrDefault(a.getSpeciesKey(), 0.0) + a.getWeight());
+                cellBiomassMap.merge(a.getSpeciesKey(), a.getWeight(), Double::sum);
+                hasBiomass = true;
             }
         }
 
-        // Add plants to biomass if applicable
-        for (Plant p : cell.getPlants()) {
-            if (p.isAlive()) {
-                biomassMap.put(p.getSpeciesKey(), 
-                    biomassMap.getOrDefault(p.getSpeciesKey(), 0.0) + p.getBiomass());
+        for (Biomass p : cell.getBiomassContainers()) {
+            if (p.isAlive() && p.getBiomass() > 0) {
+                cellBiomassMap.merge(p.getSpeciesKey(), p.getBiomass(), Double::sum);
+                hasBiomass = true;
             }
         }
 
-        if (!biomassMap.isEmpty()) {
-            // Get top 3 species by biomass
-            List<String> topSpeciesList = biomassMap.entrySet().stream()
-                    .sorted((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()))
-                    .limit(3)
-                    .map(Map.Entry::getKey)
-                    .toList();
+        if (hasBiomass) {
+            SpeciesKey topSpecies = null;
+            double topWeight = -1.0;
             
-            // Cycle through the top species based on the current tick
-            int displayIndex = (lastRenderedTick / RENDER_THROTTLE) % topSpeciesList.size();
-            String speciesToDisplay = topSpeciesList.get(displayIndex);
-            String icon = ICONS.getOrDefault(speciesToDisplay, speciesToDisplay.substring(0, 1).toUpperCase());
+            for (Map.Entry<SpeciesKey, Double> entry : cellBiomassMap.entrySet()) {
+                if (entry.getValue() > topWeight) {
+                    topWeight = entry.getValue();
+                    topSpecies = entry.getKey();
+                }
+            }
             
-            if (speciesToDisplay.equals("plant") || speciesToDisplay.equals("cabbage")) {
-                sb.append(GREEN).append(icon).append(RESET).append(" ");
+            if (topSpecies != null) {
+                String icon = ICONS.getOrDefault(topSpecies, "?");
+                
+                if (isGreen(topSpecies)) {
+                    sb.append(GREEN).append(icon).append(RESET).append(" ");
+                } else {
+                    sb.append(icon).append(" ");
+                }
             } else {
-                sb.append(icon).append(" ");
+                sb.append("🏜️ ");
             }
         } else {
-            sb.append(". ");
+            sb.append("🏜️ ");
         }
+    }
+
+    private boolean isGreen(SpeciesKey key) {
+        return key == SpeciesKey.PLANT || key == SpeciesKey.GRASS || key == SpeciesKey.CABBAGE;
     }
 }

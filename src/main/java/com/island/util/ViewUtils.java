@@ -1,36 +1,41 @@
 package com.island.util;
 
-import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Utility class for UI and console visualization helpers.
+ * Utility class for console visualization.
  */
 public final class ViewUtils {
     
-    private static final char[] SPARK_CHARS = {' ', '▂', '▃', '▄', '▅', '▆', '▇', '█'};
+    private ViewUtils() {
+    }
 
-    private ViewUtils() {}
-
-    public static String getSparkline(List<Integer> history, int width) {
-        if (history == null || history.size() < 2) {
+    public static String getSparkline(List<Integer> data, int width) {
+        if (data == null || data.isEmpty()) {
             return " ".repeat(width);
         }
-        
-        int min = history.stream().min(Integer::compare).orElse(0);
-        int max = history.stream().max(Integer::compare).orElse(1);
-        int range = Math.max(1, max - min);
 
-        StringBuilder sparkline = new StringBuilder();
-        for (int val : history) {
-            int idx = (int) (((double) (val - min) / range) * (SPARK_CHARS.length - 1));
-            sparkline.append(SPARK_CHARS[idx]);
+        char[] chars = {',', '.', '_', '▂', '▃', '▄', '-', '~', '=', '▅', '▆', '▇', '█'};
+        int max = data.stream().max(Integer::compare).orElse(0);
+        int min = data.stream().min(Integer::compare).orElse(0);
+        int range = max - min;
+
+        StringBuilder sb = new StringBuilder();
+        int start = Math.max(0, data.size() - width);
+        for (int i = start; i < data.size(); i++) {
+            int val = data.get(i);
+            int idx;
+            if (range == 0) {
+                idx = (val > 0) ? chars.length / 2 : 0;
+            } else {
+                idx = (int) ((double) (val - min) / range * (chars.length - 1));
+            }
+            sb.append(chars[idx]);
         }
         
-        // Pad to consistent width
-        while (sparkline.length() < width) {
-            sparkline.insert(0, " ");
+        while (sb.length() < width) {
+            sb.insert(0, ' ');
         }
-        return sparkline.toString();
+        return sb.toString();
     }
 }

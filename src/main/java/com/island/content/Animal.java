@@ -1,13 +1,19 @@
 package com.island.content;
 
-import lombok.Getter;
-import static com.island.config.SimulationConstants.*;
+import static com.island.config.SimulationConstants.HERBIVORE_METABOLISM_MODIFIER;
+import static com.island.config.SimulationConstants.HERBIVORE_OFFSPRING_BONUS;
+import static com.island.config.SimulationConstants.SPEED_MOVE_COST_STEP_PERCENT;
+
+import com.island.config.EnergyPolicy;
+import com.island.content.animals.herbivores.Herbivore;
 
 /**
  * Base class for all animals in the simulation.
+ * Represents the state and properties of an animal.
  */
-public abstract class Animal extends Organism implements Mobile, Consumer, Reproducible<Animal> {
+public abstract class Animal extends Organism {
     protected final AnimalType animalType; 
+    protected boolean isHiding = false;
 
     protected Animal(AnimalType animalType) {
         super(animalType.getMaxEnergy(), animalType.getMaxLifespan());
@@ -15,65 +21,70 @@ public abstract class Animal extends Organism implements Mobile, Consumer, Repro
     }
 
     @Override
-    public String getTypeName() { return animalType.getTypeName(); }
+    public String getTypeName() {
+        return animalType.getTypeName();
+    }
 
     @Override
-    public String getSpeciesKey() { return animalType.getSpeciesKey(); }
+    public SpeciesKey getSpeciesKey() {
+        return animalType.getSpeciesKey();
+    }
 
-    public AnimalType getAnimalType() { return animalType; }
+    public AnimalType getAnimalType() {
+        return animalType;
+    }
+
+    public boolean isHiding() {
+        return isHiding;
+    }
+
+    public void setHiding(boolean h) {
+        this.isHiding = h;
+    }
 
     public boolean canInitiateReproduction() {
-        return isAlive() && getEnergyPercentage() >= REPRODUCTION_MIN_ENERGY_PERCENT;
+        return isAlive() && getEnergyPercentage() >= EnergyPolicy.REPRODUCTION_MIN.getPercent();
     }
 
     public boolean isProtected(int currentTick) {
         return isHiding;
     }
 
-    public double getWeight() { return animalType.getWeight(); }
-    public int getMaxPerCell() { return animalType.getMaxPerCell(); }
-    public int getSpeed() { return animalType.getSpeed(); }
-    public double getFoodForSaturation() { return animalType.getFoodForSaturation(); }
-
     @Override
-    public double eat() { return 0; }
-
-    @Override
-    public boolean move() {
-        if (!canPerformAction()) return false;
-        double moveCost = getMaxEnergy() * (BASE_MOVE_COST_PERCENT 
-            + (getSpeed() * SPEED_MOVE_COST_STEP_PERCENT));
-        consumeEnergy(moveCost);
-        return true;
+    public double getWeight() {
+        return animalType.getWeight();
     }
 
-    public boolean trySpendEnergyForReproduction() {
-        if (getEnergyPercentage() < REPRODUCTION_MIN_ENERGY_PERCENT) return false;
-        double cost = getMaxEnergy() * REPRODUCTION_COST_PERCENT;
-        if (getCurrentEnergy() > cost) {
-            consumeEnergy(cost);
-            return true;
-        }
-        return false;
+    public int getMaxPerCell() {
+        return animalType.getMaxPerCell();
     }
 
-    @Override
-    public double getDynamicMetabolismRate() {
-        double rate = super.getDynamicMetabolismRate();
-        // Herbivores get a survival bonus (lower metabolism)
-        if (this instanceof com.island.content.animals.herbivores.Herbivore) {
-            rate *= HERBIVORE_METABOLISM_MODIFIER;
-        }
-        return rate;
+    public int getSpeed() {
+        return animalType.getSpeed();
     }
 
-    @Override
-    public abstract Animal reproduce();
+    public double getFoodForSaturation() {
+        return animalType.getFoodForSaturation();
+    }
 
-    public boolean canEat(String preyKey) { return animalType.canEat(preyKey); }
-    public int getHuntProbability(String preyKey) { return animalType.getHuntProbability(preyKey); }
+    public boolean canEat(SpeciesKey preyKey) {
+        return animalType.canEat(preyKey);
+    }
+
+    public int getHuntProbability(SpeciesKey preyKey) {
+        return animalType.getHuntProbability(preyKey);
+    }
 
     public boolean isAnimalPredator() {
         return animalType.isPredator();
+    }
+
+    @Override
+    protected double getSpecialMetabolismModifier() {
+        return 1.0;
+    }
+
+    public int getOffspringBonus() {
+        return 0;
     }
 }

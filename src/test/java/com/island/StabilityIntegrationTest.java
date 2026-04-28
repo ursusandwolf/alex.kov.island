@@ -2,8 +2,7 @@ package com.island;
 
 import com.island.engine.SimulationBootstrap;
 import com.island.engine.SimulationContext;
-import com.island.config.SimulationConstants;
-import com.island.config.Configuration;
+import com.island.content.SpeciesKey;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
@@ -11,47 +10,49 @@ import java.util.Map;
 public class StabilityIntegrationTest {
 
     @Test
-    void runStabilitySweep() {
-        double[] reproThresholds = {70.0, 90.0};
-        double[] metabolismRates = {0.10, 0.15};
-
-        System.out.println("=== STABILITY SWEEP REPORT (40 Ticks) ===");
-        System.out.println("Repro% | Metal% | Survived | Extinct Species");
+    void runStabilityCheck() {
+        System.out.println("=== STABILITY CHECK REPORT (40 Ticks) ===");
+        System.out.println("Survived | Extinct Species");
         System.out.println("------------------------------------------");
 
-        for (double repro : reproThresholds) {
-            for (double metabolism : metabolismRates) {
-                SimulationConstants.REPRODUCTION_MIN_ENERGY_PERCENT = repro;
-                SimulationConstants.BASE_METABOLISM_PERCENT = metabolism;
-
-                String result = runSimulationSession(40);
-                System.out.printf("%-6.1f | %-6.2f | %s\n", repro, metabolism, result);
-            }
-        }
-    }
-
-    private String runSimulationSession(int maxTicks) {
         SimulationBootstrap bootstrap = new SimulationBootstrap();
-        SimulationContext context = bootstrap.setup(); // Use default config (100x20)
+        SimulationContext context = bootstrap.setup();
+        context.getView().setSilent(true);
 
-        // Disable console output during stability sweep for performance
-        context.getConsoleView().setSilent(true);
-
-        for (int i = 0; i < maxTicks; i++) {
+        for (int i = 0; i < 40; i++) {
             context.getGameLoop().runTick();
             if (context.getIsland().getTotalOrganismCount() == 0) break;
         }
 
-        Map<String, Integer> counts = context.getIsland().getSpeciesCounts();
+        Map<SpeciesKey, Integer> counts = context.getIsland().getSpeciesCounts();
+        
+        // Assertions
+        org.junit.jupiter.api.Assertions.assertTrue(counts.getOrDefault(SpeciesKey.GRASS, 0) > 0, 
+            "Grass must survive - ecosystem collapses without primary producers");
+        org.junit.jupiter.api.Assertions.assertTrue(counts.getOrDefault(SpeciesKey.CABBAGE, 0) > 0, 
+            "Cabbage must survive - ecosystem collapses without primary producers");
+        
+        long predatorsCount = counts.entrySet().stream()
+            .filter(e -> e.getKey().isPredator() && e.getValue() > 0)
+            .count();
+        org.junit.jupiter.api.Assertions.assertTrue(predatorsCount >= 1, 
+            "At least one predator species must survive");
+
+        System.out.println(formatReport(counts));
+    }
+
+    private String formatReport(Map<SpeciesKey, Integer> counts) {
         int survivedCount = 0;
         StringBuilder extinct = new StringBuilder();
         
-        for (String species : context.getSpeciesConfig().getAllSpeciesKeys()) {
+        for (SpeciesKey species : SpeciesKey.values()) {
+            if (species == SpeciesKey.PLANT) continue; // Category, not a species
+            
             if (counts.getOrDefault(species, 0) > 0) {
                 survivedCount++;
             } else {
                 if (extinct.length() > 0) extinct.append(", ");
-                extinct.append(species);
+                extinct.append(species.getCode());
             }
         }
         return String.format("%-8d | %s", survivedCount, extinct);

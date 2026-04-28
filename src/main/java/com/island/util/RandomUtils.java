@@ -1,33 +1,36 @@
 package com.island.util;
 
-import java.util.concurrent.ThreadLocalRandom;
-
 /**
  * Utility class for random number generation.
+ * Now delegates to a RandomProvider to allow deterministic tests.
  */
 public final class RandomUtils {
+    private static RandomProvider provider = new DefaultRandomProvider();
     
-    private RandomUtils() {}
+    private RandomUtils() {
+    }
+
+    public static void setProvider(RandomProvider newProvider) {
+        provider = newProvider;
+    }
 
     public static int nextInt(int bound) {
-        return ThreadLocalRandom.current().nextInt(bound);
+        return provider.nextInt(bound);
     }
 
     public static int nextInt(int origin, int bound) {
-        return ThreadLocalRandom.current().nextInt(origin, bound);
+        return provider.nextInt(origin, bound);
     }
 
     public static double nextDouble() {
-        return ThreadLocalRandom.current().nextDouble();
+        return provider.nextDouble();
     }
 
     public static double nextDouble(double bound) {
-        return ThreadLocalRandom.current().nextDouble(bound);
+        return provider.nextDouble(bound);
     }
 
     public static boolean checkChance(int chance) {
-        if (chance <= 0) return false;
-        if (chance >= 100) return true;
-        return nextInt(100) < chance;
+        return provider.checkChance(chance);
     }
 }

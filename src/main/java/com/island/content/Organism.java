@@ -1,9 +1,14 @@
 package com.island.content;
 
-import java.util.UUID;
-import static com.island.config.SimulationConstants.*;
+import static com.island.config.SimulationConstants.BASE_METABOLISM_PERCENT;
+import static com.island.config.SimulationConstants.DEATH_EPSILON;
 
-// Базовый класс организмов
+import com.island.config.EnergyPolicy;
+import java.util.UUID;
+
+/**
+ * Базовый класс организмов.
+ */
 public abstract class Organism {
     private final String id; 
     private volatile double currentEnergy; 
@@ -11,10 +16,9 @@ public abstract class Organism {
     private int age; 
     private final int maxLifespan; 
     private volatile boolean isAlive;
-    protected boolean isHiding = false;
 
     protected Organism(double maxEnergy, int maxLifespan) {
-        this(maxEnergy, maxLifespan, BABY_INITIAL_ENERGY_PERCENT / 100.0); 
+        this(maxEnergy, maxLifespan, EnergyPolicy.BIRTH_INITIAL.getFactor()); 
     }
 
     protected Organism(double maxEnergy, int maxLifespan, double energyFactor) {
@@ -26,14 +30,29 @@ public abstract class Organism {
         this.isAlive = true;
     }
 
-    public String getId() { return id; }
-    public boolean isAlive() { return isAlive; }
-    public boolean isHiding() { return isHiding; }
-    public void setHiding(boolean h) { this.isHiding = h; }
-    protected void die() { this.isAlive = false; }
-    public double getCurrentEnergy() { return currentEnergy; }
-    public double getMaxEnergy() { return maxEnergy; }
-    public int getAge() { return age; }
+    public String getId() {
+        return id;
+    }
+
+    public boolean isAlive() {
+        return isAlive;
+    }
+
+    public void die() {
+        this.isAlive = false;
+    }
+
+    public double getCurrentEnergy() {
+        return currentEnergy;
+    }
+
+    public double getMaxEnergy() {
+        return maxEnergy;
+    }
+
+    public int getAge() {
+        return age;
+    }
 
     public abstract String getTypeName();
 
@@ -42,23 +61,30 @@ public abstract class Organism {
     }
 
     public boolean canPerformAction() { 
-        return getEnergyPercentage() >= ACTION_MIN_ENERGY_PERCENT; 
-    }
-
-    public boolean canOnlyEat() { 
-        double e = getEnergyPercentage(); 
-        return e > (DEATH_EPSILON * 100) && e < ACTION_MIN_ENERGY_PERCENT; 
+        return getEnergyPercentage() >= EnergyPolicy.ACTION_MIN.getPercent(); 
     }
 
     public void setEnergyFactor(double factor) {
         this.currentEnergy = maxEnergy * Math.max(0.0, Math.min(1.0, factor));
     }
 
-    public synchronized void consumeEnergy(double amount) {
-        currentEnergy = Math.max(0, currentEnergy - amount);
-        if (currentEnergy < DEATH_EPSILON && isAlive) {
-            isAlive = false;
+    private final java.util.concurrent.locks.ReentrantLock energyLock = new java.util.concurrent.locks.ReentrantLock();
+
+    public boolean tryConsumeEnergy(double amount) {
+        energyLock.lock();
+        try {
+            currentEnergy = Math.max(0, currentEnergy - amount);
+            if (currentEnergy < DEATH_EPSILON && isAlive) {
+                isAlive = false;
+            }
+            return isAlive;
+        } finally {
+            energyLock.unlock();
         }
+    }
+
+    public void consumeEnergy(double amount) {
+        tryConsumeEnergy(amount);
     }
 
     public void setEnergy(double energy) {
@@ -81,35 +107,26 @@ public abstract class Organism {
         return false;
     }
 
-    protected void ageOneTick() {
-        age++;
-        if (maxLifespan > 0 && age >= maxLifespan) isAlive = false;
-    }
-
     public boolean isStarving() {
         return currentEnergy < DEATH_EPSILON;
+    }
+
+    public double getWeight() {
+        return 1.0;
+    }
+
+    public double getDynamicMetabolismRate() {
+        SizeClass sizeClass = SizeClass.fromWeight(getWeight());
+        return BASE_METABOLISM_PERCENT * sizeClass.getMetabolismModifier() * getSpecialMetabolismModifier();
+    }
+
+    protected double getSpecialMetabolismModifier() {
+        return 1.0;
     }
 
     public boolean isHibernating() {
         return false;
     }
 
-    public double getWeight() { return 1.0; } // Default weight
-
-    /**
-     * Stepped Metabolism Rate: 
-     * Small organisms burn energy slightly faster, large ones slightly slower.
-     */
-    public double getDynamicMetabolismRate() {
-        double w = getWeight();
-        if (w < 1.0) return BASE_METABOLISM_PERCENT * METABOLISM_MODIFIER_TINY; 
-        if (w > 300.0) return BASE_METABOLISM_PERCENT * METABOLISM_MODIFIER_LARGE;
-        return BASE_METABOLISM_PERCENT * METABOLISM_MODIFIER_MEDIUM;
-    }
-
-    public void checkState() {
-        // Now returns void, logic moved to service for reporting
-    }
-
-    public abstract String getSpeciesKey();
+    public abstract SpeciesKey getSpeciesKey();
 }

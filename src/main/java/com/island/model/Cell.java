@@ -1,19 +1,38 @@
 package com.island.model;
 
 import com.island.content.Animal;
-import com.island.content.plants.Plant;
+import com.island.content.AnimalType;
+import com.island.content.Biomass;
+import com.island.content.SizeClass;
+import com.island.content.SpeciesKey;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Represents a single cell on the island grid.
+ * Optimized with indexed storage by type, role, and size for O(1) access.
  */
 public class Cell {
-    private final int x, y;
+    private final int x;
+    private final int y;
     private final Island island;
-    private final List<Animal> animals = new ArrayList<>();
-    private final List<Plant> plants = new ArrayList<>();
+    
+    // Indexed Storage
+    private final Map<AnimalType, List<Animal>> animalsByType = new HashMap<>();
+    private final Map<SizeClass, List<Animal>> animalsBySize = new EnumMap<>(SizeClass.class);
+    private final List<Animal> predators = new ArrayList<>();
+    private final List<Animal> herbivores = new ArrayList<>();
+    private final Map<SpeciesKey, Biomass> biomassBySpecies = new HashMap<>();
+    
+    // Flat list for general iteration
+    private final List<Animal> allAnimals = new ArrayList<>();
+    private final List<Biomass> allBiomass = new ArrayList<>();
+    
     private final ReentrantLock lock = new ReentrantLock();
 
     public Cell(int x, int y, Island island) { 
@@ -22,107 +41,233 @@ public class Cell {
         this.island = island;
     }
 
-    public int getX() { return x; }
-    public int getY() { return y; }
-    public Island getIsland() { return island; }
-    public ReentrantLock getLock() { return lock; }
+    public int getX() {
+        return x;
+    }
 
-    public String getCoordinates() { return x + "," + y; }
+    public int getY() {
+        return y;
+    }
+
+    public Island getIsland() {
+        return island;
+    }
+
+    public ReentrantLock getLock() {
+        return lock;
+    }
+
+    public String getCoordinates() {
+        return x + "," + y;
+    }
 
     public boolean addAnimal(Animal animal) {
         lock.lock();
         try {
-            int count = 0;
-            String key = animal.getSpeciesKey();
-            for (Animal a : animals) {
-                if (a.getSpeciesKey().equals(key)) count++;
-            }
-            if (count >= animal.getMaxPerCell()) return false;
+            AnimalType type = animal.getAnimalType();
+            List<Animal> typeList = animalsByType.computeIfAbsent(type, k -> new ArrayList<>());
             
-            if (animals.add(animal)) {
-                island.onOrganismAdded(animal.getSpeciesKey());
-                return true;
+            if (typeList.size() >= animal.getMaxPerCell()) {
+                return false;
             }
-            return false;
-        } finally { lock.unlock(); }
+            
+            typeList.add(animal);
+            allAnimals.add(animal);
+            
+            // Index by role
+            if (animal.isAnimalPredator()) {
+                predators.add(animal);
+            } else {
+                herbivores.add(animal);
+            }
+
+            // Index by size
+            SizeClass size = type.getSizeClass();
+            animalsBySize.computeIfAbsent(size, k -> new ArrayList<>()).add(animal);
+            
+            island.onOrganismAdded(animal.getSpeciesKey());
+            return true;
+        } finally {
+            lock.unlock();
+        }
     }
 
     public boolean removeAnimal(Animal animal) {
         lock.lock();
         try { 
-            if (animals.remove(animal)) {
+            AnimalType type = animal.getAnimalType();
+            List<Animal> typeList = animalsByType.get(type);
+            if (typeList != null && fastRemove(typeList, animal)) {
+                fastRemove(allAnimals, animal);
+                if (animal.isAnimalPredator()) {
+                    fastRemove(predators, animal);
+                } else {
+                    fastRemove(herbivores, animal);
+                }
+                
+                SizeClass size = type.getSizeClass();
+                List<Animal> sizeList = animalsBySize.get(size);
+                if (sizeList != null) {
+                    fastRemove(sizeList, animal);
+                }
+
                 island.onOrganismRemoved(animal.getSpeciesKey());
                 return true;
             }
             return false;
-        } finally { lock.unlock(); }
+        } finally {
+            lock.unlock();
+        }
     }
 
-    public List<Animal> getAnimals() { return animals; }
+    private boolean fastRemove(List<Animal> list, Animal animal) {
+        int index = list.indexOf(animal);
+        if (index == -1) {
+            return false;
+        }
+        int lastIndex = list.size() - 1;
+        if (index != lastIndex) {
+            list.set(index, list.get(lastIndex));
+        }
+        list.remove(lastIndex);
+        return true;
+    }
 
-    public List<Animal> getAnimalsBySpecies(String key) {
+    public List<Animal> getAnimals() {
+        return new ArrayList<>(allAnimals);
+    }
+
+    public List<Animal> getPredators() {
         lock.lock();
         try {
-            List<Animal> result = new ArrayList<>();
-            for (Animal a : animals) {
-                if (a.getSpeciesKey().equals(key)) result.add(a);
+            return new ArrayList<>(predators);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public List<Animal> getHerbivores() {
+        lock.lock();
+        try {
+            return new ArrayList<>(herbivores);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public List<Animal> getAnimalsByType(AnimalType type) {
+        lock.lock();
+        try {
+            List<Animal> list = animalsByType.get(type);
+            return list != null ? new ArrayList<>(list) : Collections.emptyList();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public List<Animal> getAnimalsBySize(SizeClass size) {
+        lock.lock();
+        try {
+            List<Animal> list = animalsBySize.get(size);
+            return list != null ? new ArrayList<>(list) : Collections.emptyList();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public int countAnimalsByType(AnimalType type) {
+        lock.lock();
+        try {
+            List<Animal> list = animalsByType.get(type);
+            return list != null ? list.size() : 0;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public int getAnimalCount() {
+        return allAnimals.size();
+    }
+
+    public boolean addBiomass(Biomass b) {
+        lock.lock();
+        try {
+            SpeciesKey key = b.getSpeciesKey();
+            Biomass existing = biomassBySpecies.get(key);
+            if (existing != null) {
+                existing.addBiomass(b.getBiomass());
+                return true;
+            } else {
+                biomassBySpecies.put(key, b);
+                allBiomass.add(b);
+                return true;
             }
-            return result;
-        } finally { lock.unlock(); }
+        } finally {
+            lock.unlock();
+        }
     }
 
-    public int countAnimalsBySpecies(String key) {
+    public boolean addBiomass(SpeciesKey key, double amount) {
         lock.lock();
         try {
-            int count = 0;
-            for (Animal a : animals) {
-                if (a.getSpeciesKey().equals(key)) count++;
+            Biomass existing = biomassBySpecies.get(key);
+            if (existing != null) {
+                existing.addBiomass(amount);
+                return true;
             }
-            return count;
-        } finally { lock.unlock(); }
+            return false; // Cannot add mass if container doesn't exist in this cell
+        } finally {
+            lock.unlock();
+        }
     }
 
-    public int getAnimalCount() { return animals.size(); }
-
-    public boolean addPlant(Plant plant) {
+    public boolean removeBiomass(Biomass b) {
         lock.lock();
         try {
-            if (plants.add(plant)) {
+            if (biomassBySpecies.remove(b.getSpeciesKey()) != null) {
+                allBiomass.remove(b);
                 return true;
             }
             return false;
-        } finally { lock.unlock(); }
+        } finally {
+            lock.unlock();
+        }
     }
 
-    public boolean removePlant(Plant plant) {
-        lock.lock();
-        try { 
-            return plants.remove(plant);
-        } finally { lock.unlock(); }
+    public List<Biomass> getBiomassContainers() {
+        return new ArrayList<>(allBiomass);
     }
 
-    public List<Plant> getPlants() { return plants; }
+    public Biomass getBiomass(SpeciesKey key) {
+        return biomassBySpecies.get(key);
+    }
 
     public int getPlantCount() { 
         double total = 0;
-        for (Plant p : plants) total += p.getBiomass();
+        for (Biomass b : allBiomass) {
+            total += b.getBiomass();
+        }
         return (int) total; 
     }
 
     public void cleanupDeadOrganisms() {
         lock.lock();
         try {
-            for (int i = animals.size() - 1; i >= 0; i--) {
-                Animal a = animals.get(i);
+            List<Animal> toRemove = new ArrayList<>();
+            for (Animal a : allAnimals) {
                 if (!a.isAlive()) {
-                    island.onOrganismRemoved(a.getSpeciesKey());
-                    animals.remove(i);
+                    toRemove.add(a);
                 }
             }
-        } finally { lock.unlock(); }
+            for (Animal a : toRemove) {
+                removeAnimal(a);
+            }
+        } finally {
+            lock.unlock();
+        }
     }
 
     public String getStatistics() {
-        return String.format("Cell[%d,%d]: Животные=%d, Растения=%d", x, y, animals.size(), plants.size());
+        return String.format("Cell[%d,%d]: Animals=%d, Biomass=%d", x, y, allAnimals.size(), (int) getPlantCount());
     }
 }

@@ -1,61 +1,79 @@
 package com.island.content;
 
-import java.util.*;
-import com.island.content.animals.predators.*;
-import com.island.content.animals.herbivores.*;
-
+import com.island.content.animals.predators.Bear;
+import com.island.content.animals.predators.Chameleon;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 
+/**
+ * Factory for creating animal instances based on SpeciesKey.
+ */
 public final class AnimalFactory {
-    private final SpeciesConfig config;
-    private final Map<String, Function<AnimalType, Animal>> registry = new HashMap<>();
+    private final SpeciesRegistry speciesRegistry;
+    private final Map<SpeciesKey, Function<AnimalType, Animal>> creators = new HashMap<>();
 
-    public AnimalFactory(SpeciesConfig config) {
-        this.config = config;
-        registry.put("wolf", Wolf::new);
-        registry.put("rabbit", Rabbit::new);
-        registry.put("duck", Duck::new);
-        registry.put("fox", Fox::new);
-        registry.put("boa", Boa::new);
-        registry.put("bear", Bear::new);
-        registry.put("eagle", Eagle::new);
-        registry.put("horse", Horse::new);
-        registry.put("deer", Deer::new);
-        registry.put("mouse", Mouse::new);
-        registry.put("goat", Goat::new);
-        registry.put("sheep", Sheep::new);
-        registry.put("boar", Boar::new);
-        registry.put("buffalo", Buffalo::new);
+    public AnimalFactory(SpeciesRegistry speciesRegistry) {
+        this.speciesRegistry = speciesRegistry;
+        // Only register animals with unique logic here. 
+        // All others will be created as GenericAnimal.
+        creators.put(SpeciesKey.BEAR, Bear::new);
+        creators.put(SpeciesKey.CHAMELEON, Chameleon::new);
+    }
+
+    public Optional<Animal> createAnimal(SpeciesKey key) {
+        return createAnimal(key, 0.5, 0); 
     }
 
     public Animal createAnimal(String key) {
-        if (key.equalsIgnoreCase("caterpillar")) return null;
-        return createAnimal(key, 0.5); 
-    }
-
-    public Animal createAnimalWithEnergy(String key, double energy) {
-        Animal animal = createAnimal(key, 1.0); // Create with max energy base
-        if (animal != null) {
-            animal.setEnergy(energy);
+        try {
+            return createAnimal(SpeciesKey.fromCode(key), 0.5, 0).orElse(null);
+        } catch (IllegalArgumentException e) {
+            return null;
         }
-        return animal;
     }
 
-    public Animal createBaby(String key) {
-        return createAnimal(key, 0.3); 
-    }
+    private Optional<Animal> createAnimal(SpeciesKey key, double energyFactor, int initialAge) {
+        AnimalType type = speciesRegistry.getAnimalType(key).orElse(null);
+        if (type == null) {
+            return Optional.empty();
+        }
 
-    private Animal createAnimal(String key, double energyFactor) {
-        Function<AnimalType, Animal> creator = registry.get(key.toLowerCase());
-        if (creator == null) return null;
+        Function<AnimalType, Animal> creator = creators.get(key);
+        Animal animal = (creator != null) ? creator.apply(type) : new GenericAnimal(type);
         
-        AnimalType type = config.getAnimalType(key);
-        if (type == null) return null;
-
-        Animal animal = creator.apply(type);
         animal.setEnergyFactor(energyFactor);
-        return animal;
+        for (int i = 0; i < initialAge; i++) {
+            animal.checkAgeDeath(); // Increment age
+        }
+        return Optional.of(animal);
     }
 
-    public Set<String> getRegisteredSpecies() { return registry.keySet(); }
+    public Optional<Animal> createInitialAnimal(SpeciesKey key) {
+        // Randomize initial age (at most 5% of max lifespan) and energy for a more natural start
+        AnimalType type = speciesRegistry.getAnimalType(key).orElse(null);
+        int initialAge = 0;
+        if (type != null && type.getMaxLifespan() > 0) {
+            int maxInitialAge = Math.max(1, (int) (type.getMaxLifespan() * 0.05));
+            initialAge = com.island.util.RandomUtils.nextInt(0, maxInitialAge);
+        }
+        double initialEnergyFactor = 0.4 + (com.island.util.RandomUtils.nextDouble() * 0.4);
+        return createAnimal(key, initialEnergyFactor, initialAge);
+    }
+
+    public Optional<Animal> createBaby(SpeciesKey key) {
+        return createAnimal(key, 0.3, 0); 
+    }
+
+    public Optional<Animal> createAnimalWithEnergy(SpeciesKey key, double energy) {
+        Optional<Animal> animalOpt = createAnimal(key, 1.0, 0);
+        animalOpt.ifPresent(a -> a.setEnergy(energy));
+        return animalOpt;
+    }
+
+    public Set<SpeciesKey> getRegisteredSpecies() {
+        return speciesRegistry.getAllAnimalKeys();
+    }
 }
