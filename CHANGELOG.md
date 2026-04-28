@@ -1,55 +1,141 @@
 # Changelog
 
-## [2026-04-24]
-### Multithreading & Performance
-- **Island Partitioning**: Implemented 2x2 grid partitioning of the island into 4 Chunks for parallel processing.
-- **Parallel Services**: Refactored `LifecycleService`, `FeedingService`, `MovementService`, `ReproductionService`, and `WorldInitializer` to use `ExecutorService` for parallel execution by chunks.
-- **Thread-Safe Movement**: Implemented transactional move logic in `Island.moveOrganism` using ordered locking on cells to prevent deadlocks and race conditions.
+## [2026-04-28]
+### Major Architectural Shift: Data-Driven Ecosystem (OCP Mastery)
+- **`GenericAnimal` Implementation**: 
+    - Transitioned from a class-per-species hierarchy to a data-driven model where 95% of species use the `GenericAnimal` class.
+    - **Reduced Codebase Complexity**: Deleted 15 redundant marker classes (`Wolf`, `Rabbit`, `Fox`, `Mouse`, etc.), significantly improving maintainability.
+    - **Polymorphic Diet Detection**: `GenericAnimal` automatically adapts its metabolic and reproduction bonuses by analyzing its `AnimalType` diet configuration (Herbivore vs. Predator logic).
+- **Extensibility Verification (The "Frog" Test)**:
+    - Successfully added the **Frog (🐸)** species with **zero lines of new Java logic** (using `GenericAnimal` + configuration).
+    - Verified the **Open/Closed Principle (OCP)**: New species can now be added solely via `species.properties` and registry entries without modifying core simulation logic.
+- **Unique Ability System**:
+    - **Chameleon (🦎)**: Implemented a specialized class for species with unique mechanics.
+    - **Invisibility Mechanic**: Overrode `isProtected()` to provide an 80% natural invisibility rate against predators, demonstrating how to extend the `GenericAnimal` baseline for complex behaviors.
+- **Factory & Registry Optimization**:
+    - **Lazy Factory**: `AnimalFactory` now uses `GenericAnimal` as a default fallback, requiring manual registration only for "specialist" classes (e.g., `Bear`, `Chameleon`).
+    - **Test Suite Synchronization**: Updated all 30+ tests to support the new data-driven architecture, ensuring 100% pass rate with the new models.
 
-### Biological Model Improvements
-- **Trophic Hierarchy**: Implemented a priority system where predators act before their prey within a single tick.
-- **Escape Protection**: Prey now has a chance to hide after a failed hunt, becoming invisible to other predators for the remainder of the tick.
-- **Caterpillar Survival**: Added a "stealth mode" for caterpillars during the first tick of the simulation.
-- **Dynamic Energy Management**: Volatile energy and life status fields for better thread visibility.
-- **Offspring Scaling**: Implemented a per-pair reproduction model with mathematical progression based on animal weight and herbivore bonuses.
+### Architectural Refinement & Peak Performance (PR #17 Improvements)
+- **High-Performance Interaction Matrix**:
+    - **Primitive 2D Array**: Replaced `EnumMap` with a primitive `int[][]` array and ordinal-based indexing. This eliminates object boxing/unboxing and provides O(1) access with zero overhead.
+    - **Cache Locality**: The new matrix structure ensures better CPU cache utilization during the critical feeding phase.
+    - **Copy-on-Write Freeze**: Implemented a `freeze()` mechanism that allows for safe multithreaded reading and efficient modification via strategy-based copying.
+- **Dependency Injection & Testability**:
+    - **DI for Hunting Strategies**: Extracted `HuntingStrategy` initialization from `FeedingService`. The service now receives its strategy via constructor injection, enabling easy strategy swapping and better unit testing.
+- **Optimized Collection Management**:
+    - **Swap-to-Remove Optimization**: Implemented a `fastRemove` (O(1) tail removal) method in `Cell.java`. This drastically reduces the cost of removing animals from lists during death or movement phases by avoiding expensive element shifts in `ArrayList`.
+- **Determinism & Testing Stability**:
+    - **`RandomProvider` Interface**: Introduced a new abstraction for random number generation.
+    - **Deterministic Tests**: All services (`Feeding`, `Movement`, `Reproduction`, `WorldInitializer`) now use `RandomUtils` which delegates to a `RandomProvider`. This allows for perfectly deterministic tests by mocking the random source.
+- **Clean Code & Configuration**:
+    - **Magic Number Elimination**: Moved remaining hardcoded values (HUNT_ROI_THRESHOLD, ENDANGERED_SPEED_BONUS, etc.) into `SimulationConstants.java`.
+    - **Checkstyle Compliance**: All new components are fully compliant with the project's strict style guide.
+- **New Verification Suite**:
+    - **Matrix Unit Tests**: Added `InteractionMatrixTest` to verify the new high-performance implementation.
+    - **Determinism Verification**: Added `DeterminismTest` to ensure that random provider mocking works as expected.
 
-### Quality Assurance
-- **TrophicFeedingTest**: Added specialized tests to verify hierarchical feeding, hiding mechanisms, and caterpillar protection logic.
-- **Bug Fixes**: Fixed an issue where eaten prey was not correctly marked as dead, and improved test robustness for random events.
+## [2026-04-27]
+### Stabilization & UI Refinement
+- **Code Duplication & Architectural Cleanup**:
+    - **Unified Service Hierarchy**: Integrated `FeedingService` into `AbstractService`, eliminating redundant parallel processing logic.
+    - **Polymorphic Lifecycle**: Introduced `Biomass.tick(Cell)` to unify plant growth and insect metamorphosis cycles, removing `instanceof` checks from `LifecycleService`.
+    - **Offspring Logic Refactoring**: Replaced manual type checking in `ReproductionService` with a polymorphic `getOffspringBonus()` method in the `Animal` class.
+    - **Dead Code Elimination**: Removed unused methods (`canOnlyEat`, `checkState`, `ageOneTick`) from the core `Organism` model to improve maintainability.
+- **Console UI & Rendering Optimization**:
+    - **Flicker-Free Dashboard**: Optimized `ConsoleView` to use terminal cursor-positioning and line-clearing escape codes, providing 100% smooth animation.
+    - **Zero-Allocation Rendering**: Replaced heavy object allocation and Stream API usage in `renderCell` with a pre-allocated primitive array for O(1) performance.
+    - **Precision Borders**: Added Unicode borders with corrected 3-character alignment to ensure the map remains perfectly rectangular.
+    - **Enhanced Sparklines**: Improved `ViewUtils.getSparkline` visibility by using `.` for base levels and removing debug characters.
 
+### Biomass Unification & Swarm Dynamics
+- **Unified Biomass Abstraction**: Replaced the specific `Plant` class with a more versatile `Biomass` base class. 
+    - **Shared Logic**: All mass-based organisms (Grass, Cabbage, Caterpillar, Butterfly) now share a unified growth, consumption, and storage model.
+    - **O(1) Species Access**: Refactored `Cell` to store biomass in an `EnumMap`, providing constant-time access for feeding and lifecycle services.
+- **Swarm Movement Implementation**: Introduced mobile biomass dynamics.
+    - **`moveBiomass` Logic**: `Island` now supports atomic transfer of entire species "swarms" between cells, enabling movement for butterflies.
+    - **Enhanced `MovementService`**: Butterflies now utilize their speed attribute (defined in `species.properties`) to traverse the island via a 25% mass-flow "diffusion" model.
+- **Closed Biological Loop**: Butterflies now reproduce by converting a portion of their biomass back into caterpillars, ensuring life cycle continuity.
+- **Architectural Cleanup**:
+    - **Simplified Energy Costs**: Refactored animal movement costs to a unified formula `(1 + speed) * coef`, eliminating redundant constants.
+    - **Metabolism Refactoring**: Unified `getDynamicMetabolismRate` in `Organism` using a template method pattern for specialized modifiers (e.g., Herbivore bonus), eliminating `instanceof` checks in hot loops.
+    - **Registry-Driven Mobility**: Added `plantSpeed` to `SpeciesRegistry` and `SpeciesLoader`, allowing biomass mobility to be configured externally.
+    - **Test Synchronization**: Updated `FeedingServiceTest` and `BiologicalPendulumTest` to reflect the new biomass container architecture, ensuring full suite stability.
 
-## [2026-04-23]
-### Git Cleanup
-- Deleted stale/merged local and remote branches (`feature/feeding-logic`, `feature/fox`, `optimization-to-flyweight-pattern-6fce0`, `feature/flyweight-optimization2`, and various `revert-` and non-English branches).
-- Renamed `optimization-to-flyweight-pattern-6fce0` to `feature/flyweight-optimization` for better readability and conformity to standards.
-- Synchronized local and remote branch tracking.
-### Visualization & View
-- Implemented `ConsoleView` for real-time island state monitoring using Unicode icons (🐺, 🐇, 🌿, etc.).
-- Added per-species population statistics and a localized 10x5 map fragment for visual feedback.
+### Biological Diversity & Lifecycle 
+- **Hamster Species**: Added `Hamster` (🐹) with optimized small-mammal metrics (0.1kg weight, high density, mouse-like diet).
+- **Complex Metamorphosis**: Implemented a staged life cycle for `Caterpillar` (🐛) and `Butterfly` (🦋). 
+    - **Staged Biomass**: Refactored `Caterpillar` to use an internal state-bucket system (40 ticks active, 20 ticks sleep).
+    - **Pupation**: 50% of maturing caterpillars enter a 20-tick hibernation phase before emerging as butterflies.
+    - **Unique Predation**: Butterflies are now part of the ecosystem biomass, specifically targeted only by Ducks (🦆).
+- **Population Pyramid Initialization**: Rebalanced `WorldInitializer` to implement a density-based "pyramid" (TINY: 60-95%, SMALL: 40-70%, NORMAL: 20-45%), ensuring a sustainable food base for predators from tick 1.
 
-### Ecosystem Diversity
-- Restructured animal packages: grouped species into `predators` and `herbivores` subpackages.
-- Introduced `Predator` and `Herbivore` marker interfaces to classify animal types.
-- Updated `AnimalFactory` to support the new package structure.
-- Expanded animal variety to full requirements (15 species: Wolf, Boa, Fox, Bear, Eagle, Horse, Deer, Rabbit, Mouse, Goat, Sheep, Boar, Buffalo, Duck, Caterpillar).
+### Architectural Stabilization & Consistency
+- **Unified Energy Policy**: Introduced `EnergyPolicy` Enum to replace loose constants. Centralized thresholds for action (15%), reproduction (70%), and escape energy loss (5%).
+- **Finalized Simulation Constants**: Converted all `SimulationConstants` to `static final` to prevent runtime mutation and ensure thread-safety.
+- **Improved Size Classification**: Refined `SizeClass` thresholds to align Duck (1.0kg) with the base `NORMAL` metabolism (1.00x), and categorized Hamsters/Mice as `TINY` for high reproduction.
+- **Biomass Statistics Engine**: Rewrote `Island.getSpeciesCounts()` and `getTotalOrganismCount()` to accurately sum total mass (kg) for biomass species, ensuring dashboard numbers exactly match the population list.
+- **Safe Extinction Monitoring**: Updated `SimulatorMain` to exclude biomass species from the global extinction check, preventing premature simulation termination when caterpillars pupate or plants are grazed.
 
-### Running the Application
-The simulation can be started from the project root using:
-`mvn clean compile exec:java`
-The main entry point is now `com.island.Main`.
+### Architectural Refinement & Optimization
+- **Decoupled Species Management**: Fully eliminated the `SpeciesConfig` Singleton. Replaced it with an immutable `SpeciesRegistry` and a dedicated `SpeciesLoader`. All dependencies are now handled via constructor injection, significantly improving testability and adhering to SRP.
+- **ROI-Driven Hunting Optimization**: Refactored `PreyProvider` to utilize the new `SizeClass` indexing in `Cell`. Predators now scan potential prey starting from the largest size (HUGE -> SMALL), drastically reducing loop iterations in `FeedingService` by reaching satiety sooner.
+- **Mass-Injected Plant Models**: Plants (`Grass`, `Cabbage`) and `Caterpillar` biomass containers now receive their configuration parameters via constructor injection, removing hidden static dependencies.
+- **Red Book Stabilization**: Added a toggle for "Red Book" protection to ensure deterministic test results while maintaining the ecosystem protection logic in production.
+- **Complete Test Overhaul**: Synchronized 20 core unit and integration tests with the new registry-based architecture, ensuring 100% pass rate.
 
-### Engine & Core Implementation
-- Migrated `GameLoop` to `ScheduledThreadPoolExecutor` for precise tick control.
+### Stabilization & Critical Fixes
+- **Race Condition Resolution**: Fixed a critical bug in `FeedingService` where multiple predators could consume the same prey. Implemented atomic check-and-consume logic using synchronized cell locking.
+- **Ecosystem Re-balancing**: Restored all species parameters to `FULL_TASK.md` baseline. Corrected caterpillar saturation limits and adjusted plant growth rates to 10% for long-term stability.
+- **Config Validation**: Added strict validation for all configuration parameters, preventing simulation crashes due to non-positive dimensions or invalid species metrics.
+
+### Architectural Refinement (SOLID & Patterns)
+- **Strategy Pattern for Hunting**: Extracted hunting logic into `HuntingStrategy` and `DefaultHuntingStrategy` (OCP). Predators now use an extensible ROI-based evaluation for prey selection.
+- **Enhanced Cell Model**: Replaced linear list scanning in `Cell` with indexed storage using `EnumMap<SpeciesKey, List<Animal>>` and role-based buckets. Optimized access time to O(1) for frequent operations.
+- **Unified Death Lifecycle**: Centralized mortality logic in `Organism.tryConsumeEnergy()`. Introduced `DeathCause` enum and detailed per-species mortality tracking (Hunger, Age, Eaten, Exhaustion).
+- **Decoupled Config Management**: Split `SpeciesConfig` into `SpeciesLoader` (loading) and `SpeciesRegistry` (immutable storage), strictly following SRP.
+- **Typed Domain Model**: Replaced magic strings with `SpeciesKey` enum across the entire codebase. Replaced raw types in collections with parameterized generics for better type safety.
+- **Size Classification**: Introduced `SizeClass` (Small to Huge) to unify weight thresholds for metabolism and movement costs.
+
+### Code Quality & Standards
+- **Checkstyle Integration**: Integrated `maven-checkstyle-plugin` with a customized Google Style guide. Brought the entire codebase to 0 style violations.
+- **Optimized Hot Loops**: Removed expensive `Collections.shuffle()` and redundant sorting from simulation cycles to reduce CPU overhead and improve tick performance.
+- **Extended Test Coverage**: Added `EcosystemStabilityTest` (long-run verification) and `BoundaryConditionsTest`. Updated and stabilized all existing unit tests to pass 100% green.
+- **Enhanced Statistics**: Updated `ConsoleView` to display cumulative mortality metrics and animal-only death counters (excluding plants/biomass from death totals).
+
+## [2026-04-26]
+### Modernization & Scalability
+- **Java 21 Migration**: Upgraded project from Java 17 to Java 21 LTS to leverage the latest JVM features and performance improvements.
+- **Virtual Threads (Project Loom)**: Replaced traditional `FixedThreadPool` with `VirtualThreadPerTaskExecutor` in `GameLoop`. This allows for near-infinite scalability of parallel simulation tasks (chunks) without the overhead of platform threads.
+- **Extreme Performance Optimization**:
+    - **Smart Biomass**: Refactored `Caterpillar` and `Plant` into mass-based containers, removing up to 2 million individual Java objects from simulation cycles.
+    - **Hot Loop Refactoring**: Replaced all Stream API calls and expensive `CopyOnWriteArrayList` instances with optimized `ArrayList` and basic `for-i` loops in critical services (`Feeding`, `Movement`, `Lifecycle`).
+    - **Lombok-Free Core**: Replaced annotations with manual getters in model classes to ensure 100% reliable behavior under high concurrency and Java 21.
+
+### Advanced Biological Model
+- **Biological Pendulum**: Implemented a realistic biomass cycle where Caterpillars consume Plants to grow, and return mass as "fertilizer" to the Grass layer upon decay.
+- **Kleiber’s Law (Stepped)**: Introduced discrete metabolic modifiers based on weight categories (Tiny: 1.2x, Medium: 1.0x, Large: 0.8x) and a survival bonus for Herbivores (0.8x).
+- **Rational Hunting (ROI)**: Predators now act as efficient hunters, skipping targets if the expected energy gain (gain * probability) doesn't cover the effort (strike + chase + fatigue).
+- **Hunt Fatigue**: Implemented progressive exhaustion where energy costs increase by 30% for every 5 hunt attempts in a single tick.
+- **Bear Hibernation**: Added a unique life cycle for Bears: starting with 50 ticks of energy-free sleep followed by 100 ticks of activity, providing "windows of recovery" for prey.
+- **Red Book Protection**: Automatic stealth mechanism and reproduction/mobility bonuses for species whose global population falls below 5% of island capacity.
+- **Energy Redistribution**: Parents and offspring now share total available energy equally during reproduction, ensuring a survival floor of 40% for the whole family.
+
+### Visualization & Analytics
+- **Enhanced Dashboard**: Integrated a global population sparkline, a color-coded Satiety progress bar, and real-time death statistics (Hunger vs. Age).
+- **Full Species Visibility**: The UI now tracks all 17 species even at 0 population, with automatic letter fallbacks (e.g., 'D' for Deer) if icons are missing.
+- **Corrected Stats**: Updated island counters to properly sum both individual animal counts and total plant/insect biomass units.
+
+### Stability & Quality
+- **Shutdown Safety**: Eliminated `RejectedExecutionException` by implementing safe-stop checks in `GameLoop` and all parallel services.
+- **Targeted Re-balancing**: Normalized initial population densities (10-35% for prey, 2-5% for apex predators) and applied specific reproduction nerfs to Buffalo to prevent over-grazing.
+- **Unit Test Suite**: Expanded and stabilized the test suite (19 tests) to cover the new energy redistribution and 'Smart Biomass' logic.
+- **Documentation**: Added `UML.md` with pseudographic architecture diagrams and design pattern descriptions.
+
+## [2026-04-25]
+### Architecture & SOLID Refactoring
+- **Interface Segregation (ISP)**: Deployed `Mobile`, `Consumer`, and `Reproducible` interfaces. Removed the bloated `OrganismBehavior` interface.
+- **Dependency Inversion (DIP)**: Refactored `AnimalFactory` and all 15 animal species to use constructor injection for `AnimalType`. Removed hard dependencies on `SpeciesConfig` Singleton inside animal classes.
+- **Bootstrap Pattern**: Introduced `SimulationBootstrap` and `SimulationContext` to decouple initialization logic from `SimulatorMain` (SRP).
+- **Service Abstraction**: Created `AbstractService` to centralize parallel chunk processing logic, reducing code duplication across all simulation phases.
 ...
-
-- Created `LifecycleService` to handle aging, basal metabolism, and death of organisms.
-- Implemented `WorldInitializer` to separate world setup from model.
-- Added `PlantGrowthService` for handling plant reproduction as a recurring phase.
-- Introduced `TerminalTaskRegistry` for one-time event processing.
-- Implemented `Configuration` and `InteractionMatrix` for data-driven organism behavior.
-- Developed behavior services: `FeedingService` (with energy gain), `MovementService`, and `ReproductionService`.
-
-### Model Refactoring
-- Simplified energy system: energy now corresponds to food weight units.
-- Cleaned up `Cell` class: now a pure container with thread-safe cleanup.
-- Enabled automatic death via hunger (10% energy loss/tick) and age.

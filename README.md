@@ -1,129 +1,64 @@
 # Island Ecosystem Simulator
 
-Educational ecosystem simulator demonstrating OOP principles, design patterns (GOF/GRASP), and multithreading in Java.
+Educational ecosystem simulator demonstrating OOP principles, design patterns (GOF/GRASP), and high-performance multithreading in Java 21.
 
-## Project Structure
+## Architecture & Design Patterns
 
-```
-src/main/java/com/island/
-├── content/                    # Content layer (organisms)
-│   ├── OrganismBehavior.java   # Interface with default methods
-│   ├── Organism.java           # Abstract base class
-│   ├── Animal.java             # Abstract animal class
-│   ├── Plant.java              # Abstract plant class
-│   ├── SpeciesConfig.java      # Singleton configuration
-│   ├── AnimalFactory.java      # Factory Method pattern
-│   └── animals/                # Concrete animal implementations
-│       ├── Wolf.java
-│       ├── Rabbit.java
-│       └── ... (to be added)
-├── model/                      # Model layer (world structure)
-│   ├── Cell.java               # Thread-safe cell implementation
-│   ├── Chunk.java              # Chunk for multithreading (TODO)
-│   ├── ChunkManager.java       # Chunk coordinator (TODO)
-│   └── Island.java             # Island map (TODO)
-├── engine/                     # Engine layer (simulation logic)
-│   ├── SimulationEngine.java   # Main simulation loop (TODO)
-│   ├── Statistics.java         # Statistics tracking (TODO)
-│   └── SimulatorMain.java      # Entry point (TODO)
-└── util/                       # Utilities
-    └── ... (TODO)
-```
-
-## Design Patterns Used
+### Modern Architecture (Java 21)
+- **Virtual Threads (Project Loom)**: High-scalability parallel processing using `VirtualThreadPerTaskExecutor`.
+- **Dependency Injection (DI)**: Core services (Feeding, Reproduction) utilize constructor injection for strategies and registries, ensuring high testability.
+- **Deterministic Simulation**: Pluggable `RandomProvider` architecture allows for 100% reproducible simulation runs via fixed seeds.
 
 ### GOF Patterns
-1. **Template Method** - `Organism`, `Animal`, `Plant` define algorithm skeletons
-2. **Factory Method** - `AnimalFactory` creates animals by species key
-3. **Singleton** - `SpeciesConfig` provides global configuration
-4. **Strategy** - Behavior interfaces allow swapping strategies
-5. **Mediator** - `Cell` coordinates organism interactions
+1. **Template Method** - `Organism`, `Animal`, `Biomass` define behavior skeletons.
+2. **Factory Method** - `AnimalFactory` creates organisms by species key.
+3. **Strategy** - `HuntingStrategy` allows swapping predator behavior logic.
+4. **Flyweight** - `AnimalType` stores common species data shared by thousands of instances.
+5. **Mediator** - `Cell` coordinates atomic interactions between organisms.
 
-### GRASP Principles
-1. **Information Expert** - Each class manages its own data
-2. **Creator** - `AnimalFactory` creates animals
-3. **Controller** - `SimulationEngine` controls simulation flow
-4. **High Cohesion** - Related functionality grouped together
-5. **Low Coupling** - Minimal dependencies between classes
+### Performance Optimizations
+- **Smart Biomass**: Plants and small insects are modeled as mass containers instead of individual objects, reducing heap pressure by millions of objects.
+- **O(1) Spatial Indexing**: `Cell` uses `EnumMap` and role-based buckets for constant-time access to specific species or size classes.
+- **High-Perf Interaction Matrix**: Uses primitive `int[][]` arrays and ordinal indexing for maximum cache locality and zero-boxing overhead.
+- **Fast Removal**: `Cell` implements *swap-to-remove* logic for $O(1)$ animal removal during death or movement.
 
 ## Key Features
 
-### Organism Lifecycle
-- **Energy System**: 0-100% energy scale
-  - ≥30%: Can perform all actions (eat, move, reproduce)
-  - 0-30%: Can only eat
-  - 0%: Death
-- **Action Costs**: Each action costs 5% of max energy
-- **Aging**: Organisms age each tick, die at max lifespan (10000 ticks)
-- **Reproduction**: Requires 2 individuals, offspring gets 50% parent's energy
-
-### Multithreading Architecture
-- **Chunk-based Processing**: Island divided into chunks processed in parallel
-- **Thread Pools**:
-  - `ScheduledExecutorService`: Main simulation loop, plant growth, statistics
-  - `FixedThreadPool`: Parallel chunk processing
+### High-Performance Multithreading
+- **Chunk-based Processing**: The island is divided into chunks processed in parallel using Virtual Threads.
 - **Thread Safety**: 
-  - `ReentrantLock` in `Cell` for write operations
-  - `CopyOnWriteArrayList` for organism collections
-  - `ThreadLocalRandom` for probability rolls
+  - Fine-grained `ReentrantLock` per `Cell`.
+  - Deterministic locking order (by coordinates) to prevent deadlocks during movement.
+  - Safe snapshots for concurrent iteration.
 
-### Turn Order (Priority System)
-1. Fastest animals move first (by speed stat)
-2. Equal speed: predators before herbivores
-3. Plants are eaten simultaneously (no order)
+### Biological Model
+- **Kleiber’s Law**: Metamorphic energy costs scaled by organism size class.
+- **ROI-Driven Hunting**: Predators evaluate the energy "Return on Investment" before hunting, considering success rate, strike effort, and chase costs.
+- **Hunt Fatigue**: Progressive energy exhaustion for failed hunting attempts.
+- **Red Book Protection**: Automatic stealth and reproduction bonuses for endangered species to ensure ecosystem stability.
 
-## TODO List
+## Development & Testing
 
-### Phase 1: Core Content (Current)
-- [x] Base organism classes with stubs
-- [x] Species configuration singleton
-- [x] Wolf and Rabbit example implementations
-- [ ] Add remaining 13 animal species
-- [ ] Complete probability matrix in SpeciesConfig
-
-### Phase 2: World Model
-- [ ] Implement Island class (2D grid of cells)
-- [ ] Implement Chunk and ChunkManager
-- [ ] Add terrain types (river, forest, plain)
-- [ ] Implement initialization (15-45% fill rate)
-
-### Phase 3: Simulation Engine
-- [ ] Implement 4-phase turn system:
-  1. Eat phase
-  2. Move phase  
-  3. Reproduce phase
-  4. State check phase
-- [ ] Add priority-based ordering
-- [ ] Implement cross-chunk movement
-- [ ] Add statistics collection
-
-### Phase 4: Polish
-- [ ] Console visualization
-- [ ] Configuration file support
-- [ ] Unit tests
-- [ ] Documentation
-
-## Building and Running
-
+### Running Tests
 ```bash
-# Compile
-mvn compile
-
-# Run (when main class is ready)
-mvn exec:java -Dexec.mainClass="com.island.engine.SimulatorMain"
-
-# Test
+# Run full suite
 mvn test
+
+# Run specific performance tests
+mvn test -Dtest=ReproducibilityTest,StabilityIntegrationTest
 ```
 
-## Educational Notes
+### Static Analysis
+```bash
+# Checkstyle (Google Style Guide)
+mvn checkstyle:check
+```
 
-This project is designed for learning:
-- Code contains **TODO comments** marking areas for student implementation
-- Stubs provide structure but require logic completion
-- Comments explain design decisions and pattern usage
-- Modular design allows incremental development
+## Emergency & Rollback Plan
+In case of critical regression or performance degradation:
+1. **Revert Merge**: `git revert -m 1 <merge_commit>`
+2. **Disable Virtual Threads**: Switch to `FixedThreadPool` in `GameLoop.java`.
+3. **Toggle Protection**: Disable "Red Book" protection in `SimulationConstants.java` if stability is compromised.
 
 ## License
-
 Educational project - free to use for learning purposes.

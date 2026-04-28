@@ -1,68 +1,90 @@
 package com.island.content;
 
-import lombok.Getter;
-import static com.island.config.SimulationConstants.*;
+import static com.island.config.SimulationConstants.HERBIVORE_METABOLISM_MODIFIER;
+import static com.island.config.SimulationConstants.HERBIVORE_OFFSPRING_BONUS;
+import static com.island.config.SimulationConstants.SPEED_MOVE_COST_STEP_PERCENT;
 
-// Базовый класс животных (Flyweight для AnimalType)
-@Getter
+import com.island.config.EnergyPolicy;
+import com.island.content.animals.herbivores.Herbivore;
+
+/**
+ * Base class for all animals in the simulation.
+ * Represents the state and properties of an animal.
+ */
 public abstract class Animal extends Organism {
-    protected final AnimalType animalType; // Общие данные вида (Flyweight)
-    private volatile boolean isHiding = false;
+    protected final AnimalType animalType; 
+    protected boolean isHiding = false;
 
     protected Animal(AnimalType animalType) {
         super(animalType.getMaxEnergy(), animalType.getMaxLifespan());
         this.animalType = animalType;
     }
 
-    public void setHiding(boolean hiding) { this.isHiding = hiding; }
+    @Override
+    public String getTypeName() {
+        return animalType.getTypeName();
+    }
 
-    public boolean isProtected(int currentTick) {
-        if (currentTick == 1 && getSpeciesKey().equals("caterpillar")) return true;
+    @Override
+    public SpeciesKey getSpeciesKey() {
+        return animalType.getSpeciesKey();
+    }
+
+    public AnimalType getAnimalType() {
+        return animalType;
+    }
+
+    public boolean isHiding() {
         return isHiding;
     }
 
-    public double getWeight() { return animalType.getWeight(); }
-    public int getMaxPerCell() { return animalType.getMaxPerCell(); }
-    public int getSpeed() { return animalType.getSpeed(); }
-    public double getFoodForSaturation() { return animalType.getFoodForSaturation(); }
+    public void setHiding(boolean h) {
+        this.isHiding = h;
+    }
 
-    @Override
-    public double eat() {
-        // Default implementation for animals. 
-        // Actual feeding logic is handled by FeedingService.
-        return 0;
+    public boolean canInitiateReproduction() {
+        return isAlive() && getEnergyPercentage() >= EnergyPolicy.REPRODUCTION_MIN.getPercent();
+    }
+
+    public boolean isProtected(int currentTick) {
+        return isHiding;
     }
 
     @Override
-    public boolean move() {
-        if (!canPerformAction()) return false;
-        // Energy cost depends on speed
-        double moveCost = getMaxEnergy() * (BASE_MOVE_COST_PERCENT 
-            + (getSpeed() * SPEED_MOVE_COST_STEP_PERCENT));
-        consumeEnergy(moveCost);
-        return true;
+    public double getWeight() {
+        return animalType.getWeight();
     }
 
-    @Override
-    public Animal reproduce() {
-        if (!canPerformAction()) return null;
-        // Reproduction is expensive: 30% of max energy
-        double cost = getMaxEnergy() * REPRODUCTION_COST_PERCENT;
-        if (getCurrentEnergy() > cost) {
-            consumeEnergy(cost);
-            return AnimalFactory.createAnimal(getSpeciesKey());
-        }
-        return null;
+    public int getMaxPerCell() {
+        return animalType.getMaxPerCell();
     }
 
-    public boolean canEat(String preyKey) { return animalType.canEat(preyKey); }
-    public int getHuntProbability(String preyKey) { return animalType.getHuntProbability(preyKey); }
+    public int getSpeed() {
+        return animalType.getSpeed();
+    }
 
-    /**
-     * Checks if this animal eats other animals (anything except plants).
-     */
+    public double getFoodForSaturation() {
+        return animalType.getFoodForSaturation();
+    }
+
+    public boolean canEat(SpeciesKey preyKey) {
+        return animalType.canEat(preyKey);
+    }
+
+    public int getHuntProbability(SpeciesKey preyKey) {
+        return animalType.getHuntProbability(preyKey);
+    }
+
     public boolean isAnimalPredator() {
-        return animalType.getHuntProbabilities().keySet().stream()
-                .anyMatch(key -> !key.equalsIgnoreCase("plant"));
+        return animalType.isPredator();
+    }
+
+    @Override
+    protected double getSpecialMetabolismModifier() {
+        return 1.0;
+    }
+
+    public int getOffspringBonus() {
+        return 0;
     }
 }

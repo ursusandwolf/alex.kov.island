@@ -2,19 +2,21 @@ package com.island.engine;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+/**
+ * Orchestrates the simulation ticks.
+ */
 public class GameLoop {
     private final List<Runnable> recurringTasks = new ArrayList<>();
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private final long tickDurationMs;
     private final ExecutorService taskExecutor;
-    private final int tickDurationMs;
-    private ScheduledFuture<?> timerHandle;
     private volatile boolean running = false;
+    private int tickCount = 0;
 
-    public GameLoop(int tickDurationMs) {
+    public GameLoop(long tickDurationMs) {
         this.tickDurationMs = tickDurationMs;
-        // Use available processors for parallel task execution
         this.taskExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     }
 
@@ -23,55 +25,56 @@ public class GameLoop {
     }
 
     public void start() {
+        if (running) {
+            return;
+        }
         running = true;
-        timerHandle = scheduler.scheduleAtFixedRate(this::tick, 0, tickDurationMs, TimeUnit.MILLISECONDS);
+        new Thread(this::run).start();
+    }
+
+    public void stop() {
+        if (!running) {
+            return;
+        }
+        running = false;
+        taskExecutor.shutdown();
     }
 
     public boolean isRunning() {
         return running;
     }
 
-    public void stop() {
-        running = false;
-        if (timerHandle != null) {
-            timerHandle.cancel(false);
-        }
-        scheduler.shutdown();
-        
-        // Даем текущему такту шанс завершиться перед закрытием taskExecutor
-        try {
-            if (!scheduler.awaitTermination(2, TimeUnit.SECONDS)) {
-                scheduler.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            scheduler.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
-
-        taskExecutor.shutdown();
-        try {
-            if (!taskExecutor.awaitTermination(2, TimeUnit.SECONDS)) {
-                taskExecutor.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            taskExecutor.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
+    public int getTickCount() {
+        return tickCount;
     }
 
-    private void tick() {
-        if (!running || taskExecutor.isShutdown()) return;
-        try {
-            // Execute each major phase sequentially to maintain simulation logic,
-            // but internal phase can be parallelized (e.g. movement by chunks)
-            for (Runnable task : recurringTasks) {
-                if (!running || taskExecutor.isShutdown()) break;
-                task.run();
+    public void runTick() {
+        for (Runnable task : recurringTasks) {
+            if (!running) {
+                break;
             }
-        } catch (Exception e) {
-            if (running && !taskExecutor.isShutdown()) {
+            try {
+                task.run();
+            } catch (Exception e) {
                 System.err.println("Ошибка во время такта симуляции: " + e.getMessage());
                 e.printStackTrace();
+            }
+        }
+        tickCount++;
+    }
+
+    private void run() {
+        while (running) {
+            long startTime = System.currentTimeMillis();
+            runTick();
+            long elapsed = System.currentTimeMillis() - startTime;
+            long sleepTime = tickDurationMs - elapsed;
+            if (sleepTime > 0) {
+                try {
+                    Thread.sleep(sleepTime);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
             }
         }
     }

@@ -1,20 +1,29 @@
 package com.island.content;
 
-import lombok.Getter;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
-// Flyweight: общие данные вида (интринсивное состояние)
-@Getter
+/**
+ * Flyweight: common data for a species.
+ */
 public final class AnimalType {
-    private final String speciesKey, typeName;
-    private final double weight, foodForSaturation, maxEnergy;
-    private final int maxPerCell, speed, maxLifespan;
-    private final Map<String, Integer> huntProbabilities;
+    private final SpeciesKey speciesKey;
+    private final String typeName;
+    private final double weight;
+    private final double foodForSaturation;
+    private final double maxEnergy;
+    private final int maxPerCell;
+    private final int speed;
+    private final int maxLifespan;
+    private final Map<SpeciesKey, Integer> huntProbabilities;
     private final boolean isPredator;
+    private final SizeClass sizeClass;
 
-    public AnimalType(String speciesKey, String typeName, double weight, int maxPerCell,
+    public AnimalType(SpeciesKey speciesKey, String typeName, double weight, int maxPerCell,
                       int speed, double foodForSaturation, int maxLifespan,
-                      Map<String, Integer> huntProbabilities) {
+                      Map<SpeciesKey, Integer> huntProbabilities) {
         this.speciesKey = speciesKey;
         this.typeName = typeName;
         this.weight = weight;
@@ -23,12 +32,62 @@ public final class AnimalType {
         this.foodForSaturation = foodForSaturation;
         this.maxLifespan = maxLifespan;
         this.maxEnergy = foodForSaturation;
-        this.huntProbabilities = (huntProbabilities != null) ? 
-                Collections.unmodifiableMap(new HashMap<>(huntProbabilities)) : Collections.emptyMap();
-        this.isPredator = !this.huntProbabilities.isEmpty();
+        this.huntProbabilities = (huntProbabilities != null) 
+                ? Collections.unmodifiableMap(new HashMap<>(huntProbabilities)) 
+                : Collections.emptyMap();
+        this.isPredator = speciesKey.isPredator();
+        this.sizeClass = SizeClass.fromWeight(weight);
     }
 
-    public boolean canEat(String key) { return huntProbabilities.containsKey(key); }
-    public int getHuntProbability(String key) { return huntProbabilities.getOrDefault(key, 0); }
-    public Set<String> getPreySpecies() { return huntProbabilities.keySet(); }
+    public SpeciesKey getSpeciesKey() {
+        return speciesKey;
+    }
+
+    public String getTypeName() {
+        return typeName;
+    }
+
+    public double getWeight() {
+        return weight;
+    }
+
+    public double getFoodForSaturation() {
+        return foodForSaturation;
+    }
+
+    public double getMaxEnergy() {
+        return maxEnergy;
+    }
+
+    public int getMaxPerCell() {
+        return maxPerCell;
+    }
+
+    public int getSpeed() {
+        return speed;
+    }
+
+    public int getMaxLifespan() {
+        return maxLifespan;
+    }
+
+    public boolean isPredator() {
+        return isPredator;
+    }
+
+    public SizeClass getSizeClass() {
+        return sizeClass;
+    }
+
+    public boolean canEat(SpeciesKey key) {
+        return huntProbabilities.containsKey(key);
+    }
+
+    public int getHuntProbability(SpeciesKey key) {
+        return huntProbabilities.getOrDefault(key, 0);
+    }
+
+    public Set<SpeciesKey> getPreySpecies() {
+        return huntProbabilities.keySet();
+    }
 }

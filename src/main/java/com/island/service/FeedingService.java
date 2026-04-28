@@ -1,124 +1,276 @@
 package com.island.service;
 
-import com.island.content.Animal;
-import com.island.content.Plant;
-import com.island.model.Cell;
-import com.island.model.Chunk;
-import com.island.model.Island;
-import com.island.engine.InteractionMatrix;
-import static com.island.config.SimulationConstants.*;
+import static com.island.config.SimulationConstants.HUNT_FATIGUE_COST_MULTIPLIER;
+import static com.island.config.SimulationConstants.HUNT_FATIGUE_THRESHOLD;
 
+import com.island.config.EnergyPolicy;
+import com.island.content.Animal;
+import com.island.content.Biomass;
+import com.island.content.DeathCause;
+import com.island.content.HuntingStrategy;
+import com.island.content.Organism;
+import com.island.content.PreyProvider;
+import com.island.content.SpeciesKey;
+import com.island.content.SpeciesRegistry;
+import com.island.model.Cell;
+import com.island.model.Island;
+import com.island.util.InteractionMatrix;
+import com.island.util.RandomUtils;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadLocalRandom;
 
-public class FeedingService implements Runnable {
-    private final Island island;
+/**
+ * Service responsible for feeding logic of all animals.
+ */
+public class FeedingService extends AbstractService {
     private final InteractionMatrix interactionMatrix;
-    private final ExecutorService executor;
+    private final SpeciesRegistry speciesRegistry;
+    private final HuntingStrategy huntingStrategy;
+    private final int minPackSize;
+    private Map<SpeciesKey, Double> protectionMap;
 
-    public FeedingService(Island island, InteractionMatrix interactionMatrix, ExecutorService executor) {
-        this.island = island;
+    public FeedingService(Island island, InteractionMatrix interactionMatrix, 
+                          SpeciesRegistry speciesRegistry, HuntingStrategy huntingStrategy, 
+                          ExecutorService executor) {
+        this(island, interactionMatrix, speciesRegistry, huntingStrategy, executor, 
+                com.island.config.SimulationConstants.WOLF_PACK_MIN_SIZE);
+    }
+
+    public FeedingService(Island island, InteractionMatrix interactionMatrix, 
+                          SpeciesRegistry speciesRegistry, HuntingStrategy huntingStrategy, 
+                          ExecutorService executor, int minPackSize) {
+        super(island, executor);
         this.interactionMatrix = interactionMatrix;
-        this.executor = executor;
+        this.speciesRegistry = speciesRegistry;
+        this.huntingStrategy = huntingStrategy;
+        this.minPackSize = minPackSize;
     }
 
     @Override
     public void run() {
-        List<Callable<Void>> tasks = new ArrayList<>();
-        for (Chunk chunk : island.getChunks()) {
-            tasks.add(() -> {
-                for (Cell cell : chunk.getCells()) {
-                    processCell(cell);
-                }
-                return null;
-            });
-        }
+        // Centralized: calculate protection map once per tick
+        this.protectionMap = getIsland().getProtectionMap(speciesRegistry);
+        super.run();
+    }
+
+    @Override
+    protected void processCell(Cell cell) {
+        List<Animal> consumers;
+        cell.getLock().lock();
         try {
-            executor.invokeAll(tasks);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+            // Take a snapshot to process safely
+            consumers = new ArrayList<>(cell.getAnimals());
+        } finally {
+            cell.getLock().unlock();
         }
-    }
-
-    private void processCell(Cell cell) {
-        List<Animal> animals = cell.getAnimals();
         
-        // Trophic Hierarchy Sorting:
-        // 1. Predators of animals (isAnimalPredator == true) have higher priority.
-        // 2. Heavier animals have higher priority within their group.
-        animals.sort((a, b) -> {
-            if (a.isAnimalPredator() != b.isAnimalPredator()) {
-                return a.isAnimalPredator() ? -1 : 1; // Predators first
+        // --- Pack Hunting Logic (Wolf) ---
+        List<Animal> wolves = new ArrayList<>();
+        for (Animal a : consumers) {
+            if (a.getSpeciesKey().equals(SpeciesKey.WOLF) && a.isAlive() && !a.isHibernating()) {
+                wolves.add(a);
             }
-            return Double.compare(b.getWeight(), a.getWeight()); // Then by weight descending
-        });
+        }
 
-        for (Animal animal : animals) {
-            if (animal.isAlive()) {
-                tryEat(animal, cell);
+        if (wolves.size() >= minPackSize) {
+            processWolfPack(wolves, cell);
+            // Remove wolves from individual processing
+            consumers.removeAll(wolves);
+        }
+
+        PreyProvider preyProvider = new PreyProvider(cell, interactionMatrix, getIsland().getTickCount(), protectionMap);
+
+        for (Animal consumer : consumers) {
+            if (consumer.isAlive() && !consumer.isHibernating()) {
+                tryEat(consumer, cell, preyProvider);
             }
         }
     }
 
-    private void tryEat(Animal predator, Cell cell) {
-        // Base hunting cost
-        double huntEffortCost = predator.getMaxEnergy() * (BASE_HUNT_COST_PERCENT 
-            + (predator.getSpeed() * PREDATOR_SPEED_HUNT_COST_STEP_PERCENT));
-        predator.consumeEnergy(huntEffortCost);
-
-        if (!predator.isAlive()) return;
-
-        // Try hunting animals
-        List<Animal> potentialPrey = cell.getAnimals();
-        for (Animal prey : potentialPrey) {
-            if (predator == prey || !prey.isAlive()) continue;
-
-            // Protection check: hides if escaped before or if it's a caterpillar on tick 1
-            if (prey.isProtected(island.getTickCount())) {
+    private void processWolfPack(List<Animal> pack, Cell cell) {
+        // Use a specialist prey provider for the pack (sees Bears)
+        PreyProvider packPreyProvider = new PreyProvider(cell, interactionMatrix, 
+                                            getIsland().getTickCount(), protectionMap, true);
+        
+        // Pick one lead wolf to find prey for the whole pack
+        Animal leadWolf = pack.get(0);
+        
+        for (Organism prey : packPreyProvider.getPreyFor(leadWolf)) {
+            if (!prey.isAlive()) {
                 continue;
             }
 
-            int chance = interactionMatrix.getChance(predator.getSpeciesKey(), prey.getSpeciesKey());
-            if (chance > 0) {
-                // Relative speed logic
-                int speedDifference = prey.getSpeed() - predator.getSpeed();
-                if (speedDifference > 0) {
-                    double chaseCost = predator.getMaxEnergy() * (speedDifference * PREY_RELATIVE_SPEED_HUNT_COST_STEP_PERCENT);
-                    predator.consumeEnergy(chaseCost);
-                    if (!predator.isAlive()) return;
+            int baseChance = interactionMatrix.getChance(SpeciesKey.WOLF, prey.getSpeciesKey());
+            // Special chance for Bear if not in matrix
+            if (baseChance == 0 && prey.getSpeciesKey().equals(SpeciesKey.BEAR)) {
+                baseChance = Math.min(com.island.config.SimulationConstants.WOLF_PACK_BEAR_HUNT_MAX_CHANCE, pack.size());
+            }
+
+            if (baseChance == 0) {
+                continue;
+            }
+
+            double successRate = huntingStrategy.calculatePackSuccessRate(pack, prey, baseChance);
+            double individualEffort = huntingStrategy.calculateHuntCost(leadWolf, prey) / pack.size();
+            
+            // ROI check for the pack
+            if (!huntingStrategy.isWorthHunting(leadWolf, prey, successRate, individualEffort * pack.size())) {
+                continue;
+            }
+
+            // Everyone spends energy to try hunt
+            for (Animal wolf : pack) {
+                if (!wolf.tryConsumeEnergy(individualEffort)) {
+                    getIsland().reportDeath(wolf.getSpeciesKey(), DeathCause.HUNGER);
+                }
+            }
+
+            if (RandomUtils.nextDouble() < successRate) {
+                cell.getLock().lock();
+                try {
+                    boolean success = false;
+                    if (prey instanceof Animal a) {
+                        if (a.isAlive() && cell.removeAnimal(a)) {
+                            a.die();
+                            double gainPerWolf = a.getWeight() / pack.size();
+                            for (Animal wolf : pack) {
+                                if (wolf.isAlive()) {
+                                    wolf.addEnergy(gainPerWolf);
+                                }
+                            }
+                            packPreyProvider.markAsEaten(a);
+                            getIsland().reportDeath(a.getSpeciesKey(), DeathCause.EATEN);
+                            success = true;
+                        }
+                    } else if (prey instanceof Biomass b) {
+                        if (b.getBiomass() > 0) {
+                            double totalNeeded = 0;
+                            for (Animal wolf : pack) {
+                                totalNeeded += (wolf.getFoodForSaturation() - wolf.getCurrentEnergy());
+                            }
+                            double eaten = b.consumeBiomass(totalNeeded);
+                            double gainPerWolf = eaten / pack.size();
+                            for (Animal wolf : pack) {
+                                if (wolf.isAlive()) {
+                                    wolf.addEnergy(gainPerWolf);
+                                }
+                            }
+                            success = true;
+                        }
+                    }
+
+                    if (success) {
+                        return;
+                    } // Pack is satisfied for this tick
+                } finally {
+                    cell.getLock().unlock();
+                }
+            } else if (prey instanceof Animal a) {
+                packPreyProvider.markAsHiding(a);
+            }
+        }
+    }
+
+    private void tryEat(Animal consumer, Cell cell, PreyProvider preyProvider) {
+        int attemptsInTick = 0;
+        for (Organism prey : preyProvider.getPreyFor(consumer)) {
+            if (consumer == prey || !prey.isAlive()) {
+                continue;
+            }
+            attemptsInTick++;
+
+            double successRate = huntingStrategy.calculateSuccessRate(consumer, prey);
+            if (successRate > 0) {
+                double totalEffort = huntingStrategy.calculateHuntCost(consumer, prey);
+                
+                if (attemptsInTick > HUNT_FATIGUE_THRESHOLD) {
+                    int extraBlocks = (attemptsInTick - 1) / HUNT_FATIGUE_THRESHOLD;
+                    totalEffort *= Math.pow(HUNT_FATIGUE_COST_MULTIPLIER, extraBlocks);
                 }
 
-                if (ThreadLocalRandom.current().nextInt(100) < chance) {
-                    // ATOMIC CHECK: Successful hunt ONLY if we can actually remove the prey from the cell.
-                    // This prevents situations where two predators eat the same prey in the same tick.
-                    if (cell.removeAnimal(prey)) {
-                        prey.die(); // Ensure prey is marked as dead
-                        predator.addEnergy(prey.getWeight());
+                if (!huntingStrategy.isWorthHunting(consumer, prey, successRate, totalEffort)) {
+                    continue; 
+                }
+
+                if (!consumer.tryConsumeEnergy(totalEffort)) {
+                    getIsland().reportDeath(consumer.getSpeciesKey(), DeathCause.HUNGER);
+                    return; 
+                }
+
+                // Execution with atomic check-and-consume
+                boolean success = false;
+                if (RandomUtils.nextDouble() < successRate) {
+                    cell.getLock().lock();
+                    try {
+                        if (prey instanceof Animal a) {
+                            if (a.isAlive() && cell.removeAnimal(a)) {
+                                a.die();
+                                consumer.addEnergy(a.getWeight());
+                                preyProvider.markAsEaten(a);
+                                getIsland().reportDeath(a.getSpeciesKey(), DeathCause.EATEN);
+                                success = true;
+                            }
+                        } else if (prey instanceof Biomass b) {
+                            if (b.getBiomass() > 0) {
+                                double foodNeeded = consumer.getFoodForSaturation() - consumer.getCurrentEnergy();
+                                double eaten = b.consumeBiomass(foodNeeded);
+                                consumer.addEnergy(eaten);
+                                success = true;
+                            }
+                        }
+                    } finally {
+                        cell.getLock().unlock();
+                    }
+                    
+                    if (success && consumer.getCurrentEnergy() >= consumer.getFoodForSaturation()) {
+                        return; 
+                    }
+                } 
+                
+                if (!success && prey instanceof Animal a) {
+                    preyProvider.markAsHiding(a);
+                    a.tryConsumeEnergy(a.getMaxEnergy() * EnergyPolicy.ESCAPE_LOSS.getFactor());
+                }
+            }
+        }
+
+        // --- Plant Feeding Logic ---
+        SpeciesKey consumerKey = consumer.getSpeciesKey();
+        double foodNeeded = consumer.getFoodForSaturation() - consumer.getCurrentEnergy();
+        if (foodNeeded <= 0) {
+            return;
+        }
+
+        int canEatPlants = interactionMatrix.getChance(consumerKey, SpeciesKey.PLANT);
+        if (canEatPlants > 0) {
+            // 1. Try eating Cabbage first
+            Biomass cabbage = cell.getBiomass(SpeciesKey.CABBAGE);
+            if (cabbage != null && cabbage.getBiomass() > 0) {
+                if (!isPlantProtected(cabbage)) {
+                    double eaten = cabbage.consumeBiomass(foodNeeded);
+                    consumer.addEnergy(eaten);
+                    foodNeeded -= eaten;
+                    if (foodNeeded <= 0) {
                         return;
                     }
-                } else {
-                    // Hunt failed! Prey escapes and HIDES for the rest of the tick.
-                    prey.setHiding(true);
-                    double escapeCost = prey.getMaxEnergy() * 0.05; // 5% energy to escape
-                    prey.consumeEnergy(escapeCost);
                 }
             }
-        }
 
-        // If no animal caught, try eating plants (for herbivores/omnivores)
-        int plantChance = interactionMatrix.getChance(predator.getSpeciesKey(), "Plant");
-        if (plantChance > 0) {
-            List<Plant> plants = cell.getPlants();
-            if (!plants.isEmpty()) {
-                Plant plant = plants.get(0);
-                if (plant.isAlive()) {
-                    predator.addEnergy(1.0); // 1kg of plant energy
-                    cell.removePlant(plant);
+            // 2. Try eating Grass 
+            Biomass grass = cell.getBiomass(SpeciesKey.GRASS);
+            if (grass != null && grass.getBiomass() > 0) {
+                if (!isPlantProtected(grass)) {
+                    double eaten = grass.consumeBiomass(foodNeeded);
+                    consumer.addEnergy(eaten);
                 }
             }
         }
+    }
+
+    private boolean isPlantProtected(Biomass plant) {
+        Double hideChance = protectionMap.get(plant.getSpeciesKey());
+        return hideChance != null && RandomUtils.nextDouble() < hideChance;
     }
 }

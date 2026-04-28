@@ -1,40 +1,79 @@
 package com.island.content;
 
-import java.util.*;
-import com.island.content.animals.predators.*;
-import com.island.content.animals.herbivores.*;
+import com.island.content.animals.predators.Bear;
+import com.island.content.animals.predators.Chameleon;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
 
+/**
+ * Factory for creating animal instances based on SpeciesKey.
+ */
 public final class AnimalFactory {
-    @FunctionalInterface
-    public interface AnimalCreator { Animal create(); }
+    private final SpeciesRegistry speciesRegistry;
+    private final Map<SpeciesKey, Function<AnimalType, Animal>> creators = new HashMap<>();
 
-    private static final Map<String, AnimalCreator> registry = new HashMap<>();
-
-    static {
-        registry.put("wolf", Wolf::new);
-        registry.put("rabbit", Rabbit::new);
-        registry.put("duck", Duck::new);
-        registry.put("caterpillar", Caterpillar::new);
-        registry.put("fox", Fox::new);
-        registry.put("boa", Boa::new);
-        registry.put("bear", Bear::new);
-        registry.put("eagle", Eagle::new);
-        registry.put("horse", Horse::new);
-        registry.put("deer", Deer::new);
-        registry.put("mouse", Mouse::new);
-        registry.put("goat", Goat::new);
-        registry.put("sheep", Sheep::new);
-        registry.put("boar", Boar::new);
-        registry.put("buffalo", Buffalo::new);
+    public AnimalFactory(SpeciesRegistry speciesRegistry) {
+        this.speciesRegistry = speciesRegistry;
+        // Only register animals with unique logic here. 
+        // All others will be created as GenericAnimal.
+        creators.put(SpeciesKey.BEAR, Bear::new);
+        creators.put(SpeciesKey.CHAMELEON, Chameleon::new);
     }
 
-    private AnimalFactory() {}
-
-    public static Animal createAnimal(String key) {
-        AnimalCreator creator = registry.get(key.toLowerCase());
-        if (creator == null) return null;
-        return creator.create();
+    public Optional<Animal> createAnimal(SpeciesKey key) {
+        return createAnimal(key, 0.5, 0); 
     }
 
-    public static Set<String> getRegisteredSpecies() { return registry.keySet(); }
+    public Animal createAnimal(String key) {
+        try {
+            return createAnimal(SpeciesKey.fromCode(key), 0.5, 0).orElse(null);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    private Optional<Animal> createAnimal(SpeciesKey key, double energyFactor, int initialAge) {
+        AnimalType type = speciesRegistry.getAnimalType(key).orElse(null);
+        if (type == null) {
+            return Optional.empty();
+        }
+
+        Function<AnimalType, Animal> creator = creators.get(key);
+        Animal animal = (creator != null) ? creator.apply(type) : new GenericAnimal(type);
+        
+        animal.setEnergyFactor(energyFactor);
+        for (int i = 0; i < initialAge; i++) {
+            animal.checkAgeDeath(); // Increment age
+        }
+        return Optional.of(animal);
+    }
+
+    public Optional<Animal> createInitialAnimal(SpeciesKey key) {
+        // Randomize initial age (at most 5% of max lifespan) and energy for a more natural start
+        AnimalType type = speciesRegistry.getAnimalType(key).orElse(null);
+        int initialAge = 0;
+        if (type != null && type.getMaxLifespan() > 0) {
+            int maxInitialAge = Math.max(1, (int) (type.getMaxLifespan() * 0.05));
+            initialAge = com.island.util.RandomUtils.nextInt(0, maxInitialAge);
+        }
+        double initialEnergyFactor = 0.4 + (com.island.util.RandomUtils.nextDouble() * 0.4);
+        return createAnimal(key, initialEnergyFactor, initialAge);
+    }
+
+    public Optional<Animal> createBaby(SpeciesKey key) {
+        return createAnimal(key, 0.3, 0); 
+    }
+
+    public Optional<Animal> createAnimalWithEnergy(SpeciesKey key, double energy) {
+        Optional<Animal> animalOpt = createAnimal(key, 1.0, 0);
+        animalOpt.ifPresent(a -> a.setEnergy(energy));
+        return animalOpt;
+    }
+
+    public Set<SpeciesKey> getRegisteredSpecies() {
+        return speciesRegistry.getAllAnimalKeys();
+    }
 }
