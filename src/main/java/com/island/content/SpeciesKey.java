@@ -61,6 +61,10 @@ public record SpeciesKey(String code, boolean predator) implements Comparable<Sp
         return isPlant() || this.equals(CATERPILLAR) || this.equals(BUTTERFLY);
     }
 
+    public boolean isColdBlooded() {
+        return this.equals(BOA) || this.equals(FROG) || this.equals(CHAMELEON);
+    }
+
     public static SpeciesKey fromCode(String code) {
         SpeciesKey key = REGISTRY.get(code.toLowerCase());
         if (key == null) {

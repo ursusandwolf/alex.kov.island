@@ -2,6 +2,7 @@ package com.island.content;
 
 import static com.island.config.SimulationConstants.HERBIVORE_METABOLISM_MODIFIER;
 import static com.island.config.SimulationConstants.HERBIVORE_OFFSPRING_BONUS;
+import static com.island.config.SimulationConstants.REPTILE_METABOLISM_MODIFIER;
 
 import com.island.content.animals.herbivores.Herbivore;
 import com.island.content.animals.predators.Predator;
@@ -12,6 +13,7 @@ import com.island.content.animals.predators.Predator;
  */
 public class GenericAnimal extends Animal implements Herbivore, Predator {
     private final boolean isHerbivore;
+    private final boolean isColdBlooded;
 
     public GenericAnimal(AnimalType type) {
         super(type);
@@ -19,11 +21,16 @@ public class GenericAnimal extends Animal implements Herbivore, Predator {
         this.isHerbivore = type.canEat(SpeciesKey.PLANT) 
                         || type.canEat(SpeciesKey.GRASS) 
                         || type.canEat(SpeciesKey.CABBAGE);
+        this.isColdBlooded = type.getSpeciesKey().isColdBlooded();
     }
 
     @Override
     protected double getSpecialMetabolismModifier() {
-        return isHerbivore ? HERBIVORE_METABOLISM_MODIFIER : 1.0;
+        double modifier = isHerbivore ? HERBIVORE_METABOLISM_MODIFIER : 1.0;
+        if (isColdBlooded) {
+            modifier *= REPTILE_METABOLISM_MODIFIER;
+        }
+        return modifier;
     }
 
     @Override

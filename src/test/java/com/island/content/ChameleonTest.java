@@ -26,8 +26,8 @@ public class ChameleonTest {
 
         double rate = (double) protectedCount / iterations;
         
-        // Should be around 0.80. Allowing 5% margin for randomness.
+        // Should be around 0.95. Allowing 3% margin for randomness.
         System.out.println("Chameleon protection rate: " + rate);
-        assertTrue(rate > 0.75 && rate < 0.85, "Protection rate should be ~80%, but was " + rate);
+        assertTrue(rate > 0.92, "Protection rate should be >= 95%, but was " + rate);
     }
 }

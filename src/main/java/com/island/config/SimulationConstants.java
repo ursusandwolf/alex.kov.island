@@ -6,6 +6,7 @@ public final class SimulationConstants {
     public static final double PREY_RELATIVE_SPEED_HUNT_COST_STEP_PERCENT = 0.05; 
     public static final double BASE_METABOLISM_PERCENT = 0.015; 
     public static final double HERBIVORE_METABOLISM_MODIFIER = 0.80; 
+    public static final double REPTILE_METABOLISM_MODIFIER = 0.40; // Cold-blooded efficiency
 
     // Hunting Logic
     public static final double HUNT_STRIKE_COST_PREY_WEIGHT_FRACTION = 0.1;

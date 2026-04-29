@@ -61,7 +61,7 @@ public class ReproductionService extends AbstractService {
 
     private boolean tryReproduce(Animal parent1, Animal parent2, Cell cell) {
         AnimalType type = parent1.getAnimalType();
-        double chance = 1.0; // Guaranteed for testing/balancing
+        double chance = 0.25; // Balanced reproduction chance
 
         if (getRandom().nextDouble() < chance) {
             Optional<Animal> baby = animalFactory.createAnimal(type.getSpeciesKey());

@@ -43,7 +43,7 @@ public abstract class Animal extends Organism {
     }
 
     public boolean canInitiateReproduction() {
-        return isAlive() && getEnergyPercentage() >= EnergyPolicy.REPRODUCTION_MIN.getPercent();
+        return isAlive() && getAge() >= 1 && getEnergyPercentage() >= EnergyPolicy.REPRODUCTION_MIN.getPercent();
     }
 
     public boolean isProtected(int currentTick) {
