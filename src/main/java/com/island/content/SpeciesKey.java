@@ -8,7 +8,7 @@ import java.util.Objects;
 
 /**
  * Value object representing a species key.
- * Refactored from enum to record to allow dynamic species addition (OCP).
+ * Hybrid Approach: Keeps core constants but flags are now in AnimalType.
  */
 public record SpeciesKey(String code, boolean predator) implements Comparable<SpeciesKey> {
     
@@ -40,7 +40,7 @@ public record SpeciesKey(String code, boolean predator) implements Comparable<Sp
     public static final SpeciesKey CABBAGE = register("cabbage", false);
 
     private static SpeciesKey register(String code, boolean predator) {
-        SpeciesKey key = new SpeciesKey(code, predator);
+        SpeciesKey key = new SpeciesKey(code.toLowerCase(), predator);
         REGISTRY.put(code.toLowerCase(), key);
         return key;
     }
@@ -53,23 +53,15 @@ public record SpeciesKey(String code, boolean predator) implements Comparable<Sp
         return predator;
     }
 
-    public boolean isPlant() {
-        return this.equals(PLANT) || this.equals(GRASS) || this.equals(CABBAGE);
-    }
-
-    public boolean isBiomass() {
-        return isPlant() || this.equals(CATERPILLAR) || this.equals(BUTTERFLY);
-    }
-
-    public boolean isColdBlooded() {
-        return this.equals(BOA) || this.equals(FROG) || this.equals(CHAMELEON);
-    }
-
     public static SpeciesKey fromCode(String code) {
-        SpeciesKey key = REGISTRY.get(code.toLowerCase());
+        return fromCode(code, false);
+    }
+
+    public static SpeciesKey fromCode(String code, boolean predator) {
+        String lower = code.toLowerCase();
+        SpeciesKey key = REGISTRY.get(lower);
         if (key == null) {
-            // Allow dynamic creation if not in registry (OCP)
-            return new SpeciesKey(code.toLowerCase(), false);
+            return register(lower, predator);
         }
         return key;
     }
@@ -78,13 +70,7 @@ public record SpeciesKey(String code, boolean predator) implements Comparable<Sp
         return Collections.unmodifiableCollection(REGISTRY.values());
     }
 
-    /**
-     * Transitional method to replace enum ordinal() where absolutely necessary.
-     * Better to use map lookup in performance-critical areas.
-     */
     public int ordinal() {
-        // This is a temporary hack for InteractionMatrix. 
-        // In a real record-based system, we'd use a stable ID.
         return code.hashCode(); 
     }
 

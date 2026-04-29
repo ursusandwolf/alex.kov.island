@@ -11,7 +11,8 @@ public class ChameleonTest {
     @Test
     void testChameleonInvisibilityRate() {
         AnimalType type = new AnimalType(
-            SpeciesKey.CHAMELEON, "chameleon", 0.1, 300, 1, 0.02, 100, new HashMap<>()
+            SpeciesKey.CHAMELEON, "chameleon", 0.1, 300, 1, 0.02, 100, new HashMap<>(),
+            true, false, false, false, 0.3, 0.3, 0.2
         );
         Chameleon chameleon = new Chameleon(type);
 

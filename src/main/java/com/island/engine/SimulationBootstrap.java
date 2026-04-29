@@ -32,7 +32,7 @@ public class SimulationBootstrap {
         RandomProvider random = new DefaultRandomProvider();
 
         // 3. Create core models
-        Island island = new Island(config.getIslandWidth(), config.getIslandHeight());
+        Island island = new Island(config.getIslandWidth(), config.getIslandHeight(), registry);
         AnimalFactory animalFactory = new AnimalFactory(registry, random);
 
         // 4. Setup GameLoop and View

@@ -21,7 +21,7 @@ public class GenericAnimal extends Animal implements Herbivore, Predator {
         this.isHerbivore = type.canEat(SpeciesKey.PLANT) 
                         || type.canEat(SpeciesKey.GRASS) 
                         || type.canEat(SpeciesKey.CABBAGE);
-        this.isColdBlooded = type.getSpeciesKey().isColdBlooded();
+        this.isColdBlooded = type.isColdBlooded();
     }
 
     @Override

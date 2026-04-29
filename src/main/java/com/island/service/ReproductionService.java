@@ -31,25 +31,27 @@ public class ReproductionService extends AbstractService {
     protected void processCell(SimulationNode node, int tickCount) {
         if (node instanceof Cell cell) {
             List<Animal> potentialParents = cell.getAnimals();
-            
-            // LOD: Cap reproduction attempts per cell
-            if (potentialParents.size() > 50) {
-                java.util.Collections.shuffle(potentialParents, new java.util.Random(getRandom().nextLong()));
-                potentialParents = potentialParents.subList(0, 50);
-            } else {
-                potentialParents = new ArrayList<>(potentialParents);
-                java.util.Collections.shuffle(potentialParents, new java.util.Random(getRandom().nextLong()));
+            int size = potentialParents.size();
+            if (size < 2) {
+                return;
             }
+            
+            // LOD: Systematic sampling
+            int limit = 50;
+            int step = (size > limit) ? (size / limit + 1) : 1;
 
             java.util.Set<Animal> alreadyMated = new java.util.HashSet<>();
 
-            for (Animal a1 : potentialParents) {
+            for (int i = 0; i < size; i += step) {
+                Animal a1 = potentialParents.get(i);
                 if (alreadyMated.contains(a1) || !shouldReproduce(a1, tickCount)) {
                     continue;
                 }
 
-                for (Animal a2 : potentialParents) {
-                    if (a1 == a2 || alreadyMated.contains(a2) || !shouldReproduce(a2, tickCount)) {
+                // Try to find a mate in the same sampled set or nearby
+                for (int j = i + step; j < size; j += step) {
+                    Animal a2 = potentialParents.get(j);
+                    if (alreadyMated.contains(a2) || !shouldReproduce(a2, tickCount)) {
                         continue;
                     }
 
@@ -70,7 +72,7 @@ public class ReproductionService extends AbstractService {
             return false;
         }
         // Cold-blooded reproduce less frequently (every 4th tick)
-        if (animal.getSpeciesKey().isColdBlooded()) {
+        if (animal.getAnimalType().isColdBlooded()) {
             return (tickCount % 4 == 0);
         }
         return true;

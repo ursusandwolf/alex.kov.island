@@ -26,6 +26,17 @@ public class SpeciesLoader {
         Map<SpeciesKey, Integer> plantMaxCounts = new HashMap<>();
         Map<SpeciesKey, Integer> plantSpeeds = new HashMap<>();
 
+        // 1. Discover species from list or use existing values
+        String listStr = props.getProperty("species.list", "");
+        if (!listStr.isEmpty()) {
+            for (String code : listStr.split(",")) {
+                String trimmed = code.trim();
+                boolean isPred = Boolean.parseBoolean(props.getProperty(trimmed + ".isPredator", "false"));
+                SpeciesKey.fromCode(trimmed, isPred);
+            }
+        }
+
+        // 2. Load all registered species
         for (SpeciesKey key : SpeciesKey.values()) {
             String code = key.getCode();
             if (props.containsKey(code + ".weight")) {
@@ -46,26 +57,39 @@ public class SpeciesLoader {
         int maxCount = Math.max(0, Integer.parseInt(props.getProperty(code + ".maxPerCell", "1")));
         int speed = Math.max(0, Integer.parseInt(props.getProperty(code + ".speed", "0")));
         
-        if (key.isPlant()) {
+        boolean isPlant = Boolean.parseBoolean(props.getProperty(code + ".isPlant", "false"));
+        boolean isBiomass = Boolean.parseBoolean(props.getProperty(code + ".isBiomass", "false"));
+        boolean isColdBlooded = Boolean.parseBoolean(props.getProperty(code + ".isColdBlooded", "false"));
+        boolean isPackHunter = Boolean.parseBoolean(props.getProperty(code + ".isPackHunter", "false"));
+        
+        double presenceProb = Double.parseDouble(props.getProperty(code + ".presenceProb", "0.2"));
+        double settlementBase = Double.parseDouble(props.getProperty(code + ".settlementBase", "0.1"));
+        double settlementRange = Double.parseDouble(props.getProperty(code + ".settlementRange", "0.1"));
+
+        if (isPlant) {
             plantWeights.put(key, weight);
             plantMaxCounts.put(key, maxCount);
             plantSpeeds.put(key, speed);
-        } else {
-            double food = Math.max(0, Double.parseDouble(props.getProperty(code + ".foodForSaturation", "1")));
-            int lifespan = Math.max(1, Integer.parseInt(props.getProperty(code + ".lifespan", "100")));
-            
-            String preyStr = props.getProperty(code + ".prey", "");
-            Map<SpeciesKey, Integer> preyMap = new HashMap<>();
-            if (!preyStr.isEmpty()) {
-                for (String part : preyStr.split(",")) {
-                    String[] sub = part.split(":");
-                    if (sub.length == 2) {
-                        preyMap.put(SpeciesKey.fromCode(sub[0]), Integer.parseInt(sub[1]));
-                    }
+        }
+        
+        // Even plants can have AnimalType for some common properties if needed, 
+        // but for now, we create AnimalType for all animals and biomass containers.
+        double food = Math.max(0, Double.parseDouble(props.getProperty(code + ".foodForSaturation", "1")));
+        int lifespan = Math.max(1, Integer.parseInt(props.getProperty(code + ".lifespan", "100")));
+        
+        String preyStr = props.getProperty(code + ".prey", "");
+        Map<SpeciesKey, Integer> preyMap = new HashMap<>();
+        if (!preyStr.isEmpty()) {
+            for (String part : preyStr.split(",")) {
+                String[] sub = part.split(":");
+                if (sub.length == 2) {
+                    preyMap.put(SpeciesKey.fromCode(sub[0]), Integer.parseInt(sub[1]));
                 }
             }
-            
-            animalTypes.put(key, new AnimalType(key, code, weight, maxCount, speed, food, lifespan, preyMap));
         }
+        
+        animalTypes.put(key, new AnimalType(key, code, weight, maxCount, speed, food, lifespan, preyMap,
+                isColdBlooded, isPackHunter, isBiomass, isPlant,
+                presenceProb, settlementBase, settlementRange));
     }
 }

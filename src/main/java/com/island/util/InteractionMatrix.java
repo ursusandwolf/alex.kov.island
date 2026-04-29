@@ -1,6 +1,8 @@
 package com.island.util;
 
 import com.island.content.SpeciesKey;
+import com.island.content.SpeciesRegistry;
+import com.island.content.AnimalType;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -10,19 +12,23 @@ import java.util.Map;
  * Uses primitive 2D array for speed, with a mapping for SpeciesKey indices.
  */
 public class InteractionMatrix implements InteractionProvider {
-    private static final Map<SpeciesKey, Integer> INDEX_MAP = new HashMap<>();
-    private static final int SIZE;
+    private final Map<SpeciesKey, Integer> indexMap;
+    private final int size;
+    private final SpeciesRegistry registry;
     
-    static {
+    private int[][] matrix;
+    private boolean frozen = false;
+
+    public InteractionMatrix(SpeciesRegistry registry) {
+        this.registry = registry;
+        this.indexMap = new HashMap<>();
         int i = 0;
         for (SpeciesKey key : SpeciesKey.values()) {
-            INDEX_MAP.put(key, i++);
+            indexMap.put(key, i++);
         }
-        SIZE = i;
+        this.size = i;
+        this.matrix = new int[size][size];
     }
-
-    private int[][] matrix = new int[SIZE][SIZE];
-    private boolean frozen = false;
 
     /**
      * Sets the success chance for a predator-prey pair.
@@ -34,9 +40,9 @@ public class InteractionMatrix implements InteractionProvider {
     public synchronized void setChance(SpeciesKey predator, SpeciesKey prey, int chance) {
         if (frozen) {
             // Copy-on-write if someone tries to modify a frozen matrix (mostly for tests)
-            int[][] newMatrix = new int[SIZE][SIZE];
-            for (int i = 0; i < SIZE; i++) {
-                newMatrix[i] = Arrays.copyOf(matrix[i], SIZE);
+            int[][] newMatrix = new int[size][size];
+            for (int i = 0; i < size; i++) {
+                newMatrix[i] = Arrays.copyOf(matrix[i], size);
             }
             matrix = newMatrix;
             frozen = false;
@@ -62,7 +68,8 @@ public class InteractionMatrix implements InteractionProvider {
 
     public boolean hasAnimalPrey(SpeciesKey predator) {
         for (SpeciesKey prey : SpeciesKey.values()) {
-            if (!prey.isBiomass() && getChance(predator, prey) > 0) {
+            boolean isBiomass = registry.getAnimalType(prey).map(AnimalType::isBiomass).orElse(false);
+            if (!isBiomass && getChance(predator, prey) > 0) {
                 return true;
             }
         }
@@ -70,7 +77,7 @@ public class InteractionMatrix implements InteractionProvider {
     }
 
     private int getIndex(SpeciesKey key) {
-        Integer idx = INDEX_MAP.get(key);
+        Integer idx = indexMap.get(key);
         return (idx != null) ? idx : -1;
     }
 
@@ -81,26 +88,28 @@ public class InteractionMatrix implements InteractionProvider {
         this.frozen = true;
     }
 
-    public static InteractionMatrix buildFrom(com.island.content.SpeciesRegistry registry) {
-        InteractionMatrix matrix = new InteractionMatrix();
-        for (com.island.content.SpeciesKey predatorKey : com.island.content.SpeciesKey.values()) {
-            for (com.island.content.SpeciesKey preyKey : com.island.content.SpeciesKey.values()) {
+    public static InteractionMatrix buildFrom(SpeciesRegistry registry) {
+        InteractionMatrix matrix = new InteractionMatrix(registry);
+        for (SpeciesKey predatorKey : SpeciesKey.values()) {
+            for (SpeciesKey preyKey : SpeciesKey.values()) {
                 int chance = registry.getHuntProbability(predatorKey, preyKey);
                 if (chance > 0) {
                     matrix.setChance(predatorKey, preyKey, chance);
                     // If can eat generic PLANT, can eat any specific plant
-                    if (preyKey.equals(com.island.content.SpeciesKey.PLANT)) {
-                        matrix.setChance(predatorKey, com.island.content.SpeciesKey.GRASS, chance);
-                        matrix.setChance(predatorKey, com.island.content.SpeciesKey.CABBAGE, chance);
+                    if (preyKey.equals(SpeciesKey.PLANT)) {
+                        matrix.setChance(predatorKey, SpeciesKey.GRASS, chance);
+                        matrix.setChance(predatorKey, SpeciesKey.CABBAGE, chance);
                     }
                 }
             }
             // Default fallback for herbivores
-            if (!predatorKey.isPredator() && !predatorKey.isBiomass()) {
-                if (matrix.getChance(predatorKey, com.island.content.SpeciesKey.PLANT) == 0) {
-                    matrix.setChance(predatorKey, com.island.content.SpeciesKey.PLANT, 100);
-                    matrix.setChance(predatorKey, com.island.content.SpeciesKey.GRASS, 100);
-                    matrix.setChance(predatorKey, com.island.content.SpeciesKey.CABBAGE, 100);
+            boolean isPredator = predatorKey.isPredator();
+            boolean isBiomass = registry.getAnimalType(predatorKey).map(AnimalType::isBiomass).orElse(false);
+            if (!isPredator && !isBiomass) {
+                if (matrix.getChance(predatorKey, SpeciesKey.PLANT) == 0) {
+                    matrix.setChance(predatorKey, SpeciesKey.PLANT, 100);
+                    matrix.setChance(predatorKey, SpeciesKey.GRASS, 100);
+                    matrix.setChance(predatorKey, SpeciesKey.CABBAGE, 100);
                 }
             }
         }

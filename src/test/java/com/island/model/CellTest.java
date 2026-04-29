@@ -16,7 +16,7 @@ class CellTest {
 
     @BeforeEach
     void setUp() {
-        Island island = new Island(1, 1);
+        Island island = new Island(1, 1, registry);
         cell = new Cell(0, 0, island);
     }
 

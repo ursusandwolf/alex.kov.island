@@ -38,7 +38,7 @@ class WolfPackBalanceTest {
     }
 
     private long runSimulation(SpeciesRegistry registry, boolean usePack, int iterations) {
-        Island island = new Island(1, 1);
+        Island island = new Island(1, 1, registry);
         island.setRedBookProtectionEnabled(false);
         Cell cell = island.getCell(0, 0);
         InteractionMatrix matrix = InteractionMatrix.buildFrom(registry);

@@ -32,16 +32,19 @@ public class MovementService extends AbstractService {
 
     private void processAnimals(Cell cell, int tickCount) {
         List<Animal> animals = cell.getAnimals();
-        
-        // LOD: Cap movement at 100 animals per cell per tick
-        if (animals.size() > 100) {
-            java.util.Collections.shuffle(animals, new java.util.Random(getRandom().nextLong()));
-            animals = animals.subList(0, 100);
+        int size = animals.size();
+        if (size == 0) {
+            return;
         }
+
+        // LOD: Systematic sampling instead of shuffle
+        int limit = 100;
+        int step = (size > limit) ? (size / limit + 1) : 1;
         
         SimulationWorld world = getWorld();
 
-        for (Animal animal : animals) {
+        for (int i = 0; i < size; i += step) {
+            Animal animal = animals.get(i);
             if (animal.isAlive()) {
                 if (!shouldMove(animal, tickCount)) {
                     continue;
@@ -71,7 +74,7 @@ public class MovementService extends AbstractService {
             return false;
         }
         // Cold-blooded animals move every 2nd tick
-        if (animal.getSpeciesKey().isColdBlooded()) {
+        if (animal.getAnimalType().isColdBlooded()) {
             return (tickCount % 2 == 0);
         }
         return true;

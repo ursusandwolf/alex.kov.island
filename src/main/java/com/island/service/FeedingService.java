@@ -7,6 +7,7 @@ import com.island.engine.SimulationNode;
 import com.island.engine.SimulationWorld;
 import com.island.content.Animal;
 import com.island.content.AnimalFactory;
+import com.island.content.AnimalType;
 import com.island.content.Biomass;
 import com.island.content.DeathCause;
 import com.island.content.HuntingStrategy;
@@ -64,25 +65,31 @@ public class FeedingService extends AbstractService {
 
     private void processPredators(Cell cell, int tickCount) {
         List<Animal> predators = cell.getPredators();
-        
-        // LOD: If too many predators, skip some
-        if (predators.size() > 50) {
-            java.util.Collections.shuffle(predators, new java.util.Random(getRandom().nextLong()));
-            predators = predators.subList(0, 50);
+        int size = predators.size();
+        if (size == 0) {
+            return;
         }
 
-        // Group wolves into packs for coordinated hunting
-        List<Animal> wolves = predators.stream()
-                .filter(p -> p.getSpeciesKey().equals(SpeciesKey.WOLF))
+        // Group pack hunters for coordinated hunting
+        List<Animal> packHunters = predators.stream()
+                .filter(p -> p.getAnimalType().isPackHunter())
                 .toList();
         
-        if (wolves.size() >= minPackSize) {
-            processPackHunting(wolves, cell);
-            predators = new java.util.ArrayList<>(predators);
-            predators.removeAll(wolves);
+        if (packHunters.size() >= minPackSize) {
+            processPackHunting(packHunters, cell);
+            // We'll still allow them to try eating individually if they didn't get enough?
+            // Or remove them from predators list. Let's remove them for now.
+            List<Animal> others = new java.util.ArrayList<>(predators);
+            others.removeAll(packHunters);
+            predators = others;
         }
 
-        for (Animal predator : predators) {
+        // LOD: Systematic sampling instead of shuffle
+        int limit = 50;
+        int step = (size > limit) ? (size / limit + 1) : 1;
+
+        for (int i = 0; i < predators.size(); i += step) {
+            Animal predator = predators.get(i);
             if (predator.isAlive() && shouldAct(predator, tickCount)) {
                 tryEat(predator, cell);
             }
@@ -91,14 +98,17 @@ public class FeedingService extends AbstractService {
 
     private void processHerbivores(Cell cell, int tickCount) {
         List<Animal> herbivores = cell.getHerbivores();
-
-        // LOD: If too many herbivores, process only a sample (max 100 per cell per tick)
-        if (herbivores.size() > 100) {
-            java.util.Collections.shuffle(herbivores, new java.util.Random(getRandom().nextLong()));
-            herbivores = herbivores.subList(0, 100);
+        int size = herbivores.size();
+        if (size == 0) {
+            return;
         }
 
-        for (Animal herbivore : herbivores) {
+        // LOD: Systematic sampling instead of shuffle
+        int limit = 100;
+        int step = (size > limit) ? (size / limit + 1) : 1;
+
+        for (int i = 0; i < size; i += step) {
+            Animal herbivore = herbivores.get(i);
             if (herbivore.isAlive() && shouldAct(herbivore, tickCount)) {
                 tryEat(herbivore, cell);
             }
@@ -114,7 +124,7 @@ public class FeedingService extends AbstractService {
             return true;
         }
         // Cold-blooded animals eat every 3rd tick
-        if (animal.getSpeciesKey().isColdBlooded()) {
+        if (animal.getAnimalType().isColdBlooded()) {
             return (tickCount % 3 == 0);
         }
         return true;

@@ -16,8 +16,8 @@ public class WorldInitializationTest {
 
     @Test
     public void testWorldInitializationDensity() {
-        Island island = new Island(16, 16);
         SpeciesRegistry registry = new SpeciesLoader().load();
+        Island island = new Island(16, 16, registry);
         AnimalFactory animalFactory = new AnimalFactory(registry, new DefaultRandomProvider());
         ExecutorService executor = Executors.newSingleThreadExecutor();
         

@@ -39,7 +39,9 @@ public class SimulatorMain {
 
                 Map<SpeciesKey, Integer> counts = context.getIsland().getSpeciesCounts();
                 for (SpeciesKey species : context.getSpeciesRegistry().getAllAnimalKeys()) {
-                    if (species.isBiomass()) {
+                    boolean isBiomass = context.getSpeciesRegistry().getAnimalType(species)
+                            .map(com.island.content.AnimalType::isBiomass).orElse(false);
+                    if (isBiomass) {
                         continue;
                     }
                     if (counts.getOrDefault(species, 0) == 0) {

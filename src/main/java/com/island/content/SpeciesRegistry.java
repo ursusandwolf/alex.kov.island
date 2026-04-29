@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.HashSet;
 
 /**
  * Immutable registry of species data.
@@ -47,12 +48,9 @@ public class SpeciesRegistry {
     }
 
     public Set<String> getAllSpeciesCodes() {
-        Set<String> allCodes = animalTypes.keySet().stream()
-                .map(SpeciesKey::getCode)
-                .collect(Collectors.toSet());
-        allCodes.add(SpeciesKey.PLANT.getCode());
-        allCodes.add(SpeciesKey.CABBAGE.getCode());
-        allCodes.add(SpeciesKey.CATERPILLAR.getCode());
+        Set<String> allCodes = new HashSet<>();
+        animalTypes.keySet().forEach(k -> allCodes.add(k.getCode()));
+        plantWeights.keySet().forEach(k -> allCodes.add(k.getCode()));
         return allCodes;
     }
 

@@ -21,9 +21,22 @@ public final class AnimalType {
     private final boolean isPredator;
     private final SizeClass sizeClass;
 
+    // Data-driven behavioral flags
+    private final boolean isColdBlooded;
+    private final boolean isPackHunter;
+    private final boolean isBiomass;
+    private final boolean isPlant;
+
+    // Data-driven settlement properties
+    private final double presenceProb;
+    private final double settlementBase;
+    private final double settlementRange;
+
     public AnimalType(SpeciesKey speciesKey, String typeName, double weight, int maxPerCell,
                       int speed, double foodForSaturation, int maxLifespan,
-                      Map<SpeciesKey, Integer> huntProbabilities) {
+                      Map<SpeciesKey, Integer> huntProbabilities,
+                      boolean isColdBlooded, boolean isPackHunter, boolean isBiomass, boolean isPlant,
+                      double presenceProb, double settlementBase, double settlementRange) {
         this.speciesKey = speciesKey;
         this.typeName = typeName;
         this.weight = weight;
@@ -37,6 +50,14 @@ public final class AnimalType {
                 : Collections.emptyMap();
         this.isPredator = speciesKey.isPredator();
         this.sizeClass = SizeClass.fromWeight(weight);
+        
+        this.isColdBlooded = isColdBlooded;
+        this.isPackHunter = isPackHunter;
+        this.isBiomass = isBiomass;
+        this.isPlant = isPlant;
+        this.presenceProb = presenceProb;
+        this.settlementBase = settlementBase;
+        this.settlementRange = settlementRange;
     }
 
     public SpeciesKey getSpeciesKey() {
@@ -77,6 +98,34 @@ public final class AnimalType {
 
     public SizeClass getSizeClass() {
         return sizeClass;
+    }
+
+    public boolean isColdBlooded() {
+        return isColdBlooded;
+    }
+
+    public boolean isPackHunter() {
+        return isPackHunter;
+    }
+
+    public boolean isBiomass() {
+        return isBiomass;
+    }
+
+    public boolean isPlant() {
+        return isPlant;
+    }
+
+    public double getPresenceProb() {
+        return presenceProb;
+    }
+
+    public double getSettlementBase() {
+        return settlementBase;
+    }
+
+    public double getSettlementRange() {
+        return settlementRange;
     }
 
     public boolean canEat(SpeciesKey key) {

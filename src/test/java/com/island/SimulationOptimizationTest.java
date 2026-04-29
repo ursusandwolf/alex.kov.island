@@ -28,7 +28,7 @@ public class SimulationOptimizationTest {
     @BeforeEach
     void setUp() {
         registry = new SpeciesLoader().load();
-        island = new Island(1, 1);
+        island = new Island(1, 1, registry);
         InteractionMatrix matrix = InteractionMatrix.buildFrom(registry);
         animalFactory = new AnimalFactory(registry, new DefaultRandomProvider());
         feedingService = new FeedingService(island, animalFactory, matrix, registry, 

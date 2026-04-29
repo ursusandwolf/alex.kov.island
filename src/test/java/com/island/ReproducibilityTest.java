@@ -45,14 +45,14 @@ class ReproducibilityTest {
         RandomUtils.setProvider(fixedProvider);
 
         SpeciesRegistry registry = new SpeciesLoader().load();
-        InteractionMatrix matrix = new InteractionMatrix();
+        InteractionMatrix matrix = new InteractionMatrix(registry);
         // Simplified matrix for test
         registry.getAllAnimalKeys().forEach(p -> 
             registry.getAllAnimalKeys().forEach(prey -> matrix.setChance(p, prey, 50))
         );
         matrix.freeze();
 
-        Island island = new Island(2, 2);
+        Island island = new Island(2, 2, registry);
         AnimalFactory factory = new AnimalFactory(registry, fixedProvider);
         HuntingStrategy strategy = new DefaultHuntingStrategy(matrix);
         var executor = Executors.newSingleThreadExecutor();

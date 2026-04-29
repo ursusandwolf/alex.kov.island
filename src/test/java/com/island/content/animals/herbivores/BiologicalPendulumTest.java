@@ -15,7 +15,7 @@ class BiologicalPendulumTest {
 
     @Test
     void testCaterpillarPendulum() {
-        Island island = new Island(1, 1);
+        Island island = new Island(1, 1, registry);
         Cell cell = island.getCell(0, 0);
         
         Grass grass = new Grass(registry.getPlantWeight(SpeciesKey.PLANT) * registry.getPlantMaxCount(SpeciesKey.PLANT), 0);

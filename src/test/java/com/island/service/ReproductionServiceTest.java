@@ -20,7 +20,7 @@ class ReproductionServiceTest {
 
     @Test
     void testReproductionWithMaxEnergy() {
-        Island island = new Island(1, 1);
+        Island island = new Island(1, 1, registry);
         island.setRedBookProtectionEnabled(false);
         Cell cell = island.getCell(0, 0);
         
@@ -47,7 +47,7 @@ class ReproductionServiceTest {
 
     @Test
     void testNoReproductionWhenStarving() {
-        Island island = new Island(1, 1);
+        Island island = new Island(1, 1, registry);
         island.setRedBookProtectionEnabled(false);
         Cell cell = island.getCell(0, 0);
         

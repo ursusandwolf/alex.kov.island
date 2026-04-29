@@ -5,6 +5,7 @@ import com.island.engine.SimulationContext;
 import com.island.model.Island;
 import com.island.content.SpeciesRegistry;
 import com.island.content.SpeciesKey;
+import com.island.content.AnimalType;
 import org.junit.jupiter.api.Test;
 import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
@@ -22,6 +23,7 @@ public class LongTermSurvivalTest {
         SimulationBootstrap bootstrap = new SimulationBootstrap();
         SimulationContext context = bootstrap.setup();
         Island island = context.getIsland();
+        SpeciesRegistry registry = context.getSpeciesRegistry();
         
         context.getView().setSilent(true);
 
@@ -32,7 +34,7 @@ public class LongTermSurvivalTest {
             if (i % 100 == 0) {
                 Map<SpeciesKey, Integer> counts = island.getSpeciesCounts();
                 long totalAnimals = counts.entrySet().stream()
-                    .filter(e -> !e.getKey().isBiomass())
+                    .filter(e -> !registry.getAnimalType(e.getKey()).map(AnimalType::isBiomass).orElse(false))
                     .mapToLong(Map.Entry::getValue)
                     .sum();
                 
@@ -41,7 +43,7 @@ public class LongTermSurvivalTest {
                 for (int x = 0; x < island.getWidth(); x++) {
                     for (int y = 0; y < island.getHeight(); y++) {
                         for (com.island.content.Biomass b : island.getGrid()[x][y].getBiomassContainers()) {
-                            if (b.getSpeciesKey().isPlant()) {
+                            if (registry.getAnimalType(b.getSpeciesKey()).map(AnimalType::isPlant).orElse(false)) {
                                 totalBiomass += b.getBiomass();
                             }
                         }
@@ -76,7 +78,7 @@ public class LongTermSurvivalTest {
         for (int x = 0; x < island.getWidth(); x++) {
             for (int y = 0; y < island.getHeight(); y++) {
                 for (com.island.content.Biomass b : island.getGrid()[x][y].getBiomassContainers()) {
-                    if (b.getSpeciesKey().isPlant()) {
+                    if (registry.getAnimalType(b.getSpeciesKey()).map(AnimalType::isPlant).orElse(false)) {
                         finalBiomass += b.getBiomass();
                     }
                 }

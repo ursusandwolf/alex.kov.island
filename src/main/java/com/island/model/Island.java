@@ -28,6 +28,7 @@ public class Island implements SimulationWorld {
     private final int height;
     private final Cell[][] grid;
     private final List<Chunk> chunks = new ArrayList<>();
+    private final SpeciesRegistry registry;
     private int tickCount = 0;
     private boolean redBookProtectionEnabled = true;
     
@@ -35,9 +36,10 @@ public class Island implements SimulationWorld {
     private final Map<DeathCause, Map<SpeciesKey, AtomicInteger>> deathStats = new EnumMap<>(DeathCause.class);
     private final Map<DeathCause, Map<SpeciesKey, AtomicInteger>> totalDeathStats = new EnumMap<>(DeathCause.class);
 
-    public Island(int width, int height) {
+    public Island(int width, int height, SpeciesRegistry registry) {
         this.width = width;
         this.height = height;
+        this.registry = registry;
         this.grid = new Cell[width][height];
         initializeGrid();
         partitionIntoChunks();
@@ -177,7 +179,7 @@ public class Island implements SimulationWorld {
 
     public int getTotalAnimalDeathCount(DeathCause cause) {
         return totalDeathStats.get(cause).entrySet().stream()
-                .filter(e -> !e.getKey().isBiomass())
+                .filter(e -> !registry.getAnimalType(e.getKey()).map(AnimalType::isBiomass).orElse(false))
                 .mapToInt(e -> e.getValue().get())
                 .sum();
     }

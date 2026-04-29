@@ -1,6 +1,8 @@
 package com.island.util;
 
 import com.island.content.SpeciesKey;
+import com.island.content.SpeciesLoader;
+import com.island.content.SpeciesRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -8,10 +10,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class InteractionMatrixTest {
     private InteractionMatrix matrix;
+    private SpeciesRegistry registry;
 
     @BeforeEach
     void setUp() {
-        matrix = new InteractionMatrix();
+        registry = new SpeciesLoader().load();
+        matrix = new InteractionMatrix(registry);
     }
 
     @Test
