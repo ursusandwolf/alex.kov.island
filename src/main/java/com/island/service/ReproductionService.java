@@ -37,7 +37,7 @@ public class ReproductionService extends AbstractService {
             
             java.util.Set<Animal> alreadyMated = new java.util.HashSet<>();
 
-            forEachSampled(potentialParents, 50, a1 -> {
+            forEachSampled(potentialParents, 30, a1 -> {
                 if (alreadyMated.contains(a1) || !shouldReproduce(a1, tickCount)) {
                     return;
                 }
@@ -74,11 +74,11 @@ public class ReproductionService extends AbstractService {
     private boolean tryReproduce(Animal parent1, Animal parent2, Cell cell) {
         AnimalType type = parent1.getAnimalType();
         
-        // Dynamic reproduction chance based on size class
+        // Final balanced reproduction chance
         double chance = switch (type.getSizeClass()) {
-            case TINY -> 0.35;    // Mouse, Hamster
-            case SMALL -> 0.25;   // Duck, Rabbit (Rabbit is NORMAL but tiny)
-            case NORMAL -> 0.15;  // Fox, Eagle
+            case TINY -> 0.25;    // Mouse, Hamster
+            case SMALL -> 0.18;   // Duck, Rabbit
+            case NORMAL -> 0.12;  // Fox, Eagle
             case MEDIUM -> 0.08;  // Wolf, Goat, Sheep
             case LARGE -> 0.04;   // Bear, Boar, Deer
             case HUGE -> 0.02;    // Buffalo, Horse
@@ -89,7 +89,6 @@ public class ReproductionService extends AbstractService {
             if (baby.isPresent()) {
                 Animal babyAnimal = baby.get();
                 if (cell.addAnimal(babyAnimal)) {
-                    // Success! 
                     double costFactor = com.island.config.EnergyPolicy.REPRODUCTION_COST.getFactor();
                     parent1.consumeEnergy(parent1.getMaxEnergy() * costFactor);
                     parent2.consumeEnergy(parent2.getMaxEnergy() * costFactor);

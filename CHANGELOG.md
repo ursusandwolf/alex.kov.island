@@ -1,22 +1,24 @@
 # Changelog
 
-## [1.1.0] - 2026-04-29
-### Added
-- **Engine-First Architecture**: Extracted core simulation logic into `com.island.engine` module.
-- **Service Layer**: Introduced specialized services for simulation logic (`MovementService`, `FeedingService`, `ReproductionService`, `LifecycleService`, `CleanupService`).
-- **Object Pooling**: Implemented `AnimalFactory` with `ObjectPool` to reduce GC pressure for high-frequency entities (Mice, Rabbits).
-- **Tick Scheduler Optimizations**:
-    - **Skip Ticks**: Cold-blooded animals (snakes, frogs, chameleons) now act less frequently (every 2-4 ticks), simulating slow metabolism.
-    - **Level of Detail (LOD)**: Spatial sub-sampling for overpopulated cells. Limits processing to a representative sample of organisms per tick.
-- **Spatial Indexing**: Added cached neighbor lookups in `Cell` and `Island` for O(1) adjacency access.
-- **Dependency Injection**: Constructor-based DI for all providers (Random, Matrix, Factory).
+## [1.0-SNAPSHOT] - 2026-04-29
 
-### Changed
-- **Performance**: Improved simulation speed by **30x** (500 ticks with 40k+ entities now takes ~22s instead of 11m).
-- **Architecture**: Decoupled `Cell` from interaction logic. `Cell` is now a data container, while `Services` handle behavior.
-- **Java 21**: Fully utilized Virtual Threads (Loom) for parallel service execution.
+### Added
+- **Engine-First Architecture**: Refactored the simulation core to use a high-performance tick-based scheduler.
+- **Data-Driven Species**: Organism parameters (weight, speed, prey, etc.) are now fully driven by `species.properties`.
+- **Statistics Service**: Decoupled population tracking from the world model; centralized birth, death (by cause), and population reporting.
+- **Systematic LOD (Level of Detail)**: Implemented sampling logic in `AbstractService` to handle dense populations (millions of entities) without performance degradation.
+- **Object Pooling**: Implemented `AnimalFactory` with pooling to minimize GC pressure during high-frequency reproduction/death cycles.
+- **Spatial Caching**: Cells now cache their neighbors for faster movement and hunting logic.
+- **Wolf Pack Hunting**: Coordinated hunting logic for wolves to take down large prey like bears.
 
 ### Fixed
-- Mass extinction bug where herbivores failed to recognize specific plant types as food.
-- Population inflation bug where insects were processed as both `Biomass` and `Animal`.
-- Thread contention issues by using deterministic locking order and regional work units.
+- **Movement Statistics Bug**: Fixed a major bug where animal movement was incorrectly counted as a birth and a death wasn't registered properly.
+- **Chameleon/Small Species Overpopulation**: Re-balanced reproduction rates and metabolism to prevent exponential growth of small rodents.
+- **Predator Efficiency**: Increased hunting attempts and added a density bonus to help predators control large populations of prey.
+- **Compilation Failures**: Resolved multiple test suite compilation errors after the architectural refactor.
+
+### Changed
+- **Java 21 Virtual Threads**: Switched to virtual threads in `AbstractService` for parallel cell processing.
+- **Stricter Metabolism**: Increased base energy loss and movement costs to enforce survival pressure.
+- **Interaction Matrix**: Optimized prey selection using a pre-calculated interaction matrix.
+- **Checkstyle Compliance**: All control blocks (if/else) now use braces `{}` as per Google Style.

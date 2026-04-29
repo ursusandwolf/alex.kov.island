@@ -101,6 +101,24 @@ public class EntityContainer {
         return list != null ? list.size() : 0;
     }
 
+    public int countBySpecies(SpeciesKey key) {
+        // Count in animals
+        int count = 0;
+        for (Map.Entry<AnimalType, List<Animal>> entry : animalsByType.entrySet()) {
+            if (entry.getKey().getSpeciesKey().equals(key)) {
+                count += entry.getValue().size();
+            }
+        }
+        
+        // Count in biomass (as mass unit)
+        Biomass b = biomassBySpecies.get(key);
+        if (b != null) {
+            count += (int) b.getBiomass();
+        }
+        
+        return count;
+    }
+
     public void addBiomass(Biomass b) {
         SpeciesKey key = b.getSpeciesKey();
         Biomass existing = biomassBySpecies.get(key);

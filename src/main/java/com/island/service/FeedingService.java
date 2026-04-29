@@ -64,7 +64,6 @@ public class FeedingService extends AbstractService {
             return;
         }
 
-        // Group pack hunters for coordinated hunting
         List<Animal> packHunters = predators.stream()
                 .filter(p -> p.getAnimalType().isPackHunter())
                 .toList();
@@ -76,15 +75,17 @@ public class FeedingService extends AbstractService {
             predators = others;
         }
 
-        forEachSampled(predators, 50, predator -> {
+        for (Animal predator : predators) {
             if (predator.isAlive() && shouldAct(predator, tickCount)) {
                 tryEat(predator, cell);
             }
-        });
+        }
     }
 
     private void processHerbivores(Cell cell, int tickCount) {
-        forEachSampled(cell.getHerbivores(), 100, herbivore -> {
+        // High limit for herbivores (500) to ensure everyone in a standard cell can eat.
+        // Skipping meals is the primary cause of starvation in dense populations.
+        forEachSampled(cell.getHerbivores(), 500, herbivore -> {
             if (herbivore.isAlive() && shouldAct(herbivore, tickCount)) {
                 tryEat(herbivore, cell);
             }
@@ -103,8 +104,10 @@ public class FeedingService extends AbstractService {
 
     private void processPackHunting(List<Animal> pack, Cell cell) {
         PreyProvider packPreyProvider = new PreyProvider(cell, interactionMatrix, 0, protectionMap, true, getRandom());
-        
-        for (int i = 0; i < pack.size(); i++) {
+        int maxKills = Math.max(1, pack.size() / 2);
+        int kills = 0;
+
+        for (int i = 0; i < pack.size() && kills < maxKills; i++) {
             Organism prey = huntingStrategy.selectPrey(pack.get(0), packPreyProvider);
             if (prey instanceof Animal a) {
                 if (a.isAlive() && !a.isProtected(0) && cell.removeAnimal(a)) {
@@ -118,7 +121,7 @@ public class FeedingService extends AbstractService {
                     packPreyProvider.markAsEaten(a);
                     getWorld().reportDeath(a.getSpeciesKey(), DeathCause.EATEN);
                     animalFactory.releaseAnimal(a);
-                    break; 
+                    kills++;
                 }
             }
         }
@@ -132,8 +135,9 @@ public class FeedingService extends AbstractService {
         PreyProvider preyProvider = new PreyProvider(cell, interactionMatrix, 0, protectionMap, getRandom());
         int attempts = 0;
         boolean success = false;
+        int maxAttempts = consumer.getAnimalType().isPredator() ? 5 : 3;
 
-        while (!success && attempts < 3) {
+        while (!success && attempts < maxAttempts) {
             attempts++;
             Organism prey = huntingStrategy.selectPrey(consumer, preyProvider);
             if (prey == null) {
@@ -143,6 +147,11 @@ public class FeedingService extends AbstractService {
             if (prey instanceof Animal a) {
                 if (a.isAlive() && !a.isProtected(0)) {
                     double chance = interactionMatrix.getChance(consumer.getSpeciesKey(), a.getSpeciesKey());
+                    int preyCount = cell.getOrganismCount(a.getSpeciesKey());
+                    if (preyCount > a.getAnimalType().getMaxPerCell() / 2) {
+                        chance += 15; 
+                    }
+
                     if (getRandom().nextInt(0, 100) < chance && cell.removeAnimal(a)) {
                         a.die();
                         consumer.addEnergy(a.getWeight());
@@ -159,8 +168,10 @@ public class FeedingService extends AbstractService {
             }
         }
         
-        if (!success) {
+        if (!success && consumer.getAnimalType().isPredator()) {
             consumer.consumeEnergy(consumer.getMaxEnergy() * 0.05);
+        } else if (!success) {
+            consumer.consumeEnergy(consumer.getMaxEnergy() * 0.03);
         }
     }
 

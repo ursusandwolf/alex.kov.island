@@ -147,6 +147,15 @@ public class Cell implements SimulationNode {
         }
     }
 
+    public int getOrganismCount(SpeciesKey key) {
+        lock.lock();
+        try {
+            return container.countBySpecies(key);
+        } finally {
+            lock.unlock();
+        }
+    }
+
     public int getAnimalCount() {
         lock.lock();
         try {

@@ -113,7 +113,7 @@ public class Island implements SimulationWorld {
 
     @Override
     public void onOrganismRemoved(SpeciesKey key) {
-        // Handled via reportDeath for animals
+        statisticsService.registerRemoval(key);
     }
 
     @Override
@@ -133,6 +133,8 @@ public class Island implements SimulationWorld {
                 counts.put(k, v.get());
             }
         });
+        
+        // Sum biomass mass
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 for (Biomass b : grid[x][y].getBiomassContainers()) {
@@ -219,10 +221,6 @@ public class Island implements SimulationWorld {
     }
 
     public Cell getCell(int x, int y) {
-        if (x >= 0 && x < width && y >= 0 && y < height) {
-            return grid[x][y];
-        }
-        // Toroidal fallback if needed, but here we'll stick to bounds or wrap
         int tx = (x % width + width) % width;
         int ty = (y % height + height) % height;
         return grid[tx][ty];
@@ -301,7 +299,9 @@ public class Island implements SimulationWorld {
             try {
                 if (from.removeAnimal(animal)) {
                     if (!to.addAnimal(animal)) {
+                        // If failed to add to target, try to return back
                         if (!from.addAnimal(animal)) {
+                            // If failed to return, the animal dies (too many in both locations)
                             animal.tryConsumeEnergy(animal.getCurrentEnergy()); 
                             reportDeath(animal.getSpeciesKey(), DeathCause.MOVEMENT_EXHAUSTION);
                         }

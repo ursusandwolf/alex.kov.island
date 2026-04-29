@@ -31,8 +31,19 @@ public class StatisticsService {
         speciesCounts.computeIfAbsent(speciesKey, k -> new AtomicInteger(0)).incrementAndGet();
     }
 
+    /**
+     * Decrements the species count without recording it as a death from a specific cause.
+     * Used during movement or when an organism is recycled/removed from the world.
+     */
+    public void registerRemoval(SpeciesKey speciesKey) {
+        AtomicInteger count = speciesCounts.get(speciesKey);
+        if (count != null) {
+            count.decrementAndGet();
+        }
+    }
+
     public void registerDeath(SpeciesKey speciesKey, DeathCause cause) {
-        speciesCounts.computeIfAbsent(speciesKey, k -> new AtomicInteger(0)).decrementAndGet();
+        registerRemoval(speciesKey);
         
         tickDeathStats.get(cause)
                  .computeIfAbsent(speciesKey, k -> new AtomicInteger(0))
