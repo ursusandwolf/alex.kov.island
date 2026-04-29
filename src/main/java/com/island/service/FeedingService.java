@@ -15,7 +15,7 @@ import com.island.content.SpeciesRegistry;
 import com.island.model.Cell;
 import com.island.model.Island;
 import com.island.util.InteractionMatrix;
-import com.island.util.RandomUtils;
+import com.island.util.RandomProvider;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,15 +33,15 @@ public class FeedingService extends AbstractService {
 
     public FeedingService(Island island, InteractionMatrix interactionMatrix, 
                           SpeciesRegistry speciesRegistry, HuntingStrategy huntingStrategy, 
-                          ExecutorService executor) {
+                          ExecutorService executor, RandomProvider random) {
         this(island, interactionMatrix, speciesRegistry, huntingStrategy, executor, 
-                com.island.config.SimulationConstants.WOLF_PACK_MIN_SIZE);
+                com.island.config.SimulationConstants.WOLF_PACK_MIN_SIZE, random);
     }
 
     public FeedingService(Island island, InteractionMatrix interactionMatrix, 
                           SpeciesRegistry speciesRegistry, HuntingStrategy huntingStrategy, 
-                          ExecutorService executor, int minPackSize) {
-        super(island, executor);
+                          ExecutorService executor, int minPackSize, RandomProvider random) {
+        super(island, executor, random);
         this.interactionMatrix = interactionMatrix;
         this.speciesRegistry = speciesRegistry;
         this.huntingStrategy = huntingStrategy;
@@ -80,7 +80,7 @@ public class FeedingService extends AbstractService {
             consumers.removeAll(wolves);
         }
 
-        PreyProvider preyProvider = new PreyProvider(cell, interactionMatrix, getIsland().getTickCount(), protectionMap);
+        PreyProvider preyProvider = new PreyProvider(cell, interactionMatrix, getIsland().getTickCount(), protectionMap, getRandom());
 
         for (Animal consumer : consumers) {
             if (consumer.isAlive() && !consumer.isHibernating()) {
@@ -92,7 +92,7 @@ public class FeedingService extends AbstractService {
     private void processWolfPack(List<Animal> pack, Cell cell) {
         // Use a specialist prey provider for the pack (sees Bears)
         PreyProvider packPreyProvider = new PreyProvider(cell, interactionMatrix, 
-                                            getIsland().getTickCount(), protectionMap, true);
+                                            getIsland().getTickCount(), protectionMap, true, getRandom());
         
         // Pick one lead wolf to find prey for the whole pack
         Animal leadWolf = pack.get(0);
@@ -127,7 +127,7 @@ public class FeedingService extends AbstractService {
                 }
             }
 
-            if (RandomUtils.nextDouble() < successRate) {
+            if (getRandom().nextDouble() < successRate) {
                 cell.getLock().lock();
                 try {
                     boolean success = false;
@@ -201,7 +201,7 @@ public class FeedingService extends AbstractService {
 
                 // Execution with atomic check-and-consume
                 boolean success = false;
-                if (RandomUtils.nextDouble() < successRate) {
+                if (getRandom().nextDouble() < successRate) {
                     cell.getLock().lock();
                     try {
                         if (prey instanceof Animal a) {
@@ -271,6 +271,6 @@ public class FeedingService extends AbstractService {
 
     private boolean isPlantProtected(Biomass plant) {
         Double hideChance = protectionMap.get(plant.getSpeciesKey());
-        return hideChance != null && RandomUtils.nextDouble() < hideChance;
+        return hideChance != null && getRandom().nextDouble() < hideChance;
     }
 }

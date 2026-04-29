@@ -34,13 +34,14 @@ class ReproducibilityTest {
 
     private String runSimulationAndGetState() {
         // Use a fixed "random" provider
-        RandomUtils.setProvider(new RandomProvider() {
+        RandomProvider fixedProvider = new RandomProvider() {
             private int counter = 0;
             @Override public int nextInt(int bound) { return (counter++) % bound; }
             @Override public int nextInt(int origin, int bound) { return origin + (counter++) % (bound - origin); }
             @Override public double nextDouble() { return (double) ((counter++) % 100) / 100.0; }
             @Override public double nextDouble(double bound) { return ((double) ((counter++) % 100) / 100.0) * bound; }
-        });
+        };
+        RandomUtils.setProvider(fixedProvider);
 
         SpeciesRegistry registry = new SpeciesLoader().load();
         InteractionMatrix matrix = new InteractionMatrix();
@@ -51,7 +52,7 @@ class ReproducibilityTest {
         matrix.freeze();
 
         Island island = new Island(2, 2);
-        AnimalFactory factory = new AnimalFactory(registry);
+        AnimalFactory factory = new AnimalFactory(registry, fixedProvider);
         HuntingStrategy strategy = new DefaultHuntingStrategy(matrix);
         var executor = Executors.newSingleThreadExecutor();
 
@@ -61,9 +62,9 @@ class ReproducibilityTest {
         island.getCell(1, 1).addAnimal(factory.createAnimal(com.island.content.SpeciesKey.RABBIT).orElseThrow());
 
         // 2. Run one tick of services
-        new LifecycleService(island, executor).run();
-        new FeedingService(island, matrix, registry, strategy, executor).run();
-        new MovementService(island, executor).run();
+        new LifecycleService(island, executor, fixedProvider).run();
+        new FeedingService(island, matrix, registry, strategy, executor, fixedProvider).run();
+        new MovementService(island, executor, fixedProvider).run();
 
         String state = island.getSpeciesCounts().toString() + "_" + island.getTotalOrganismCount();
         

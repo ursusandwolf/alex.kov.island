@@ -3,6 +3,7 @@ package com.island.content;
 import com.island.model.Cell;
 import com.island.model.Island;
 import com.island.util.InteractionMatrix;
+import com.island.util.DefaultRandomProvider;
 import com.island.service.FeedingService;
 import com.island.content.animals.predators.Bear;
 import org.junit.jupiter.api.Test;
@@ -59,7 +60,7 @@ class WolfPackBalanceTest {
         HuntingStrategy huntingStrategy = new DefaultHuntingStrategy(matrix);
         int testMinPackSize = usePack ? 3 : 1000;
         FeedingService service = new FeedingService(island, matrix, registry, huntingStrategy, 
-                                            Executors.newSingleThreadExecutor(), testMinPackSize);
+                                            Executors.newSingleThreadExecutor(), testMinPackSize, new DefaultRandomProvider());
 
         long totalTime = 0;
         int lastSurvivors = 0;

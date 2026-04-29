@@ -6,6 +6,7 @@ import com.island.content.SpeciesLoader;
 import com.island.content.SpeciesKey;
 import com.island.model.Cell;
 import com.island.model.Island;
+import com.island.util.DefaultRandomProvider;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.CountDownLatch;
@@ -28,7 +29,7 @@ class MovementServiceTest {
         
         int numThreads = 10;
         ExecutorService executor = Executors.newFixedThreadPool(numThreads);
-        MovementService service = new MovementService(island, executor);
+        MovementService service = new MovementService(island, executor, new DefaultRandomProvider());
         
         CountDownLatch latch = new CountDownLatch(1);
         

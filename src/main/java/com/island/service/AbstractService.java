@@ -3,6 +3,7 @@ package com.island.service;
 import com.island.model.Cell;
 import com.island.model.Chunk;
 import com.island.model.Island;
+import com.island.util.RandomProvider;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -14,14 +15,20 @@ import java.util.concurrent.ExecutorService;
 public abstract class AbstractService implements Runnable {
     private final Island island;
     private final ExecutorService executor;
+    private final RandomProvider random;
 
-    protected AbstractService(Island island, ExecutorService executor) {
+    protected AbstractService(Island island, ExecutorService executor, RandomProvider random) {
         this.island = island;
         this.executor = executor;
+        this.random = random;
     }
 
     public Island getIsland() {
         return island;
+    }
+
+    protected RandomProvider getRandom() {
+        return random;
     }
 
     @Override

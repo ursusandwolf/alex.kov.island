@@ -6,7 +6,9 @@ import com.island.content.AnimalFactory;
 import com.island.content.SpeciesLoader;
 import com.island.content.SpeciesRegistry;
 import com.island.model.Island;
+import com.island.util.DefaultRandomProvider;
 import com.island.util.InteractionMatrix;
+import com.island.util.RandomProvider;
 import com.island.view.ConsoleView;
 import com.island.view.SimulationView;
 
@@ -25,12 +27,13 @@ public class SimulationBootstrap {
         // 1. Load configuration and species registry
         SpeciesRegistry registry = new SpeciesLoader().load();
         
-        // 2. Setup interaction matrix
+        // 2. Setup interaction matrix and random provider
         InteractionMatrix matrix = configLoader.loadInteractionMatrix(registry);
+        RandomProvider random = new DefaultRandomProvider();
 
         // 3. Create core models
         Island island = new Island(config.getIslandWidth(), config.getIslandHeight());
-        AnimalFactory animalFactory = new AnimalFactory(registry);
+        AnimalFactory animalFactory = new AnimalFactory(registry, random);
 
         // 4. Setup GameLoop and View
         SimulationView view = new ConsoleView();
@@ -38,12 +41,12 @@ public class SimulationBootstrap {
 
         // 5. Initialize world population
         WorldInitializer initializer = new WorldInitializer();
-        initializer.initialize(island, registry, animalFactory, gameLoop.getTaskExecutor());
+        initializer.initialize(island, registry, animalFactory, gameLoop.getTaskExecutor(), random);
 
         // 6. Register simulation tasks
-        TaskRegistry taskRegistry = new TaskRegistry(gameLoop, island, matrix, animalFactory, registry, view);
+        TaskRegistry taskRegistry = new TaskRegistry(gameLoop, island, matrix, animalFactory, registry, view, random);
         taskRegistry.registerAll();
 
-        return new SimulationContext(island, gameLoop, registry, view);
+        return new SimulationContext(island, gameLoop, registry, view, random);
     }
 }

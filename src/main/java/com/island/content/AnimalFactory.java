@@ -13,10 +13,12 @@ import java.util.function.Function;
  */
 public final class AnimalFactory {
     private final SpeciesRegistry speciesRegistry;
+    private final com.island.util.RandomProvider random;
     private final Map<SpeciesKey, Function<AnimalType, Animal>> creators = new HashMap<>();
 
-    public AnimalFactory(SpeciesRegistry speciesRegistry) {
+    public AnimalFactory(SpeciesRegistry speciesRegistry, com.island.util.RandomProvider random) {
         this.speciesRegistry = speciesRegistry;
+        this.random = random;
         // Only register animals with unique logic here. 
         // All others will be created as GenericAnimal.
         creators.put(SpeciesKey.BEAR, Bear::new);
@@ -57,9 +59,9 @@ public final class AnimalFactory {
         int initialAge = 0;
         if (type != null && type.getMaxLifespan() > 0) {
             int maxInitialAge = Math.max(1, (int) (type.getMaxLifespan() * 0.05));
-            initialAge = com.island.util.RandomUtils.nextInt(0, maxInitialAge);
+            initialAge = random.nextInt(0, maxInitialAge);
         }
-        double initialEnergyFactor = 0.4 + (com.island.util.RandomUtils.nextDouble() * 0.4);
+        double initialEnergyFactor = 0.4 + (random.nextDouble() * 0.4);
         return createAnimal(key, initialEnergyFactor, initialAge);
     }
 

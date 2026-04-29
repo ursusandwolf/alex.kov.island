@@ -2,6 +2,7 @@ package com.island.engine;
 
 import com.island.content.SpeciesRegistry;
 import com.island.model.Island;
+import com.island.util.RandomProvider;
 import com.island.view.SimulationView;
 
 /**
@@ -12,12 +13,15 @@ public class SimulationContext {
     private final GameLoop gameLoop;
     private final SpeciesRegistry speciesRegistry;
     private final SimulationView view;
+    private final RandomProvider random;
 
-    public SimulationContext(Island island, GameLoop gameLoop, SpeciesRegistry speciesRegistry, SimulationView view) {
+    public SimulationContext(Island island, GameLoop gameLoop, SpeciesRegistry speciesRegistry, 
+                             SimulationView view, RandomProvider random) {
         this.island = island;
         this.gameLoop = gameLoop;
         this.speciesRegistry = speciesRegistry;
         this.view = view;
+        this.random = random;
     }
 
     public Island getIsland() {
@@ -34,6 +38,10 @@ public class SimulationContext {
 
     public SimulationView getView() {
         return view;
+    }
+
+    public RandomProvider getRandom() {
+        return random;
     }
 
     @Deprecated

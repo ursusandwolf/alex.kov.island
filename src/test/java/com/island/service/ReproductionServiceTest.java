@@ -6,11 +6,9 @@ import com.island.content.SpeciesRegistry;
 import com.island.content.SpeciesLoader;
 import com.island.content.SpeciesKey;
 import com.island.content.GenericAnimal;
-import com.island.content.SpeciesRegistry;
-import com.island.content.SpeciesLoader;
-import com.island.content.SpeciesKey;
 import com.island.model.Cell;
 import com.island.model.Island;
+import com.island.util.DefaultRandomProvider;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -18,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ReproductionServiceTest {
     private final SpeciesRegistry registry = new SpeciesLoader().load();
-    private final AnimalFactory factory = new AnimalFactory(registry);
+    private final AnimalFactory factory = new AnimalFactory(registry, new DefaultRandomProvider());
 
     @Test
     void testReproductionWithMaxEnergy() {
@@ -35,7 +33,7 @@ class ReproductionServiceTest {
         cell.addAnimal(r1);
         cell.addAnimal(r2);
         
-        ReproductionService service = new ReproductionService(island, factory, registry, java.util.concurrent.Executors.newSingleThreadExecutor());
+        ReproductionService service = new ReproductionService(island, factory, registry, java.util.concurrent.Executors.newSingleThreadExecutor(), new DefaultRandomProvider());
         service.run();
         
         // Expected: 2 parents + (1 to 3) babies.
@@ -57,7 +55,7 @@ class ReproductionServiceTest {
         cell.addAnimal(r1);
         cell.addAnimal(r2);
         
-        ReproductionService service = new ReproductionService(island, factory, registry, java.util.concurrent.Executors.newSingleThreadExecutor());
+        ReproductionService service = new ReproductionService(island, factory, registry, java.util.concurrent.Executors.newSingleThreadExecutor(), new DefaultRandomProvider());
         service.run();
         
         assertEquals(2, cell.getAnimalCount(), "Starving animals should not reproduce");

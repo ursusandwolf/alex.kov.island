@@ -7,6 +7,7 @@ import com.island.engine.SimulationBootstrap;
 import com.island.engine.SimulationContext;
 import com.island.model.Cell;
 import com.island.model.Island;
+import com.island.util.DefaultRandomProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -23,7 +24,7 @@ public class BoundaryConditionsTest {
     void setUp() {
         SimulationBootstrap bootstrap = new SimulationBootstrap();
         context = bootstrap.setup();
-        factory = new AnimalFactory(context.getSpeciesRegistry());
+        factory = new AnimalFactory(context.getSpeciesRegistry(), new DefaultRandomProvider());
         cell = context.getIsland().getCell(0, 0);
     }
 

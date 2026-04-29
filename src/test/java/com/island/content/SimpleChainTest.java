@@ -36,7 +36,7 @@ class SimpleChainTest {
         matrix.setChance(SpeciesKey.DUCK, SpeciesKey.PLANT, 100);
         
         HuntingStrategy huntingStrategy = new DefaultHuntingStrategy(matrix);
-        feedingService = new FeedingService(island, matrix, registry, huntingStrategy, Executors.newSingleThreadExecutor());
+        feedingService = new FeedingService(island, matrix, registry, huntingStrategy, Executors.newSingleThreadExecutor(), new DefaultRandomProvider());
     }
 
     @Test
@@ -59,7 +59,7 @@ class SimpleChainTest {
         // Custom RandomProvider to simulate:
         // 1. First hunt attempt: fail (1.0 >= 1.0 successRate)
         // 2. Any subsequent attempt: would be success (0.0), but duck should be hidden
-        RandomUtils.setProvider(new RandomProvider() {
+        RandomProvider customRandom = new RandomProvider() {
             private int callCount = 0;
             @Override public int nextInt(int bound) { return 0; }
             @Override public int nextInt(int origin, int bound) { return origin; }
@@ -68,11 +68,14 @@ class SimpleChainTest {
             }
             @Override public double nextDouble(double bound) { return 0; }
             @Override public boolean checkChance(int chance) { return false; }
-        });
+        };
+        
+        // Re-create service with custom random for this specific test
+        HuntingStrategy huntingStrategy = new DefaultHuntingStrategy(matrix);
+        feedingService = new FeedingService(island, matrix, registry, huntingStrategy, Executors.newSingleThreadExecutor(), customRandom);
 
-        try {
-            // 2. Execute Feeding
-            feedingService.run();
+        // 2. Execute Feeding
+        feedingService.run();
 
             // 3. Assertions
             assertTrue(duck.isAlive(), "Duck should be alive because fox1 missed and fox2 couldn't find her");
@@ -84,10 +87,6 @@ class SimpleChainTest {
             // Fox2 should have NOT even attempted to hunt because duck is hidden
             // In our system, if no prey is found in buffet, no energy is spent on 'hunt attempt'
             assertEquals(fox2.getMaxEnergy(), fox2.getCurrentEnergy(), 0.001, "Fox2 should not have spent energy because Duck was hidden");
-        } finally {
-            // Restore default provider to not break other tests
-            RandomUtils.setProvider(new DefaultRandomProvider());
-        }
     }
 
     @Test
@@ -110,23 +109,21 @@ class SimpleChainTest {
         cell.addAnimal(bear);
 
         // Ensure 100% success for deterministic testing
-        RandomUtils.setProvider(new RandomProvider() {
+        RandomProvider customRandom = new RandomProvider() {
             @Override public int nextInt(int bound) { return 0; }
             @Override public int nextInt(int origin, int bound) { return origin; }
             @Override public double nextDouble() { return 0.0; } // 100% success
             @Override public double nextDouble(double bound) { return 0; }
             @Override public boolean checkChance(int chance) { return true; }
-        });
+        };
+        HuntingStrategy huntingStrategy = new DefaultHuntingStrategy(matrix);
+        feedingService = new FeedingService(island, matrix, registry, huntingStrategy, Executors.newSingleThreadExecutor(), customRandom);
 
-        try {
-            feedingService.run();
+        feedingService.run();
 
-            assertFalse(bear.isAlive(), "Bear should be eaten by wolf pack");
-            for (GenericAnimal wolf : wolves) {
-                assertTrue(wolf.getCurrentEnergy() > wolf.getMaxEnergy() * 0.5, "Wolves should gain energy");
-            }
-        } finally {
-            RandomUtils.setProvider(new DefaultRandomProvider());
+        assertFalse(bear.isAlive(), "Bear should be eaten by wolf pack");
+        for (GenericAnimal wolf : wolves) {
+            assertTrue(wolf.getCurrentEnergy() > wolf.getMaxEnergy() * 0.5, "Wolves should gain energy");
         }
     }
 

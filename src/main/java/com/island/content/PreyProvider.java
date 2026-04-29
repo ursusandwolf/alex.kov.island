@@ -4,7 +4,7 @@ import com.island.content.animals.herbivores.Caterpillar;
 import com.island.content.Biomass;
 import com.island.model.Cell;
 import com.island.util.InteractionMatrix;
-import com.island.util.RandomUtils;
+import com.island.util.RandomProvider;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -18,20 +18,22 @@ public class PreyProvider {
     private final InteractionMatrix matrix;
     private final int currentTick;
     private final Map<SpeciesKey, Double> protectionMap;
+    private final RandomProvider random;
 
     private final boolean isWolfPack;
 
-    public PreyProvider(Cell cell, InteractionMatrix matrix, int tick, Map<SpeciesKey, Double> protectionMap) {
-        this(cell, matrix, tick, protectionMap, false);
+    public PreyProvider(Cell cell, InteractionMatrix matrix, int tick, Map<SpeciesKey, Double> protectionMap, RandomProvider random) {
+        this(cell, matrix, tick, protectionMap, false, random);
     }
 
     public PreyProvider(Cell cell, InteractionMatrix matrix, int tick, 
-                        Map<SpeciesKey, Double> protectionMap, boolean isWolfPack) {
+                        Map<SpeciesKey, Double> protectionMap, boolean isWolfPack, RandomProvider random) {
         this.cell = cell;
         this.matrix = matrix;
         this.currentTick = tick;
         this.protectionMap = protectionMap;
         this.isWolfPack = isWolfPack;
+        this.random = random;
     }
 
     /**
@@ -95,7 +97,7 @@ public class PreyProvider {
             return true;
         }
         Double hideChance = protectionMap.get(prey.getSpeciesKey());
-        return hideChance != null && RandomUtils.nextDouble() < hideChance;
+        return hideChance != null && random.nextDouble() < hideChance;
     }
 
     public void markAsHiding(Animal prey) {

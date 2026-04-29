@@ -10,7 +10,7 @@ import com.island.content.Biomass;
 import com.island.content.DeathCause;
 import com.island.model.Cell;
 import com.island.model.Island;
-import com.island.util.RandomUtils;
+import com.island.util.RandomProvider;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
@@ -19,8 +19,8 @@ import java.util.concurrent.ExecutorService;
  */
 public class MovementService extends AbstractService {
 
-    public MovementService(Island island, ExecutorService executor) {
-        super(island, executor);
+    public MovementService(Island island, ExecutorService executor, RandomProvider random) {
+        super(island, executor, random);
     }
 
     @Override
@@ -78,7 +78,7 @@ public class MovementService extends AbstractService {
                 double totalMass = b.getBiomass();
                 double chunk = totalMass * BIOMASS_MOVE_CHUNK_FRACTION;
 
-                int direction = RandomUtils.nextInt(4); // 0: Up, 1: Down, 2: Left, 3: Right
+                int direction = getRandom().nextInt(4); // 0: Up, 1: Down, 2: Left, 3: Right
                 int dx = 0;
                 int dy = 0;
                 switch (direction) {
@@ -104,8 +104,8 @@ public class MovementService extends AbstractService {
     }
 
     private Cell selectTargetCell(Cell cell, int speed) {
-        int dx = RandomUtils.nextInt(-speed, speed + 1);
-        int dy = RandomUtils.nextInt(-speed, speed + 1);
+        int dx = getRandom().nextInt(-speed, speed + 1);
+        int dy = getRandom().nextInt(-speed, speed + 1);
         return cell.getIsland().getCell(cell.getX() + dx, cell.getY() + dy);
     }
 }

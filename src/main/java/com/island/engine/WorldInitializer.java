@@ -25,13 +25,14 @@ import java.util.concurrent.ExecutorService;
  */
 public class WorldInitializer {
 
-    public void initialize(Island island, SpeciesRegistry registry, AnimalFactory animalFactory, ExecutorService executor) {
+    public void initialize(Island island, SpeciesRegistry registry, AnimalFactory animalFactory, 
+                           ExecutorService executor, com.island.util.RandomProvider random) {
         List<Callable<Void>> tasks = new ArrayList<>();
         
         for (Chunk chunk : island.getChunks()) {
             tasks.add(() -> {
                 for (Cell cell : chunk.getCells()) {
-                    initializeCell(cell, registry, animalFactory);
+                    initializeCell(cell, registry, animalFactory, random);
                 }
                 return null;
             });
@@ -45,7 +46,7 @@ public class WorldInitializer {
         }
     }
 
-    private void initializeCell(Cell cell, SpeciesRegistry registry, AnimalFactory animalFactory) {
+    private void initializeCell(Cell cell, SpeciesRegistry registry, AnimalFactory animalFactory, com.island.util.RandomProvider random) {
         for (SpeciesKey species : animalFactory.getRegisteredSpecies()) {
             AnimalType type = registry.getAnimalType(species).orElse(null);
             if (type == null) {
@@ -63,7 +64,7 @@ public class WorldInitializer {
                 presenceProbability = 0.10;
             }
             
-            if (RandomUtils.nextDouble() < presenceProbability) {
+            if (random.nextDouble() < presenceProbability) {
                 // 2. Settlement Rate (Density of the species if present)
                 // Implement a Population Pyramid: smaller = denser
                 double baseRate;
@@ -92,7 +93,7 @@ public class WorldInitializer {
                     }
                 }
 
-                double settlementRate = baseRate + (RandomUtils.nextDouble() * randomRange);
+                double settlementRate = baseRate + (random.nextDouble() * randomRange);
                 int count = (int) (type.getMaxPerCell() * settlementRate);                
                 count = Math.max(count, 1);
                 

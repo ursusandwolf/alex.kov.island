@@ -12,7 +12,7 @@ import com.island.content.SpeciesRegistry;
 import com.island.content.SpeciesKey;
 import com.island.model.Cell;
 import com.island.model.Island;
-import com.island.util.RandomUtils;
+import com.island.util.RandomProvider;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
@@ -24,8 +24,8 @@ public class ReproductionService extends AbstractService {
     private final SpeciesRegistry speciesRegistry;
 
     public ReproductionService(Island island, AnimalFactory animalFactory, 
-                               SpeciesRegistry speciesRegistry, ExecutorService executor) {
-        super(island, executor);
+                               SpeciesRegistry speciesRegistry, ExecutorService executor, RandomProvider random) {
+        super(island, executor, random);
         this.animalFactory = animalFactory;
         this.speciesRegistry = speciesRegistry;
     }
@@ -97,6 +97,6 @@ public class ReproductionService extends AbstractService {
         baseOffspring += animal.getOffspringBonus();
         
         // Add randomization
-        return RandomUtils.nextInt(1, baseOffspring + 1);
+        return getRandom().nextInt(1, baseOffspring + 1);
     }
 }
