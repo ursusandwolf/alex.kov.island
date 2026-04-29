@@ -25,6 +25,7 @@ public class Cell implements SimulationNode {
     private final SimulationWorld world;
     private final EntityContainer container = new EntityContainer();
     private final ReentrantLock lock = new ReentrantLock();
+    private List<SimulationNode> cachedNeighbors = java.util.Collections.emptyList();
 
     public Cell(int x, int y, SimulationWorld world) { 
         this.x = x; 
@@ -52,6 +53,16 @@ public class Cell implements SimulationNode {
     @Override
     public String getCoordinates() {
         return x + "," + y;
+    }
+
+    @Override
+    public void setNeighbors(List<SimulationNode> neighbors) {
+        this.cachedNeighbors = List.copyOf(neighbors);
+    }
+
+    @Override
+    public List<SimulationNode> getNeighbors() {
+        return cachedNeighbors;
     }
 
     public boolean addAnimal(Animal animal) {

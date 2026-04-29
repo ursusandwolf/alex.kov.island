@@ -48,6 +48,10 @@ public class WorldInitializer {
 
     private void initializeCell(Cell cell, SpeciesRegistry registry, AnimalFactory animalFactory, com.island.util.RandomProvider random) {
         for (SpeciesKey species : animalFactory.getRegisteredSpecies()) {
+            if (species.isBiomass()) {
+                continue; // Insects and Plants are handled as Biomass containers below
+            }
+            
             AnimalType type = registry.getAnimalType(species).orElse(null);
             if (type == null) {
                 continue;

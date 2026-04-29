@@ -88,12 +88,19 @@ public class InteractionMatrix implements InteractionProvider {
                 int chance = registry.getHuntProbability(predatorKey, preyKey);
                 if (chance > 0) {
                     matrix.setChance(predatorKey, preyKey, chance);
+                    // If can eat generic PLANT, can eat any specific plant
+                    if (preyKey.equals(com.island.content.SpeciesKey.PLANT)) {
+                        matrix.setChance(predatorKey, com.island.content.SpeciesKey.GRASS, chance);
+                        matrix.setChance(predatorKey, com.island.content.SpeciesKey.CABBAGE, chance);
+                    }
                 }
             }
-            // Default fallback for herbivores if not specified (excluding plants themselves)
+            // Default fallback for herbivores
             if (!predatorKey.isPredator() && !predatorKey.isBiomass()) {
                 if (matrix.getChance(predatorKey, com.island.content.SpeciesKey.PLANT) == 0) {
                     matrix.setChance(predatorKey, com.island.content.SpeciesKey.PLANT, 100);
+                    matrix.setChance(predatorKey, com.island.content.SpeciesKey.GRASS, 100);
+                    matrix.setChance(predatorKey, com.island.content.SpeciesKey.CABBAGE, 100);
                 }
             }
         }

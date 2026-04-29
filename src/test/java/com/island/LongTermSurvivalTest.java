@@ -51,6 +51,16 @@ public class LongTermSurvivalTest {
                 System.out.printf("Tick %d: Animals: %d, Producers Mass: %.2f, Species (%d): %s%n", 
                     i, totalAnimals, totalBiomass, counts.size(), counts.keySet());
                 
+                if (totalAnimals == 0) {
+                    System.out.println("TOTAL DEATH STATISTICS:");
+                    for (com.island.content.DeathCause cause : com.island.content.DeathCause.values()) {
+                        Map<SpeciesKey, Integer> stats = island.getTotalDeathsBySpecies(cause);
+                        if (!stats.isEmpty()) {
+                            System.out.println("  " + cause + ": " + stats);
+                        }
+                    }
+                }
+
                 assertTrue(totalAnimals > 0, "Mass extinction at tick " + i);
             }
         }

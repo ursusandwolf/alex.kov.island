@@ -15,4 +15,14 @@ public interface SimulationNode {
      * Gets coordinates or identifier of this node.
      */
     String getCoordinates();
+
+    /**
+     * Caches neighbors for fast access.
+     */
+    void setNeighbors(java.util.List<SimulationNode> neighbors);
+
+    /**
+     * Gets pre-calculated neighbors.
+     */
+    java.util.List<SimulationNode> getNeighbors();
 }

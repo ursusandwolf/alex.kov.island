@@ -42,6 +42,7 @@ public class SimulationBootstrap {
         // 5. Initialize world population
         WorldInitializer initializer = new WorldInitializer();
         initializer.initialize(island, registry, animalFactory, gameLoop.getTaskExecutor(), random);
+        island.init();
 
         // 6. Register simulation tasks
         TaskRegistry taskRegistry = new TaskRegistry(gameLoop, island, matrix, animalFactory, registry, view, random);

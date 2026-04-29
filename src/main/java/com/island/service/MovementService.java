@@ -98,6 +98,15 @@ public class MovementService extends AbstractService {
     }
 
     private SimulationNode selectTargetNode(SimulationNode node, int speed) {
+        if (speed == 1) {
+            List<SimulationNode> neighbors = node.getNeighbors();
+            if (!neighbors.isEmpty()) {
+                // Pick a random neighbor or stay put
+                int choice = getRandom().nextInt(neighbors.size() + 1);
+                return (choice < neighbors.size()) ? neighbors.get(choice) : node;
+            }
+        }
+        
         int dx = getRandom().nextInt(-speed, speed + 1);
         int dy = getRandom().nextInt(-speed, speed + 1);
         return getWorld().getNode(node, dx, dy).orElse(node);

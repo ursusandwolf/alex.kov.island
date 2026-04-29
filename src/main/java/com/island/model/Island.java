@@ -50,6 +50,29 @@ public class Island implements SimulationWorld {
         }
     }
 
+    public void init() {
+        initNeighbors();
+    }
+
+    private void initNeighbors() {
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                Cell cell = grid[x][y];
+                java.util.List<com.island.engine.SimulationNode> neighbors = new java.util.ArrayList<>();
+                // 8 neighbors
+                for (int dx = -1; dx <= 1; dx++) {
+                    for (int dy = -1; dy <= 1; dy++) {
+                        if (dx == 0 && dy == 0) {
+                            continue;
+                        }
+                        getNode(cell, dx, dy).ifPresent(neighbors::add);
+                    }
+                }
+                cell.setNeighbors(neighbors);
+            }
+        }
+    }
+
     public int getWidth() {
         return width;
     }
