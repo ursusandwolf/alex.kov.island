@@ -1,5 +1,6 @@
 package com.island.service;
 
+import com.island.engine.Tickable;
 import com.island.model.Cell;
 import com.island.model.Chunk;
 import com.island.model.Island;
@@ -12,7 +13,7 @@ import java.util.concurrent.ExecutorService;
 /**
  * Base class for all simulation services.
  */
-public abstract class AbstractService implements Runnable {
+public abstract class AbstractService implements Tickable {
     private final Island island;
     private final ExecutorService executor;
     private final RandomProvider random;
@@ -32,7 +33,7 @@ public abstract class AbstractService implements Runnable {
     }
 
     @Override
-    public void run() {
+    public void tick(int tickCount) {
         if (executor.isShutdown()) {
             return;
         }

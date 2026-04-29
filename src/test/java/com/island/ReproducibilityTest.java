@@ -62,9 +62,9 @@ class ReproducibilityTest {
         island.getCell(1, 1).addAnimal(factory.createAnimal(com.island.content.SpeciesKey.RABBIT).orElseThrow());
 
         // 2. Run one tick of services
-        new LifecycleService(island, executor, fixedProvider).run();
-        new FeedingService(island, matrix, registry, strategy, executor, fixedProvider).run();
-        new MovementService(island, executor, fixedProvider).run();
+        new LifecycleService(island, executor, fixedProvider).tick(1);
+        new FeedingService(island, matrix, registry, strategy, executor, fixedProvider).tick(1);
+        new MovementService(island, executor, fixedProvider).tick(1);
 
         String state = island.getSpeciesCounts().toString() + "_" + island.getTotalOrganismCount();
         

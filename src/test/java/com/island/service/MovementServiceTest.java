@@ -37,7 +37,7 @@ class MovementServiceTest {
             executor.submit(() -> {
                 try {
                     latch.await();
-                    service.run();
+                    service.tick(1);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }

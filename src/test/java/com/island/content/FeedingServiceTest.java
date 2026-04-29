@@ -45,7 +45,7 @@ class FeedingServiceTest {
         cell.addAnimal(wolf);
         cell.addAnimal(rabbit);
         
-        service.run();
+        service.tick(1);
         
         assertTrue(wolf.getCurrentEnergy() > initialEnergy, "Wolf energy should increase after eating rabbit");
         assertEquals(0, cell.getHerbivores().size(), "Rabbit should be eaten and removed from cell");
@@ -63,7 +63,7 @@ class FeedingServiceTest {
         cell.addAnimal(rabbit);
         cell.addBiomass(grass);
         
-        service.run();
+        service.tick(1);
         
         assertTrue(rabbit.getCurrentEnergy() > initialEnergy, "Rabbit energy should increase after eating grass");
         assertTrue(grass.getBiomass() < registry.getPlantWeight(SpeciesKey.PLANT) * registry.getPlantMaxCount(SpeciesKey.PLANT), "Grass biomass should decrease");

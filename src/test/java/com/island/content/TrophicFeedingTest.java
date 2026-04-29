@@ -44,7 +44,7 @@ class TrophicFeedingTest {
         cell.addAnimal(victim);
         
         matrix.setChance(SpeciesKey.WOLF, SpeciesKey.WOLF, 100);
-        feedingService.run();
+        feedingService.tick(1);
         
         assertTrue(predator.getCurrentEnergy() > initialEnergy, "Wolf energy should increase after eating another wolf");
         assertEquals(1, cell.getAnimalCount());
@@ -66,7 +66,7 @@ class TrophicFeedingTest {
         cell.addAnimal(wolf);
         
         matrix.setChance(SpeciesKey.WOLF, SpeciesKey.FOX, 100);
-        feedingService.run();
+        feedingService.tick(1);
         
         // One fox should be eaten, but we had 5. So at least one removal happened.
         assertTrue(cell.getAnimalCount() < 6);
@@ -90,7 +90,7 @@ class TrophicFeedingTest {
         Animal target = (Animal) cell.getHerbivores().get(0);
         target.setHiding(true);
         
-        feedingService.run();
+        feedingService.tick(1);
         
         // Wolf should have eaten another rabbit (not the hiding one)
         assertTrue(target.isAlive());

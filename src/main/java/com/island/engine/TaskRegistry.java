@@ -40,7 +40,7 @@ public class TaskRegistry {
 
     public void registerAll() {
         HuntingStrategy huntingStrategy = new DefaultHuntingStrategy(matrix);
-        gameLoop.addRecurringTask(island::nextTick);
+        gameLoop.addRecurringTask(island);
         gameLoop.addRecurringTask(new LifecycleService(island, gameLoop.getTaskExecutor(), random));
         gameLoop.addRecurringTask(new FeedingService(island, matrix, speciesRegistry, huntingStrategy, gameLoop.getTaskExecutor(), random));
         gameLoop.addRecurringTask(new MovementService(island, gameLoop.getTaskExecutor(), random));

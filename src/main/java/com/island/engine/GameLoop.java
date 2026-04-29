@@ -9,7 +9,7 @@ import java.util.concurrent.Executors;
  * Orchestrates the simulation ticks.
  */
 public class GameLoop {
-    private final List<Runnable> recurringTasks = new ArrayList<>();
+    private final List<Tickable> recurringTasks = new ArrayList<>();
     private final long tickDurationMs;
     private final ExecutorService taskExecutor;
     private volatile boolean running = false;
@@ -20,8 +20,12 @@ public class GameLoop {
         this.taskExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     }
 
-    public void addRecurringTask(Runnable task) {
+    public void addRecurringTask(Tickable task) {
         recurringTasks.add(task);
+    }
+
+    public void addRecurringTask(Runnable runnable) {
+        recurringTasks.add(t -> runnable.run());
     }
 
     public void start() {
@@ -49,18 +53,18 @@ public class GameLoop {
     }
 
     public void runTick() {
-        for (Runnable task : recurringTasks) {
+        tickCount++;
+        for (Tickable task : recurringTasks) {
             if (!running) {
                 break;
             }
             try {
-                task.run();
+                task.tick(tickCount);
             } catch (Exception e) {
                 System.err.println("Ошибка во время такта симуляции: " + e.getMessage());
                 e.printStackTrace();
             }
         }
-        tickCount++;
     }
 
     private void run() {

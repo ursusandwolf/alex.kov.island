@@ -49,10 +49,10 @@ public class FeedingService extends AbstractService {
     }
 
     @Override
-    public void run() {
+    public void tick(int tickCount) {
         // Centralized: calculate protection map once per tick
         this.protectionMap = getIsland().getProtectionMap(speciesRegistry);
-        super.run();
+        super.tick(tickCount);
     }
 
     @Override

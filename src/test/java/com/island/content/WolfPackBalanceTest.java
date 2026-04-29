@@ -69,7 +69,7 @@ class WolfPackBalanceTest {
         for (int i = 0; i < iterations; i++) {
             // Reset state for each iteration if multiple (not needed for this specific logic check)
             long start = System.nanoTime();
-            service.run();
+            service.tick(1);
             totalTime += (System.nanoTime() - start);
             
             int survivors = 0;

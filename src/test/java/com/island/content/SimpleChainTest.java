@@ -75,7 +75,7 @@ class SimpleChainTest {
         feedingService = new FeedingService(island, matrix, registry, huntingStrategy, Executors.newSingleThreadExecutor(), customRandom);
 
         // 2. Execute Feeding
-        feedingService.run();
+        feedingService.tick(1);
 
             // 3. Assertions
             assertTrue(duck.isAlive(), "Duck should be alive because fox1 missed and fox2 couldn't find her");
@@ -119,7 +119,7 @@ class SimpleChainTest {
         HuntingStrategy huntingStrategy = new DefaultHuntingStrategy(matrix);
         feedingService = new FeedingService(island, matrix, registry, huntingStrategy, Executors.newSingleThreadExecutor(), customRandom);
 
-        feedingService.run();
+        feedingService.tick(1);
 
         assertFalse(bear.isAlive(), "Bear should be eaten by wolf pack");
         for (GenericAnimal wolf : wolves) {
@@ -140,7 +140,7 @@ class SimpleChainTest {
         assertTrue(bear.isHibernating(), "Bear should be hibernating at age 0");
         cell.addAnimal(bear);
 
-        feedingService.run();
+        feedingService.tick(1);
 
         assertTrue(bear.isAlive(), "Sleeping bear should be invisible to wolf pack");
     }

@@ -1,5 +1,6 @@
 package com.island.model;
 
+import com.island.engine.Tickable;
 import com.island.content.Animal;
 import com.island.content.AnimalType;
 import com.island.content.Biomass;
@@ -18,7 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Composite: Island consists of cells.
  */
-public class Island {
+public class Island implements Tickable {
     private final int width;
     private final int height;
     private final Cell[][] grid;
@@ -165,8 +166,9 @@ public class Island {
         return result;
     }
 
-    public void nextTick() {
-        tickCount++;
+    @Override
+    public void tick(int tickCount) {
+        this.tickCount = tickCount;
         for (Map<SpeciesKey, AtomicInteger> stats : deathStats.values()) {
             stats.clear();
         }
