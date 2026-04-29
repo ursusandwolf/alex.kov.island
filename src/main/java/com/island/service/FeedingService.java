@@ -3,6 +3,8 @@ package com.island.service;
 import static com.island.config.SimulationConstants.HUNT_FATIGUE_COST_MULTIPLIER;
 import static com.island.config.SimulationConstants.HUNT_FATIGUE_THRESHOLD;
 
+import com.island.engine.SimulationNode;
+import com.island.engine.SimulationWorld;
 import com.island.config.EnergyPolicy;
 import com.island.content.Animal;
 import com.island.content.Biomass;
@@ -13,7 +15,6 @@ import com.island.content.PreyProvider;
 import com.island.content.SpeciesKey;
 import com.island.content.SpeciesRegistry;
 import com.island.model.Cell;
-import com.island.model.Island;
 import com.island.util.InteractionProvider;
 import com.island.util.RandomProvider;
 import java.util.ArrayList;
@@ -31,17 +32,17 @@ public class FeedingService extends AbstractService {
     private final int minPackSize;
     private Map<SpeciesKey, Double> protectionMap;
 
-    public FeedingService(Island island, InteractionProvider interactionMatrix, 
+    public FeedingService(SimulationWorld world, InteractionProvider interactionMatrix, 
                           SpeciesRegistry speciesRegistry, HuntingStrategy huntingStrategy, 
                           ExecutorService executor, RandomProvider random) {
-        this(island, interactionMatrix, speciesRegistry, huntingStrategy, executor, 
+        this(world, interactionMatrix, speciesRegistry, huntingStrategy, executor, 
                 com.island.config.SimulationConstants.WOLF_PACK_MIN_SIZE, random);
     }
 
-    public FeedingService(Island island, InteractionProvider interactionMatrix, 
+    public FeedingService(SimulationWorld world, InteractionProvider interactionMatrix, 
                           SpeciesRegistry speciesRegistry, HuntingStrategy huntingStrategy, 
                           ExecutorService executor, int minPackSize, RandomProvider random) {
-        super(island, executor, random);
+        super(world, executor, random);
         this.interactionMatrix = interactionMatrix;
         this.speciesRegistry = speciesRegistry;
         this.huntingStrategy = huntingStrategy;
@@ -51,48 +52,57 @@ public class FeedingService extends AbstractService {
     @Override
     public void tick(int tickCount) {
         // Centralized: calculate protection map once per tick
-        this.protectionMap = getIsland().getProtectionMap(speciesRegistry);
+        this.protectionMap = getWorld().getProtectionMap(speciesRegistry);
         super.tick(tickCount);
     }
 
     @Override
-    protected void processCell(Cell cell) {
-        List<Animal> consumers;
-        cell.getLock().lock();
-        try {
-            // Take a snapshot to process safely
-            consumers = new ArrayList<>(cell.getAnimals());
-        } finally {
-            cell.getLock().unlock();
-        }
-        
-        // --- Pack Hunting Logic (Wolf) ---
-        List<Animal> wolves = new ArrayList<>();
-        for (Animal a : consumers) {
-            if (a.getSpeciesKey().equals(SpeciesKey.WOLF) && a.isAlive() && !a.isHibernating()) {
-                wolves.add(a);
+    protected void processCell(SimulationNode node) {
+        if (node instanceof Cell cell) {
+            List<Animal> consumers;
+            cell.getLock().lock();
+            try {
+                // Take a snapshot to process safely
+                consumers = new ArrayList<>(cell.getAnimals());
+            } finally {
+                cell.getLock().unlock();
+            }
+            
+            // --- Pack Hunting Logic (Wolf) ---
+            List<Animal> wolves = new ArrayList<>();
+            for (Animal a : consumers) {
+                if (a.getSpeciesKey().equals(SpeciesKey.WOLF) && a.isAlive() && !a.isHibernating()) {
+                    wolves.add(a);
+                }
+            }
+
+            if (wolves.size() >= minPackSize) {
+                processWolfPack(wolves, cell);
+                // Remove wolves from individual processing
+                consumers.removeAll(wolves);
+            }
+
+            PreyProvider preyProvider = new PreyProvider(cell, interactionMatrix, tickCountFromInterface(getWorld()), protectionMap, getRandom());
+
+            for (Animal consumer : consumers) {
+                if (consumer.isAlive() && !consumer.isHibernating()) {
+                    tryEat(consumer, cell, preyProvider);
+                }
             }
         }
+    }
 
-        if (wolves.size() >= minPackSize) {
-            processWolfPack(wolves, cell);
-            // Remove wolves from individual processing
-            consumers.removeAll(wolves);
+    private int tickCountFromInterface(SimulationWorld world) {
+        if (world instanceof com.island.model.Island island) {
+            return island.getTickCount();
         }
-
-        PreyProvider preyProvider = new PreyProvider(cell, interactionMatrix, getIsland().getTickCount(), protectionMap, getRandom());
-
-        for (Animal consumer : consumers) {
-            if (consumer.isAlive() && !consumer.isHibernating()) {
-                tryEat(consumer, cell, preyProvider);
-            }
-        }
+        return 0;
     }
 
     private void processWolfPack(List<Animal> pack, Cell cell) {
         // Use a specialist prey provider for the pack (sees Bears)
         PreyProvider packPreyProvider = new PreyProvider(cell, interactionMatrix, 
-                                            getIsland().getTickCount(), protectionMap, true, getRandom());
+                                            tickCountFromInterface(getWorld()), protectionMap, true, getRandom());
         
         // Pick one lead wolf to find prey for the whole pack
         Animal leadWolf = pack.get(0);
@@ -123,7 +133,7 @@ public class FeedingService extends AbstractService {
             // Everyone spends energy to try hunt
             for (Animal wolf : pack) {
                 if (!wolf.tryConsumeEnergy(individualEffort)) {
-                    getIsland().reportDeath(wolf.getSpeciesKey(), DeathCause.HUNGER);
+                    getWorld().reportDeath(wolf.getSpeciesKey(), DeathCause.HUNGER);
                 }
             }
 
@@ -141,7 +151,7 @@ public class FeedingService extends AbstractService {
                                 }
                             }
                             packPreyProvider.markAsEaten(a);
-                            getIsland().reportDeath(a.getSpeciesKey(), DeathCause.EATEN);
+                            getWorld().reportDeath(a.getSpeciesKey(), DeathCause.EATEN);
                             success = true;
                         }
                     } else if (prey instanceof Biomass b) {
@@ -195,7 +205,7 @@ public class FeedingService extends AbstractService {
                 }
 
                 if (!consumer.tryConsumeEnergy(totalEffort)) {
-                    getIsland().reportDeath(consumer.getSpeciesKey(), DeathCause.HUNGER);
+                    getWorld().reportDeath(consumer.getSpeciesKey(), DeathCause.HUNGER);
                     return; 
                 }
 
@@ -209,7 +219,7 @@ public class FeedingService extends AbstractService {
                                 a.die();
                                 consumer.addEnergy(a.getWeight());
                                 preyProvider.markAsEaten(a);
-                                getIsland().reportDeath(a.getSpeciesKey(), DeathCause.EATEN);
+                                getWorld().reportDeath(a.getSpeciesKey(), DeathCause.EATEN);
                                 success = true;
                             }
                         } else if (prey instanceof Biomass b) {

@@ -1,19 +1,47 @@
 # Island Ecosystem Simulator Architecture (UML)
 
-## Class Diagram Overview
+## Modular "Engine-First" Architecture
 
 ```mermaid
 classDiagram
-    %% Core Abstractions
+    %% Core Engine Interfaces
+    class Tickable {
+        <<Interface>>
+        +tick(tickCount)
+    }
+
+    class SimulationWorld {
+        <<Interface>>
+        +getParallelWorkUnits()
+        +getNode(current, dx, dy)
+        +moveAnimal(animal, from, to)
+        +getSpeciesCount(key) int
+    }
+
+    class SimulationNode {
+        <<Interface>>
+        +getLock() ReentrantLock
+        +getCoordinates() String
+    }
+
+    class InteractionProvider {
+        <<Interface>>
+        +getChance(predator, prey) int
+        +hasAnimalPrey(predator) boolean
+    }
+
+    class RandomProvider {
+        <<Interface>>
+        +nextInt(bound) int
+        +nextDouble() double
+    }
+
+    %% Domain Objects
     class Organism {
         <<Abstract>>
         -id: String
         -currentEnergy: double
-        -maxEnergy: double
-        -age: int
         -isAlive: boolean
-        +checkAgeDeath() boolean
-        +consumeEnergy(amount)
         +getSpeciesKey() SpeciesKey
         +getDynamicMetabolismRate() double
     }
@@ -21,81 +49,33 @@ classDiagram
     class Animal {
         <<Abstract>>
         -animalType: AnimalType
-        +move() boolean
-        +reproduce() Animal
-        +getWeight() double
+        +canInitiateReproduction() boolean
     }
 
     class Biomass {
         <<Abstract>>
         -biomass: double
-        -maxBiomass: double
-        -typeName: String
         +grow()
-        +consumeBiomass(amount) double
     }
 
-    %% Hierarchy and Interfaces
-    class Predator {
-        <<Interface>>
-        +isAnimalPredator() boolean
-    }
-    class Herbivore {
-        <<Interface>>
-        +isAnimalHerbivore() boolean
-    }
-
+    %% Relationships
+    Tickable <|-- SimulationWorld
+    SimulationWorld <|-- Island
+    SimulationNode <|-- Cell
+    
+    Tickable <|-- AbstractService
+    AbstractService <|-- FeedingService
+    AbstractService <|-- MovementService
+    
     Organism <|-- Animal
     Organism <|-- Biomass
     
-    Animal <|-- AbstractPredator
-    Animal <|-- AbstractHerbivore
+    Island *-- Cell
+    Cell o-- Organism
     
-    AbstractPredator ..|> Predator
-    AbstractHerbivore ..|> Herbivore
-    
-    AbstractPredator <|-- Wolf
-    AbstractPredator <|-- Bear
-    Bear ..|> Herbivore : "Omnivore"
-    
-    AbstractHerbivore <|-- Rabbit
-
-    Biomass <|-- Grass
-    Biomass <|-- Cabbage
-    Biomass <|-- Caterpillar
-    Biomass <|-- Butterfly
-
-    %% Model and Engine
-    class Island {
-        -grid: Cell[][]
-        -chunks: List~Chunk~
-        -speciesCounts: Map~SpeciesKey, AtomicInteger~
-        +getProtectionMap() Map
-    }
-
-    class Cell {
-        -x, y: int
-        -predators: List~Animal~
-        -herbivores: List~Animal~
-        -biomassBySpecies: Map~SpeciesKey, Biomass~
-        -lock: ReentrantLock
-        +addAnimal(animal)
-        +addBiomass(biomass)
-    }
-
-    class GameLoop {
-        -taskExecutor: ExecutorService (Virtual Threads)
-        -timer: ScheduledExecutorService
-        +start()
-        +stop()
-    }
-
-    %% Design Patterns
-    note for Organism "Base Entity with Energy State"
-    note for AnimalType "Flyweight: Common species data"
-    note for PreyProvider "Mediator: Orchestrates hunting buffet"
-    note for HuntingStrategy "Strategy: Encapsulates hunt decision logic (ROI-based)"
-    note for InteractionMatrix "High-performance Interaction Lookup (O(1))"
+    FeedingService --> InteractionProvider
+    AbstractService --> SimulationWorld
+    AbstractService --> RandomProvider
 ```
 
 ## System Patterns Applied
@@ -108,24 +88,35 @@ classDiagram
     - Decouples prey selection logic from `FeedingService`.
     - Predators use ROI (Return on Investment) calculations to prioritize prey.
 
-3.  **Mediator (`PreyProvider`)**:
-    - Centralizes predator-prey interaction logic within a cell.
-    - Manages "hiding" state and dynamic "buffet" generation.
+3.  **Bridge / Provider (`InteractionProvider`, `RandomProvider`)**:
+    - Decouples core logic from specific implementations (Matrix vs dynamic rules, Real vs Mock random).
+    - Enhances testability and flexibility.
 
-4.  **Composite (`Island` -> `Chunk` -> `Cell`)**:
-    - Hierarchy that allows processing by chunks in parallel.
+4.  **Interface-Driven Engine**:
+    - **`SimulationWorld`** and **`SimulationNode`** decouple services from the grid model.
+    - Services operate on abstractions, allowing for future changes in topology (e.g. Hexagonal grid).
 
-5.  **Virtual Threads (Project Loom)**:
-    - High-performance task execution in `GameLoop`.
-    - Near-infinite scalability for parallel cell processing.
+5.  **Composite (`Island` -> `Chunk` -> `Cell`)**:
+    - Hierarchy that allows processing by chunks in parallel via `getParallelWorkUnits()`.
 
-6.  **Hybrid Hierarchy**:
-    - Combination of Abstract Classes (performance) and Interfaces (flexibility).
-    - Supports Omnivores (like Bear) through multiple interface implementation.
+6.  **Virtual Threads (Project Loom)**:
+    - High-performance task execution in `GameLoop` using `VirtualThreadPerTaskExecutor`.
 
 ## Key Mechanisms
 
-- **Biological Pendulum**: Cyclic biomass flow between Plants and Caterpillars (Feeding/Fertilizing).
-- **Red Book Protection**: Automatic stealth mechanism for endangered species (pop < 5% of island capacity).
-- **Energy Redistribution**: Parents and offspring share total energy during reproduction.
-- **Ordered Locking**: Prevents deadlocks during animal movement between cells.
+- **Unified Lifecycle**: Everything that "acts" implements `Tickable`.
+- **Spatial Abstraction**: Services don't know about `Island` coordinates; they ask `SimulationWorld` for neighboring `SimulationNode`.
+- **Entity Container**: Cells delegate storage and indexing to a specialized `EntityContainer` (SRP).
+- **Red Book Protection**: Automatic stealth and reproduction bonuses for endangered species.
+- **Ordered Locking**: Prevents deadlocks during animal movement between cells by sorting locks based on node coordinates.
+
+## How it Works (Architecture Flow)
+
+1.  **Bootstrap**: `SimulationBootstrap` wires together the `Island`, `SpeciesRegistry`, `InteractionMatrix`, and `RandomProvider`.
+2.  **Task Registration**: `TaskRegistry` creates services (Feeding, Movement, etc.) and registers them as `Tickable` tasks in the `GameLoop`.
+3.  **Simulation Tick**:
+    - `GameLoop` increments the global `tickCount`.
+    - It iterates over all registered `Tickable` tasks.
+    - **Parallel Execution**: Services split the world into `WorkUnits` (chunks) and process them in parallel using virtual threads.
+    - **Synchronization**: Each `SimulationNode` (Cell) has a `ReentrantLock`. Services lock nodes before modifying their state to ensure thread safety.
+4.  **Spatial Interaction**: When an entity moves or interacts across cells, the world manages the atomic transfer and locking order.

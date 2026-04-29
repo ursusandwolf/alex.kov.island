@@ -1,5 +1,7 @@
 package com.island.model;
 
+import com.island.engine.SimulationNode;
+import com.island.engine.SimulationWorld;
 import com.island.content.Animal;
 import com.island.content.AnimalType;
 import com.island.content.Biomass;
@@ -17,17 +19,17 @@ import java.util.concurrent.locks.ReentrantLock;
  * Represents a single cell on the island grid.
  * Optimized with indexed storage by type, role, and size for O(1) access.
  */
-public class Cell {
+public class Cell implements SimulationNode {
     private final int x;
     private final int y;
-    private final Island island;
+    private final SimulationWorld world;
     private final EntityContainer container = new EntityContainer();
     private final ReentrantLock lock = new ReentrantLock();
 
-    public Cell(int x, int y, Island island) { 
+    public Cell(int x, int y, SimulationWorld world) { 
         this.x = x; 
         this.y = y; 
-        this.island = island;
+        this.world = world;
     }
 
     public int getX() {
@@ -38,14 +40,16 @@ public class Cell {
         return y;
     }
 
-    public Island getIsland() {
-        return island;
+    public SimulationWorld getWorld() {
+        return world;
     }
 
+    @Override
     public ReentrantLock getLock() {
         return lock;
     }
 
+    @Override
     public String getCoordinates() {
         return x + "," + y;
     }
@@ -58,7 +62,7 @@ public class Cell {
             }
             
             container.addAnimal(animal);
-            island.onOrganismAdded(animal.getSpeciesKey());
+            world.onOrganismAdded(animal.getSpeciesKey());
             return true;
         } finally {
             lock.unlock();
@@ -69,7 +73,7 @@ public class Cell {
         lock.lock();
         try { 
             if (container.removeAnimal(animal)) {
-                island.onOrganismRemoved(animal.getSpeciesKey());
+                world.onOrganismRemoved(animal.getSpeciesKey());
                 return true;
             }
             return false;

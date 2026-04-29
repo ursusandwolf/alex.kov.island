@@ -67,6 +67,7 @@ class SimpleChainTest {
                 return (callCount++ == 0) ? 1.0 : 0.0; // Fail first call, succeed others
             }
             @Override public double nextDouble(double bound) { return 0; }
+            @Override public long nextLong() { return 0L; }
             @Override public boolean checkChance(int chance) { return false; }
         };
         
@@ -114,6 +115,7 @@ class SimpleChainTest {
             @Override public int nextInt(int origin, int bound) { return origin; }
             @Override public double nextDouble() { return 0.0; } // 100% success
             @Override public double nextDouble(double bound) { return 0; }
+            @Override public long nextLong() { return 0L; }
             @Override public boolean checkChance(int chance) { return true; }
         };
         HuntingStrategy huntingStrategy = new DefaultHuntingStrategy(matrix);

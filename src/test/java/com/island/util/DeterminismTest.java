@@ -17,6 +17,8 @@ class DeterminismTest {
             public double nextDouble() { return 0.5; }
             @Override
             public double nextDouble(double bound) { return bound / 2.0; }
+            @Override
+            public long nextLong() { return 0L; }
         };
 
         RandomUtils.setProvider(mockProvider);

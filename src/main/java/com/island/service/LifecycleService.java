@@ -1,51 +1,56 @@
 package com.island.service;
 
+import com.island.engine.SimulationNode;
+import com.island.engine.SimulationWorld;
 import com.island.content.Animal;
-import com.island.content.DeathCause;
 import com.island.content.Biomass;
+import com.island.content.DeathCause;
 import com.island.model.Cell;
-import com.island.model.Island;
 import com.island.util.RandomProvider;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 /**
- * Service responsible for age, metabolism and plant growth.
+ * Service responsible for aging, energy decay, and natural growth/death.
  */
 public class LifecycleService extends AbstractService {
 
-    public LifecycleService(Island island, ExecutorService executor, RandomProvider random) {
-        super(island, executor, random);
+    public LifecycleService(SimulationWorld world, ExecutorService executor, RandomProvider random) {
+        super(world, executor, random);
     }
 
     @Override
-    protected void processCell(Cell cell) {
-        Island island = cell.getIsland();
-        // Process Animals (Snapshot to avoid concurrent issues while iterating)
-        List<Animal> animals = new java.util.ArrayList<>(cell.getAnimals());
-        for (Animal animal : animals) {
-            if (animal.isAlive()) {
-                animal.setHiding(false); // Reset protection flag
-                
-                // 1. Check Age Death
-                if (animal.checkAgeDeath()) {
-                    island.reportDeath(animal.getSpeciesKey(), DeathCause.AGE);
-                    continue;
-                }
+    protected void processCell(SimulationNode node) {
+        if (node instanceof Cell cell) {
+            processAging(cell);
+            processBiomassGrowth(cell);
+        }
+    }
 
-                // 2. Consume Metabolism Energy
-                if (!animal.isHibernating()) {
-                    if (!animal.tryConsumeEnergy(animal.getMaxEnergy() * animal.getDynamicMetabolismRate())) {
-                        island.reportDeath(animal.getSpeciesKey(), DeathCause.HUNGER);
-                    }
+    private void processAging(Cell cell) {
+        List<Animal> animals = new ArrayList<>(cell.getAnimals());
+        for (Animal a : animals) {
+            if (a.isAlive()) {
+                // 1. Metabolism
+                double metabolism = a.getDynamicMetabolismRate();
+                if (!a.tryConsumeEnergy(metabolism)) {
+                    getWorld().reportDeath(a.getSpeciesKey(), DeathCause.HUNGER);
+                }
+                
+                // 2. Age
+                if (a.isAlive() && a.checkAgeDeath()) {
+                    getWorld().reportDeath(a.getSpeciesKey(), DeathCause.AGE);
                 }
             }
         }
+    }
 
-        // Process Plants (Growth & Pendulum)
-        List<Biomass> plants = cell.getBiomassContainers();
-        for (Biomass plant : plants) {
-            plant.tick(cell);
+    private void processBiomassGrowth(Cell cell) {
+        for (Biomass b : cell.getBiomassContainers()) {
+            if (b.isAlive()) {
+                b.grow();
+            }
         }
     }
 }

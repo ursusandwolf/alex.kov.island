@@ -1,11 +1,11 @@
 package com.island.service;
 
+import com.island.engine.SimulationNode;
+import com.island.engine.SimulationWorld;
 import com.island.engine.Tickable;
-import com.island.model.Cell;
-import com.island.model.Chunk;
-import com.island.model.Island;
 import com.island.util.RandomProvider;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -14,18 +14,18 @@ import java.util.concurrent.ExecutorService;
  * Base class for all simulation services.
  */
 public abstract class AbstractService implements Tickable {
-    private final Island island;
+    private final SimulationWorld world;
     private final ExecutorService executor;
     private final RandomProvider random;
 
-    protected AbstractService(Island island, ExecutorService executor, RandomProvider random) {
-        this.island = island;
+    protected AbstractService(SimulationWorld world, ExecutorService executor, RandomProvider random) {
+        this.world = world;
         this.executor = executor;
         this.random = random;
     }
 
-    public Island getIsland() {
-        return island;
+    public SimulationWorld getWorld() {
+        return world;
     }
 
     protected RandomProvider getRandom() {
@@ -39,10 +39,10 @@ public abstract class AbstractService implements Tickable {
         }
 
         List<Callable<Void>> tasks = new ArrayList<>();
-        for (Chunk chunk : island.getChunks()) {
+        for (Collection<? extends SimulationNode> workUnit : world.getParallelWorkUnits()) {
             tasks.add(() -> {
-                for (Cell cell : chunk.getCells()) {
-                    processCell(cell);
+                for (SimulationNode node : workUnit) {
+                    processCell(node);
                 }
                 return null;
             });
@@ -58,5 +58,5 @@ public abstract class AbstractService implements Tickable {
         }
     }
 
-    protected abstract void processCell(Cell cell);
+    protected abstract void processCell(SimulationNode node);
 }

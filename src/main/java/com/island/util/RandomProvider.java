@@ -8,6 +8,8 @@ public interface RandomProvider {
 
     int nextInt(int origin, int bound);
 
+    long nextLong();
+
     double nextDouble();
 
     double nextDouble(double bound);

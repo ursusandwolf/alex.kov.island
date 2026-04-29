@@ -40,6 +40,7 @@ class ReproducibilityTest {
             @Override public int nextInt(int origin, int bound) { return origin + (counter++) % (bound - origin); }
             @Override public double nextDouble() { return (double) ((counter++) % 100) / 100.0; }
             @Override public double nextDouble(double bound) { return ((double) ((counter++) % 100) / 100.0) * bound; }
+            @Override public long nextLong() { return 0L; }
         };
         RandomUtils.setProvider(fixedProvider);
 

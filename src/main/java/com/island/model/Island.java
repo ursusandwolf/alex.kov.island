@@ -1,6 +1,8 @@
 package com.island.model;
 
 import com.island.engine.Tickable;
+import com.island.engine.SimulationNode;
+import com.island.engine.SimulationWorld;
 import com.island.content.Animal;
 import com.island.content.AnimalType;
 import com.island.content.Biomass;
@@ -8,18 +10,20 @@ import com.island.content.DeathCause;
 import com.island.content.SpeciesRegistry;
 import com.island.content.SpeciesKey;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Composite: Island consists of cells.
  */
-public class Island implements Tickable {
+public class Island implements SimulationWorld {
     private final int width;
     private final int height;
     private final Cell[][] grid;
@@ -74,6 +78,7 @@ public class Island implements Tickable {
         return redBookProtectionEnabled;
     }
 
+    @Override
     public Map<SpeciesKey, Double> getProtectionMap(SpeciesRegistry registry) {
         if (!redBookProtectionEnabled) {
             return Collections.emptyMap();
@@ -167,6 +172,69 @@ public class Island implements Tickable {
     }
 
     @Override
+    public Collection<? extends Collection<? extends SimulationNode>> getParallelWorkUnits() {
+        return chunks.stream()
+                .map(Chunk::getCells)
+                .toList();
+    }
+
+    @Override
+    public Optional<SimulationNode> getNode(SimulationNode current, int dx, int dy) {
+        if (current instanceof Cell cell) {
+            int tx = cell.getX() + dx;
+            int ty = cell.getY() + dy;
+            if (tx >= 0 && tx < width && ty >= 0 && ty < height) {
+                return Optional.of(grid[tx][ty]);
+            }
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public void moveAnimal(Animal animal, SimulationNode from, SimulationNode to) {
+        if (from instanceof Cell f && to instanceof Cell t) {
+            moveOrganism(animal, f, t);
+        }
+    }
+
+    @Override
+    public void moveBiomassPartially(Biomass b, SimulationNode from, SimulationNode to, double amount) {
+        if (from instanceof Cell f && to instanceof Cell t) {
+            moveBiomassPartially(b, f, t, amount);
+        }
+    }
+
+    public void moveBiomassPartially(Biomass b, Cell from, Cell to, double amount) {
+        if (from == to || amount <= 0 || b.getBiomass() <= 0) {
+            return;
+        }
+
+        Cell first = (from.getX() < to.getX() || (from.getX() == to.getX() && from.getY() < to.getY())) ? from : to;
+        Cell second = (first == from) ? to : from;
+
+        first.getLock().lock();
+        try {
+            second.getLock().lock();
+            try {
+                // In this optimized model, we can just transfer the value.
+                double actualToMove = Math.min(b.getBiomass(), amount);
+
+                if (to.addBiomass(b.getSpeciesKey(), actualToMove)) {
+                    b.consumeBiomass(actualToMove);
+                }
+            } finally {
+                second.getLock().unlock();
+            }
+        } finally {
+            first.getLock().unlock();
+        }
+    }
+
+    public void moveBiomass(Biomass b, Cell from, Cell to) {
+        moveBiomassPartially(b, from, to, b.getBiomass());
+    }
+
+    @Override
     public void tick(int tickCount) {
         this.tickCount = tickCount;
         for (Map<SpeciesKey, AtomicInteger> stats : deathStats.values()) {
@@ -214,6 +282,7 @@ public class Island implements Tickable {
         }
     }
 
+    @Override
     public int getSpeciesCount(SpeciesKey key) {
         AtomicInteger count = speciesCounts.get(key);
         return (count != null) ? count.get() : 0;
@@ -290,36 +359,6 @@ public class Island implements Tickable {
                             reportDeath(animal.getSpeciesKey(), DeathCause.MOVEMENT_EXHAUSTION);
                         }
                     }
-                }
-            } finally {
-                second.getLock().unlock();
-            }
-        } finally {
-            first.getLock().unlock();
-        }
-    }
-
-    public void moveBiomass(Biomass b, Cell from, Cell to) {
-        moveBiomassPartially(b, from, to, b.getBiomass());
-    }
-
-    public void moveBiomassPartially(Biomass b, Cell from, Cell to, double amount) {
-        if (from == to || amount <= 0 || b.getBiomass() <= 0) {
-            return;
-        }
-
-        Cell first = (from.getX() < to.getX() || (from.getX() == to.getX() && from.getY() < to.getY())) ? from : to;
-        Cell second = (first == from) ? to : from;
-
-        first.getLock().lock();
-        try {
-            second.getLock().lock();
-            try {
-                // In this optimized model, we can just transfer the value.
-                double actualToMove = Math.min(b.getBiomass(), amount);
-                
-                if (to.addBiomass(b.getSpeciesKey(), actualToMove)) {
-                    b.consumeBiomass(actualToMove);
                 }
             } finally {
                 second.getLock().unlock();

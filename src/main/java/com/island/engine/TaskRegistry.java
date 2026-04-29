@@ -19,18 +19,18 @@ import com.island.view.SimulationView;
  */
 public class TaskRegistry {
     private final GameLoop gameLoop;
-    private final Island island;
+    private final SimulationWorld world;
     private final InteractionProvider matrix;
     private final AnimalFactory animalFactory;
     private final SpeciesRegistry speciesRegistry;
     private final SimulationView view;
     private final RandomProvider random;
 
-    public TaskRegistry(GameLoop gameLoop, Island island, InteractionProvider matrix, 
+    public TaskRegistry(GameLoop gameLoop, SimulationWorld world, InteractionProvider matrix, 
                         AnimalFactory animalFactory, SpeciesRegistry speciesRegistry, 
                         SimulationView view, RandomProvider random) {
         this.gameLoop = gameLoop;
-        this.island = island;
+        this.world = world;
         this.matrix = matrix;
         this.animalFactory = animalFactory;
         this.speciesRegistry = speciesRegistry;
@@ -40,12 +40,16 @@ public class TaskRegistry {
 
     public void registerAll() {
         HuntingStrategy huntingStrategy = new DefaultHuntingStrategy(matrix);
-        gameLoop.addRecurringTask(island);
-        gameLoop.addRecurringTask(new LifecycleService(island, gameLoop.getTaskExecutor(), random));
-        gameLoop.addRecurringTask(new FeedingService(island, matrix, speciesRegistry, huntingStrategy, gameLoop.getTaskExecutor(), random));
-        gameLoop.addRecurringTask(new MovementService(island, gameLoop.getTaskExecutor(), random));
-        gameLoop.addRecurringTask(new ReproductionService(island, animalFactory, speciesRegistry, gameLoop.getTaskExecutor(), random));
-        gameLoop.addRecurringTask(new CleanupService(island, gameLoop.getTaskExecutor(), random));
-        gameLoop.addRecurringTask(() -> view.display(island));
+        gameLoop.addRecurringTask(world);
+        gameLoop.addRecurringTask(new LifecycleService(world, gameLoop.getTaskExecutor(), random));
+        gameLoop.addRecurringTask(new FeedingService(world, matrix, speciesRegistry, huntingStrategy, gameLoop.getTaskExecutor(), random));
+        gameLoop.addRecurringTask(new MovementService(world, gameLoop.getTaskExecutor(), random));
+        gameLoop.addRecurringTask(new ReproductionService(world, animalFactory, speciesRegistry, gameLoop.getTaskExecutor(), random));
+        gameLoop.addRecurringTask(new CleanupService(world, gameLoop.getTaskExecutor(), random));
+        gameLoop.addRecurringTask(() -> {
+            if (world instanceof com.island.model.Island island) {
+                view.display(island);
+            }
+        });
     }
 }
