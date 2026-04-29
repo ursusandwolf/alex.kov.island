@@ -4,8 +4,8 @@ public final class SimulationConstants {
     // Energy Costs
     public static final double SPEED_MOVE_COST_STEP_PERCENT = 0.01;
     public static final double PREY_RELATIVE_SPEED_HUNT_COST_STEP_PERCENT = 0.05; 
-    public static final double BASE_METABOLISM_PERCENT = 0.015; 
-    public static final double HERBIVORE_METABOLISM_MODIFIER = 0.80; 
+    public static final double BASE_METABOLISM_PERCENT = 0.010; 
+    public static final double HERBIVORE_METABOLISM_MODIFIER = 0.70; 
     public static final double REPTILE_METABOLISM_MODIFIER = 0.40; // Cold-blooded efficiency
 
     // Hunting Logic
@@ -35,7 +35,7 @@ public final class SimulationConstants {
 
     // Plants & Biomass logic
     public static final double PLANT_INITIAL_BIOMASS_FACTOR = 0.5; 
-    public static final double PLANT_GROWTH_RATE = 0.15; 
+    public static final double PLANT_GROWTH_RATE = 0.50; 
     public static final double BIOMASS_MOVE_CHUNK_FRACTION = 0.25;
 
     // Caterpillar Pendulum Constants
@@ -44,8 +44,8 @@ public final class SimulationConstants {
     public static final double BUTTERFLY_REPRODUCTION_RATE = 0.10; 
 
     // World Initialization Probability
-    public static final double DEFAULT_PREDATOR_PRESENCE_PROB = 0.4;
-    public static final double DEFAULT_HERBIVORE_PRESENCE_PROB = 0.8;
+    public static final double DEFAULT_PREDATOR_PRESENCE_PROB = 0.2;
+    public static final double DEFAULT_HERBIVORE_PRESENCE_PROB = 0.3;
     
     private SimulationConstants() {
     }

@@ -209,7 +209,7 @@ public class Cell implements SimulationNode {
         }
     }
 
-    public void cleanupDeadOrganisms() {
+    public List<Animal> cleanupDeadOrganisms() {
         lock.lock();
         try {
             List<Animal> toRemove = new ArrayList<>();
@@ -221,6 +221,7 @@ public class Cell implements SimulationNode {
             for (Animal a : toRemove) {
                 removeAnimal(a);
             }
+            return toRemove;
         } finally {
             lock.unlock();
         }

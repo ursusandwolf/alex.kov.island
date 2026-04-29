@@ -59,7 +59,8 @@ class WolfPackBalanceTest {
 
         HuntingStrategy huntingStrategy = new DefaultHuntingStrategy(matrix);
         int testMinPackSize = usePack ? 3 : 1000;
-        FeedingService service = new FeedingService(island, matrix, registry, huntingStrategy, 
+        AnimalFactory animalFactory = new AnimalFactory(registry, new DefaultRandomProvider());
+        FeedingService service = new FeedingService(island, animalFactory, matrix, registry, huntingStrategy, 
                                             Executors.newSingleThreadExecutor(), testMinPackSize, new DefaultRandomProvider());
 
         long totalTime = 0;

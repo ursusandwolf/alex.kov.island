@@ -29,7 +29,8 @@ class FeedingServiceTest {
         // Rabbit eats Grass with 100% chance
         matrix.setChance(SpeciesKey.RABBIT, SpeciesKey.PLANT, 100);
         HuntingStrategy huntingStrategy = new DefaultHuntingStrategy(matrix);
-        service = new FeedingService(island, matrix, registry, huntingStrategy, Executors.newSingleThreadExecutor(), new com.island.util.DefaultRandomProvider());
+        AnimalFactory animalFactory = new AnimalFactory(registry, new com.island.util.DefaultRandomProvider());
+        service = new FeedingService(island, animalFactory, matrix, registry, huntingStrategy, Executors.newSingleThreadExecutor(), new com.island.util.DefaultRandomProvider());
     }
 
     @Test

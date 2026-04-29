@@ -38,6 +38,11 @@ public abstract class Animal extends Organism {
         return isHiding;
     }
 
+    public void init(AnimalType type, double energyFactor) {
+        super.init(type.getMaxEnergy(), type.getMaxLifespan(), energyFactor);
+        this.isHiding = false;
+    }
+
     public void setHiding(boolean h) {
         this.isHiding = h;
     }

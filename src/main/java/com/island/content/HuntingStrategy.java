@@ -27,4 +27,9 @@ public interface HuntingStrategy {
      * Determines if the predator is willing to hunt this prey (ROI check).
      */
     boolean isWorthHunting(Animal predator, Organism prey, double successRate, double cost);
+
+    /**
+     * Selects the best prey from the available providers.
+     */
+    Organism selectPrey(Animal predator, PreyProvider provider);
 }

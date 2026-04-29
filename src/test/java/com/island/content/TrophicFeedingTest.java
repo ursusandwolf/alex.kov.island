@@ -26,7 +26,8 @@ class TrophicFeedingTest {
         cell = island.getCell(0, 0);
         matrix = new InteractionMatrix();
         HuntingStrategy huntingStrategy = new DefaultHuntingStrategy(matrix);
-        feedingService = new FeedingService(island, matrix, registry, huntingStrategy, Executors.newSingleThreadExecutor(), new com.island.util.DefaultRandomProvider());
+        AnimalFactory animalFactory = new AnimalFactory(registry, new com.island.util.DefaultRandomProvider());
+        feedingService = new FeedingService(island, animalFactory, matrix, registry, huntingStrategy, Executors.newSingleThreadExecutor(), new com.island.util.DefaultRandomProvider());
     }
 
     @Test

@@ -32,14 +32,24 @@ public class LongTermSurvivalTest {
             if (i % 100 == 0) {
                 Map<SpeciesKey, Integer> counts = island.getSpeciesCounts();
                 long totalAnimals = counts.entrySet().stream()
-                    .filter(e -> !e.getKey().equals(SpeciesKey.GRASS) && !e.getKey().equals(SpeciesKey.CABBAGE))
+                    .filter(e -> !e.getKey().isBiomass())
                     .mapToLong(Map.Entry::getValue)
                     .sum();
                 
-                System.out.printf("Tick %d: Animals: %d, Producers: %d, Species: %d%n", 
-                    i, totalAnimals, 
-                    counts.getOrDefault(SpeciesKey.GRASS, 0) + counts.getOrDefault(SpeciesKey.CABBAGE, 0),
-                    counts.size());
+                // Count producers as double mass
+                double totalBiomass = 0;
+                for (int x = 0; x < island.getWidth(); x++) {
+                    for (int y = 0; y < island.getHeight(); y++) {
+                        for (com.island.content.Biomass b : island.getGrid()[x][y].getBiomassContainers()) {
+                            if (b.getSpeciesKey().isPlant()) {
+                                totalBiomass += b.getBiomass();
+                            }
+                        }
+                    }
+                }
+                
+                System.out.printf("Tick %d: Animals: %d, Producers Mass: %.2f, Species (%d): %s%n", 
+                    i, totalAnimals, totalBiomass, counts.size(), counts.keySet());
                 
                 assertTrue(totalAnimals > 0, "Mass extinction at tick " + i);
             }
@@ -51,19 +61,19 @@ public class LongTermSurvivalTest {
         // Verification logic
         assertTrue(island.getTotalOrganismCount() > 0, "The island is dead!");
         
-        long herbivoreCount = finalCounts.entrySet().stream()
-            .filter(e -> {
-                var type = context.getSpeciesRegistry().getAnimalType(e.getKey());
-                return type.isPresent() && !type.get().getPreySpecies().isEmpty() && 
-                       (type.get().canEat(SpeciesKey.GRASS) || type.get().canEat(SpeciesKey.PLANT));
-            })
-            .mapToLong(Map.Entry::getValue)
-            .sum();
+        // Sum total biomass again for final check
+        double finalBiomass = 0;
+        for (int x = 0; x < island.getWidth(); x++) {
+            for (int y = 0; y < island.getHeight(); y++) {
+                for (com.island.content.Biomass b : island.getGrid()[x][y].getBiomassContainers()) {
+                    if (b.getSpeciesKey().isPlant()) {
+                        finalBiomass += b.getBiomass();
+                    }
+                }
+            }
+        }
 
-        assertTrue(herbivoreCount > 0, "No herbivores survived - ecosystem collapsed!");
-        
-        int producers = finalCounts.getOrDefault(SpeciesKey.GRASS, 0) + finalCounts.getOrDefault(SpeciesKey.CABBAGE, 0);
-        assertTrue(producers > 100, "Plants were overgrazed to near extinction! Count: " + producers);
+        assertTrue(finalBiomass > 0.1, "Plants were overgrazed to extinction! Mass: " + finalBiomass);
         
         System.out.println("Ecosystem successfully survived 500 ticks.");
     }

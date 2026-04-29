@@ -63,4 +63,16 @@ public class DefaultHuntingStrategy implements HuntingStrategy {
         // ROI Check: Expected profit must be at least ROI threshold higher than effort
         return expectedGain >= cost * HUNT_ROI_THRESHOLD;
     }
+
+    @Override
+    public Organism selectPrey(Animal predator, PreyProvider provider) {
+        for (Organism prey : provider.getPreyFor(predator)) {
+            double successRate = calculateSuccessRate(predator, prey);
+            double cost = calculateHuntCost(predator, prey);
+            if (isWorthHunting(predator, prey, successRate, cost)) {
+                return prey;
+            }
+        }
+        return null;
+    }
 }

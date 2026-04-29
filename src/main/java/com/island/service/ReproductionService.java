@@ -61,7 +61,16 @@ public class ReproductionService extends AbstractService {
 
     private boolean tryReproduce(Animal parent1, Animal parent2, Cell cell) {
         AnimalType type = parent1.getAnimalType();
-        double chance = 0.25; // Balanced reproduction chance
+        
+        // Dynamic reproduction chance based on size class
+        double chance = switch (type.getSizeClass()) {
+            case TINY -> 0.35;    // Mouse, Hamster
+            case SMALL -> 0.25;   // Duck, Rabbit (Rabbit is NORMAL but tiny)
+            case NORMAL -> 0.15;  // Fox, Eagle
+            case MEDIUM -> 0.08;  // Wolf, Goat, Sheep
+            case LARGE -> 0.04;   // Bear, Boar, Deer
+            case HUGE -> 0.02;    // Buffalo, Horse
+        };
 
         if (getRandom().nextDouble() < chance) {
             Optional<Animal> baby = animalFactory.createAnimal(type.getSpeciesKey());

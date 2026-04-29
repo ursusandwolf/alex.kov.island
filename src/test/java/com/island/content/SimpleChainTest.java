@@ -36,7 +36,8 @@ class SimpleChainTest {
         matrix.setChance(SpeciesKey.DUCK, SpeciesKey.PLANT, 100);
         
         HuntingStrategy huntingStrategy = new DefaultHuntingStrategy(matrix);
-        feedingService = new FeedingService(island, matrix, registry, huntingStrategy, Executors.newSingleThreadExecutor(), new DefaultRandomProvider());
+        AnimalFactory animalFactory = new AnimalFactory(registry, new DefaultRandomProvider());
+        feedingService = new FeedingService(island, animalFactory, matrix, registry, huntingStrategy, Executors.newSingleThreadExecutor(), new DefaultRandomProvider());
     }
 
     @Test
@@ -73,7 +74,8 @@ class SimpleChainTest {
         
         // Re-create service with custom random for this specific test
         HuntingStrategy huntingStrategy = new DefaultHuntingStrategy(matrix);
-        feedingService = new FeedingService(island, matrix, registry, huntingStrategy, Executors.newSingleThreadExecutor(), customRandom);
+        AnimalFactory animalFactory = new AnimalFactory(registry, customRandom);
+        feedingService = new FeedingService(island, animalFactory, matrix, registry, huntingStrategy, Executors.newSingleThreadExecutor(), customRandom);
 
         // 2. Execute Feeding
         feedingService.tick(1);
@@ -119,7 +121,8 @@ class SimpleChainTest {
             @Override public boolean checkChance(int chance) { return true; }
         };
         HuntingStrategy huntingStrategy = new DefaultHuntingStrategy(matrix);
-        feedingService = new FeedingService(island, matrix, registry, huntingStrategy, Executors.newSingleThreadExecutor(), customRandom);
+        AnimalFactory animalFactory = new AnimalFactory(registry, customRandom);
+        feedingService = new FeedingService(island, animalFactory, matrix, registry, huntingStrategy, Executors.newSingleThreadExecutor(), customRandom);
 
         feedingService.tick(1);
 

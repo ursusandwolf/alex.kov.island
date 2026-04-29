@@ -55,9 +55,6 @@ public class GameLoop {
     public void runTick() {
         tickCount++;
         for (Tickable task : recurringTasks) {
-            if (!running) {
-                break;
-            }
             try {
                 task.tick(tickCount);
             } catch (Exception e) {

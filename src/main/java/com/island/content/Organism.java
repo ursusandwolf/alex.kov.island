@@ -9,12 +9,12 @@ import java.util.UUID;
 /**
  * Базовый класс организмов.
  */
-public abstract class Organism {
-    private final String id; 
+public abstract class Organism implements com.island.util.Poolable {
+    private String id; 
     private volatile double currentEnergy; 
-    private final double maxEnergy; 
+    private double maxEnergy; 
     private int age; 
-    private final int maxLifespan; 
+    private int maxLifespan; 
     private volatile boolean isAlive;
 
     protected Organism(double maxEnergy, int maxLifespan) {
@@ -22,12 +22,29 @@ public abstract class Organism {
     }
 
     protected Organism(double maxEnergy, int maxLifespan, double energyFactor) {
-        this.id = UUID.randomUUID().toString();
+        this.id = java.util.UUID.randomUUID().toString();
         this.maxEnergy = maxEnergy;
-        this.currentEnergy = maxEnergy * energyFactor;
-        this.age = 0;
         this.maxLifespan = maxLifespan;
         this.isAlive = true;
+        this.currentEnergy = maxEnergy * energyFactor;
+        this.age = 0;
+    }
+
+    @Override
+    public void reset() {
+        this.isAlive = true;
+        this.age = 0;
+        // Keep ID for now or generate new one? Let's keep it but mark as reborn
+        // Actually, generating UUID is slow. Let's just keep the old ID.
+        this.currentEnergy = 0; 
+    }
+
+    public void init(double maxEnergy, int maxLifespan, double energyFactor) {
+        this.maxEnergy = maxEnergy;
+        this.maxLifespan = maxLifespan;
+        this.currentEnergy = maxEnergy * energyFactor;
+        this.isAlive = true;
+        this.age = 0;
     }
 
     public String getId() {
@@ -117,7 +134,8 @@ public abstract class Organism {
 
     public double getDynamicMetabolismRate() {
         SizeClass sizeClass = SizeClass.fromWeight(getWeight());
-        return BASE_METABOLISM_PERCENT * sizeClass.getMetabolismModifier() * getSpecialMetabolismModifier();
+        return maxEnergy * BASE_METABOLISM_PERCENT * sizeClass.getMetabolismModifier()
+                * getSpecialMetabolismModifier();
     }
 
     protected double getSpecialMetabolismModifier() {
