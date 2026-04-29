@@ -5,6 +5,7 @@ import com.island.content.GenericAnimal;
 import com.island.content.SpeciesRegistry;
 import com.island.content.SpeciesLoader;
 import com.island.content.SpeciesKey;
+import com.island.service.StatisticsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -16,7 +17,7 @@ class CellTest {
 
     @BeforeEach
     void setUp() {
-        Island island = new Island(1, 1, registry);
+        Island island = new Island(1, 1, registry, new StatisticsService());
         cell = new Cell(0, 0, island);
     }
 

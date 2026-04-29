@@ -6,6 +6,7 @@ import com.island.content.SpeciesKey;
 import com.island.content.plants.Grass;
 import com.island.model.Cell;
 import com.island.model.Island;
+import com.island.service.StatisticsService;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -15,7 +16,7 @@ class BiologicalPendulumTest {
 
     @Test
     void testCaterpillarPendulum() {
-        Island island = new Island(1, 1, registry);
+        Island island = new Island(1, 1, registry, new StatisticsService());
         Cell cell = island.getCell(0, 0);
         
         Grass grass = new Grass(registry.getPlantWeight(SpeciesKey.PLANT) * registry.getPlantMaxCount(SpeciesKey.PLANT), 0);

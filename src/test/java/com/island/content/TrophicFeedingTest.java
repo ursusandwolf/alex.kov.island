@@ -3,6 +3,7 @@ package com.island.content;
 import com.island.content.GenericAnimal;
 import com.island.model.Cell;
 import com.island.model.Island;
+import com.island.service.StatisticsService;
 import com.island.util.InteractionMatrix;
 import com.island.service.FeedingService;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,7 +23,7 @@ class TrophicFeedingTest {
 
     @BeforeEach
     void setUp() {
-        island = new Island(1, 1, registry);
+        island = new Island(1, 1, registry, new StatisticsService());
         cell = island.getCell(0, 0);
         matrix = new InteractionMatrix(registry);
         HuntingStrategy huntingStrategy = new DefaultHuntingStrategy(matrix);

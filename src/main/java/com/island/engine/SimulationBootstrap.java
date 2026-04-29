@@ -6,6 +6,7 @@ import com.island.content.AnimalFactory;
 import com.island.content.SpeciesLoader;
 import com.island.content.SpeciesRegistry;
 import com.island.model.Island;
+import com.island.service.StatisticsService;
 import com.island.util.DefaultRandomProvider;
 import com.island.util.InteractionMatrix;
 import com.island.util.RandomProvider;
@@ -27,12 +28,13 @@ public class SimulationBootstrap {
         // 1. Load configuration and species registry
         SpeciesRegistry registry = new SpeciesLoader().load();
         
-        // 2. Setup interaction matrix and random provider
+        // 2. Setup interaction matrix, statistics, and random provider
         InteractionMatrix matrix = configLoader.loadInteractionMatrix(registry);
+        StatisticsService statisticsService = new StatisticsService();
         RandomProvider random = new DefaultRandomProvider();
 
         // 3. Create core models
-        Island island = new Island(config.getIslandWidth(), config.getIslandHeight(), registry);
+        Island island = new Island(config.getIslandWidth(), config.getIslandHeight(), registry, statisticsService);
         AnimalFactory animalFactory = new AnimalFactory(registry, random);
 
         // 4. Setup GameLoop and View

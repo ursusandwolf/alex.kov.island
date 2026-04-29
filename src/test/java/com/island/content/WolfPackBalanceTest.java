@@ -5,6 +5,7 @@ import com.island.model.Island;
 import com.island.util.InteractionMatrix;
 import com.island.util.DefaultRandomProvider;
 import com.island.service.FeedingService;
+import com.island.service.StatisticsService;
 import com.island.content.animals.predators.Bear;
 import org.junit.jupiter.api.Test;
 import java.util.concurrent.Executors;
@@ -38,7 +39,7 @@ class WolfPackBalanceTest {
     }
 
     private long runSimulation(SpeciesRegistry registry, boolean usePack, int iterations) {
-        Island island = new Island(1, 1, registry);
+        Island island = new Island(1, 1, registry, new StatisticsService());
         island.setRedBookProtectionEnabled(false);
         Cell cell = island.getCell(0, 0);
         InteractionMatrix matrix = InteractionMatrix.buildFrom(registry);

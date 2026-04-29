@@ -4,6 +4,7 @@ import com.island.content.AnimalFactory;
 import com.island.content.SpeciesRegistry;
 import com.island.content.SpeciesLoader;
 import com.island.model.Island;
+import com.island.service.StatisticsService;
 import com.island.util.DefaultRandomProvider;
 import org.junit.jupiter.api.Test;
 
@@ -17,7 +18,7 @@ public class WorldInitializationTest {
     @Test
     public void testWorldInitializationDensity() {
         SpeciesRegistry registry = new SpeciesLoader().load();
-        Island island = new Island(16, 16, registry);
+        Island island = new Island(16, 16, registry, new StatisticsService());
         AnimalFactory animalFactory = new AnimalFactory(registry, new DefaultRandomProvider());
         ExecutorService executor = Executors.newSingleThreadExecutor();
         

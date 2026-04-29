@@ -8,6 +8,7 @@ import com.island.content.SpeciesRegistry;
 import com.island.model.Cell;
 import com.island.model.Island;
 import com.island.service.FeedingService;
+import com.island.service.StatisticsService;
 import com.island.util.DefaultRandomProvider;
 import com.island.util.InteractionMatrix;
 import com.island.content.DefaultHuntingStrategy;
@@ -28,7 +29,7 @@ public class SimulationOptimizationTest {
     @BeforeEach
     void setUp() {
         registry = new SpeciesLoader().load();
-        island = new Island(1, 1, registry);
+        island = new Island(1, 1, registry, new StatisticsService());
         InteractionMatrix matrix = InteractionMatrix.buildFrom(registry);
         animalFactory = new AnimalFactory(registry, new DefaultRandomProvider());
         feedingService = new FeedingService(island, animalFactory, matrix, registry, 

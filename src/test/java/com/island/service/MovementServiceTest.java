@@ -21,7 +21,7 @@ class MovementServiceTest {
 
     @Test
     void testConcurrentMovement() throws InterruptedException {
-        Island island = new Island(2, 1, registry);
+        Island island = new Island(2, 1, registry, new StatisticsService());
         Cell cell0 = island.getCell(0, 0);
         
         GenericAnimal wolf = new GenericAnimal(registry.getAnimalType(SpeciesKey.WOLF).orElseThrow());

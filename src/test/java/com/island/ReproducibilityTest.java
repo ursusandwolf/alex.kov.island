@@ -9,6 +9,7 @@ import com.island.model.Island;
 import com.island.service.FeedingService;
 import com.island.service.LifecycleService;
 import com.island.service.MovementService;
+import com.island.service.StatisticsService;
 import com.island.util.DefaultRandomProvider;
 import com.island.util.InteractionMatrix;
 import com.island.util.RandomProvider;
@@ -52,7 +53,7 @@ class ReproducibilityTest {
         );
         matrix.freeze();
 
-        Island island = new Island(2, 2, registry);
+        Island island = new Island(2, 2, registry, new StatisticsService());
         AnimalFactory factory = new AnimalFactory(registry, fixedProvider);
         HuntingStrategy strategy = new DefaultHuntingStrategy(matrix);
         var executor = Executors.newSingleThreadExecutor();

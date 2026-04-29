@@ -1,6 +1,5 @@
 package com.island.model;
 
-import com.island.engine.Tickable;
 import com.island.engine.SimulationNode;
 import com.island.engine.SimulationWorld;
 import com.island.content.Animal;
@@ -9,47 +8,43 @@ import com.island.content.Biomass;
 import com.island.content.DeathCause;
 import com.island.content.SpeciesRegistry;
 import com.island.content.SpeciesKey;
+import com.island.service.StatisticsService;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import lombok.Getter;
 
 /**
  * Composite: Island consists of cells.
  */
 public class Island implements SimulationWorld {
+    @Getter
     private final int width;
+    @Getter
     private final int height;
+    @Getter
     private final Cell[][] grid;
+    @Getter
     private final List<Chunk> chunks = new ArrayList<>();
     private final SpeciesRegistry registry;
+    private final StatisticsService statisticsService;
+    @Getter
     private int tickCount = 0;
+    @Getter
     private boolean redBookProtectionEnabled = true;
-    
-    private final Map<SpeciesKey, AtomicInteger> speciesCounts = new HashMap<>();
-    private final Map<DeathCause, Map<SpeciesKey, AtomicInteger>> deathStats = new EnumMap<>(DeathCause.class);
-    private final Map<DeathCause, Map<SpeciesKey, AtomicInteger>> totalDeathStats = new EnumMap<>(DeathCause.class);
 
-    public Island(int width, int height, SpeciesRegistry registry) {
+    public Island(int width, int height, SpeciesRegistry registry, StatisticsService statisticsService) {
         this.width = width;
         this.height = height;
         this.registry = registry;
+        this.statisticsService = statisticsService;
         this.grid = new Cell[width][height];
         initializeGrid();
         partitionIntoChunks();
-        for (DeathCause cause : DeathCause.values()) {
-            deathStats.put(cause, new ConcurrentHashMap<>());
-            totalDeathStats.put(cause, new ConcurrentHashMap<>());
-        }
-        for (SpeciesKey key : SpeciesKey.values()) {
-            speciesCounts.put(key, new AtomicInteger(0));
-        }
     }
 
     public void init() {
@@ -60,8 +55,7 @@ public class Island implements SimulationWorld {
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 Cell cell = grid[x][y];
-                java.util.List<com.island.engine.SimulationNode> neighbors = new java.util.ArrayList<>();
-                // 8 neighbors
+                List<SimulationNode> neighbors = new ArrayList<>();
                 for (int dx = -1; dx <= 1; dx++) {
                     for (int dy = -1; dy <= 1; dy++) {
                         if (dx == 0 && dy == 0) {
@@ -75,32 +69,8 @@ public class Island implements SimulationWorld {
         }
     }
 
-    public int getWidth() {
-        return width;
-    }
-
-    public int getHeight() {
-        return height;
-    }
-
-    public Cell[][] getGrid() {
-        return grid;
-    }
-
-    public List<Chunk> getChunks() {
-        return chunks;
-    }
-
-    public int getTickCount() {
-        return tickCount;
-    }
-
     public void setRedBookProtectionEnabled(boolean enabled) {
         this.redBookProtectionEnabled = enabled;
-    }
-
-    public boolean isRedBookProtectionEnabled() {
-        return redBookProtectionEnabled;
     }
 
     @Override
@@ -131,11 +101,78 @@ public class Island implements SimulationWorld {
         return protectionMap;
     }
 
+    @Override
+    public void reportDeath(SpeciesKey speciesKey, DeathCause cause) {
+        statisticsService.registerDeath(speciesKey, cause);
+    }
+
+    @Override
+    public void onOrganismAdded(SpeciesKey key) {
+        statisticsService.registerBirth(key);
+    }
+
+    @Override
+    public void onOrganismRemoved(SpeciesKey key) {
+        // Handled via reportDeath for animals
+    }
+
+    @Override
+    public int getSpeciesCount(SpeciesKey key) {
+        return statisticsService.getSpeciesCount(key);
+    }
+
+    @Override
+    public StatisticsService getStatisticsService() {
+        return statisticsService;
+    }
+
+    public Map<SpeciesKey, Integer> getSpeciesCounts() {
+        Map<SpeciesKey, Integer> counts = new HashMap<>();
+        statisticsService.getSpeciesCounts().forEach((k, v) -> {
+            if (v.get() > 0) {
+                counts.put(k, v.get());
+            }
+        });
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                for (Biomass b : grid[x][y].getBiomassContainers()) {
+                    if (b.isAlive() && b.getBiomass() > 0) {
+                        counts.merge(b.getSpeciesKey(), (int) b.getBiomass(), Integer::sum);
+                    }
+                }
+            }
+        }
+        return counts;
+    }
+
+    public int getTotalOrganismCount() {
+        int animalTotal = statisticsService.getTotalPopulation();
+        int biomassTotal = 0;
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                for (Biomass b : grid[x][y].getBiomassContainers()) {
+                    biomassTotal += (int) b.getBiomass();
+                }
+            }
+        }
+        return animalTotal + biomassTotal;
+    }
+
+    public int getTotalAnimalDeathCount(DeathCause cause) {
+        return statisticsService.getTotalDeaths(cause).entrySet().stream()
+                .filter(e -> !registry.getAnimalType(e.getKey()).map(AnimalType::isBiomass).orElse(false))
+                .mapToInt(Map.Entry::getValue)
+                .sum();
+    }
+
+    public Map<SpeciesKey, Integer> getTotalDeathsBySpecies(DeathCause cause) {
+        return statisticsService.getTotalDeaths(cause);
+    }
+
     public double getGlobalSatiety() {
         double totalMax = 0;
         double totalCurrent = 0;
         int animalCount = 0;
-
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 for (Animal a : grid[x][y].getAnimals()) {
@@ -164,43 +201,9 @@ public class Island implements SimulationWorld {
         return starving;
     }
 
-    public void reportDeath(SpeciesKey speciesKey, DeathCause cause) {
-        deathStats.get(cause)
-                 .computeIfAbsent(speciesKey, k -> new AtomicInteger(0))
-                 .incrementAndGet();
-        totalDeathStats.get(cause)
-                 .computeIfAbsent(speciesKey, k -> new AtomicInteger(0))
-                 .incrementAndGet();
-    }
-
-    public int getDeathCount(DeathCause cause) {
-        return deathStats.get(cause).values().stream().mapToInt(AtomicInteger::get).sum();
-    }
-
-    public int getTotalAnimalDeathCount(DeathCause cause) {
-        return totalDeathStats.get(cause).entrySet().stream()
-                .filter(e -> !registry.getAnimalType(e.getKey()).map(AnimalType::isBiomass).orElse(false))
-                .mapToInt(e -> e.getValue().get())
-                .sum();
-    }
-
-    public Map<SpeciesKey, Integer> getDeathsBySpecies(DeathCause cause) {
-        Map<SpeciesKey, Integer> result = new HashMap<>();
-        deathStats.get(cause).forEach((k, v) -> result.put(k, v.get()));
-        return result;
-    }
-
-    public Map<SpeciesKey, Integer> getTotalDeathsBySpecies(DeathCause cause) {
-        Map<SpeciesKey, Integer> result = new HashMap<>();
-        totalDeathStats.get(cause).forEach((k, v) -> result.put(k, v.get()));
-        return result;
-    }
-
     @Override
     public Collection<? extends Collection<? extends SimulationNode>> getParallelWorkUnits() {
-        return chunks.stream()
-                .map(Chunk::getCells)
-                .toList();
+        return chunks.stream().map(Chunk::getCells).toList();
     }
 
     @Override
@@ -213,6 +216,16 @@ public class Island implements SimulationWorld {
             }
         }
         return Optional.empty();
+    }
+
+    public Cell getCell(int x, int y) {
+        if (x >= 0 && x < width && y >= 0 && y < height) {
+            return grid[x][y];
+        }
+        // Toroidal fallback if needed, but here we'll stick to bounds or wrap
+        int tx = (x % width + width) % width;
+        int ty = (y % height + height) % height;
+        return grid[tx][ty];
     }
 
     @Override
@@ -233,17 +246,13 @@ public class Island implements SimulationWorld {
         if (from == to || amount <= 0 || b.getBiomass() <= 0) {
             return;
         }
-
         Cell first = (from.getX() < to.getX() || (from.getX() == to.getX() && from.getY() < to.getY())) ? from : to;
         Cell second = (first == from) ? to : from;
-
         first.getLock().lock();
         try {
             second.getLock().lock();
             try {
-                // In this optimized model, we can just transfer the value.
                 double actualToMove = Math.min(b.getBiomass(), amount);
-
                 if (to.addBiomass(b.getSpeciesKey(), actualToMove)) {
                     b.consumeBiomass(actualToMove);
                 }
@@ -255,16 +264,10 @@ public class Island implements SimulationWorld {
         }
     }
 
-    public void moveBiomass(Biomass b, Cell from, Cell to) {
-        moveBiomassPartially(b, from, to, b.getBiomass());
-    }
-
     @Override
     public void tick(int tickCount) {
         this.tickCount = tickCount;
-        for (Map<SpeciesKey, AtomicInteger> stats : deathStats.values()) {
-            stats.clear();
-        }
+        statisticsService.onTickStarted();
     }
 
     private void initializeGrid() {
@@ -286,93 +289,12 @@ public class Island implements SimulationWorld {
         }
     }
 
-    public Cell getCell(int x, int y) {
-        // Toroidal island logic
-        int tx = (x % width + width) % width;
-        int ty = (y % height + height) % height;
-        return grid[tx][ty];
-    }
-
-    public void onOrganismAdded(SpeciesKey key) {
-        AtomicInteger count = speciesCounts.get(key);
-        if (count != null) {
-            count.incrementAndGet();
-        }
-    }
-
-    public void onOrganismRemoved(SpeciesKey key) {
-        AtomicInteger count = speciesCounts.get(key);
-        if (count != null) {
-            count.decrementAndGet();
-        }
-    }
-
-    @Override
-    public int getSpeciesCount(SpeciesKey key) {
-        AtomicInteger count = speciesCounts.get(key);
-        return (count != null) ? count.get() : 0;
-    }
-
-    /**
-     * Transitional.
-     */
-    public int getSpeciesCount(String key) {
-        try {
-            return getSpeciesCount(SpeciesKey.fromCode(key));
-        } catch (IllegalArgumentException e) {
-            return 0;
-        }
-    }
-
-    public Map<SpeciesKey, Integer> getSpeciesCounts() {
-        Map<SpeciesKey, Integer> counts = new HashMap<>();
-        
-        // Add Animals (from tracked counts)
-        speciesCounts.forEach((k, v) -> {
-            if (v.get() > 0) {
-                counts.put(k, v.get());
-            }
-        });
-
-        // Add Biomass (Plants, Caterpillars) - sum their total mass across the island
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                for (Biomass b : grid[x][y].getBiomassContainers()) {
-                    if (b.isAlive() && b.getBiomass() > 0) {
-                        counts.merge(b.getSpeciesKey(), (int) b.getBiomass(), Integer::sum);
-                    }
-                }
-            }
-        }
-        
-        return counts;
-    }
-
-    public int getTotalOrganismCount() {
-        int animalTotal = 0;
-        for (AtomicInteger count : speciesCounts.values()) {
-            animalTotal += count.get();
-        }
-        
-        int biomassTotal = 0;
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                for (Biomass b : grid[x][y].getBiomassContainers()) {
-                    biomassTotal += (int) b.getBiomass();
-                }
-            }
-        }
-        return animalTotal + biomassTotal;
-    }
-
     public void moveOrganism(Animal animal, Cell from, Cell to) {
         if (from == to) {
             return;
         }
-        
         Cell first = (from.getX() < to.getX() || (from.getX() == to.getX() && from.getY() < to.getY())) ? from : to;
         Cell second = (first == from) ? to : from;
-
         first.getLock().lock();
         try {
             second.getLock().lock();
@@ -391,9 +313,5 @@ public class Island implements SimulationWorld {
         } finally {
             first.getLock().unlock();
         }
-    }
-
-    public String getStatistics() {
-        return String.format("Island[%dx%d] Total organisms: %d", width, height, getTotalOrganismCount());
     }
 }

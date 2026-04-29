@@ -1,0 +1,72 @@
+package com.island.service;
+
+import com.island.content.DeathCause;
+import com.island.content.SpeciesKey;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import lombok.Getter;
+
+/**
+ * Service responsible for gathering and providing simulation statistics.
+ * Decouples reporting logic from the world model.
+ */
+public class StatisticsService {
+    @Getter
+    private final Map<SpeciesKey, AtomicInteger> speciesCounts = new ConcurrentHashMap<>();
+    
+    private final Map<DeathCause, Map<SpeciesKey, AtomicInteger>> tickDeathStats = new EnumMap<>(DeathCause.class);
+    private final Map<DeathCause, Map<SpeciesKey, AtomicInteger>> totalDeathStats = new EnumMap<>(DeathCause.class);
+
+    public StatisticsService() {
+        for (DeathCause cause : DeathCause.values()) {
+            tickDeathStats.put(cause, new ConcurrentHashMap<>());
+            totalDeathStats.put(cause, new ConcurrentHashMap<>());
+        }
+    }
+
+    public void registerBirth(SpeciesKey speciesKey) {
+        speciesCounts.computeIfAbsent(speciesKey, k -> new AtomicInteger(0)).incrementAndGet();
+    }
+
+    public void registerDeath(SpeciesKey speciesKey, DeathCause cause) {
+        speciesCounts.computeIfAbsent(speciesKey, k -> new AtomicInteger(0)).decrementAndGet();
+        
+        tickDeathStats.get(cause)
+                 .computeIfAbsent(speciesKey, k -> new AtomicInteger(0))
+                 .incrementAndGet();
+        totalDeathStats.get(cause)
+                 .computeIfAbsent(speciesKey, k -> new AtomicInteger(0))
+                 .incrementAndGet();
+    }
+
+    public void onTickStarted() {
+        // Clear only per-tick stats, keep totals and counts
+        for (Map<SpeciesKey, AtomicInteger> stats : tickDeathStats.values()) {
+            stats.clear();
+        }
+    }
+
+    public int getSpeciesCount(SpeciesKey key) {
+        AtomicInteger count = speciesCounts.get(key);
+        return (count != null) ? Math.max(0, count.get()) : 0;
+    }
+
+    public int getTotalPopulation() {
+        return speciesCounts.values().stream().mapToInt(AtomicInteger::get).map(c -> Math.max(0, c)).sum();
+    }
+
+    public Map<SpeciesKey, Integer> getTickDeaths(DeathCause cause) {
+        Map<SpeciesKey, Integer> result = new HashMap<>();
+        tickDeathStats.get(cause).forEach((k, v) -> result.put(k, v.get()));
+        return result;
+    }
+
+    public Map<SpeciesKey, Integer> getTotalDeaths(DeathCause cause) {
+        Map<SpeciesKey, Integer> result = new HashMap<>();
+        totalDeathStats.get(cause).forEach((k, v) -> result.put(k, v.get()));
+        return result;
+    }
+}

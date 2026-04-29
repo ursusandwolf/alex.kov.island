@@ -5,6 +5,7 @@ import com.island.content.Biomass;
 import com.island.content.DeathCause;
 import com.island.content.SpeciesKey;
 import com.island.content.SpeciesRegistry;
+import com.island.service.StatisticsService;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -68,4 +69,9 @@ public interface SimulationWorld extends Tickable {
      * Gets a map of species-specific protection chances (Red Book logic).
      */
     Map<SpeciesKey, Double> getProtectionMap(SpeciesRegistry registry);
+
+    /**
+     * Gets the statistics service for the world.
+     */
+    StatisticsService getStatisticsService();
 }
