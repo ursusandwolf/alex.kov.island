@@ -31,27 +31,20 @@ public class ReproductionService extends AbstractService {
     protected void processCell(SimulationNode node, int tickCount) {
         if (node instanceof Cell cell) {
             List<Animal> potentialParents = cell.getAnimals();
-            int size = potentialParents.size();
-            if (size < 2) {
+            if (potentialParents.size() < 2) {
                 return;
             }
             
-            // LOD: Systematic sampling
-            int limit = 50;
-            int step = (size > limit) ? (size / limit + 1) : 1;
-
             java.util.Set<Animal> alreadyMated = new java.util.HashSet<>();
 
-            for (int i = 0; i < size; i += step) {
-                Animal a1 = potentialParents.get(i);
+            forEachSampled(potentialParents, 50, a1 -> {
                 if (alreadyMated.contains(a1) || !shouldReproduce(a1, tickCount)) {
-                    continue;
+                    return;
                 }
 
-                // Try to find a mate in the same sampled set or nearby
-                for (int j = i + step; j < size; j += step) {
-                    Animal a2 = potentialParents.get(j);
-                    if (alreadyMated.contains(a2) || !shouldReproduce(a2, tickCount)) {
+                // Try to find a mate
+                for (Animal a2 : potentialParents) {
+                    if (a1 == a2 || alreadyMated.contains(a2) || !shouldReproduce(a2, tickCount)) {
                         continue;
                     }
 
@@ -63,7 +56,7 @@ public class ReproductionService extends AbstractService {
                         }
                     }
                 }
-            }
+            });
         }
     }
 

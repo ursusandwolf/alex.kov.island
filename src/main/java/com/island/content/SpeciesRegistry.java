@@ -5,27 +5,20 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.HashSet;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Immutable registry of species data.
  */
+@Getter
+@RequiredArgsConstructor
 public class SpeciesRegistry {
     private final Map<SpeciesKey, AnimalType> animalTypes;
     private final Map<SpeciesKey, Double> plantWeights;
     private final Map<SpeciesKey, Integer> plantMaxCounts;
     private final Map<SpeciesKey, Integer> plantSpeeds;
-
-    public SpeciesRegistry(Map<SpeciesKey, AnimalType> animalTypes, 
-                           Map<SpeciesKey, Double> plantWeights, 
-                           Map<SpeciesKey, Integer> plantMaxCounts,
-                           Map<SpeciesKey, Integer> plantSpeeds) {
-        this.animalTypes = Collections.unmodifiableMap(new HashMap<>(animalTypes));
-        this.plantWeights = Collections.unmodifiableMap(new HashMap<>(plantWeights));
-        this.plantMaxCounts = Collections.unmodifiableMap(new HashMap<>(plantMaxCounts));
-        this.plantSpeeds = Collections.unmodifiableMap(new HashMap<>(plantSpeeds));
-    }
 
     public Optional<AnimalType> getAnimalType(SpeciesKey key) {
         return Optional.ofNullable(animalTypes.get(key));

@@ -72,8 +72,6 @@ public class SpeciesLoader {
             plantSpeeds.put(key, speed);
         }
         
-        // Even plants can have AnimalType for some common properties if needed, 
-        // but for now, we create AnimalType for all animals and biomass containers.
         double food = Math.max(0, Double.parseDouble(props.getProperty(code + ".foodForSaturation", "1")));
         int lifespan = Math.max(1, Integer.parseInt(props.getProperty(code + ".lifespan", "100")));
         
@@ -88,8 +86,27 @@ public class SpeciesLoader {
             }
         }
         
-        animalTypes.put(key, new AnimalType(key, code, weight, maxCount, speed, food, lifespan, preyMap,
-                isColdBlooded, isPackHunter, isBiomass, isPlant,
-                presenceProb, settlementBase, settlementRange));
+        AnimalType type = AnimalType.builder()
+                .speciesKey(key)
+                .typeName(code)
+                .weight(weight)
+                .maxPerCell(maxCount)
+                .speed(speed)
+                .foodForSaturation(food)
+                .maxEnergy(food)
+                .maxLifespan(lifespan)
+                .huntProbabilities(java.util.Collections.unmodifiableMap(preyMap))
+                .isPredator(key.isPredator())
+                .sizeClass(SizeClass.fromWeight(weight))
+                .isColdBlooded(isColdBlooded)
+                .isPackHunter(isPackHunter)
+                .isBiomass(isBiomass)
+                .isPlant(isPlant)
+                .presenceProb(presenceProb)
+                .settlementBase(settlementBase)
+                .settlementRange(settlementRange)
+                .build();
+        
+        animalTypes.put(key, type);
     }
 }

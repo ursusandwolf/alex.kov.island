@@ -10,10 +10,22 @@ public class ChameleonTest {
 
     @Test
     void testChameleonInvisibilityRate() {
-        AnimalType type = new AnimalType(
-            SpeciesKey.CHAMELEON, "chameleon", 0.1, 300, 1, 0.02, 100, new HashMap<>(),
-            true, false, false, false, 0.3, 0.3, 0.2
-        );
+        AnimalType type = AnimalType.builder()
+                .speciesKey(SpeciesKey.CHAMELEON)
+                .typeName("chameleon")
+                .weight(0.1)
+                .maxPerCell(300)
+                .speed(1)
+                .foodForSaturation(0.02)
+                .maxEnergy(0.02)
+                .maxLifespan(100)
+                .huntProbabilities(new HashMap<>())
+                .isColdBlooded(true)
+                .presenceProb(0.3)
+                .settlementBase(0.3)
+                .settlementRange(0.2)
+                .build();
+                
         Chameleon chameleon = new Chameleon(type);
 
         int protectedCount = 0;

@@ -9,28 +9,20 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Base class for all simulation services.
  */
+@Getter
+@RequiredArgsConstructor
 public abstract class AbstractService implements Tickable {
     private final SimulationWorld world;
     private final ExecutorService executor;
     private final RandomProvider random;
-
-    protected AbstractService(SimulationWorld world, ExecutorService executor, RandomProvider random) {
-        this.world = world;
-        this.executor = executor;
-        this.random = random;
-    }
-
-    public SimulationWorld getWorld() {
-        return world;
-    }
-
-    protected RandomProvider getRandom() {
-        return random;
-    }
 
     @Override
     public void tick(int tickCount) {
@@ -55,6 +47,20 @@ public abstract class AbstractService implements Tickable {
             // Silently ignore if shutdown happened between check and execution
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+        }
+    }
+
+    /**
+     * Applies an action to a sampled subset of a list to maintain Level of Detail (LOD).
+     */
+    protected <T> void forEachSampled(List<T> list, int limit, Consumer<T> action) {
+        int size = list.size();
+        if (size == 0) {
+            return;
+        }
+        int step = (size > limit) ? (size / limit + 1) : 1;
+        for (int i = 0; i < size; i += step) {
+            action.accept(list.get(i));
         }
     }
 

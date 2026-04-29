@@ -31,42 +31,26 @@ public class MovementService extends AbstractService {
     }
 
     private void processAnimals(Cell cell, int tickCount) {
-        List<Animal> animals = cell.getAnimals();
-        int size = animals.size();
-        if (size == 0) {
-            return;
-        }
-
-        // LOD: Systematic sampling instead of shuffle
-        int limit = 100;
-        int step = (size > limit) ? (size / limit + 1) : 1;
-        
-        SimulationWorld world = getWorld();
-
-        for (int i = 0; i < size; i += step) {
-            Animal animal = animals.get(i);
+        forEachSampled(cell.getAnimals(), 100, animal -> {
             if (animal.isAlive()) {
-                if (!shouldMove(animal, tickCount)) {
-                    continue;
-                }
+                if (shouldMove(animal, tickCount)) {
+                    double moveCost = animal.getMaxEnergy() * (1 + animal.getSpeed()) * SPEED_MOVE_COST_STEP_PERCENT;
+                    animal.consumeEnergy(moveCost);
 
-                double moveCost = animal.getMaxEnergy() * (1 + animal.getSpeed()) * SPEED_MOVE_COST_STEP_PERCENT;
-                animal.consumeEnergy(moveCost);
-
-                if (!animal.isAlive()) {
-                    world.reportDeath(animal.getSpeciesKey(), DeathCause.MOVEMENT_EXHAUSTION);
-                    continue;
-                }
-                
-                int speed = animal.getSpeed();
-                if (speed > 0) {
-                    SimulationNode target = selectTargetNode(cell, speed);
-                    if (target != cell) {
-                        world.moveAnimal(animal, cell, target);
+                    if (!animal.isAlive()) {
+                        getWorld().reportDeath(animal.getSpeciesKey(), DeathCause.MOVEMENT_EXHAUSTION);
+                    } else {
+                        int speed = animal.getSpeed();
+                        if (speed > 0) {
+                            SimulationNode target = selectTargetNode(cell, speed);
+                            if (target != cell) {
+                                getWorld().moveAnimal(animal, cell, target);
+                            }
+                        }
                     }
                 }
             }
-        }
+        });
     }
 
     private boolean shouldMove(Animal animal, int tickCount) {
@@ -82,8 +66,6 @@ public class MovementService extends AbstractService {
 
     private void processMobileBiomass(Cell cell) {
         List<Biomass> containers = cell.getBiomassContainers();
-        SimulationWorld world = getWorld();
-
         for (Biomass b : containers) {
             if (b.isAlive() && b.getSpeed() > 0 && b.getBiomass() > 0) {
                 double totalMass = b.getBiomass();
@@ -100,9 +82,9 @@ public class MovementService extends AbstractService {
                     default -> { }
                 }
 
-                world.getNode(cell, dx, dy).ifPresent(target -> {
+                getWorld().getNode(cell, dx, dy).ifPresent(target -> {
                     if (target != cell) {
-                        world.moveBiomassPartially(b, cell, target, chunk);
+                        getWorld().moveBiomassPartially(b, cell, target, chunk);
                     }
                 });
             }
