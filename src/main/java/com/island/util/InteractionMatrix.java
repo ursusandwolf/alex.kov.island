@@ -9,7 +9,7 @@ import java.util.Map;
  * High-performance matrix of predator-prey interaction chances.
  * Uses primitive 2D array for speed, with a mapping for SpeciesKey indices.
  */
-public class InteractionMatrix {
+public class InteractionMatrix implements InteractionProvider {
     private static final Map<SpeciesKey, Integer> INDEX_MAP = new HashMap<>();
     private static final int SIZE;
     

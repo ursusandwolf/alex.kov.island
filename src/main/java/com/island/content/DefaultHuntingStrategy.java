@@ -5,15 +5,15 @@ import static com.island.config.SimulationConstants.HUNT_STRIKE_COST_MAX_ENERGY_
 import static com.island.config.SimulationConstants.HUNT_STRIKE_COST_PREY_WEIGHT_FRACTION;
 import static com.island.config.SimulationConstants.PREY_RELATIVE_SPEED_HUNT_COST_STEP_PERCENT;
 
-import com.island.util.InteractionMatrix;
+import com.island.util.InteractionProvider;
 
 /**
  * Default implementation of hunting logic.
  */
 public class DefaultHuntingStrategy implements HuntingStrategy {
-    private final InteractionMatrix interactionMatrix;
+    private final InteractionProvider interactionMatrix;
 
-    public DefaultHuntingStrategy(InteractionMatrix interactionMatrix) {
+    public DefaultHuntingStrategy(InteractionProvider interactionMatrix) {
         this.interactionMatrix = interactionMatrix;
     }
 

@@ -10,7 +10,7 @@ import com.island.service.FeedingService;
 import com.island.service.LifecycleService;
 import com.island.service.MovementService;
 import com.island.service.ReproductionService;
-import com.island.util.InteractionMatrix;
+import com.island.util.InteractionProvider;
 import com.island.util.RandomProvider;
 import com.island.view.SimulationView;
 
@@ -20,13 +20,13 @@ import com.island.view.SimulationView;
 public class TaskRegistry {
     private final GameLoop gameLoop;
     private final Island island;
-    private final InteractionMatrix matrix;
+    private final InteractionProvider matrix;
     private final AnimalFactory animalFactory;
     private final SpeciesRegistry speciesRegistry;
     private final SimulationView view;
     private final RandomProvider random;
 
-    public TaskRegistry(GameLoop gameLoop, Island island, InteractionMatrix matrix, 
+    public TaskRegistry(GameLoop gameLoop, Island island, InteractionProvider matrix, 
                         AnimalFactory animalFactory, SpeciesRegistry speciesRegistry, 
                         SimulationView view, RandomProvider random) {
         this.gameLoop = gameLoop;

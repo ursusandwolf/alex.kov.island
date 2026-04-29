@@ -14,7 +14,7 @@ import com.island.content.SpeciesKey;
 import com.island.content.SpeciesRegistry;
 import com.island.model.Cell;
 import com.island.model.Island;
-import com.island.util.InteractionMatrix;
+import com.island.util.InteractionProvider;
 import com.island.util.RandomProvider;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,20 +25,20 @@ import java.util.concurrent.ExecutorService;
  * Service responsible for feeding logic of all animals.
  */
 public class FeedingService extends AbstractService {
-    private final InteractionMatrix interactionMatrix;
+    private final InteractionProvider interactionMatrix;
     private final SpeciesRegistry speciesRegistry;
     private final HuntingStrategy huntingStrategy;
     private final int minPackSize;
     private Map<SpeciesKey, Double> protectionMap;
 
-    public FeedingService(Island island, InteractionMatrix interactionMatrix, 
+    public FeedingService(Island island, InteractionProvider interactionMatrix, 
                           SpeciesRegistry speciesRegistry, HuntingStrategy huntingStrategy, 
                           ExecutorService executor, RandomProvider random) {
         this(island, interactionMatrix, speciesRegistry, huntingStrategy, executor, 
                 com.island.config.SimulationConstants.WOLF_PACK_MIN_SIZE, random);
     }
 
-    public FeedingService(Island island, InteractionMatrix interactionMatrix, 
+    public FeedingService(Island island, InteractionProvider interactionMatrix, 
                           SpeciesRegistry speciesRegistry, HuntingStrategy huntingStrategy, 
                           ExecutorService executor, int minPackSize, RandomProvider random) {
         super(island, executor, random);

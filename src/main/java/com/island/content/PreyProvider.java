@@ -3,7 +3,7 @@ package com.island.content;
 import com.island.content.animals.herbivores.Caterpillar;
 import com.island.content.Biomass;
 import com.island.model.Cell;
-import com.island.util.InteractionMatrix;
+import com.island.util.InteractionProvider;
 import com.island.util.RandomProvider;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,18 +15,18 @@ import java.util.Map;
  */
 public class PreyProvider {
     private final Cell cell;
-    private final InteractionMatrix matrix;
+    private final InteractionProvider matrix;
     private final int currentTick;
     private final Map<SpeciesKey, Double> protectionMap;
     private final RandomProvider random;
 
     private final boolean isWolfPack;
 
-    public PreyProvider(Cell cell, InteractionMatrix matrix, int tick, Map<SpeciesKey, Double> protectionMap, RandomProvider random) {
+    public PreyProvider(Cell cell, InteractionProvider matrix, int tick, Map<SpeciesKey, Double> protectionMap, RandomProvider random) {
         this(cell, matrix, tick, protectionMap, false, random);
     }
 
-    public PreyProvider(Cell cell, InteractionMatrix matrix, int tick, 
+    public PreyProvider(Cell cell, InteractionProvider matrix, int tick, 
                         Map<SpeciesKey, Double> protectionMap, boolean isWolfPack, RandomProvider random) {
         this.cell = cell;
         this.matrix = matrix;
