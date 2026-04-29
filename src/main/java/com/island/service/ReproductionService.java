@@ -5,7 +5,6 @@ import com.island.engine.SimulationWorld;
 import com.island.content.Animal;
 import com.island.content.AnimalFactory;
 import com.island.content.AnimalType;
-import com.island.content.SpeciesKey;
 import com.island.content.SpeciesRegistry;
 import com.island.model.Cell;
 import com.island.util.RandomProvider;
@@ -29,21 +28,28 @@ public class ReproductionService extends AbstractService {
     }
 
     @Override
-    protected void processCell(SimulationNode node) {
+    protected void processCell(SimulationNode node, int tickCount) {
         if (node instanceof Cell cell) {
-            List<Animal> potentialParents = new ArrayList<>(cell.getAnimals());
-            // Use deterministic shuffle if needed, or just random
-            java.util.Collections.shuffle(potentialParents, new java.util.Random(getRandom().nextLong()));
+            List<Animal> potentialParents = cell.getAnimals();
+            
+            // LOD: Cap reproduction attempts per cell
+            if (potentialParents.size() > 50) {
+                java.util.Collections.shuffle(potentialParents, new java.util.Random(getRandom().nextLong()));
+                potentialParents = potentialParents.subList(0, 50);
+            } else {
+                potentialParents = new ArrayList<>(potentialParents);
+                java.util.Collections.shuffle(potentialParents, new java.util.Random(getRandom().nextLong()));
+            }
 
             java.util.Set<Animal> alreadyMated = new java.util.HashSet<>();
 
             for (Animal a1 : potentialParents) {
-                if (alreadyMated.contains(a1) || !a1.canInitiateReproduction()) {
+                if (alreadyMated.contains(a1) || !shouldReproduce(a1, tickCount)) {
                     continue;
                 }
 
                 for (Animal a2 : potentialParents) {
-                    if (a1 == a2 || alreadyMated.contains(a2) || !a2.canInitiateReproduction()) {
+                    if (a1 == a2 || alreadyMated.contains(a2) || !shouldReproduce(a2, tickCount)) {
                         continue;
                     }
 
@@ -57,6 +63,17 @@ public class ReproductionService extends AbstractService {
                 }
             }
         }
+    }
+
+    private boolean shouldReproduce(Animal animal, int tickCount) {
+        if (!animal.canInitiateReproduction()) {
+            return false;
+        }
+        // Cold-blooded reproduce less frequently (every 4th tick)
+        if (animal.getSpeciesKey().isColdBlooded()) {
+            return (tickCount % 4 == 0);
+        }
+        return true;
     }
 
     private boolean tryReproduce(Animal parent1, Animal parent2, Cell cell) {
@@ -78,9 +95,12 @@ public class ReproductionService extends AbstractService {
                 Animal babyAnimal = baby.get();
                 if (cell.addAnimal(babyAnimal)) {
                     // Success! 
-                    parent1.consumeEnergy(parent1.getMaxEnergy() * 0.1); // Small cost
-                    parent2.consumeEnergy(parent2.getMaxEnergy() * 0.1);
+                    double costFactor = com.island.config.EnergyPolicy.REPRODUCTION_COST.getFactor();
+                    parent1.consumeEnergy(parent1.getMaxEnergy() * costFactor);
+                    parent2.consumeEnergy(parent2.getMaxEnergy() * costFactor);
                     return true;
+                } else {
+                    animalFactory.releaseAnimal(babyAnimal);
                 }
             }
         }

@@ -42,7 +42,7 @@ public abstract class AbstractService implements Tickable {
         for (Collection<? extends SimulationNode> workUnit : world.getParallelWorkUnits()) {
             tasks.add(() -> {
                 for (SimulationNode node : workUnit) {
-                    processCell(node);
+                    processCell(node, tickCount);
                 }
                 return null;
             });
@@ -58,5 +58,5 @@ public abstract class AbstractService implements Tickable {
         }
     }
 
-    protected abstract void processCell(SimulationNode node);
+    protected abstract void processCell(SimulationNode node, int tickCount);
 }

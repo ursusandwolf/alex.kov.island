@@ -21,7 +21,7 @@ public class LifecycleService extends AbstractService {
     }
 
     @Override
-    protected void processCell(SimulationNode node) {
+    protected void processCell(SimulationNode node, int tickCount) {
         if (node instanceof Cell cell) {
             processAging(cell);
             processBiomassGrowth(cell);

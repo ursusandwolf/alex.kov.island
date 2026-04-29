@@ -1,8 +1,6 @@
 package com.island.service;
 
 import static com.island.config.SimulationConstants.BIOMASS_MOVE_CHUNK_FRACTION;
-import static com.island.config.SimulationConstants.ENDANGERED_POPULATION_THRESHOLD;
-import static com.island.config.SimulationConstants.ENDANGERED_SPEED_BONUS;
 import static com.island.config.SimulationConstants.SPEED_MOVE_COST_STEP_PERCENT;
 
 import com.island.engine.SimulationNode;
@@ -25,21 +23,27 @@ public class MovementService extends AbstractService {
     }
 
     @Override
-    protected void processCell(SimulationNode node) {
+    protected void processCell(SimulationNode node, int tickCount) {
         if (node instanceof Cell cell) {
-            processAnimals(cell);
+            processAnimals(cell, tickCount);
             processMobileBiomass(cell);
         }
     }
 
-    private void processAnimals(Cell cell) {
-        // Use a snapshot to avoid ConcurrentModificationException
-        List<Animal> animals = new java.util.ArrayList<>(cell.getAnimals());
+    private void processAnimals(Cell cell, int tickCount) {
+        List<Animal> animals = cell.getAnimals();
+        
+        // LOD: Cap movement at 100 animals per cell per tick
+        if (animals.size() > 100) {
+            java.util.Collections.shuffle(animals, new java.util.Random(getRandom().nextLong()));
+            animals = animals.subList(0, 100);
+        }
+        
         SimulationWorld world = getWorld();
 
         for (Animal animal : animals) {
             if (animal.isAlive()) {
-                if (!animal.canPerformAction()) {
+                if (!shouldMove(animal, tickCount)) {
                     continue;
                 }
 
@@ -52,11 +56,6 @@ public class MovementService extends AbstractService {
                 }
                 
                 int speed = animal.getSpeed();
-                
-                // Mobility bonus logic simplified here or kept if we can access species count
-                // Actually, let's keep it for now but it might need more interface methods if we want full decoupling.
-                // For now, we'll cast to Island if needed or just skip it.
-                
                 if (speed > 0) {
                     SimulationNode target = selectTargetNode(cell, speed);
                     if (target != cell) {
@@ -67,17 +66,27 @@ public class MovementService extends AbstractService {
         }
     }
 
+    private boolean shouldMove(Animal animal, int tickCount) {
+        if (!animal.canPerformAction()) {
+            return false;
+        }
+        // Cold-blooded animals move every 2nd tick
+        if (animal.getSpeciesKey().isColdBlooded()) {
+            return (tickCount % 2 == 0);
+        }
+        return true;
+    }
+
     private void processMobileBiomass(Cell cell) {
         List<Biomass> containers = cell.getBiomassContainers();
         SimulationWorld world = getWorld();
 
         for (Biomass b : containers) {
             if (b.isAlive() && b.getSpeed() > 0 && b.getBiomass() > 0) {
-                // Logic: Move exactly one chunk in one random direction.
                 double totalMass = b.getBiomass();
                 double chunk = totalMass * BIOMASS_MOVE_CHUNK_FRACTION;
 
-                int direction = getRandom().nextInt(4); // 0: Up, 1: Down, 2: Left, 3: Right
+                int direction = getRandom().nextInt(4);
                 int dx = 0;
                 int dy = 0;
                 switch (direction) {
@@ -85,7 +94,7 @@ public class MovementService extends AbstractService {
                     case 1 -> dy = 1;
                     case 2 -> dx = -1;
                     case 3 -> dx = 1;
-                    default -> { /* Should not happen */ }
+                    default -> { }
                 }
 
                 world.getNode(cell, dx, dy).ifPresent(target -> {
@@ -101,7 +110,6 @@ public class MovementService extends AbstractService {
         if (speed == 1) {
             List<SimulationNode> neighbors = node.getNeighbors();
             if (!neighbors.isEmpty()) {
-                // Pick a random neighbor or stay put
                 int choice = getRandom().nextInt(neighbors.size() + 1);
                 return (choice < neighbors.size()) ? neighbors.get(choice) : node;
             }

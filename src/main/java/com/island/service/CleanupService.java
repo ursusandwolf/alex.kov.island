@@ -22,7 +22,7 @@ public class CleanupService extends AbstractService {
     }
 
     @Override
-    protected void processCell(SimulationNode node) {
+    protected void processCell(SimulationNode node, int tickCount) {
         if (node instanceof Cell cell) {
             List<Animal> deadAnimals = cell.cleanupDeadOrganisms();
             for (Animal a : deadAnimals) {
