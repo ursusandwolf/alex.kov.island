@@ -21,6 +21,21 @@
 - `LifecycleService`: Aging and metabolism.
 - `CleanupService`: Recycles dead organisms to pools.
 
+## How It Works: The Execution Loop
+
+1. **Bootstrap**: `WorldInitializer` creates the `Island`, populates it using `AnimalFactory` and `SpeciesRegistry`, and injects services.
+2. **Game Loop**: `GameLoop` triggers a `tick()` on all services in a predefined sequence:
+    - `LifecycleService`: Subtracts energy (metabolism) and increments age.
+    - `FeedingService`: Predators hunt, herbivores graze.
+    - `MovementService`: Animals move to neighboring cells.
+    - `ReproductionService`: Mature animals produce offspring.
+    - `CleanupService`: Final pass to remove dead entities and recycle them to pools.
+3. **Optimized Processing**:
+    - Every service uses `AbstractService.tick()`, which submits tasks to a **Virtual Thread Executor**.
+    - **Skip-Tick logic** in `FeedingService` and `MovementService` ensures cold-blooded animals consume less CPU.
+    - **LOD logic** ensures that "super-cells" (overcrowded) don't bottleneck the simulation by processing only a statistical sample.
+4. **Energy Economy**: Every action (moving, hunting, reproducing) costs energy. Energy is replenished by eating. If energy hits zero, the organism is marked for death and recycled.
+
 ## Optimization Strategy
 
 ### 1. Object Pooling
