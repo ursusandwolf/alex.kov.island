@@ -44,6 +44,24 @@ public final class AnimalType {
     private final long settlementBase;
     private final long settlementRange;
 
+    // Terrain accessibility
+    @Builder.Default private final boolean canFly = false;
+    @Builder.Default private final boolean canSwim = false;
+    @Builder.Default private final boolean canWalk = true;
+
+    public boolean isTerrainAccessible(com.island.model.TerrainType terrain) {
+        if (canFly) {
+            return true;
+        }
+        if (canSwim && terrain.isWaterAccessible()) {
+            return true;
+        }
+        if (canWalk && terrain.isLandAccessible()) {
+            return true;
+        }
+        return false;
+    }
+
     public boolean canEat(SpeciesKey key) {
         return huntProbabilities.containsKey(key);
     }

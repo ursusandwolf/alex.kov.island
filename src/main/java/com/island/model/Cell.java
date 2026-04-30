@@ -17,6 +17,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
 import lombok.Getter;
+import lombok.Setter;
 
 import static com.island.config.SimulationConstants.SCALE_1M;
 
@@ -25,6 +26,7 @@ public class Cell implements SimulationNode {
     private final int x;
     private final int y;
     private final SimulationWorld world;
+    @Setter private TerrainType terrainType = TerrainType.MEADOW;
     private final EntityContainer container = new EntityContainer();
     private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
     private List<SimulationNode> cachedNeighbors = java.util.Collections.emptyList();
@@ -80,6 +82,19 @@ public class Cell implements SimulationNode {
         rwLock.readLock().lock();
         try {
             return new ArrayList<>(container.getAllBiomass());
+        } finally {
+            rwLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public boolean canAccept(Animal animal) {
+        rwLock.readLock().lock();
+        try {
+            if (!animal.getAnimalType().isTerrainAccessible(terrainType)) {
+                return false;
+            }
+            return container.countByType(animal.getAnimalType()) < animal.getMaxPerCell();
         } finally {
             rwLock.readLock().unlock();
         }
@@ -152,18 +167,31 @@ public class Cell implements SimulationNode {
         copy.forEach(action);
     }
 
+    public void forEachAnimalReadOnly(Consumer<Animal> action) {
+        rwLock.readLock().lock();
+        try {
+            container.getAllAnimals().forEach(action);
+        } finally {
+            rwLock.readLock().unlock();
+        }
+    }
+
     public void forEachAnimalSampled(int limit, RandomProvider random, Consumer<Animal> action) {
         List<Animal> sampled = new ArrayList<>();
         rwLock.readLock().lock();
         try {
             Set<Animal> set = container.getAllAnimals();
             int size = set.size();
-            if (size == 0) return;
+            if (size == 0) {
+                return;
+            }
             int step = (size > limit) ? (size / limit + 1) : 1;
             int startOffset = (size > limit) ? random.nextInt(step) : 0;
             int i = 0;
             for (Animal a : set) {
-                if (i >= startOffset && (i - startOffset) % step == 0) sampled.add(a);
+                if (i >= startOffset && (i - startOffset) % step == 0) {
+                    sampled.add(a);
+                }
                 i++;
             }
         } finally {
@@ -189,12 +217,16 @@ public class Cell implements SimulationNode {
         try {
             Set<Animal> set = container.getHerbivores();
             int size = set.size();
-            if (size == 0) return;
+            if (size == 0) {
+                return;
+            }
             int step = (size > limit) ? (size / limit + 1) : 1;
             int startOffset = (size > limit) ? random.nextInt(step) : 0;
             int i = 0;
             for (Animal a : set) {
-                if (i >= startOffset && (i - startOffset) % step == 0) sampled.add(a);
+                if (i >= startOffset && (i - startOffset) % step == 0) {
+                    sampled.add(a);
+                }
                 i++;
             }
         } finally {
@@ -326,27 +358,12 @@ public class Cell implements SimulationNode {
         rwLock.readLock().lock();
         try {
             long total = 0;
-            for (Biomass b : container.getAllBiomass()) total += b.getBiomass();
+            for (Biomass b : container.getAllBiomass()) {
+                total += b.getBiomass();
+            }
             return (int) (total / SCALE_1M);
         } finally {
             rwLock.readLock().unlock();
-        }
-    }
-
-    public List<Animal> cleanupDeadOrganisms() {
-        rwLock.writeLock().lock();
-        try {
-            List<Animal> toRemove = new ArrayList<>();
-            for (Animal a : container.getAllAnimals()) {
-                if (!a.isAlive()) toRemove.add(a);
-            }
-            for (Animal a : toRemove) {
-                container.removeAnimal(a);
-                world.onOrganismRemoved(a.getSpeciesKey());
-            }
-            return toRemove;
-        } finally {
-            rwLock.writeLock().unlock();
         }
     }
 

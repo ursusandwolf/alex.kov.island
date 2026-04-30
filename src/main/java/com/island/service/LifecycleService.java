@@ -19,17 +19,28 @@ public class LifecycleService extends AbstractService<SimulationNode> {
     }
 
     @Override
-    protected void processCell(SimulationNode node, int tickCount) {
+    public void processCell(SimulationNode node, int tickCount) {
         processAging(node);
         processBiomassGrowth(node);
     }
 
     private void processAging(SimulationNode node) {
+        com.island.engine.Season season = getWorld().getCurrentSeason();
+        int seasonMetabolismModifierBP = (int) (season.getMetabolismModifier() * com.island.config.SimulationConstants.SCALE_10K);
+
         node.getLivingEntities().forEach(m -> {
             if (m instanceof Animal a && a.isAlive()) {
                 // 1. Metabolism (Energy decay)
                 long metabolism = a.getDynamicMetabolismRate();
                 
+                // Season global modifier
+                metabolism = (metabolism * seasonMetabolismModifierBP) / com.island.config.SimulationConstants.SCALE_10K;
+
+                // Hibernation: drastically reduce metabolism for cold-blooded in Winter
+                if (season == com.island.engine.Season.WINTER && a.getAnimalType().isColdBlooded()) {
+                    metabolism = (metabolism * com.island.config.SimulationConstants.HIBERNATION_METABOLISM_MODIFIER_BP) / com.island.config.SimulationConstants.SCALE_10K;
+                }
+
                 // Endangered protection: reduce metabolism if protected
                 if (protectionMap != null && protectionMap.containsKey(a.getSpeciesKey())) {
                     metabolism = (metabolism * (com.island.config.SimulationConstants.SCALE_10K - 5000)) / com.island.config.SimulationConstants.SCALE_10K;
@@ -48,9 +59,12 @@ public class LifecycleService extends AbstractService<SimulationNode> {
     }
 
     private void processBiomassGrowth(SimulationNode node) {
+        com.island.engine.Season season = getWorld().getCurrentSeason();
+        double growthModifier = season.getGrowthModifier();
+        
         for (com.island.engine.Mortal m : node.getBiomassEntities()) {
             if (m instanceof Biomass b && b.isAlive()) {
-                b.grow(node);
+                b.grow(node, growthModifier);
             }
         }
     }

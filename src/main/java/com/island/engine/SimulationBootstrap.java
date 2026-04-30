@@ -22,20 +22,21 @@ public class SimulationBootstrap {
 
     public SimulationContext setup(Configuration config) {
         SpeciesRegistry registry = new SpeciesLoader().load();
-        InteractionMatrix matrix = configLoader.loadInteractionMatrix(registry);
         StatisticsService statisticsService = new StatisticsService();
         RandomProvider random = new DefaultRandomProvider();
 
         Island island = new Island(config.getIslandWidth(), config.getIslandHeight(), registry, statisticsService);
         AnimalFactory animalFactory = new AnimalFactory(registry, random);
 
-        SimulationView view = new ConsoleView();
         GameLoop gameLoop = new GameLoop(config.getTickDurationMs());
+        gameLoop.setWorld(island);
 
         WorldInitializer initializer = new WorldInitializer();
         initializer.initialize(island, registry, animalFactory, gameLoop.getTaskExecutor(), random);
         island.init();
 
+        InteractionMatrix matrix = configLoader.loadInteractionMatrix(registry);
+        SimulationView view = new ConsoleView();
         TaskRegistry taskRegistry = new TaskRegistry(gameLoop, island, matrix, animalFactory, registry, view, random);
         taskRegistry.registerAll();
 

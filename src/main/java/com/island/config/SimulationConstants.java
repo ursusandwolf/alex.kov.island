@@ -53,9 +53,10 @@ public final class SimulationConstants {
     public static final int COLD_BLOODED_MOVE_INTERVAL = 2;
     public static final int COLD_BLOODED_FEED_INTERVAL = 3;
     public static final int COLD_BLOODED_REPRO_INTERVAL = 4;
+    public static final int HIBERNATION_METABOLISM_MODIFIER_BP = 1000; // 10% of normal metabolism
 
     public static final int DEFAULT_PREDATOR_PRESENCE_CHANCE = 20;
     public static final int DEFAULT_HERBIVORE_PRESENCE_CHANCE = 50;
     
-    private SimulationConstants() {}
+    private SimulationConstants() { }
 }

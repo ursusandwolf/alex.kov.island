@@ -43,12 +43,13 @@ public abstract class Biomass extends Organism {
     }
 
     public void tick(SimulationNode node) {
-        grow(node);
+        grow(node, 1.0);
     }
 
-    public void grow(SimulationNode node) {
+    public void grow(SimulationNode node, double growthModifier) {
         long old = biomass;
         long growth = (maxBiomass * PLANT_GROWTH_RATE_BP) / SCALE_10K;
+        growth = (long) (growth * growthModifier);
         biomass = Math.min(maxBiomass, biomass + growth);
         reportChange(node, biomass - old);
     }

@@ -2,6 +2,7 @@ package com.island.service;
 
 import com.island.content.DeathCause;
 import com.island.content.SpeciesKey;
+import com.island.engine.SimulationMetrics;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,11 +25,18 @@ public class StatisticsService {
     private final Map<DeathCause, Map<SpeciesKey, AtomicInteger>> tickDeathStats = new EnumMap<>(DeathCause.class);
     private final Map<DeathCause, Map<SpeciesKey, AtomicInteger>> totalDeathStats = new EnumMap<>(DeathCause.class);
 
+    @Getter
+    private volatile SimulationMetrics latestMetrics = SimulationMetrics.empty();
+
     public StatisticsService() {
         for (DeathCause cause : DeathCause.values()) {
             tickDeathStats.put(cause, new ConcurrentHashMap<>());
             totalDeathStats.put(cause, new ConcurrentHashMap<>());
         }
+    }
+
+    public void updateMetrics(SimulationMetrics metrics) {
+        this.latestMetrics = metrics;
     }
 
     public void registerBirth(SpeciesKey speciesKey) {
@@ -74,41 +82,11 @@ public class StatisticsService {
     }
 
     public double calculateGlobalSatiety(com.island.engine.SimulationWorld world) {
-        if (world instanceof com.island.model.Island island) {
-            double totalMax = 0;
-            double totalCurrent = 0;
-            int animalCount = 0;
-            for (int x = 0; x < island.getWidth(); x++) {
-                for (int y = 0; y < island.getHeight(); y++) {
-                    for (com.island.content.Animal a : island.getGrid()[x][y].getAnimals()) {
-                        if (a.isAlive()) {
-                            totalMax += a.getMaxEnergy();
-                            totalCurrent += a.getCurrentEnergy();
-                            animalCount++;
-                        }
-                    }
-                }
-            }
-            return (animalCount == 0) ? 100.0 : (totalCurrent / totalMax) * 100.0;
-        }
-        return 100.0;
+        return latestMetrics.getGlobalSatiety();
     }
 
     public int calculateStarvingCount(com.island.engine.SimulationWorld world) {
-        if (world instanceof com.island.model.Island island) {
-            int starving = 0;
-            for (int x = 0; x < island.getWidth(); x++) {
-                for (int y = 0; y < island.getHeight(); y++) {
-                    for (com.island.content.Animal a : island.getGrid()[x][y].getAnimals()) {
-                        if (a.isAlive() && a.getEnergyPercentage() < com.island.config.SimulationConstants.STARVATION_THRESHOLD_PERCENT) {
-                            starving++;
-                        }
-                    }
-                }
-            }
-            return starving;
-        }
-        return 0;
+        return latestMetrics.getStarvingCount();
     }
 
     public int getTotalPopulation() {

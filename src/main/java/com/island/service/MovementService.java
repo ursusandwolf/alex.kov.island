@@ -30,7 +30,7 @@ public class MovementService extends AbstractService<SimulationNode> {
     }
 
     @Override
-    protected void processCell(SimulationNode node, int tickCount) {
+    public void processCell(SimulationNode node, int tickCount) {
         processAnimals(node, tickCount);
         processMobileBiomass(node);
     }
@@ -39,22 +39,20 @@ public class MovementService extends AbstractService<SimulationNode> {
         node.forEachAnimalSampled(com.island.config.SimulationConstants.MOVEMENT_LOD_LIMIT, getRandom(), animal -> {
             if (animal.isAlive()) {
                 if (shouldAct(animal, AnimalType.Action.MOVE, tickCount)) {
-                    // moveCost = maxEnergy * (1 + speed) * stepBP / SCALE_10K
-                    long moveCost = (animal.getMaxEnergy() * (1 + animal.getSpeed()) * SPEED_MOVE_COST_STEP_BP) / SCALE_10K;
-                    animal.consumeEnergy(moveCost);
-
-                    if (!animal.isAlive()) {
-                        getWorld().reportDeath(animal.getSpeciesKey(), DeathCause.MOVEMENT_EXHAUSTION);
-                    } else {
-                        int speed = animal.getSpeed();
-                        if (protectionMap != null && protectionMap.containsKey(animal.getSpeciesKey())) {
-                            speed += ENDANGERED_SPEED_BONUS;
-                        }
-                        
-                        if (speed > 0) {
-                            SimulationNode target = selectTargetNode(node, speed);
-                            if (target != node) {
-                                getWorld().moveAnimal(animal, node, target);
+                    int speed = animal.getSpeed();
+                    if (protectionMap != null && protectionMap.containsKey(animal.getSpeciesKey())) {
+                        speed += ENDANGERED_SPEED_BONUS;
+                    }
+                    
+                    if (speed > 0) {
+                        SimulationNode target = selectTargetNode(node, speed);
+                        if (target != node) {
+                            if (getWorld().moveAnimal(animal, node, target)) {
+                                long moveCost = (animal.getMaxEnergy() * (1 + animal.getSpeed()) * SPEED_MOVE_COST_STEP_BP) / SCALE_10K;
+                                animal.consumeEnergy(moveCost);
+                                if (!animal.isAlive()) {
+                                    getWorld().reportDeath(animal.getSpeciesKey(), DeathCause.MOVEMENT_EXHAUSTION);
+                                }
                             }
                         }
                     }

@@ -62,10 +62,9 @@ public interface SimulationNode {
     int getOrganismCount(com.island.content.SpeciesKey key);
 
     /**
-     * Removes all dead organisms from this node.
-     * @return List of removed animals.
+     * Checks if this node can accept the given animal (based on capacity and terrain).
      */
-    java.util.List<com.island.content.Animal> cleanupDeadOrganisms();
+    boolean canAccept(com.island.content.Animal animal);
 
     /**
      * Adds an entity to this node.

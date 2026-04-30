@@ -52,7 +52,9 @@ public abstract class SwarmOrganism extends Biomass {
 
     protected void updateTotalBiomass() {
         long total = 0;
-        for (long bucket : ageBuckets) total += bucket;
+        for (long bucket : ageBuckets) {
+            total += bucket;
+        }
         setBiomass(total);
     }
 

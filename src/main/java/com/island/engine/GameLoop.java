@@ -14,10 +14,15 @@ public class GameLoop {
     private final ExecutorService taskExecutor;
     private volatile boolean running = false;
     private int tickCount = 0;
+    private SimulationWorld world;
 
     public GameLoop(long tickDurationMs) {
         this.tickDurationMs = tickDurationMs;
         this.taskExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    }
+
+    public void setWorld(SimulationWorld world) {
+        this.world = world;
     }
 
     public void addRecurringTask(Tickable task) {
@@ -54,13 +59,106 @@ public class GameLoop {
 
     public void runTick() {
         tickCount++;
+        
+        List<Tickable> currentGroup = new ArrayList<>();
+        boolean inCellServiceGroup = false;
+
         for (Tickable task : recurringTasks) {
-            try {
-                task.tick(tickCount);
-            } catch (Exception e) {
-                System.err.println("Ошибка во время такта симуляции: " + e.getMessage());
-                e.printStackTrace();
+            boolean isCellService = task instanceof CellService;
+            
+            if (isCellService != inCellServiceGroup && !currentGroup.isEmpty()) {
+                executeGroup(currentGroup, inCellServiceGroup);
+                currentGroup.clear();
             }
+            
+            inCellServiceGroup = isCellService;
+            currentGroup.add(task);
+        }
+        
+        if (!currentGroup.isEmpty()) {
+            executeGroup(currentGroup, inCellServiceGroup);
+        }
+    }
+
+    private void executeGroup(List<Tickable> group, boolean isCellServiceGroup) {
+        if (isCellServiceGroup && world != null && !taskExecutor.isShutdown()) {
+            runCellServicesParallel(group.stream().map(t -> (CellService) t).toList());
+        } else {
+            for (Tickable task : group) {
+                try {
+                    task.tick(tickCount);
+                } catch (Exception e) {
+                    System.err.println("Error during simulation tick: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private void runCellServicesParallel(List<CellService> services) {
+        for (CellService service : services) {
+            service.beforeTick(tickCount);
+        }
+
+        java.util.Collection<? extends java.util.Collection<? extends SimulationNode>> workUnits = world.getParallelWorkUnits();
+        List<java.util.concurrent.Callable<SimulationMetrics>> tasks = new ArrayList<>();
+
+        for (java.util.Collection<? extends SimulationNode> unit : workUnits) {
+            tasks.add(() -> {
+                long totalCurrent = 0;
+                long totalMax = 0;
+                int animalCount = 0;
+                int starvingCount = 0;
+
+                for (SimulationNode node : unit) {
+                    for (CellService service : services) {
+                        service.processCell(node, tickCount);
+                    }
+                    
+                    if (node instanceof com.island.model.Cell cell) {
+                        long[] stats = new long[4]; 
+                        cell.forEachAnimalReadOnly(a -> {
+                            if (a.isAlive()) {
+                                stats[0] += a.getCurrentEnergy();
+                                stats[1] += a.getMaxEnergy();
+                                stats[2]++;
+                                if (a.isStarving()) {
+                                    stats[3]++;
+                                }
+                            }
+                        });
+                        totalCurrent += stats[0];
+                        totalMax += stats[1];
+                        animalCount += (int) stats[2];
+                        starvingCount += (int) stats[3];
+                    }
+                }
+                return SimulationMetrics.builder()
+                        .totalCurrentEnergy(totalCurrent)
+                        .totalMaxEnergy(totalMax)
+                        .animalCount(animalCount)
+                        .starvingCount(starvingCount)
+                        .build();
+            });
+        }
+
+        try {
+            List<java.util.concurrent.Future<SimulationMetrics>> futures = taskExecutor.invokeAll(tasks);
+            SimulationMetrics totalMetrics = SimulationMetrics.empty();
+            for (java.util.concurrent.Future<SimulationMetrics> future : futures) {
+                totalMetrics = SimulationMetrics.combine(totalMetrics, future.get());
+            }
+            if (world.getStatisticsService() != null) {
+                world.getStatisticsService().updateMetrics(totalMetrics);
+            }
+        } catch (InterruptedException | java.util.concurrent.ExecutionException e) {
+            Thread.currentThread().interrupt();
+        } catch (java.util.concurrent.RejectedExecutionException e) {
+            // Ignore if shutting down
+        }
+
+        for (CellService service : services) {
+            service.afterTick(tickCount);
         }
     }
 

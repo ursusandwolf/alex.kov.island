@@ -29,8 +29,11 @@ public class EntityContainer {
         AnimalType type = animal.getAnimalType();
         animalsByType.computeIfAbsent(type, k -> new LinkedHashSet<>()).add(animal);
         allAnimals.add(animal);
-        if (animal.isAnimalPredator()) predators.add(animal);
-        else herbivores.add(animal);
+        if (animal.isAnimalPredator()) {
+            predators.add(animal);
+        } else {
+            herbivores.add(animal);
+        }
         SizeClass size = type.getSizeClass();
         animalsBySize.computeIfAbsent(size, k -> new LinkedHashSet<>()).add(animal);
     }
@@ -40,11 +43,16 @@ public class EntityContainer {
         Set<Animal> typeSet = animalsByType.get(type);
         if (typeSet != null && typeSet.remove(animal)) {
             allAnimals.remove(animal);
-            if (animal.isAnimalPredator()) predators.remove(animal);
-            else herbivores.remove(animal);
+            if (animal.isAnimalPredator()) {
+                predators.remove(animal);
+            } else {
+                herbivores.remove(animal);
+            }
             SizeClass size = type.getSizeClass();
             Set<Animal> sizeSet = animalsBySize.get(size);
-            if (sizeSet != null) sizeSet.remove(animal);
+            if (sizeSet != null) {
+                sizeSet.remove(animal);
+            }
             return true;
         }
         return false;
@@ -66,11 +74,48 @@ public class EntityContainer {
     public int countBySpecies(SpeciesKey key) {
         int count = 0;
         for (Map.Entry<AnimalType, Set<Animal>> entry : animalsByType.entrySet()) {
-            if (entry.getKey().getSpeciesKey().equals(key)) count += entry.getValue().size();
+            if (entry.getKey().getSpeciesKey().equals(key)) {
+                count += entry.getValue().size();
+            }
         }
         Biomass b = biomassBySpecies.get(key);
-        if (b != null) count += (int) (b.getBiomass() / SCALE_1M);
+        if (b != null) {
+            count += (int) (b.getBiomass() / SCALE_1M);
+        }
         return count;
+    }
+
+    public void removeDeadAnimals(java.util.function.Consumer<Animal> onRemoved) {
+        java.util.Iterator<Animal> it = allAnimals.iterator();
+        while (it.hasNext()) {
+            Animal a = it.next();
+            if (!a.isAlive()) {
+                it.remove();
+                
+                // Remove from other indices
+                AnimalType type = a.getAnimalType();
+                Set<Animal> typeSet = animalsByType.get(type);
+                if (typeSet != null) {
+                    typeSet.remove(a);
+                }
+                
+                if (a.isAnimalPredator()) {
+                    predators.remove(a);
+                } else {
+                    herbivores.remove(a);
+                }
+                
+                SizeClass size = type.getSizeClass();
+                Set<Animal> sizeSet = animalsBySize.get(size);
+                if (sizeSet != null) {
+                    sizeSet.remove(a);
+                }
+                
+                if (onRemoved != null) {
+                    onRemoved.accept(a);
+                }
+            }
+        }
     }
 
     public void addBiomass(Biomass b) {

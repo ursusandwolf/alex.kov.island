@@ -43,6 +43,18 @@ public class WorldInitializer {
     }
 
     private void initializeCell(Cell cell, SpeciesRegistry registry, AnimalFactory animalFactory, com.island.util.RandomProvider random) {
+        // Randomly assign terrain type
+        int terrainRoll = random.nextInt(100);
+        if (terrainRoll < 10) {
+            cell.setTerrainType(com.island.model.TerrainType.WATER);
+        } else if (terrainRoll < 20) {
+            cell.setTerrainType(com.island.model.TerrainType.MOUNTAIN);
+        } else if (terrainRoll < 40) {
+            cell.setTerrainType(com.island.model.TerrainType.FOREST);
+        } else {
+            cell.setTerrainType(com.island.model.TerrainType.MEADOW);
+        }
+
         // Initialize biomass containers (Plants, Insects modeled as biomass)
         for (SpeciesKey biomassKey : registry.getAllBiomassKeys()) {
             registry.getBiomassType(biomassKey).ifPresent(type -> {

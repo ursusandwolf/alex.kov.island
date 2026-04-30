@@ -59,7 +59,9 @@ public class DefaultHuntingStrategy implements HuntingStrategy {
         for (Organism prey : provider.getPreyFor(predator)) {
             int successRate = calculateSuccessRate(predator, prey);
             long cost = calculateHuntCost(predator, prey);
-            if (isWorthHunting(predator, prey, successRate, cost)) return prey;
+            if (isWorthHunting(predator, prey, successRate, cost)) {
+                return prey;
+            }
         }
         return null;
     }

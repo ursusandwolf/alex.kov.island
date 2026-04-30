@@ -55,7 +55,7 @@ public class FeedingService extends AbstractService<SimulationNode> {
     }
 
     @Override
-    protected void processCell(SimulationNode node, int tickCount) {
+    public void processCell(SimulationNode node, int tickCount) {
         processPredators(node, tickCount);
         processHerbivores(node, tickCount);
     }

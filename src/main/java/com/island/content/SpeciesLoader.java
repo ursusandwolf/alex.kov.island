@@ -13,7 +13,9 @@ public class SpeciesLoader {
     public SpeciesRegistry load() {
         Properties props = new Properties();
         try (InputStream is = getClass().getClassLoader().getResourceAsStream(CONFIG_FILE)) {
-            if (is != null) props.load(is);
+            if (is != null) {
+                props.load(is);
+            }
         } catch (Exception e) {
             System.err.println("Error loading species config: " + e.getMessage());
         }
@@ -82,13 +84,19 @@ public class SpeciesLoader {
 
         long food = toScaledLong(props.getProperty(code + ".foodForSaturation", "1"));
         int lifespan = Math.max(1, Integer.parseInt(props.getProperty(code + ".lifespan", "100")));
+
+        boolean canFly = Boolean.parseBoolean(props.getProperty(code + ".canFly", "false"));
+        boolean canSwim = Boolean.parseBoolean(props.getProperty(code + ".canSwim", "false"));
+        boolean canWalk = Boolean.parseBoolean(props.getProperty(code + ".canWalk", "true"));
         
         String preyStr = props.getProperty(code + ".prey", "");
         Map<SpeciesKey, Integer> preyMap = new HashMap<>();
         if (!preyStr.isEmpty()) {
             for (String part : preyStr.split(",")) {
                 String[] sub = part.split(":");
-                if (sub.length == 2) preyMap.put(SpeciesKey.fromCode(sub[0]), Integer.parseInt(sub[1]));
+                if (sub.length == 2) {
+                    preyMap.put(SpeciesKey.fromCode(sub[0]), Integer.parseInt(sub[1]));
+                }
             }
         }
         
@@ -100,18 +108,28 @@ public class SpeciesLoader {
                 .isColdBlooded(isColdBlooded).isPackHunter(isPackHunter).isBiomass(isBiomass).isPlant(isPlant)
                 .reproductionChance(reproChance).maxOffspring(maxOffspring)
                 .presenceChance(presenceChance).settlementBase(settlementBase).settlementRange(settlementRange)
+                .canFly(canFly).canSwim(canSwim).canWalk(canWalk)
                 .build();
         
-        if (isPlant || isBiomass) biomassTypes.put(key, type);
-        else animalTypes.put(key, type);
+        if (isPlant || isBiomass) {
+            biomassTypes.put(key, type);
+        } else {
+            animalTypes.put(key, type);
+        }
     }
 
-    private long toScaledLong(String val) { return (long) (Double.parseDouble(val) * SCALE_1M); }
+    private long toScaledLong(String val) {
+        return (long) (Double.parseDouble(val) * SCALE_1M);
+    }
 
-    private int toPercent(String val) { return (int) (Double.parseDouble(val) * 100); }
+    private int toPercent(String val) {
+        return (int) (Double.parseDouble(val) * 100);
+    }
 
     private int toPercent(String val, int defaultVal) {
-        if (val == null) return defaultVal;
+        if (val == null) {
+            return defaultVal;
+        }
         return (int) (Double.parseDouble(val) * 100);
     }
 }

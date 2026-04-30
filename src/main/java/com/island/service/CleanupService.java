@@ -6,7 +6,6 @@ import com.island.engine.SimulationNode;
 import com.island.engine.SimulationWorld;
 import com.island.model.Cell;
 import com.island.util.RandomProvider;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -22,10 +21,17 @@ public class CleanupService extends AbstractService<SimulationNode> {
     }
 
     @Override
-    protected void processCell(SimulationNode node, int tickCount) {
-        List<Animal> deadAnimals = node.cleanupDeadOrganisms();
-        for (Animal a : deadAnimals) {
-            animalFactory.releaseAnimal(a);
+    public void processCell(SimulationNode node, int tickCount) {
+        if (node instanceof Cell cell) {
+            cell.getLock().lock();
+            try {
+                cell.getContainer().removeDeadAnimals(a -> {
+                    getWorld().onOrganismRemoved(a.getSpeciesKey());
+                    animalFactory.releaseAnimal(a);
+                });
+            } finally {
+                cell.getLock().unlock();
+            }
         }
     }
 }

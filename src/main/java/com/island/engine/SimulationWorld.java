@@ -28,8 +28,9 @@ public interface SimulationWorld extends Tickable {
 
     /**
      * Moves an animal between nodes.
+     * @return true if movement was successful.
      */
-    void moveAnimal(Animal animal, SimulationNode from, SimulationNode to);
+    boolean moveAnimal(Animal animal, SimulationNode from, SimulationNode to);
 
     /**
      * Moves biomass between nodes.

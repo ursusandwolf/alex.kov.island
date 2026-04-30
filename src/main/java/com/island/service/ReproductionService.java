@@ -31,7 +31,7 @@ public class ReproductionService extends AbstractService<SimulationNode> {
     }
 
     @Override
-    protected void processCell(SimulationNode node, int tickCount) {
+    public void processCell(SimulationNode node, int tickCount) {
         List<Animal> candidates = new ArrayList<>();
         int totalAnimalsInCell = node.getLivingEntities().size(); 
         int limit = com.island.config.SimulationConstants.REPRODUCTION_LOD_LIMIT;

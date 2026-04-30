@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.2-SNAPSHOT] - 2026-04-30
+
+### Added
+- **Parallel Task Grouping**: Refactored `GameLoop` to execute multiple `CellService` tasks (Feeding, Movement, Reproduction, etc.) in a single parallel pass per cell. This significantly reduces thread synchronization overhead and improves CPU cache locality.
+- **Incremental Metrics Aggregation**: Integrated `SimulationMetrics` collection directly into parallel chunk processing. Global statistics are now aggregated on-the-fly, eliminating the need for expensive post-tick grid scans.
+- **Metabolic Hibernation**: Introduced seasonal dormancy for cold-blooded species. In Winter, metabolism is reduced to 10% (`HIBERNATION_METABOLISM_MODIFIER_BP`), and entities skip intensive actions to ensure ecological stability.
+- **CellService Interface**: Standardized business logic hooks (`beforeProcess`, `processCell`, `afterProcess`) to enable safe, grouped execution within the parallel engine.
+
+### Optimized
+- **O(1) Entity Cleanup**: Refactored `CleanupService` to interact directly with `EntityContainer` indices, allowing for constant-time removal of dead organisms and immediate factory recycling.
+- **Zero-Scan Statistics**: `StatisticsService` now uses cached, pre-aggregated metrics from the parallel engine, providing O(1) access to global population and satiety data.
+- **Seasonal Growth**: Updated `Biomass` logic to support variable growth rates controlled by seasonal modifiers.
+
+### Changed
+- **Engine Decoupling**: Moved finalization logic (metrics aggregation, world cleanup) out of `GameLoop` and into specialized services to improve modularity and testability.
+
 ## [1.1-SNAPSHOT] - 2026-04-30
 
 ### Added
