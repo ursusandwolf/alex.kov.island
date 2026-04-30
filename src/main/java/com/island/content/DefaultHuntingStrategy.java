@@ -25,11 +25,20 @@ public class DefaultHuntingStrategy implements HuntingStrategy {
 
     @Override
     public int calculatePackSuccessRate(List<Animal> pack, Organism prey, int baseChancePercent) {
-        int bonusBP = pack.size() * 100; 
+        int bonusBP = pack.size() * 100; // 1% per member
+        
+        // Coordinated bonus for large prey (e.g., Buffalo, Horse, Bear)
         if (prey.getWeight() > 150 * SCALE_1M) { 
             int packBonusBP = Math.min(WOLF_PACK_MAX_BONUS_PERCENT, pack.size()) * 100;
             bonusBP = Math.max(bonusBP, packBonusBP);
+            
+            // Special rule for Bear (Apex Predator) - solo chance is 0%, but pack can kill it
+            if (prey.getSpeciesKey().equals(com.island.content.SpeciesKey.BEAR)) {
+                int bearChanceBP = Math.min(com.island.config.SimulationConstants.WOLF_PACK_BEAR_HUNT_MAX_CHANCE_PERCENT, pack.size()) * 100;
+                return Math.max(baseChancePercent * 100, bearChanceBP);
+            }
         }
+        
         return Math.min(SCALE_10K, (baseChancePercent * 100) + bonusBP);
     }
 
@@ -57,9 +66,26 @@ public class DefaultHuntingStrategy implements HuntingStrategy {
     @Override
     public Organism selectPrey(Animal predator, PreyProvider provider) {
         for (Organism prey : provider.getPreyFor(predator)) {
-            int successRate = calculateSuccessRate(predator, prey);
+            int successRateBP = calculateSuccessRate(predator, prey);
             long cost = calculateHuntCost(predator, prey);
-            if (isWorthHunting(predator, prey, successRate, cost)) {
+            if (isWorthHunting(predator, prey, successRateBP, cost)) {
+                return prey;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Organism selectPackPrey(List<Animal> pack, PreyProvider provider) {
+        if (pack.isEmpty()) {
+            return null;
+        }
+        Animal leader = pack.get(0);
+        for (Organism prey : provider.getPreyFor(leader)) {
+            int baseChance = interactionMatrix.getChance(leader.getSpeciesKey(), prey.getSpeciesKey());
+            int packSuccessRateBP = calculatePackSuccessRate(pack, prey, baseChance);
+            long cost = calculateHuntCost(leader, prey); // Cost for the leader's strike
+            if (isWorthHunting(leader, prey, packSuccessRateBP, cost)) {
                 return prey;
             }
         }

@@ -34,9 +34,14 @@ public abstract class AbstractService<N extends SimulationNode> implements CellS
 
     @Override
     public void tick(int tickCount) {
-        // Fallback for non-optimized loop: just do beforeTick. 
-        // Real processing must be done via GameLoop's parallel engine.
         beforeTick(tickCount);
+        // Fallback for direct service usage (e.g. in tests)
+        for (java.util.Collection<? extends SimulationNode> unit : world.getParallelWorkUnits()) {
+            for (SimulationNode node : unit) {
+                processCell(node, tickCount);
+            }
+        }
+        afterTick(tickCount);
     }
 
     @Override

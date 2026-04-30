@@ -53,11 +53,20 @@ public class PreyProvider {
 
     private List<Organism> buildBuffet(Animal predator) {
         List<Organism> potential = new ArrayList<>();
+        boolean canHuntAsPack = isWolfPack && predator.getAnimalType().isPackHunter();
         
         // 1. Animals
         node.getLivingEntities().forEach(m -> {
-            if (m instanceof Animal a && a != predator && a.isAlive() && matrix.getChance(predator.getSpeciesKey(), a.getSpeciesKey()) > 0) {
-                if (!a.isProtected(currentTick)) {
+            if (m instanceof Animal a && a != predator && a.isAlive()) {
+                int baseChance = matrix.getChance(predator.getSpeciesKey(), a.getSpeciesKey());
+                boolean canHunt = baseChance > 0;
+                
+                // Special case: Wolf packs can hunt large prey (like bears) even if solo chance is 0
+                if (!canHunt && canHuntAsPack && a.getWeight() > 150 * com.island.config.SimulationConstants.SCALE_1M) {
+                    canHunt = true;
+                }
+
+                if (canHunt && !a.isProtected(currentTick)) {
                     potential.add(a);
                 }
             }

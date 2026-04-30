@@ -94,26 +94,50 @@ public class FeedingService extends AbstractService<SimulationNode> {
     }
 
     private void processPackHunting(List<Animal> pack, SimulationNode node) {
+        if (pack.isEmpty()) {
+            return;
+        }
+        
         PreyProvider packPreyProvider = new PreyProvider(node, interactionMatrix, 0, protectionMap, true, getRandom());
         int maxKills = Math.max(1, pack.size() / 2);
         int kills = 0;
+        int attempts = 0;
+        int maxAttempts = 5;
 
-        for (int i = 0; i < pack.size() && kills < maxKills; i++) {
-            Organism prey = huntingStrategy.selectPrey(pack.get(0), packPreyProvider);
+        while (kills < maxKills && attempts < maxAttempts) {
+            attempts++;
+            Organism prey = huntingStrategy.selectPackPrey(pack, packPreyProvider);
             if (prey instanceof Animal a) {
-                if (a.isAlive() && !isProtected(a) && node.removeEntity(a)) {
-                    a.die();
-                    long gainPerWolf = a.getWeight() / pack.size();
-                    for (Animal wolf : pack) {
-                        if (wolf.isAlive()) {
-                            wolf.addEnergy(gainPerWolf);
+                if (a.isAlive() && !isProtected(a)) {
+                    int baseChance = interactionMatrix.getChance(pack.get(0).getSpeciesKey(), a.getSpeciesKey());
+                    int packChanceBP = huntingStrategy.calculatePackSuccessRate(pack, a, baseChance);
+                    
+                    int roll = getRandom().nextInt(0, SCALE_10K);
+                    if (roll < packChanceBP) {
+                        if (node.removeEntity(a)) {
+                            a.die();
+                            long gainPerWolf = a.getWeight() / pack.size();
+                            for (Animal wolf : pack) {
+                                if (wolf.isAlive()) {
+                                    wolf.addEnergy(gainPerWolf);
+                                }
+                            }
+                            packPreyProvider.markAsEaten(a);
+                            getWorld().reportDeath(a.getSpeciesKey(), DeathCause.EATEN);
+                            animalFactory.releaseAnimal(a);
+                            kills++;
+                        }
+                    } else {
+                        // Pack hunt failure - all participants lose energy
+                        long strikeCost = huntingStrategy.calculateHuntCost(pack.get(0), a);
+                        long penalty = (strikeCost * PREDATOR_FAIL_HUNT_PENALTY_BP) / SCALE_10K;
+                        for (Animal wolf : pack) {
+                            wolf.consumeEnergy(penalty);
                         }
                     }
-                    packPreyProvider.markAsEaten(a);
-                    getWorld().reportDeath(a.getSpeciesKey(), DeathCause.EATEN);
-                    animalFactory.releaseAnimal(a);
-                    kills++;
                 }
+            } else {
+                break; // No suitable prey found
             }
         }
     }
@@ -126,6 +150,7 @@ public class FeedingService extends AbstractService<SimulationNode> {
         PreyProvider preyProvider = new PreyProvider(node, interactionMatrix, 0, protectionMap, getRandom());
         int attempts = 0;
         boolean success = false;
+        boolean strikeAttempted = false;
         int maxAttempts = consumer.getAnimalType().isPredator() ? 5 : 3;
 
         while (!success && attempts < maxAttempts) {
@@ -134,7 +159,8 @@ public class FeedingService extends AbstractService<SimulationNode> {
             if (prey == null) {
                 break;
             }
-
+            
+            strikeAttempted = true;
             if (prey instanceof Animal a) {
                 if (a.isAlive() && !isProtected(a)) {
                     int chance = interactionMatrix.getChance(consumer.getSpeciesKey(), a.getSpeciesKey());
@@ -159,10 +185,12 @@ public class FeedingService extends AbstractService<SimulationNode> {
             }
         }
         
-        if (!success && consumer.getAnimalType().isPredator()) {
-            consumer.consumeEnergy((consumer.getMaxEnergy() * PREDATOR_FAIL_HUNT_PENALTY_BP) / SCALE_10K);
-        } else if (!success) {
-            consumer.consumeEnergy((consumer.getMaxEnergy() * HERBIVORE_FAIL_FEED_PENALTY_BP) / SCALE_10K);
+        if (!success && strikeAttempted) {
+            if (consumer.getAnimalType().isPredator()) {
+                consumer.consumeEnergy((consumer.getMaxEnergy() * PREDATOR_FAIL_HUNT_PENALTY_BP) / SCALE_10K);
+            } else {
+                consumer.consumeEnergy((consumer.getMaxEnergy() * HERBIVORE_FAIL_FEED_PENALTY_BP) / SCALE_10K);
+            }
         }
     }
 }

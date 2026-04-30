@@ -59,7 +59,7 @@ class CellTest {
         cell.addAnimal(deadWolf);
         
         assertEquals(2, cell.getAnimalCount());
-        cell.cleanupDeadOrganisms();
+        cell.getContainer().removeDeadAnimals(null);
         assertEquals(1, cell.getAnimalCount());
         assertTrue(cell.getAnimals().contains(aliveWolf));
         assertFalse(cell.getAnimals().contains(deadWolf));

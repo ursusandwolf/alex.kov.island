@@ -21,11 +21,6 @@ import java.util.Optional;
 import lombok.Getter;
 import lombok.Setter;
 
-import static com.island.config.SimulationConstants.ENDANGERED_MAX_HIDE_CHANCE_PERCENT;
-import static com.island.config.SimulationConstants.ENDANGERED_MIN_HIDE_CHANCE_PERCENT;
-import static com.island.config.SimulationConstants.ENDANGERED_POPULATION_THRESHOLD_BP;
-import static com.island.config.SimulationConstants.SCALE_10K;
-
 @Getter
 public class Island implements SimulationWorld {
     private final int width;
@@ -34,18 +29,17 @@ public class Island implements SimulationWorld {
     private final List<Chunk> chunks = new ArrayList<>();
     private final SpeciesRegistry registry;
     private final StatisticsService statisticsService;
+    private final com.island.service.ProtectionService protectionService;
     private int tickCount = 0;
     @Setter private boolean redBookProtectionEnabled = true;
     private Season currentSeason = Season.SPRING;
-
-    private Map<SpeciesKey, Integer> cachedProtectionMap = null;
-    private int protectionMapTick = -1;
 
     public Island(int width, int height, SpeciesRegistry registry, StatisticsService statisticsService) {
         this.width = width;
         this.height = height;
         this.registry = registry;
         this.statisticsService = statisticsService;
+        this.protectionService = new com.island.service.DefaultProtectionService(registry, statisticsService, width * height);
         this.grid = new Cell[width][height];
         initializeGrid();
         partitionIntoChunks();
@@ -78,39 +72,7 @@ public class Island implements SimulationWorld {
         if (!redBookProtectionEnabled) {
             return Collections.emptyMap();
         }
-        if (protectionMapTick == tickCount && cachedProtectionMap != null) {
-            return cachedProtectionMap;
-        }
-
-        SpeciesRegistry activeRegistry = (passedRegistry != null) ? passedRegistry : this.registry;
-        if (activeRegistry == null) {
-            return Collections.emptyMap();
-        }
-
-        Map<SpeciesKey, Integer> protectionMap = new HashMap<>();
-        int islandArea = width * height;
-
-        for (SpeciesKey key : activeRegistry.getAllAnimalKeys()) {
-            AnimalType type = activeRegistry.getAnimalType(key).orElse(null);
-            if (type == null) {
-                continue;
-            }
-
-            int currentCount = getSpeciesCount(key);
-            long globalCapacity = (long) islandArea * type.getMaxPerCell();
-            long threshold = (globalCapacity * ENDANGERED_POPULATION_THRESHOLD_BP) / SCALE_10K; 
-            
-            if (currentCount > 0 && currentCount < threshold) {
-                int ratio1000 = (int) ((currentCount * 1000) / threshold);
-                int diff = ENDANGERED_MAX_HIDE_CHANCE_PERCENT - ENDANGERED_MIN_HIDE_CHANCE_PERCENT;
-                int hideChance = ENDANGERED_MAX_HIDE_CHANCE_PERCENT - (ratio1000 * diff) / 1000;
-                protectionMap.put(key, hideChance);
-            }
-        }
-        
-        this.cachedProtectionMap = Collections.unmodifiableMap(protectionMap);
-        this.protectionMapTick = tickCount;
-        return cachedProtectionMap;
+        return protectionService.getProtectionModifiers();
     }
 
     @Override
@@ -141,6 +103,11 @@ public class Island implements SimulationWorld {
     @Override
     public WorldSnapshot createSnapshot() {
         return new IslandSnapshot(this);
+    }
+
+    @Override
+    public com.island.service.ProtectionService getProtectionService() {
+        return protectionService;
     }
 
     @Override
@@ -233,6 +200,7 @@ public class Island implements SimulationWorld {
         this.tickCount = tickCount;
         updateSeason();
         statisticsService.onTickStarted();
+        protectionService.update(tickCount);
     }
 
     private void updateSeason() {

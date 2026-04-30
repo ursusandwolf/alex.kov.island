@@ -30,4 +30,9 @@ public interface HuntingStrategy {
      * Selects the best prey from the available providers.
      */
     Organism selectPrey(Animal predator, PreyProvider provider);
+
+    /**
+     * Selects the best prey for a pack of predators.
+     */
+    Organism selectPackPrey(java.util.List<Animal> pack, PreyProvider provider);
 }

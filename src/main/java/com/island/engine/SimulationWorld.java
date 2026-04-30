@@ -68,9 +68,17 @@ public interface SimulationWorld extends Tickable {
     int getSpeciesCount(SpeciesKey key);
 
     /**
-     * Gets a map of species-specific protection chances (0-100 percent).
+     * Gets the protection service for identifying endangered species.
      */
-    Map<SpeciesKey, Integer> getProtectionMap(SpeciesRegistry registry);
+    com.island.service.ProtectionService getProtectionService();
+
+    /**
+     * Gets a map of species-specific protection chances (0-100 percent).
+     * Delegated to ProtectionService.
+     */
+    default Map<SpeciesKey, Integer> getProtectionMap(SpeciesRegistry registry) {
+        return getProtectionService().getProtectionModifiers();
+    }
 
     /**
      * Gets the statistics service for the world.
