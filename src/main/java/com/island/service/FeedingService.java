@@ -67,23 +67,24 @@ public class FeedingService extends AbstractService<Cell> {
     }
 
     private void processPredators(Cell cell, int tickCount) {
-        List<Animal> predators = cell.getPredators();
-        if (predators.isEmpty()) {
-            return;
-        }
+        List<Animal> packHunters = new java.util.ArrayList<>();
+        List<Animal> others = new java.util.ArrayList<>();
 
-        List<Animal> packHunters = predators.stream()
-                .filter(p -> p.getAnimalType().isPackHunter())
-                .toList();
-        
+        cell.forEachPredator(p -> {
+            if (p.getAnimalType().isPackHunter()) {
+                packHunters.add(p);
+            } else {
+                others.add(p);
+            }
+        });
+
         if (packHunters.size() >= minPackSize) {
             processPackHunting(packHunters, cell);
-            List<Animal> others = new java.util.ArrayList<>(predators);
-            others.removeAll(packHunters);
-            predators = others;
+        } else {
+            others.addAll(packHunters);
         }
 
-        for (Animal predator : predators) {
+        for (Animal predator : others) {
             if (predator.isAlive() && shouldAct(predator, AnimalType.Action.FEED, tickCount)) {
                 tryEat(predator, cell);
             }
@@ -91,7 +92,7 @@ public class FeedingService extends AbstractService<Cell> {
     }
 
     private void processHerbivores(Cell cell, int tickCount) {
-        forEachSampled(cell.getHerbivores(), FEEDING_LOD_LIMIT, herbivore -> {
+        cell.forEachHerbivoreSampled(FEEDING_LOD_LIMIT, getRandom(), herbivore -> {
             if (herbivore.isAlive() && shouldAct(herbivore, AnimalType.Action.FEED, tickCount)) {
                 tryEat(herbivore, cell);
             }

@@ -27,8 +27,7 @@ public class LifecycleService extends AbstractService<Cell> {
     }
 
     private void processAging(Cell cell) {
-        List<Animal> animals = new ArrayList<>(cell.getAnimals());
-        for (Animal a : animals) {
+        cell.forEachAnimal(a -> {
             if (a.isAlive()) {
                 // 1. Metabolism
                 double metabolism = a.getDynamicMetabolismRate();
@@ -41,7 +40,7 @@ public class LifecycleService extends AbstractService<Cell> {
                     getWorld().reportDeath(a.getSpeciesKey(), DeathCause.AGE);
                 }
             }
-        }
+        });
     }
 
     private void processBiomassGrowth(Cell cell) {

@@ -31,21 +31,28 @@ public class ReproductionService extends AbstractService<Cell> {
 
     @Override
     protected void processCell(Cell cell, int tickCount) {
-        List<Animal> potentialParents = cell.getAnimals();
-        if (potentialParents.size() < 2) {
+        List<Animal> candidates = new ArrayList<>();
+        cell.forEachAnimalSampled(com.island.config.SimulationConstants.REPRODUCTION_LOD_LIMIT, getRandom(), a -> {
+            if (shouldAct(a, AnimalType.Action.REPRODUCE, tickCount)) {
+                candidates.add(a);
+            }
+        });
+
+        if (candidates.size() < 2) {
             return;
         }
         
         java.util.Set<Animal> alreadyMated = new java.util.HashSet<>();
 
-        forEachSampled(potentialParents, com.island.config.SimulationConstants.REPRODUCTION_LOD_LIMIT, a1 -> {
-            if (alreadyMated.contains(a1) || !shouldAct(a1, AnimalType.Action.REPRODUCE, tickCount)) {
-                return;
+        for (int i = 0; i < candidates.size(); i++) {
+            Animal a1 = candidates.get(i);
+            if (alreadyMated.contains(a1)) {
+                continue;
             }
 
-            // Try to find a mate
-            for (Animal a2 : potentialParents) {
-                if (a1 == a2 || alreadyMated.contains(a2) || !shouldAct(a2, AnimalType.Action.REPRODUCE, tickCount)) {
+            for (int j = i + 1; j < candidates.size(); j++) {
+                Animal a2 = candidates.get(j);
+                if (alreadyMated.contains(a2)) {
                     continue;
                 }
 
@@ -57,7 +64,7 @@ public class ReproductionService extends AbstractService<Cell> {
                     }
                 }
             }
-        });
+        }
     }
 
     private boolean tryReproduce(Animal parent1, Animal parent2, Cell cell) {

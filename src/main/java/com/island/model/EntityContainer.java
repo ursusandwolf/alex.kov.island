@@ -12,24 +12,27 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 /**
  * Pure storage component for a Cell.
  * Handles indexing by type, role, and size.
- * Not thread-safe; synchronization must be managed by the caller.
+ * Optimized with LinkedHashSet for O(1) removal while maintaining order.
  */
 public class EntityContainer {
-    private final Map<AnimalType, List<Animal>> animalsByType = new HashMap<>();
-    private final Map<SizeClass, List<Animal>> animalsBySize = new EnumMap<>(SizeClass.class);
-    private final List<Animal> predators = new ArrayList<>();
-    private final List<Animal> herbivores = new ArrayList<>();
+    private final Map<AnimalType, Set<Animal>> animalsByType = new HashMap<>();
+    private final Map<SizeClass, Set<Animal>> animalsBySize = new EnumMap<>(SizeClass.class);
+    private final Set<Animal> predators = new java.util.LinkedHashSet<>();
+    private final Set<Animal> herbivores = new java.util.LinkedHashSet<>();
     private final Map<SpeciesKey, Biomass> biomassBySpecies = new HashMap<>();
     
-    private final List<Animal> allAnimals = new ArrayList<>();
+    private final Set<Animal> allAnimals = new java.util.LinkedHashSet<>();
     private final List<Biomass> allBiomass = new ArrayList<>();
 
     public void addAnimal(Animal animal) {
         AnimalType type = animal.getAnimalType();
-        animalsByType.computeIfAbsent(type, k -> new ArrayList<>()).add(animal);
+        animalsByType.computeIfAbsent(type, k -> new LinkedHashSet<>()).add(animal);
         allAnimals.add(animal);
         
         if (animal.isAnimalPredator()) {
@@ -39,78 +42,64 @@ public class EntityContainer {
         }
 
         SizeClass size = type.getSizeClass();
-        animalsBySize.computeIfAbsent(size, k -> new ArrayList<>()).add(animal);
+        animalsBySize.computeIfAbsent(size, k -> new LinkedHashSet<>()).add(animal);
     }
 
     public boolean removeAnimal(Animal animal) {
         AnimalType type = animal.getAnimalType();
-        List<Animal> typeList = animalsByType.get(type);
-        if (typeList != null && fastRemove(typeList, animal)) {
-            fastRemove(allAnimals, animal);
+        Set<Animal> typeSet = animalsByType.get(type);
+        if (typeSet != null && typeSet.remove(animal)) {
+            allAnimals.remove(animal);
             if (animal.isAnimalPredator()) {
-                fastRemove(predators, animal);
+                predators.remove(animal);
             } else {
-                fastRemove(herbivores, animal);
+                herbivores.remove(animal);
             }
             
             SizeClass size = type.getSizeClass();
-            List<Animal> sizeList = animalsBySize.get(size);
-            if (sizeList != null) {
-                fastRemove(sizeList, animal);
+            Set<Animal> sizeSet = animalsBySize.get(size);
+            if (sizeSet != null) {
+                sizeSet.remove(animal);
             }
             return true;
         }
         return false;
     }
 
-    private boolean fastRemove(List<Animal> list, Animal animal) {
-        int index = list.indexOf(animal);
-        if (index == -1) {
-            return false;
-        }
-        int lastIndex = list.size() - 1;
-        if (index != lastIndex) {
-            list.set(index, list.get(lastIndex));
-        }
-        list.remove(lastIndex);
-        return true;
-    }
-
-    public List<Animal> getAllAnimals() {
+    public Set<Animal> getAllAnimals() {
         return allAnimals;
     }
 
-    public List<Animal> getPredators() {
+    public Set<Animal> getPredators() {
         return predators;
     }
 
-    public List<Animal> getHerbivores() {
+    public Set<Animal> getHerbivores() {
         return herbivores;
     }
 
-    public List<Animal> getByType(AnimalType type) {
-        return animalsByType.getOrDefault(type, Collections.emptyList());
+    public Set<Animal> getByType(AnimalType type) {
+        return animalsByType.getOrDefault(type, Collections.emptySet());
     }
 
-    public List<Animal> getBySize(SizeClass size) {
-        return animalsBySize.getOrDefault(size, Collections.emptyList());
+    public Set<Animal> getBySize(SizeClass size) {
+        return animalsBySize.getOrDefault(size, Collections.emptySet());
     }
 
     public int countByType(AnimalType type) {
-        List<Animal> list = animalsByType.get(type);
-        return list != null ? list.size() : 0;
+        Set<Animal> set = animalsByType.get(type);
+        return set != null ? set.size() : 0;
     }
 
     public int countBySpecies(SpeciesKey key) {
-        // Count in animals
         int count = 0;
-        for (Map.Entry<AnimalType, List<Animal>> entry : animalsByType.entrySet()) {
+        // This is still O(T) where T is number of types
+        for (Map.Entry<AnimalType, Set<Animal>> entry : animalsByType.entrySet()) {
             if (entry.getKey().getSpeciesKey().equals(key)) {
                 count += entry.getValue().size();
             }
         }
         
-        // Count in biomass (as mass unit)
         Biomass b = biomassBySpecies.get(key);
         if (b != null) {
             count += (int) b.getBiomass();
@@ -118,6 +107,8 @@ public class EntityContainer {
         
         return count;
     }
+
+    // ... biomass methods ...
 
     public void addBiomass(Biomass b) {
         biomassBySpecies.put(b.getSpeciesKey(), b);

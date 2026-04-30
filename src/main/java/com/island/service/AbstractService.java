@@ -36,10 +36,22 @@ public abstract class AbstractService<N extends SimulationNode> implements Ticka
         }
 
         // Shared logic: update protection map once per tick per service
-        this.protectionMap = world.getProtectionMap(null);
+        Map<SpeciesKey, Double> map = world.getProtectionMap(null);
+        this.protectionMap = (map != null) ? map : java.util.Collections.emptyMap();
 
         List<Callable<Void>> tasks = new ArrayList<>();
-        for (Collection<? extends SimulationNode> workUnit : world.getParallelWorkUnits()) {
+        Collection<? extends Collection<? extends SimulationNode>> workUnits = world.getParallelWorkUnits();
+        
+        if (workUnits.size() <= 1) {
+            for (Collection<? extends SimulationNode> workUnit : workUnits) {
+                for (SimulationNode node : workUnit) {
+                    processCell((N) node, tickCount);
+                }
+            }
+            return;
+        }
+
+        for (Collection<? extends SimulationNode> workUnit : workUnits) {
             tasks.add(() -> {
                 for (SimulationNode node : workUnit) {
                     processCell((N) node, tickCount);

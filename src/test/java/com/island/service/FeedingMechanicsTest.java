@@ -45,6 +45,9 @@ class FeedingMechanicsTest {
     private Cell cell;
     private SpeciesRegistry registry;
 
+    @Mock
+    private com.island.service.StatisticsService statisticsService;
+
     @BeforeEach
     void setUp() {
         registry = new SpeciesLoader().load();
@@ -54,7 +57,8 @@ class FeedingMechanicsTest {
         Collection<List<SimulationNode>> workUnits = Collections.singletonList(workUnit);
         
         given(world.getParallelWorkUnits()).willReturn((Collection) workUnits);
-        given(world.getProtectionMap(registry)).willReturn(Collections.emptyMap());
+        given(world.getProtectionMap(null)).willReturn(Collections.emptyMap());
+        given(world.getStatisticsService()).willReturn(statisticsService);
 
         InteractionMatrix matrix = InteractionMatrix.buildFrom(registry);
         

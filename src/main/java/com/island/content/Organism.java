@@ -105,14 +105,24 @@ public abstract class Organism implements com.island.util.Poolable, com.island.e
     }
 
     public void setEnergy(double energy) {
-        this.currentEnergy = Math.min((long) (energy * ENERGY_SCALE), maxEnergy);
-        if (this.currentEnergy < 1 && isAlive) {
-            isAlive = false;
+        energyLock.lock();
+        try {
+            this.currentEnergy = Math.min((long) (energy * ENERGY_SCALE), maxEnergy);
+            if (this.currentEnergy < 1 && isAlive) {
+                isAlive = false;
+            }
+        } finally {
+            energyLock.unlock();
         }
     }
 
     public void addEnergy(double amount) {
-        currentEnergy = Math.min(maxEnergy, currentEnergy + (long) (amount * ENERGY_SCALE));
+        energyLock.lock();
+        try {
+            currentEnergy = Math.min(maxEnergy, currentEnergy + (long) (amount * ENERGY_SCALE));
+        } finally {
+            energyLock.unlock();
+        }
     }
 
     public boolean checkAgeDeath() {

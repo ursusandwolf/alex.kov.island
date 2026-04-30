@@ -56,13 +56,13 @@ public class PreyProvider {
         List<Organism> potential = new ArrayList<>();
         
         // 1. Animals
-        for (Animal a : cell.getAnimals()) {
+        cell.forEachAnimal(a -> {
             if (a != predator && a.isAlive() && matrix.getChance(predator.getSpeciesKey(), a.getSpeciesKey()) > 0) {
                 if (!a.isProtected(currentTick)) {
                     potential.add(a);
                 }
             }
-        }
+        });
         
         // 2. Plants/Biomass
         for (Biomass b : cell.getBiomassContainers()) {

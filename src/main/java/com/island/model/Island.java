@@ -73,12 +73,19 @@ public class Island implements SimulationWorld {
         this.redBookProtectionEnabled = enabled;
     }
 
+    private Map<SpeciesKey, Double> cachedProtectionMap = null;
+    private int protectionMapTick = -1;
+
     @Override
     public Map<SpeciesKey, Double> getProtectionMap(SpeciesRegistry passedRegistry) {
         if (!redBookProtectionEnabled) {
             return Collections.emptyMap();
         }
         
+        if (protectionMapTick == tickCount && cachedProtectionMap != null) {
+            return cachedProtectionMap;
+        }
+
         SpeciesRegistry activeRegistry = (passedRegistry != null) ? passedRegistry : this.registry;
         if (activeRegistry == null) {
             return Collections.emptyMap();
@@ -103,7 +110,11 @@ public class Island implements SimulationWorld {
                 protectionMap.put(key, hideChance);
             }
         }
-        return protectionMap;
+        
+        this.cachedProtectionMap = Collections.unmodifiableMap(protectionMap);
+        this.protectionMapTick = tickCount;
+        
+        return cachedProtectionMap;
     }
 
     @Override

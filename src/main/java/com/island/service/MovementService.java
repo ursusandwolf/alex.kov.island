@@ -37,7 +37,7 @@ public class MovementService extends AbstractService<Cell> {
     }
 
     private void processAnimals(Cell cell, int tickCount) {
-        forEachSampled(cell.getAnimals(), 100, animal -> {
+        cell.forEachAnimalSampled(100, getRandom(), animal -> {
             if (animal.isAlive()) {
                 if (shouldAct(animal, AnimalType.Action.MOVE, tickCount)) {
                     double moveCost = animal.getMaxEnergy() * (1 + animal.getSpeed()) * SPEED_MOVE_COST_STEP_PERCENT;

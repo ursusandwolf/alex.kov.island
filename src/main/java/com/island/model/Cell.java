@@ -152,6 +152,81 @@ public class Cell implements SimulationNode {
         }
     }
 
+    /**
+     * Executes an action for each animal in the cell under a read lock.
+     * Prevents defensive copying and reduces GC pressure.
+     */
+    public void forEachAnimal(java.util.function.Consumer<Animal> action) {
+        rwLock.readLock().lock();
+        try {
+            for (Animal a : container.getAllAnimals()) {
+                action.accept(a);
+            }
+        } finally {
+            rwLock.readLock().unlock();
+        }
+    }
+
+    /**
+     * Executes an action for a sampled subset of animals to maintain LOD without copying.
+     */
+    public void forEachAnimalSampled(int limit, com.island.util.RandomProvider random, java.util.function.Consumer<Animal> action) {
+        rwLock.readLock().lock();
+        try {
+            java.util.Set<Animal> set = container.getAllAnimals();
+            int size = set.size();
+            if (size == 0) {
+                return;
+            }
+            int step = (size > limit) ? (size / limit + 1) : 1;
+            int startOffset = (size > limit) ? random.nextInt(step) : 0;
+            
+            int i = 0;
+            for (Animal a : set) {
+                if (i >= startOffset && (i - startOffset) % step == 0) {
+                    action.accept(a);
+                }
+                i++;
+            }
+        } finally {
+            rwLock.readLock().unlock();
+        }
+    }
+
+    public void forEachPredator(java.util.function.Consumer<Animal> action) {
+        rwLock.readLock().lock();
+        try {
+            for (Animal a : container.getPredators()) {
+                action.accept(a);
+            }
+        } finally {
+            rwLock.readLock().unlock();
+        }
+    }
+
+    public void forEachHerbivoreSampled(int limit, com.island.util.RandomProvider random, java.util.function.Consumer<Animal> action) {
+        rwLock.readLock().lock();
+        try {
+            java.util.Set<Animal> set = container.getHerbivores();
+            int size = set.size();
+            if (size == 0) {
+                return;
+            }
+            int step = (size > limit) ? (size / limit + 1) : 1;
+            int startOffset = (size > limit) ? random.nextInt(step) : 0;
+            
+            int i = 0;
+            for (Animal a : set) {
+                if (i >= startOffset && (i - startOffset) % step == 0) {
+                    action.accept(a);
+                }
+                i++;
+            }
+        } finally {
+            rwLock.readLock().unlock();
+        }
+    }
+
     public List<Animal> getPredators() {
         rwLock.readLock().lock();
         try {
