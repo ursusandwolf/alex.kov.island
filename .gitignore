@@ -1,35 +1,28 @@
-# Java compiled files
-*.class
-*.jar
-*.war
-*.ear
-
-# Build directories
-target/
-build/
-
-# Dependencies
-lib/
-libs/
-
-# IDE files
-.idea/
-*.iml
-*.ipr
-*.iws
-
-# Logs
-*.log
-
-# Environment
+```
+# Environment files
 .env
 .env.local
 .env.*
 
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# Temporary files
+# Logs and temporary files
+*.log
 *.tmp
-*.temp
+*.swp
+
+# Editors and IDEs
+.vscode/
+.idea/
+
+# Dependencies
+node_modules/
+.venv/
+venv/
+__pycache__/
+.mypy_cache/
+.pytest_cache/
+
+# Build artifacts
+dist/
+build/
+target/
+```
