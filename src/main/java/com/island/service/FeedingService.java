@@ -1,6 +1,5 @@
 package com.island.service;
 
-import com.island.engine.SimulationNode;
 import com.island.engine.SimulationWorld;
 import com.island.content.Animal;
 import com.island.content.AnimalFactory;
@@ -16,22 +15,16 @@ import com.island.model.Cell;
 import com.island.util.InteractionProvider;
 import com.island.util.RandomProvider;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
 import static com.island.config.SimulationConstants.FEEDING_LOD_LIMIT;
-import static com.island.config.SimulationConstants.HERBIVORE_FAIL_FEED_PENALTY_PERCENT;
-import static com.island.config.SimulationConstants.OVERPOPULATION_HUNT_BONUS;
-import static com.island.config.SimulationConstants.PREDATOR_FAIL_HUNT_PENALTY_PERCENT;
-
-import lombok.RequiredArgsConstructor;
-import static com.island.config.SimulationConstants.FEEDING_LOD_LIMIT;
-import static com.island.config.SimulationConstants.HERBIVORE_FAIL_FEED_PENALTY_PERCENT;
-import static com.island.config.SimulationConstants.OVERPOPULATION_HUNT_BONUS;
-import static com.island.config.SimulationConstants.PREDATOR_FAIL_HUNT_PENALTY_PERCENT;
+import static com.island.config.SimulationConstants.HERBIVORE_FAIL_FEED_PENALTY_BP;
+import static com.island.config.SimulationConstants.OVERPOPULATION_HUNT_BONUS_PERCENT;
+import static com.island.config.SimulationConstants.PREDATOR_FAIL_HUNT_PENALTY_BP;
+import static com.island.config.SimulationConstants.SCALE_10K;
 
 /**
- * Service responsible for feeding logic of all animals.
+ * Service responsible for feeding logic using integer-based arithmetic.
  */
 public class FeedingService extends AbstractService<Cell> {
     private final AnimalFactory animalFactory;
@@ -109,7 +102,7 @@ public class FeedingService extends AbstractService<Cell> {
             if (prey instanceof Animal a) {
                 if (a.isAlive() && !isProtected(a) && cell.removeAnimal(a)) {
                     a.die();
-                    double gainPerWolf = a.getWeight() / pack.size();
+                    long gainPerWolf = a.getWeight() / pack.size();
                     for (Animal wolf : pack) {
                         if (wolf.isAlive()) {
                             wolf.addEnergy(gainPerWolf);
@@ -143,10 +136,10 @@ public class FeedingService extends AbstractService<Cell> {
 
             if (prey instanceof Animal a) {
                 if (a.isAlive() && !isProtected(a)) {
-                    double chance = interactionMatrix.getChance(consumer.getSpeciesKey(), a.getSpeciesKey());
+                    int chance = interactionMatrix.getChance(consumer.getSpeciesKey(), a.getSpeciesKey());
                     int preyCount = cell.getOrganismCount(a.getSpeciesKey());
                     if (preyCount > a.getAnimalType().getMaxPerCell() / 2) {
-                        chance += OVERPOPULATION_HUNT_BONUS; 
+                        chance += OVERPOPULATION_HUNT_BONUS_PERCENT; 
                     }
 
                     if (getRandom().nextInt(0, 100) < chance && cell.removeAnimal(a)) {
@@ -159,16 +152,16 @@ public class FeedingService extends AbstractService<Cell> {
                     }
                 }
             } else if (prey instanceof Biomass b && b.getBiomass() > 0 && !isPlantProtected(b.getSpeciesKey())) {
-                double foodNeeded = consumer.getFoodForSaturation() - consumer.getCurrentEnergy();
+                long foodNeeded = consumer.getFoodForSaturation() - consumer.getCurrentEnergy();
                 consumer.addEnergy(b.consumeBiomass(foodNeeded, cell));
                 success = true;
             }
         }
         
         if (!success && consumer.getAnimalType().isPredator()) {
-            consumer.consumeEnergy(consumer.getMaxEnergy() * PREDATOR_FAIL_HUNT_PENALTY_PERCENT);
+            consumer.consumeEnergy((consumer.getMaxEnergy() * PREDATOR_FAIL_HUNT_PENALTY_BP) / SCALE_10K);
         } else if (!success) {
-            consumer.consumeEnergy(consumer.getMaxEnergy() * HERBIVORE_FAIL_FEED_PENALTY_PERCENT);
+            consumer.consumeEnergy((consumer.getMaxEnergy() * HERBIVORE_FAIL_FEED_PENALTY_BP) / SCALE_10K);
         }
     }
 }

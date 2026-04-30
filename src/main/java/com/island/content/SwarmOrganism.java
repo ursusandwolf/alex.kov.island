@@ -1,26 +1,27 @@
 package com.island.content;
 
 import com.island.model.Cell;
-import java.util.Arrays;
+import static com.island.config.SimulationConstants.SCALE_10K;
+import static com.island.config.SimulationConstants.SCALE_1M;
 import lombok.Getter;
 
 /**
- * Generalized LOD 1 (Aggregated) organism.
+ * Generalized LOD 1 (Aggregated) organism using integer-based arithmetic.
  * Represents a population of individuals of the same species in a cell.
- * Tracks population counts across age buckets.
+ * Tracks population counts across age buckets (SCALE_1M).
  */
 @Getter
 public abstract class SwarmOrganism extends Biomass {
-    protected final double[] ageBuckets;
-    protected final double metabolismRate;
-    protected final double reproductionRate;
+    protected final long[] ageBuckets;
+    protected final int metabolismRateBP; // SCALE_10K
+    protected final int reproductionRateBP; // SCALE_10K
 
-    protected SwarmOrganism(String typeName, SpeciesKey speciesKey, double maxBiomass, 
-                            int speed, int maxAge, double metabolismRate, double reproductionRate) {
+    protected SwarmOrganism(String typeName, SpeciesKey speciesKey, long maxBiomass, 
+                            int speed, int maxAge, int metabolismRateBP, int reproductionRateBP) {
         super(typeName, speciesKey, maxBiomass, speed);
-        this.ageBuckets = new double[maxAge + 1];
-        this.metabolismRate = metabolismRate;
-        this.reproductionRate = reproductionRate;
+        this.ageBuckets = new long[maxAge + 1];
+        this.metabolismRateBP = metabolismRateBP;
+        this.reproductionRateBP = reproductionRateBP;
     }
 
     @Override
@@ -29,7 +30,7 @@ public abstract class SwarmOrganism extends Biomass {
     }
 
     protected void processLifecycle(Cell cell) {
-        final double oldBiomass = getBiomass();
+        final long oldBiomass = getBiomass();
         
         // 1. Metabolism (Energy decay)
         applyMetabolism();
@@ -50,15 +51,13 @@ public abstract class SwarmOrganism extends Biomass {
 
     protected void applyMetabolism() {
         for (int i = 0; i < ageBuckets.length; i++) {
-            ageBuckets[i] *= (1.0 - metabolismRate);
+            ageBuckets[i] = (ageBuckets[i] * (SCALE_10K - metabolismRateBP)) / SCALE_10K;
         }
     }
 
     protected abstract void processFeeding(Cell cell);
 
     protected void advanceAge(Cell cell) {
-        // Last bucket dies of old age
-        double dying = ageBuckets[ageBuckets.length - 1];
         // Shift buckets
         for (int i = ageBuckets.length - 1; i > 0; i--) {
             ageBuckets[i] = ageBuckets[i - 1];
@@ -69,14 +68,14 @@ public abstract class SwarmOrganism extends Biomass {
     protected abstract void processReproduction(Cell cell);
 
     protected void updateTotalBiomass() {
-        double total = 0;
-        for (double bucket : ageBuckets) {
+        long total = 0;
+        for (long bucket : ageBuckets) {
             total += bucket;
         }
         setBiomass(total);
     }
 
-    public void spawn(double amount) {
+    public void spawn(long amount) {
         if (amount > 0) {
             ageBuckets[0] += amount;
             updateTotalBiomass();
@@ -84,20 +83,22 @@ public abstract class SwarmOrganism extends Biomass {
     }
 
     @Override
-    public double consumeBiomass(double amount, Cell cell) {
-        double total = getBiomass();
-        double actualEaten = Math.min(total, amount);
-        if (actualEaten > 0) {
-            double factor = (total - actualEaten) / total;
+    public long consumeBiomass(long amount, Cell cell) {
+        long total = getBiomass();
+        long actualEaten = Math.min(total, amount);
+        if (actualEaten > 0 && total > 0) {
+            // factor = (total - actualEaten) / total
+            // To maintain precision: ageBuckets[i] = (ageBuckets[i] * (total - actualEaten)) / total
+            long remaining = total - actualEaten;
             for (int i = 0; i < ageBuckets.length; i++) {
-                ageBuckets[i] *= factor;
+                ageBuckets[i] = (ageBuckets[i] * remaining) / total;
             }
             updateTotalBiomass();
         }
         return actualEaten;
     }
 
-    protected void reportChange(Cell cell, double delta) {
+    protected void reportChange(Cell cell, long delta) {
         if (delta != 0) {
             cell.getWorld().getStatisticsService().registerBiomassChange(getSpeciesKey(), delta);
         }

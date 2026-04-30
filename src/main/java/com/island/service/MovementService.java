@@ -1,26 +1,25 @@
 package com.island.service;
 
-import static com.island.config.SimulationConstants.BIOMASS_MOVE_CHUNK_FRACTION;
-import static com.island.config.SimulationConstants.SPEED_MOVE_COST_STEP_PERCENT;
+import static com.island.config.SimulationConstants.BIOMASS_MOVE_CHUNK_BP;
+import static com.island.config.SimulationConstants.SPEED_MOVE_COST_STEP_BP;
 import static com.island.config.SimulationConstants.ENDANGERED_SPEED_BONUS;
+import static com.island.config.SimulationConstants.SCALE_10K;
 
 import com.island.engine.SimulationNode;
 import com.island.engine.SimulationWorld;
 import com.island.content.Animal;
 import com.island.content.Biomass;
 import com.island.content.DeathCause;
-import com.island.content.SpeciesKey;
 import com.island.content.SpeciesRegistry;
 import com.island.model.Cell;
 import com.island.util.RandomProvider;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
 import com.island.content.AnimalType;
 
 /**
- * Service responsible for animal and mobile biomass movement.
+ * Service responsible for animal and mobile biomass movement using integer arithmetic.
  */
 public class MovementService extends AbstractService<Cell> {
     private final SpeciesRegistry speciesRegistry;
@@ -37,10 +36,11 @@ public class MovementService extends AbstractService<Cell> {
     }
 
     private void processAnimals(Cell cell, int tickCount) {
-        cell.forEachAnimalSampled(100, getRandom(), animal -> {
+        cell.forEachAnimalSampled(com.island.config.SimulationConstants.MOVEMENT_LOD_LIMIT, getRandom(), animal -> {
             if (animal.isAlive()) {
                 if (shouldAct(animal, AnimalType.Action.MOVE, tickCount)) {
-                    double moveCost = animal.getMaxEnergy() * (1 + animal.getSpeed()) * SPEED_MOVE_COST_STEP_PERCENT;
+                    // moveCost = maxEnergy * (1 + speed) * stepBP / SCALE_10K
+                    long moveCost = (animal.getMaxEnergy() * (1 + animal.getSpeed()) * SPEED_MOVE_COST_STEP_BP) / SCALE_10K;
                     animal.consumeEnergy(moveCost);
 
                     if (!animal.isAlive()) {
@@ -67,8 +67,8 @@ public class MovementService extends AbstractService<Cell> {
         List<Biomass> containers = cell.getBiomassContainers();
         for (Biomass b : containers) {
             if (b.isAlive() && b.getSpeed() > 0 && b.getBiomass() > 0) {
-                double totalMass = b.getBiomass();
-                double chunk = totalMass * BIOMASS_MOVE_CHUNK_FRACTION;
+                long totalMass = b.getBiomass();
+                long chunk = (totalMass * BIOMASS_MOVE_CHUNK_BP) / SCALE_10K;
 
                 int direction = getRandom().nextInt(4);
                 int dx = 0;

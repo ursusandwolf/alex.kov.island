@@ -8,16 +8,14 @@ import com.island.content.Biomass;
 import com.island.content.SizeClass;
 import com.island.content.SpeciesKey;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.locks.ReentrantLock;
+
+import static com.island.config.SimulationConstants.SCALE_1M;
 
 /**
  * Represents a single cell on the island grid.
  * Optimized with indexed storage by type, role, and size for O(1) access.
+ * Uses integer-based arithmetic for biomass and counts.
  */
 public class Cell implements SimulationNode {
     private final int x;
@@ -152,25 +150,19 @@ public class Cell implements SimulationNode {
         }
     }
 
-    /**
-     * Executes an action for each animal in the cell under a read lock.
-     * Prevents defensive copying and reduces GC pressure.
-     */
     public void forEachAnimal(java.util.function.Consumer<Animal> action) {
+        List<Animal> copy;
         rwLock.readLock().lock();
         try {
-            for (Animal a : container.getAllAnimals()) {
-                action.accept(a);
-            }
+            copy = new ArrayList<>(container.getAllAnimals());
         } finally {
             rwLock.readLock().unlock();
         }
+        copy.forEach(action);
     }
 
-    /**
-     * Executes an action for a sampled subset of animals to maintain LOD without copying.
-     */
     public void forEachAnimalSampled(int limit, com.island.util.RandomProvider random, java.util.function.Consumer<Animal> action) {
+        List<Animal> sampled = new ArrayList<>();
         rwLock.readLock().lock();
         try {
             java.util.Set<Animal> set = container.getAllAnimals();
@@ -184,27 +176,29 @@ public class Cell implements SimulationNode {
             int i = 0;
             for (Animal a : set) {
                 if (i >= startOffset && (i - startOffset) % step == 0) {
-                    action.accept(a);
+                    sampled.add(a);
                 }
                 i++;
             }
         } finally {
             rwLock.readLock().unlock();
         }
+        sampled.forEach(action);
     }
 
     public void forEachPredator(java.util.function.Consumer<Animal> action) {
+        List<Animal> copy;
         rwLock.readLock().lock();
         try {
-            for (Animal a : container.getPredators()) {
-                action.accept(a);
-            }
+            copy = new ArrayList<>(container.getPredators());
         } finally {
             rwLock.readLock().unlock();
         }
+        copy.forEach(action);
     }
 
     public void forEachHerbivoreSampled(int limit, com.island.util.RandomProvider random, java.util.function.Consumer<Animal> action) {
+        List<Animal> sampled = new ArrayList<>();
         rwLock.readLock().lock();
         try {
             java.util.Set<Animal> set = container.getHerbivores();
@@ -218,13 +212,14 @@ public class Cell implements SimulationNode {
             int i = 0;
             for (Animal a : set) {
                 if (i >= startOffset && (i - startOffset) % step == 0) {
-                    action.accept(a);
+                    sampled.add(a);
                 }
                 i++;
             }
         } finally {
             rwLock.readLock().unlock();
         }
+        sampled.forEach(action);
     }
 
     public List<Animal> getPredators() {
@@ -305,7 +300,7 @@ public class Cell implements SimulationNode {
         }
     }
 
-    public boolean addBiomass(SpeciesKey key, double amount) {
+    public boolean addBiomass(SpeciesKey key, long amount) {
         rwLock.writeLock().lock();
         try {
             Biomass existing = container.getBiomass(key);
@@ -349,11 +344,11 @@ public class Cell implements SimulationNode {
     public int getPlantCount() { 
         rwLock.readLock().lock();
         try {
-            double total = 0;
+            long total = 0;
             for (Biomass b : container.getAllBiomass()) {
                 total += b.getBiomass();
             }
-            return (int) total;
+            return (int) (total / SCALE_1M);
         } finally {
             rwLock.readLock().unlock();
         }
@@ -381,7 +376,7 @@ public class Cell implements SimulationNode {
     public String getStatistics() {
         rwLock.readLock().lock();
         try {
-            return String.format("Cell[%d,%d]: Animals=%d, Biomass=%d", x, y, container.getAllAnimals().size(), (int) getPlantCount());
+            return String.format("Cell[%d,%d]: Animals=%d, Biomass=%d", x, y, container.getAllAnimals().size(), getPlantCount());
         } finally {
             rwLock.readLock().unlock();
         }

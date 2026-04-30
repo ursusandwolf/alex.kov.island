@@ -4,8 +4,7 @@ import com.island.content.Animal;
 import com.island.content.AnimalType;
 
 /**
- * Convenience abstract class for herbivores.
- * Avoids the need for instanceof checks by overriding methods directly.
+ * Convenience abstract class for herbivores using integer arithmetic.
  */
 public abstract class AbstractHerbivore extends Animal implements Herbivore {
     protected AbstractHerbivore(AnimalType type) {
@@ -13,8 +12,8 @@ public abstract class AbstractHerbivore extends Animal implements Herbivore {
     }
 
     @Override
-    protected double getSpecialMetabolismModifier() {
-        return getHerbivoreMetabolismModifier();
+    protected int getSpecialMetabolismModifierBP() {
+        return getHerbivoreMetabolismModifierBP();
     }
 
     @Override

@@ -3,15 +3,15 @@ package com.island.content.animals.predators;
 import com.island.content.Animal;
 import com.island.content.AnimalType;
 import com.island.content.animals.herbivores.Herbivore;
-import com.island.util.RandomUtils;
 
-import static com.island.config.SimulationConstants.HERBIVORE_METABOLISM_MODIFIER;
+import static com.island.config.SimulationConstants.HERBIVORE_METABOLISM_MODIFIER_BP;
 import static com.island.config.SimulationConstants.HERBIVORE_OFFSPRING_BONUS;
-import static com.island.config.SimulationConstants.REPTILE_METABOLISM_MODIFIER;
+import static com.island.config.SimulationConstants.REPTILE_METABOLISM_MODIFIER_BP;
+import static com.island.config.SimulationConstants.SCALE_10K;
 
 /**
- * Chameleon has a unique protection mechanic: 95% invisibility.
- * It also uses combined Herbivore and Reptile metabolism for better survival.
+ * Chameleon with integer-based arithmetic.
+ * 95% invisibility and highly efficient metabolism.
  */
 public class Chameleon extends Animal implements Herbivore {
     private final com.island.util.RandomProvider random;
@@ -24,13 +24,13 @@ public class Chameleon extends Animal implements Herbivore {
     @Override
     public boolean isProtected(int currentTick) {
         // Unique ability: 95% chance to be invisible to predators
-        return super.isProtected(currentTick) || random.nextDouble() < 0.95;
+        return super.isProtected(currentTick) || random.nextInt(0, 100) < 95;
     }
 
     @Override
-    protected double getSpecialMetabolismModifier() {
-        // Cumulative bonus: Herbivore (0.8) * Reptile (0.4) = 0.32x cost
-        return HERBIVORE_METABOLISM_MODIFIER * REPTILE_METABOLISM_MODIFIER;
+    protected int getSpecialMetabolismModifierBP() {
+        // Cumulative bonus: Herbivore * Reptile
+        return (HERBIVORE_METABOLISM_MODIFIER_BP * REPTILE_METABOLISM_MODIFIER_BP) / SCALE_10K;
     }
 
     @Override

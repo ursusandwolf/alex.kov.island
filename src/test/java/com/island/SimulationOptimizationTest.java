@@ -42,45 +42,38 @@ public class SimulationOptimizationTest {
         Cell cell = island.getCell(0, 0);
         // Chameleon is cold-blooded. It eats every 3rd tick (tick % 3 == 0).
         Animal chameleon = animalFactory.createAnimal(SpeciesKey.CHAMELEON).orElseThrow();
-        chameleon.setEnergy(chameleon.getMaxEnergy() * 0.5);
-        double initialEnergy = chameleon.getCurrentEnergy();
+        chameleon.setEnergy(chameleon.getMaxEnergy() / 2);
+        long initialEnergy = chameleon.getCurrentEnergy();
         
-        // Add some food (insects/biomass)
+        // Add some food
         cell.addAnimal(chameleon);
         
-        // Tick 1: Should SKIP (1 % 3 != 0)
+        // Tick 1: Should SKIP
         feedingService.tick(1);
         assertEquals(initialEnergy, chameleon.getCurrentEnergy(), "Chameleon should skip eating on tick 1");
 
-        // Tick 2: Should SKIP (2 % 3 != 0)
+        // Tick 2: Should SKIP
         feedingService.tick(2);
         assertEquals(initialEnergy, chameleon.getCurrentEnergy(), "Chameleon should skip eating on tick 2");
 
-        // Tick 3: Should ACT (3 % 3 == 0)
-        // We need to ensure there is something to eat. Let's add a caterpillar.
-        Animal food = animalFactory.createAnimal(SpeciesKey.CATERPILLAR).orElseThrow();
-        cell.addAnimal(food);
+        // Tick 3: Should ACT
+        // Add a caterpillar (biomass)
+        cell.addBiomass(new com.island.content.animals.herbivores.Caterpillar(100L * com.island.config.SimulationConstants.SCALE_1M, 0));
         
         feedingService.tick(3);
-        // Note: tryEat might still fail due to probability, but in a controlled environment with 100% chance it would work.
-        // For this test, we just care that it DOES NOT skip the check.
     }
 
     @Test
     @DisplayName("LOD: Only a subset of animals should act in overcrowded cells")
     void testLevelOfDetailSampling() {
         Cell cell = island.getCell(0, 0);
-        // Add 200 mice (Limit is 100 for herbivores in FeedingService)
+        // Add 200 mice
         for (int i = 0; i < 200; i++) {
             Animal mouse = animalFactory.createAnimal(SpeciesKey.MOUSE).orElseThrow();
-            mouse.setEnergy(mouse.getMaxEnergy() * 0.5);
+            mouse.setEnergy(mouse.getMaxEnergy() / 2);
             cell.addAnimal(mouse);
         }
 
-        // We can't easily check internal service state, but we can verify performance 
-        // by measuring time or checking that not all animals were processed if we had a way to track 'lastActionTick'.
-        // Since we don't want to change production code for tests, we'll verify it doesn't crash 
-        // and survives high load.
         assertDoesNotThrow(() -> feedingService.tick(0));
     }
 }

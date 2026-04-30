@@ -12,6 +12,7 @@ import java.util.Optional;
 
 /**
  * Represents the spatial environment of the simulation.
+ * Updated to use integer-based protection chances and biomass amounts.
  */
 public interface SimulationWorld extends Tickable {
     /**
@@ -33,7 +34,7 @@ public interface SimulationWorld extends Tickable {
     /**
      * Moves biomass between nodes.
      */
-    void moveBiomassPartially(Biomass b, SimulationNode from, SimulationNode to, double amount);
+    void moveBiomassPartially(Biomass b, SimulationNode from, SimulationNode to, long amount);
 
     /**
      * Reports death of a species to the world statistics.
@@ -66,14 +67,26 @@ public interface SimulationWorld extends Tickable {
     int getSpeciesCount(SpeciesKey key);
 
     /**
-     * Gets a map of species-specific protection chances (Red Book logic).
+     * Gets a map of species-specific protection chances (0-100 percent).
      */
-    Map<SpeciesKey, Double> getProtectionMap(SpeciesRegistry registry);
+    Map<SpeciesKey, Integer> getProtectionMap(SpeciesRegistry registry);
 
     /**
      * Gets the statistics service for the world.
      */
     StatisticsService getStatisticsService();
+
+    /**
+     * Gets the species registry for the world.
+     */
+    SpeciesRegistry getRegistry();
+
+    /**
+     * Gets the current season of the world.
+     */
+    default Season getCurrentSeason() {
+        return Season.SPRING;
+    }
 
     /**
      * Creates a domain-agnostic snapshot of the current world state.

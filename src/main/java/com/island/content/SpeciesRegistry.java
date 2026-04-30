@@ -1,7 +1,5 @@
 package com.island.content;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -17,7 +15,7 @@ import lombok.RequiredArgsConstructor;
 public class SpeciesRegistry {
     private final Map<SpeciesKey, AnimalType> animalTypes;
     private final Map<SpeciesKey, AnimalType> biomassTypes;
-    private final Map<SpeciesKey, Double> plantWeights;
+    private final Map<SpeciesKey, Long> plantWeights; // SCALE_1M
     private final Map<SpeciesKey, Integer> plantMaxCounts;
     private final Map<SpeciesKey, Integer> plantSpeeds;
 
@@ -34,8 +32,8 @@ public class SpeciesRegistry {
         return (type != null) ? Optional.of(type) : Optional.ofNullable(biomassTypes.get(key));
     }
 
-    public double getPlantWeight(SpeciesKey key) {
-        return plantWeights.getOrDefault(key, 0.0);
+    public long getPlantWeight(SpeciesKey key) {
+        return plantWeights.getOrDefault(key, 0L);
     }
 
     public int getPlantMaxCount(SpeciesKey key) {

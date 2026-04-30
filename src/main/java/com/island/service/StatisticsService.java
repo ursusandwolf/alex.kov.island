@@ -7,17 +7,19 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.DoubleAdder;
+import java.util.concurrent.atomic.LongAdder;
 import lombok.Getter;
 
+import static com.island.config.SimulationConstants.SCALE_1M;
+
 /**
- * Service responsible for gathering and providing simulation statistics.
- * Decouples reporting logic from the world model.
+ * Service responsible for gathering and providing simulation statistics using integer arithmetic.
+ * Biomass is tracked as long (SCALE_1M).
  */
 public class StatisticsService {
     @Getter
     private final Map<SpeciesKey, AtomicInteger> speciesCounts = new ConcurrentHashMap<>();
-    private final Map<SpeciesKey, DoubleAdder> biomassMass = new ConcurrentHashMap<>();
+    private final Map<SpeciesKey, LongAdder> biomassMass = new ConcurrentHashMap<>();
     
     private final Map<DeathCause, Map<SpeciesKey, AtomicInteger>> tickDeathStats = new EnumMap<>(DeathCause.class);
     private final Map<DeathCause, Map<SpeciesKey, AtomicInteger>> totalDeathStats = new EnumMap<>(DeathCause.class);
@@ -33,10 +35,6 @@ public class StatisticsService {
         speciesCounts.computeIfAbsent(speciesKey, k -> new AtomicInteger(0)).incrementAndGet();
     }
 
-    /**
-     * Decrements the species count without recording it as a death from a specific cause.
-     * Used during movement or when an organism is recycled/removed from the world.
-     */
     public void registerRemoval(SpeciesKey speciesKey) {
         AtomicInteger count = speciesCounts.get(speciesKey);
         if (count != null) {
@@ -44,8 +42,8 @@ public class StatisticsService {
         }
     }
 
-    public void registerBiomassChange(SpeciesKey speciesKey, double delta) {
-        biomassMass.computeIfAbsent(speciesKey, k -> new DoubleAdder()).add(delta);
+    public void registerBiomassChange(SpeciesKey speciesKey, long delta) {
+        biomassMass.computeIfAbsent(speciesKey, k -> new LongAdder()).add(delta);
     }
 
     public void registerDeath(SpeciesKey speciesKey, DeathCause cause) {
@@ -60,7 +58,6 @@ public class StatisticsService {
     }
 
     public void onTickStarted() {
-        // Clear only per-tick stats, keep totals and counts
         for (Map<SpeciesKey, AtomicInteger> stats : tickDeathStats.values()) {
             stats.clear();
         }
@@ -70,15 +67,53 @@ public class StatisticsService {
         AtomicInteger count = speciesCounts.get(key);
         int animalCount = (count != null) ? Math.max(0, count.get()) : 0;
         
-        DoubleAdder biomass = biomassMass.get(key);
-        int mass = (biomass != null) ? (int) Math.max(0, biomass.sum()) : 0;
+        LongAdder biomass = biomassMass.get(key);
+        int mass = (biomass != null) ? (int) Math.max(0, biomass.sum() / SCALE_1M) : 0;
         
         return animalCount + mass;
     }
 
+    public double calculateGlobalSatiety(com.island.engine.SimulationWorld world) {
+        if (world instanceof com.island.model.Island island) {
+            double totalMax = 0;
+            double totalCurrent = 0;
+            int animalCount = 0;
+            for (int x = 0; x < island.getWidth(); x++) {
+                for (int y = 0; y < island.getHeight(); y++) {
+                    for (com.island.content.Animal a : island.getGrid()[x][y].getAnimals()) {
+                        if (a.isAlive()) {
+                            totalMax += a.getMaxEnergy();
+                            totalCurrent += a.getCurrentEnergy();
+                            animalCount++;
+                        }
+                    }
+                }
+            }
+            return (animalCount == 0) ? 100.0 : (totalCurrent / totalMax) * 100.0;
+        }
+        return 100.0;
+    }
+
+    public int calculateStarvingCount(com.island.engine.SimulationWorld world) {
+        if (world instanceof com.island.model.Island island) {
+            int starving = 0;
+            for (int x = 0; x < island.getWidth(); x++) {
+                for (int y = 0; y < island.getHeight(); y++) {
+                    for (com.island.content.Animal a : island.getGrid()[x][y].getAnimals()) {
+                        if (a.isAlive() && a.getEnergyPercentage() < com.island.config.SimulationConstants.STARVATION_THRESHOLD_PERCENT) {
+                            starving++;
+                        }
+                    }
+                }
+            }
+            return starving;
+        }
+        return 0;
+    }
+
     public int getTotalPopulation() {
         int animals = speciesCounts.values().stream().mapToInt(AtomicInteger::get).map(c -> Math.max(0, c)).sum();
-        int biomass = (int) biomassMass.values().stream().mapToDouble(DoubleAdder::sum).map(d -> Math.max(0, d)).sum();
+        int biomass = (int) (biomassMass.values().stream().mapToLong(LongAdder::sum).map(l -> Math.max(0, l)).sum() / SCALE_1M);
         return animals + biomass;
     }
 
@@ -90,7 +125,7 @@ public class StatisticsService {
             }
         });
         biomassMass.forEach((k, v) -> {
-            int mass = (int) v.sum();
+            int mass = (int) (v.sum() / SCALE_1M);
             if (mass > 0) {
                 counts.merge(k, mass, Integer::sum);
             }

@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
+import static com.island.config.SimulationConstants.SCALE_1M;
+
 class WolfPackBalanceTest {
 
     @Test
@@ -25,7 +27,7 @@ class WolfPackBalanceTest {
         runSimulation(registry, true, 1);
         runSimulation(registry, false, 1);
 
-        long packTime = runSimulation(registry, true, 100); // 100 iterations for stable average
+        long packTime = runSimulation(registry, true, 100); 
         long soloTime = runSimulation(registry, false, 100);
 
         System.out.println("Pack Hunting (avg): " + (packTime / 100) + " ns");
@@ -33,9 +35,6 @@ class WolfPackBalanceTest {
         
         double speedup = (double) soloTime / packTime;
         System.out.println("Speedup factor: " + String.format("%.2f", speedup) + "x");
-        
-        // Note: Pack is doing MORE work (actually eating bears), so speedup < 1 is normal
-        // but it shows the complexity is manageable.
     }
 
     private long runSimulation(SpeciesRegistry registry, boolean usePack, int iterations) {
@@ -47,14 +46,14 @@ class WolfPackBalanceTest {
         List<GenericAnimal> wolves = new ArrayList<>();
         for (int i = 0; i < 20; i++) {
             GenericAnimal wolf = new GenericAnimal(registry.getAnimalType(SpeciesKey.WOLF).orElseThrow());
-            wolf.setEnergy(wolf.getMaxEnergy() * 0.3);
+            wolf.setEnergy((wolf.getMaxEnergy() * 30) / 100);
             cell.addAnimal(wolf);
             wolves.add(wolf);
         }
 
         for (int i = 0; i < 5; i++) {
             Bear bear = new Bear(registry.getAnimalType(SpeciesKey.BEAR).orElseThrow());
-            for(int a=0; a<60; a++) bear.checkAgeDeath(); 
+            for(int a=0; a<60; a++) { bear.checkAgeDeath(); }
             cell.addAnimal(bear);
         }
 
@@ -69,13 +68,12 @@ class WolfPackBalanceTest {
         double lastAvgEnergy = 0;
 
         for (int i = 0; i < iterations; i++) {
-            // Reset state for each iteration if multiple (not needed for this specific logic check)
             long start = System.nanoTime();
             service.tick(1);
             totalTime += (System.nanoTime() - start);
             
             int survivors = 0;
-            double totalEnergy = 0;
+            long totalEnergy = 0;
             for (GenericAnimal wolf : wolves) {
                 if (wolf.isAlive()) {
                     survivors++;
@@ -83,7 +81,7 @@ class WolfPackBalanceTest {
                 }
             }
             lastSurvivors = survivors;
-            lastAvgEnergy = survivors > 0 ? (totalEnergy / survivors) : 0;
+            lastAvgEnergy = survivors > 0 ? ((double) totalEnergy / survivors / SCALE_1M) : 0;
         }
 
         if (iterations == 100) {

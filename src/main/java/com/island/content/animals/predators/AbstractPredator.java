@@ -4,8 +4,7 @@ import com.island.content.Animal;
 import com.island.content.AnimalType;
 
 /**
- * Convenience abstract class for predators.
- * Avoids the need for instanceof checks by overriding methods directly.
+ * Convenience abstract class for predators using integer arithmetic.
  */
 public abstract class AbstractPredator extends Animal implements Predator {
     protected AbstractPredator(AnimalType type) {
@@ -13,7 +12,7 @@ public abstract class AbstractPredator extends Animal implements Predator {
     }
 
     @Override
-    protected double getSpecialMetabolismModifier() {
-        return getPredatorMetabolismModifier();
+    protected int getSpecialMetabolismModifierBP() {
+        return getPredatorMetabolismModifierBP();
     }
 }

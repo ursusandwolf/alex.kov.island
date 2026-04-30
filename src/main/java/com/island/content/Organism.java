@@ -1,21 +1,21 @@
 package com.island.content;
 
-import static com.island.config.SimulationConstants.BASE_METABOLISM_PERCENT;
-import static com.island.config.SimulationConstants.DEATH_EPSILON;
+import static com.island.config.SimulationConstants.BASE_METABOLISM_BP;
+import static com.island.config.SimulationConstants.SCALE_10K;
+import static com.island.config.SimulationConstants.SCALE_1M;
 
 import com.island.config.EnergyPolicy;
 import java.util.UUID;
-
 import lombok.Getter;
-import lombok.Setter;
 import lombok.experimental.NonFinal;
 
 /**
- * Базовый класс организмов.
+ * Base class for all organisms using integer-based arithmetic.
+ * Energy and weight are stored as long (SCALE_1M).
+ * Rates and modifiers are handled via basis points (SCALE_10K).
  */
 @Getter
 public abstract class Organism implements com.island.util.Poolable, com.island.engine.Mortal {
-    private static final long ENERGY_SCALE = 1_000_000L;
 
     private final String id = java.util.UUID.randomUUID().toString();
     @NonFinal
@@ -29,15 +29,15 @@ public abstract class Organism implements com.island.util.Poolable, com.island.e
     @NonFinal
     private volatile boolean isAlive;
 
-    protected Organism(double maxEnergy, int maxLifespan) {
-        this(maxEnergy, maxLifespan, EnergyPolicy.BIRTH_INITIAL.getFactor()); 
+    protected Organism(long maxEnergy, int maxLifespan) {
+        this(maxEnergy, maxLifespan, EnergyPolicy.BIRTH_INITIAL.getPercent()); 
     }
 
-    protected Organism(double maxEnergy, int maxLifespan, double energyFactor) {
-        this.maxEnergy = (long) (maxEnergy * ENERGY_SCALE);
+    protected Organism(long maxEnergy, int maxLifespan, int initialEnergyPercent) {
+        this.maxEnergy = maxEnergy;
         this.maxLifespan = maxLifespan;
         this.isAlive = true;
-        this.currentEnergy = (long) (this.maxEnergy * energyFactor);
+        this.currentEnergy = (maxEnergy * initialEnergyPercent) / 100;
         this.age = 0;
     }
 
@@ -50,10 +50,10 @@ public abstract class Organism implements com.island.util.Poolable, com.island.e
         this.maxLifespan = 0;
     }
 
-    public void init(double maxEnergy, int maxLifespan, double energyFactor) {
-        this.maxEnergy = (long) (maxEnergy * ENERGY_SCALE);
+    public void init(long maxEnergy, int maxLifespan, int initialEnergyPercent) {
+        this.maxEnergy = maxEnergy;
         this.maxLifespan = maxLifespan;
-        this.currentEnergy = (long) (this.maxEnergy * energyFactor);
+        this.currentEnergy = (maxEnergy * initialEnergyPercent) / 100;
         this.isAlive = true;
         this.age = 0;
     }
@@ -64,34 +64,21 @@ public abstract class Organism implements com.island.util.Poolable, com.island.e
 
     public abstract String getTypeName();
 
-    public double getEnergyPercentage() {
-        return (maxEnergy == 0) ? 0 : ((double) currentEnergy / maxEnergy) * 100.0;
-    }
-
-    public double getCurrentEnergy() {
-        return (double) currentEnergy / ENERGY_SCALE;
-    }
-
-    public double getMaxEnergy() {
-        return (double) maxEnergy / ENERGY_SCALE;
+    public int getEnergyPercentage() {
+        return (maxEnergy == 0) ? 0 : (int) ((currentEnergy * 100) / maxEnergy);
     }
 
     public boolean canPerformAction() { 
         return getEnergyPercentage() >= EnergyPolicy.ACTION_MIN.getPercent(); 
     }
 
-    public void setEnergyFactor(double factor) {
-        this.currentEnergy = (long) (maxEnergy * Math.max(0.0, Math.min(1.0, factor)));
-    }
-
     private final java.util.concurrent.locks.ReentrantLock energyLock = new java.util.concurrent.locks.ReentrantLock();
 
-    public boolean tryConsumeEnergy(double amount) {
-        long longAmount = (long) (amount * ENERGY_SCALE);
+    public boolean tryConsumeEnergy(long amount) {
         energyLock.lock();
         try {
-            currentEnergy = Math.max(0, currentEnergy - longAmount);
-            if (currentEnergy < 1 && isAlive) { // Using 1 instead of EPSILON for long
+            currentEnergy = Math.max(0, currentEnergy - amount);
+            if (currentEnergy == 0 && isAlive) {
                 isAlive = false;
             }
             return isAlive;
@@ -100,15 +87,15 @@ public abstract class Organism implements com.island.util.Poolable, com.island.e
         }
     }
 
-    public void consumeEnergy(double amount) {
+    public void consumeEnergy(long amount) {
         tryConsumeEnergy(amount);
     }
 
-    public void setEnergy(double energy) {
+    public void setEnergy(long energy) {
         energyLock.lock();
         try {
-            this.currentEnergy = Math.min((long) (energy * ENERGY_SCALE), maxEnergy);
-            if (this.currentEnergy < 1 && isAlive) {
+            this.currentEnergy = Math.min(energy, maxEnergy);
+            if (this.currentEnergy == 0 && isAlive) {
                 isAlive = false;
             }
         } finally {
@@ -116,10 +103,10 @@ public abstract class Organism implements com.island.util.Poolable, com.island.e
         }
     }
 
-    public void addEnergy(double amount) {
+    public void addEnergy(long amount) {
         energyLock.lock();
         try {
-            currentEnergy = Math.min(maxEnergy, currentEnergy + (long) (amount * ENERGY_SCALE));
+            currentEnergy = Math.min(maxEnergy, currentEnergy + amount);
         } finally {
             energyLock.unlock();
         }
@@ -135,21 +122,22 @@ public abstract class Organism implements com.island.util.Poolable, com.island.e
     }
 
     public boolean isStarving() {
-        return currentEnergy < DEATH_EPSILON;
+        return getEnergyPercentage() < com.island.config.SimulationConstants.STARVATION_THRESHOLD_PERCENT;
     }
 
-    public double getWeight() {
-        return 1.0;
+    public long getWeight() {
+        return SCALE_1M; // Default 1.0 unit
     }
 
-    public double getDynamicMetabolismRate() {
-        SizeClass sizeClass = SizeClass.fromWeight(getWeight());
-        return maxEnergy * BASE_METABOLISM_PERCENT * sizeClass.getMetabolismModifier()
-                * getSpecialMetabolismModifier();
+    public long getDynamicMetabolismRate() {
+        SizeClass sizeClass = SizeClass.fromWeight((double) getWeight() / SCALE_1M);
+        long baseMetabolism = (maxEnergy * BASE_METABOLISM_BP) / SCALE_10K;
+        return (baseMetabolism * sizeClass.getMetabolismModifierBP() / SCALE_10K)
+                * getSpecialMetabolismModifierBP() / SCALE_10K;
     }
 
-    protected double getSpecialMetabolismModifier() {
-        return 1.0;
+    protected int getSpecialMetabolismModifierBP() {
+        return SCALE_10K; // 1.0
     }
 
     public boolean isHibernating() {

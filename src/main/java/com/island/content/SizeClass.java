@@ -7,19 +7,19 @@ import lombok.Getter;
  */
 @Getter
 public enum SizeClass {
-    TINY(1.25, 5, Lod.AGGREGATED),    // <= 0.1 kg (Caterpillar, Mouse)
-    SMALL(1.20, 2, Lod.AGGREGATED),   // <= 1.0 kg (Duck)
-    NORMAL(1.00, 1, Lod.INDIVIDUAL),  // <= 10.0 kg (Rabbit, Fox, Eagle)
-    MEDIUM(1.00, 1, Lod.INDIVIDUAL),  // <= 150.0 kg (Boa, Goat, Sheep, Wolf)
-    LARGE(0.80, 1, Lod.INDIVIDUAL),   // <= 500.0 kg (Horse, Deer, Boar)
-    HUGE(0.80, 1, Lod.INDIVIDUAL);    // > 500.0 kg (Bear, Buffalo)
+    TINY(12500, 5, Lod.AGGREGATED),    // <= 0.1 kg (Caterpillar, Mouse). 1.25x metabolism.
+    SMALL(12000, 2, Lod.AGGREGATED),   // <= 1.0 kg (Duck). 1.20x metabolism.
+    NORMAL(10000, 1, Lod.INDIVIDUAL),  // <= 10.0 kg (Rabbit, Fox, Eagle)
+    MEDIUM(10000, 1, Lod.INDIVIDUAL),  // <= 150.0 kg (Boa, Goat, Sheep, Wolf)
+    LARGE(8000, 1, Lod.INDIVIDUAL),   // <= 500.0 kg (Horse, Deer, Boar). 0.80x metabolism.
+    HUGE(8000, 1, Lod.INDIVIDUAL);    // > 500.0 kg (Bear, Buffalo)
 
-    private final double metabolismModifier;
+    private final int metabolismModifierBP; // SCALE_10K
     private final int offspringCount;
     private final Lod preferredLod;
 
-    SizeClass(double metabolismModifier, int offspringCount, Lod preferredLod) {
-        this.metabolismModifier = metabolismModifier;
+    SizeClass(int metabolismModifierBP, int offspringCount, Lod preferredLod) {
+        this.metabolismModifierBP = metabolismModifierBP;
         this.offspringCount = offspringCount;
         this.preferredLod = preferredLod;
     }

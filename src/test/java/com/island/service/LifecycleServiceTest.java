@@ -27,6 +27,7 @@ import java.util.concurrent.Executors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -71,7 +72,7 @@ class LifecycleServiceTest {
     @DisplayName("Animal should survive and consume energy when metabolism is met")
     void should_survive_and_consume_energy_when_metabolism_met() {
         // Given
-        double metabolismRate = 1.0;
+        long metabolismRate = 1000L;
         
         given(animal.isAlive()).willReturn(true);
         given(animal.getDynamicMetabolismRate()).willReturn(metabolismRate);
@@ -91,7 +92,7 @@ class LifecycleServiceTest {
     @DisplayName("Animal should die from starvation when it cannot consume enough energy for metabolism")
     void should_die_from_starvation_when_energy_insufficient() {
         // Given
-        double metabolismRate = 5.0;
+        long metabolismRate = 5000L;
         
         given(animal.isAlive()).willReturn(true);
         given(animal.getDynamicMetabolismRate()).willReturn(metabolismRate);
@@ -124,7 +125,7 @@ class LifecycleServiceTest {
         lifecycleService.tick(0);
 
         // Then
-        verify(animal, never()).tryConsumeEnergy(any(Double.class));
+        verify(animal, never()).tryConsumeEnergy(anyLong());
         verify(animal, never()).getDynamicMetabolismRate();
         verify(world, never()).reportDeath(any(), any());
     }

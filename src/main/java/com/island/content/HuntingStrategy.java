@@ -1,32 +1,30 @@
 package com.island.content;
 
-import com.island.model.Cell;
-
 /**
- * Strategy for hunting/feeding interactions between organisms.
+ * Strategy for hunting/feeding interactions between organisms using integer arithmetic.
  */
 public interface HuntingStrategy {
     /**
-     * Calculates the success rate (0.0 to 1.0) for a hunt attempt.
+     * Calculates the success rate in basis points (0-10000) for a hunt attempt.
      */
-    double calculateSuccessRate(Animal predator, Organism prey);
+    int calculateSuccessRate(Animal predator, Organism prey);
 
     /**
-     * Calculates the success rate (0.0 to 1.0) for a pack hunt attempt.
+     * Calculates the success rate in basis points (0-10000) for a pack hunt attempt.
      */
-    default double calculatePackSuccessRate(java.util.List<Animal> pack, Organism prey, int baseChance) {
-        return baseChance / 100.0;
+    default int calculatePackSuccessRate(java.util.List<Animal> pack, Organism prey, int baseChancePercent) {
+        return baseChancePercent * 100;
     }
 
     /**
-     * Calculates the energy cost for a hunt attempt.
+     * Calculates the energy cost for a hunt attempt (SCALE_1M).
      */
-    double calculateHuntCost(Animal predator, Organism prey);
+    long calculateHuntCost(Animal predator, Organism prey);
 
     /**
      * Determines if the predator is willing to hunt this prey (ROI check).
      */
-    boolean isWorthHunting(Animal predator, Organism prey, double successRate, double cost);
+    boolean isWorthHunting(Animal predator, Organism prey, int successRateBP, long cost);
 
     /**
      * Selects the best prey from the available providers.

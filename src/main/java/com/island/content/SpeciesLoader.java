@@ -5,8 +5,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import static com.island.config.SimulationConstants.SCALE_1M;
+
 /**
  * Loads species configuration from properties file.
+ * Converts double properties to integer-based formats (SCALE_1M or percent 0-100).
  */
 public class SpeciesLoader {
     private static final String CONFIG_FILE = "species.properties";
@@ -23,11 +26,11 @@ public class SpeciesLoader {
 
         Map<SpeciesKey, AnimalType> animalTypes = new HashMap<>();
         Map<SpeciesKey, AnimalType> biomassTypes = new HashMap<>();
-        Map<SpeciesKey, Double> plantWeights = new HashMap<>();
+        Map<SpeciesKey, Long> plantWeights = new HashMap<>();
         Map<SpeciesKey, Integer> plantMaxCounts = new HashMap<>();
         Map<SpeciesKey, Integer> plantSpeeds = new HashMap<>();
 
-        // 1. Discover species from list or use existing values
+        // Discover species from list
         String listStr = props.getProperty("species.list", "");
         if (!listStr.isEmpty()) {
             for (String code : listStr.split(",")) {
@@ -37,7 +40,7 @@ public class SpeciesLoader {
             }
         }
 
-        // 2. Load all registered species
+        // Load all registered species
         for (SpeciesKey key : SpeciesKey.values()) {
             String code = key.getCode();
             if (props.containsKey(code + ".weight")) {
@@ -57,11 +60,11 @@ public class SpeciesLoader {
     private void loadEntry(SpeciesKey key, Properties props, 
                            Map<SpeciesKey, AnimalType> animalTypes,
                            Map<SpeciesKey, AnimalType> biomassTypes,
-                           Map<SpeciesKey, Double> plantWeights, 
+                           Map<SpeciesKey, Long> plantWeights, 
                            Map<SpeciesKey, Integer> plantMaxCounts,
                            Map<SpeciesKey, Integer> plantSpeeds) {
         String code = key.getCode();
-        double weight = Math.max(0.001, Double.parseDouble(props.getProperty(code + ".weight", "1")));
+        long weight = toScaledLong(props.getProperty(code + ".weight", "1"));
         int maxCount = Math.max(0, Integer.parseInt(props.getProperty(code + ".maxPerCell", "1")));
         int speed = Math.max(0, Integer.parseInt(props.getProperty(code + ".speed", "0")));
         
@@ -70,20 +73,20 @@ public class SpeciesLoader {
         boolean isColdBlooded = Boolean.parseBoolean(props.getProperty(code + ".isColdBlooded", "false"));
         boolean isPackHunter = Boolean.parseBoolean(props.getProperty(code + ".isPackHunter", "false"));
         
-        double presenceProb = Double.parseDouble(props.getProperty(code + ".presenceProb", "0.2"));
-        double settlementBase = Double.parseDouble(props.getProperty(code + ".settlementBase", "0.1"));
-        double settlementRange = Double.parseDouble(props.getProperty(code + ".settlementRange", "0.1"));
+        int presenceChance = toPercent(props.getProperty(code + ".presenceProb", "0.2"));
+        long settlementBase = toScaledLong(props.getProperty(code + ".settlementBase", "0.1"));
+        long settlementRange = toScaledLong(props.getProperty(code + ".settlementRange", "0.1"));
 
-        SizeClass sizeClass = SizeClass.fromWeight(weight);
-        double defaultReproChance = switch (sizeClass) {
-            case TINY -> 0.25;
-            case SMALL -> 0.18;
-            case NORMAL -> 0.12;
-            case MEDIUM -> 0.08;
-            case LARGE -> 0.04;
-            case HUGE -> 0.02;
+        SizeClass sizeClass = SizeClass.fromWeight((double) weight / SCALE_1M);
+        int defaultReproChance = switch (sizeClass) {
+            case TINY -> 25;
+            case SMALL -> 18;
+            case NORMAL -> 12;
+            case MEDIUM -> 8;
+            case LARGE -> 4;
+            case HUGE -> 2;
         };
-        double reproChance = Double.parseDouble(props.getProperty(code + ".reproductionChance", String.valueOf(defaultReproChance)));
+        int reproChance = toPercent(props.getProperty(code + ".reproductionChance", null), defaultReproChance);
 
         int defaultMaxOffspring = switch (sizeClass) {
             case TINY -> 10;
@@ -101,7 +104,7 @@ public class SpeciesLoader {
             plantSpeeds.put(key, speed);
         }
         
-        double food = Math.max(0, Double.parseDouble(props.getProperty(code + ".foodForSaturation", "1")));
+        long food = toScaledLong(props.getProperty(code + ".foodForSaturation", "1"));
         int lifespan = Math.max(1, Integer.parseInt(props.getProperty(code + ".lifespan", "100")));
         
         String preyStr = props.getProperty(code + ".prey", "");
@@ -133,7 +136,7 @@ public class SpeciesLoader {
                 .isPlant(isPlant)
                 .reproductionChance(reproChance)
                 .maxOffspring(maxOffspring)
-                .presenceProb(presenceProb)
+                .presenceChance(presenceChance)
                 .settlementBase(settlementBase)
                 .settlementRange(settlementRange)
                 .build();
@@ -143,5 +146,20 @@ public class SpeciesLoader {
         } else {
             animalTypes.put(key, type);
         }
+    }
+
+    private long toScaledLong(String val) {
+        return (long) (Double.parseDouble(val) * SCALE_1M);
+    }
+
+    private int toPercent(String val) {
+        return (int) (Double.parseDouble(val) * 100);
+    }
+
+    private int toPercent(String val, int defaultVal) {
+        if (val == null) {
+            return defaultVal;
+        }
+        return (int) (Double.parseDouble(val) * 100);
     }
 }

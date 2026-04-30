@@ -1,15 +1,16 @@
 package com.island.content;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.AllArgsConstructor;
 
+import static com.island.config.SimulationConstants.SCALE_1M;
+
 /**
  * Flyweight: common data for a species.
+ * Uses integer-based arithmetic: weights/energy are long (SCALE_1M), chances are int (0-100).
  */
 @Getter
 @Builder
@@ -17,9 +18,9 @@ import lombok.AllArgsConstructor;
 public final class AnimalType {
     private final SpeciesKey speciesKey;
     private final String typeName;
-    private final double weight;
-    private final double foodForSaturation;
-    private final double maxEnergy;
+    private final long weight;
+    private final long foodForSaturation;
+    private final long maxEnergy;
     private final int maxPerCell;
     private final int speed;
     private final int maxLifespan;
@@ -32,13 +33,13 @@ public final class AnimalType {
     private final boolean isPackHunter;
     private final boolean isBiomass;
     private final boolean isPlant;
-    private final double reproductionChance;
+    private final int reproductionChance; // 0-100
     private final int maxOffspring;
 
     // Data-driven settlement properties
-    private final double presenceProb;
-    private final double settlementBase;
-    private final double settlementRange;
+    private final int presenceChance; // 0-100
+    private final long settlementBase;
+    private final long settlementRange;
 
     public boolean canEat(SpeciesKey key) {
         return huntProbabilities.containsKey(key);

@@ -1,13 +1,11 @@
 package com.island.content.animals.predators;
 
-
+import static com.island.config.SimulationConstants.SCALE_10K;
 import com.island.content.animals.herbivores.Herbivore;
 import com.island.content.AnimalType;
 
 /**
- * Bear implementation with a unique Hibernation mechanic.
- * Cycle: 100 ticks active, 50 ticks asleep (no hunting, no moving).
- * Bear is an Omnivore (Predator + Herbivore).
+ * Bear implementation with integer-based metabolism and hibernation logic.
  */
 public class Bear extends AbstractPredator implements Herbivore {
     private static final int FULL_CYCLE = 150;
@@ -18,9 +16,9 @@ public class Bear extends AbstractPredator implements Herbivore {
     }
 
     @Override
-    protected double getSpecialMetabolismModifier() {
+    protected int getSpecialMetabolismModifierBP() {
         // Combines predator and herbivore modifiers
-        return getPredatorMetabolismModifier() * getHerbivoreMetabolismModifier();
+        return (getPredatorMetabolismModifierBP() * getHerbivoreMetabolismModifierBP()) / SCALE_10K;
     }
 
     @Override
@@ -30,7 +28,6 @@ public class Bear extends AbstractPredator implements Herbivore {
 
     @Override
     public boolean isHibernating() {
-        // Start with SLEEP_PERIOD, then ACTIVE_PERIOD
         int cycleTime = getAge() % FULL_CYCLE;
         return cycleTime < SLEEP_PERIOD;
     }

@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Island-specific implementation of NodeSnapshot.
+ * Island-specific implementation of NodeSnapshot using integer arithmetic for sorting.
  */
 public class CellSnapshot implements NodeSnapshot {
     private final String coordinates;
@@ -19,30 +19,31 @@ public class CellSnapshot implements NodeSnapshot {
     public CellSnapshot(Cell cell) {
         this.coordinates = cell.getCoordinates();
         
-        Map<SpeciesKey, Double> biomassMap = new HashMap<>();
-        for (Animal a : cell.getAnimals()) {
+        Map<SpeciesKey, Long> biomassMap = new HashMap<>();
+        cell.forEachAnimal(a -> {
             if (a.isAlive()) {
-                biomassMap.merge(a.getSpeciesKey(), a.getWeight(), Double::sum);
+                biomassMap.merge(a.getSpeciesKey(), a.getWeight(), Long::sum);
             }
-        }
+        });
         for (Biomass b : cell.getBiomassContainers()) {
             if (b.isAlive() && b.getBiomass() > 0) {
-                biomassMap.merge(b.getSpeciesKey(), b.getBiomass(), Double::sum);
+                biomassMap.merge(b.getSpeciesKey(), b.getBiomass(), Long::sum);
             }
         }
 
         this.hasOrganisms = !biomassMap.isEmpty();
         if (hasOrganisms) {
             SpeciesKey top = null;
-            double maxWeight = -1.0;
-            for (Map.Entry<SpeciesKey, Double> entry : biomassMap.entrySet()) {
+            long maxWeight = -1;
+            for (Map.Entry<SpeciesKey, Long> entry : biomassMap.entrySet()) {
                 if (entry.getValue() > maxWeight) {
                     maxWeight = entry.getValue();
                     top = entry.getKey();
                 }
             }
             this.topSpeciesCode = (top != null) ? top.getCode() : null;
-            this.isTopSpeciesPlant = (top == SpeciesKey.PLANT || top == SpeciesKey.GRASS || top == SpeciesKey.CABBAGE);
+            this.isTopSpeciesPlant = top != null && cell.getWorld().getRegistry().getAnyType(top)
+                    .map(com.island.content.AnimalType::isPlant).orElse(false);
         } else {
             this.topSpeciesCode = null;
             this.isTopSpeciesPlant = false;

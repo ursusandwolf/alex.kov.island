@@ -1,26 +1,33 @@
 package com.island.config;
 
 /**
- * Categorized energy thresholds and costs to replace loose constants.
+ * Categorized energy thresholds and costs using integer-based arithmetic.
+ * Percent values are 0-100.
  */
 public enum EnergyPolicy {
-    ACTION_MIN(15.0),
-    REPRODUCTION_MIN(70.0),
-    BIRTH_INITIAL(50.0),
-    ESCAPE_LOSS(5.0),
-    REPRODUCTION_COST(15.0);
+    ACTION_MIN(15),
+    REPRODUCTION_MIN(70),
+    BIRTH_INITIAL(50),
+    ESCAPE_LOSS_BP(500), // 5%
+    REPRODUCTION_COST_BP(1500); // 15%
 
-    private final double value;
+    private final int value;
 
-    EnergyPolicy(double value) {
+    EnergyPolicy(int value) {
         this.value = value;
     }
 
-    public double getPercent() {
+    public int getPercent() {
         return value;
     }
 
-    public double getFactor() {
-        return value / 100.0;
+    /**
+     * Returns the value as basis points (1/10000).
+     */
+    public int getBasisPoints() {
+        if (name().endsWith("_BP")) {
+            return value;
+        }
+        return value * 100;
     }
 }

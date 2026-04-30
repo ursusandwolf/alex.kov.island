@@ -97,8 +97,11 @@ public class InteractionMatrix implements InteractionProvider {
                     matrix.setChance(predatorKey, preyKey, chance);
                     // If can eat generic PLANT, can eat any specific plant
                     if (preyKey.equals(SpeciesKey.PLANT)) {
-                        matrix.setChance(predatorKey, SpeciesKey.GRASS, chance);
-                        matrix.setChance(predatorKey, SpeciesKey.CABBAGE, chance);
+                        for (SpeciesKey otherKey : registry.getAllBiomassKeys()) {
+                            if (registry.getBiomassType(otherKey).map(AnimalType::isPlant).orElse(false)) {
+                                matrix.setChance(predatorKey, otherKey, chance);
+                            }
+                        }
                     }
                 }
             }
@@ -108,8 +111,11 @@ public class InteractionMatrix implements InteractionProvider {
             if (!isPredator && !isBiomass) {
                 if (matrix.getChance(predatorKey, SpeciesKey.PLANT) == 0) {
                     matrix.setChance(predatorKey, SpeciesKey.PLANT, 100);
-                    matrix.setChance(predatorKey, SpeciesKey.GRASS, 100);
-                    matrix.setChance(predatorKey, SpeciesKey.CABBAGE, 100);
+                    for (SpeciesKey otherKey : registry.getAllBiomassKeys()) {
+                        if (registry.getBiomassType(otherKey).map(AnimalType::isPlant).orElse(false)) {
+                            matrix.setChance(predatorKey, otherKey, 100);
+                        }
+                    }
                 }
             }
         }

@@ -1,6 +1,5 @@
 package com.island.content;
 
-import com.island.content.animals.herbivores.Caterpillar;
 import com.island.model.Cell;
 import com.island.util.InteractionProvider;
 import com.island.util.RandomProvider;
@@ -11,14 +10,13 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Provider for prey selection within a cell.
- * Optimized with caching to avoid repeated calculations during a single predator's turn.
+ * Provider for prey selection within a cell using integer arithmetic.
  */
 public class PreyProvider {
     private final Cell cell;
     private final InteractionProvider matrix;
     private final int currentTick;
-    private final Map<SpeciesKey, Double> protectionMap;
+    private final Map<SpeciesKey, Integer> protectionMap; // Chance in percent
     private final RandomProvider random;
     private final boolean isWolfPack;
 
@@ -30,16 +28,16 @@ public class PreyProvider {
     }
 
     public PreyProvider(Cell cell, InteractionProvider matrix, int currentTick, 
-                        Map<SpeciesKey, Double> protectionMap, RandomProvider random) {
+                        Map<SpeciesKey, Integer> protectionMap, RandomProvider random) {
         this(cell, matrix, currentTick, protectionMap, false, random);
     }
 
     public PreyProvider(Cell cell, InteractionProvider matrix, int tick, 
-                        Map<SpeciesKey, Double> protectionMap, boolean isWolfPack, RandomProvider random) {
+                        Map<SpeciesKey, Integer> protectionMap, boolean isWolfPack, RandomProvider random) {
         this.cell = cell;
         this.matrix = matrix;
         this.currentTick = tick;
-        this.protectionMap = protectionMap;
+        this.protectionMap = (protectionMap != null) ? protectionMap : Collections.emptyMap();
         this.isWolfPack = isWolfPack;
         this.random = random;
     }
@@ -74,8 +72,8 @@ public class PreyProvider {
         }
 
         // Sort by ROI (weight * probability) descending
-        potential.sort(Comparator.comparingDouble((Organism o) -> {
-            double weight = o instanceof Biomass ? ((Biomass) o).getBiomass() : o.getWeight();
+        potential.sort(Comparator.comparingLong((Organism o) -> {
+            long weight = o instanceof Biomass ? ((Biomass) o).getBiomass() : o.getWeight();
             int chance = matrix.getChance(predator.getSpeciesKey(), o.getSpeciesKey());
             return weight * chance;
         }).reversed());
@@ -84,8 +82,8 @@ public class PreyProvider {
     }
 
     private boolean isPlantProtected(Biomass plant) {
-        Double hideChance = protectionMap.get(plant.getSpeciesKey());
-        return hideChance != null && random.nextDouble() < hideChance;
+        Integer hideChance = protectionMap.get(plant.getSpeciesKey());
+        return hideChance != null && random.nextInt(0, 100) < hideChance;
     }
 
     public void markAsHiding(Animal prey) {
@@ -93,6 +91,6 @@ public class PreyProvider {
     }
 
     public void markAsEaten(Organism prey) {
-        // Handled by cell.removeAnimal under lock in FeedingService
+        // Handled by cell.removeAnimal
     }
 }

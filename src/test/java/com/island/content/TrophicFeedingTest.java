@@ -1,6 +1,5 @@
 package com.island.content;
 
-import com.island.content.GenericAnimal;
 import com.island.model.Cell;
 import com.island.model.Island;
 import com.island.service.StatisticsService;
@@ -39,8 +38,8 @@ class TrophicFeedingTest {
         GenericAnimal predator = new GenericAnimal(registry.getAnimalType(SpeciesKey.WOLF).orElseThrow());
         GenericAnimal victim = new GenericAnimal(registry.getAnimalType(SpeciesKey.WOLF).orElseThrow());
         
-        predator.setEnergy(predator.getMaxEnergy() * 0.5);
-        double initialEnergy = predator.getCurrentEnergy();
+        predator.setEnergy(predator.getMaxEnergy() / 2);
+        long initialEnergy = predator.getCurrentEnergy();
         
         cell.addAnimal(predator);
         cell.addAnimal(victim);
@@ -54,23 +53,21 @@ class TrophicFeedingTest {
 
     @Test
     void testInterspeciesPredatorPredation() {
-        // Wolf eats Fox with 30% chance
+        // Wolf eats Fox
         matrix.setChance(SpeciesKey.WOLF, SpeciesKey.FOX, 30);
         
-        // Add multiple foxes to avoid 'endangered' protection (threshold is 0.05 * 30 = 1.5)
         for (int i = 0; i < 5; i++) {
             GenericAnimal fox = new GenericAnimal(registry.getAnimalType(SpeciesKey.FOX).orElseThrow());
             cell.addAnimal(fox);
         }
         
         GenericAnimal wolf = new GenericAnimal(registry.getAnimalType(SpeciesKey.WOLF).orElseThrow());
-        wolf.setEnergy(wolf.getMaxEnergy() * 0.5);
+        wolf.setEnergy(wolf.getMaxEnergy() / 2);
         cell.addAnimal(wolf);
         
         matrix.setChance(SpeciesKey.WOLF, SpeciesKey.FOX, 100);
         feedingService.tick(1);
         
-        // One fox should be eaten, but we had 5. So at least one removal happened.
         assertTrue(cell.getAnimalCount() < 6);
         assertTrue(wolf.isAlive());
     }
@@ -79,22 +76,19 @@ class TrophicFeedingTest {
     void testPreyHidingMechanic() {
         matrix.setChance(SpeciesKey.WOLF, SpeciesKey.RABBIT, 100);
         
-        // Add many rabbits to avoid protection
         for (int i = 0; i < 10; i++) {
             cell.addAnimal(new GenericAnimal(registry.getAnimalType(SpeciesKey.RABBIT).orElseThrow()));
         }
         
         GenericAnimal wolf = new GenericAnimal(registry.getAnimalType(SpeciesKey.WOLF).orElseThrow());
-        wolf.setEnergy(wolf.getMaxEnergy() * 0.5);
+        wolf.setEnergy(wolf.getMaxEnergy() / 2);
         cell.addAnimal(wolf);
         
-        // Mark one as hiding manually
         Animal target = (Animal) cell.getHerbivores().get(0);
         target.setHiding(true);
         
         feedingService.tick(1);
         
-        // Wolf should have eaten another rabbit (not the hiding one)
         assertTrue(target.isAlive());
         assertTrue(cell.getAnimalCount() < 11);
     }

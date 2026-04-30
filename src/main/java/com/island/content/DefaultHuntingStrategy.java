@@ -1,14 +1,15 @@
 package com.island.content;
 
-import static com.island.config.SimulationConstants.HUNT_ROI_THRESHOLD;
-import static com.island.config.SimulationConstants.HUNT_STRIKE_COST_MAX_ENERGY_CAP;
-import static com.island.config.SimulationConstants.HUNT_STRIKE_COST_PREY_WEIGHT_FRACTION;
-import static com.island.config.SimulationConstants.PREY_RELATIVE_SPEED_HUNT_COST_STEP_PERCENT;
+import static com.island.config.SimulationConstants.HUNT_ROI_THRESHOLD_BP;
+import static com.island.config.SimulationConstants.HUNT_STRIKE_COST_MAX_ENERGY_CAP_BP;
+import static com.island.config.SimulationConstants.HUNT_STRIKE_COST_PREY_WEIGHT_BP;
+import static com.island.config.SimulationConstants.PREY_RELATIVE_SPEED_HUNT_COST_STEP_BP;
+import static com.island.config.SimulationConstants.SCALE_10K;
 
 import com.island.util.InteractionProvider;
 
 /**
- * Default implementation of hunting logic.
+ * Default implementation of hunting logic using integer arithmetic.
  */
 public class DefaultHuntingStrategy implements HuntingStrategy {
     private final InteractionProvider interactionMatrix;
@@ -18,38 +19,37 @@ public class DefaultHuntingStrategy implements HuntingStrategy {
     }
 
     @Override
-    public double calculateSuccessRate(Animal predator, Organism prey) {
-        int chance = interactionMatrix.getChance(predator.getSpeciesKey(), prey.getSpeciesKey());
-        return chance / 100.0;
+    public int calculateSuccessRate(Animal predator, Organism prey) {
+        return interactionMatrix.getChance(predator.getSpeciesKey(), prey.getSpeciesKey()) * 100;
     }
 
     @Override
-    public double calculatePackSuccessRate(java.util.List<Animal> pack, Organism prey, int baseChance) {
-        double bonus = pack.size() / 100.0; // 1% per wolf
+    public int calculatePackSuccessRate(java.util.List<Animal> pack, Organism prey, int baseChancePercent) {
+        int bonusBP = pack.size() * 100; // 1% (100 BP) per wolf
         
-        // Large prey bonus: grows from 2% up to 30%
-        if (prey.getWeight() > 150) { // Large or Huge
-            double packBonus = Math.min(com.island.config.SimulationConstants.WOLF_PACK_MAX_BONUS_PERCENT, pack.size()) / 100.0;
-            bonus = Math.max(bonus, packBonus);
+        // Large prey bonus: grows up to 30%
+        if (prey.getWeight() > 150 * com.island.config.SimulationConstants.SCALE_1M) { 
+            int packBonusBP = Math.min(com.island.config.SimulationConstants.WOLF_PACK_MAX_BONUS_PERCENT, pack.size()) * 100;
+            bonusBP = Math.max(bonusBP, packBonusBP);
         }
         
-        return Math.min(1.0, (baseChance / 100.0) + bonus);
+        return Math.min(SCALE_10K, (baseChancePercent * 100) + bonusBP);
     }
 
     @Override
-    public double calculateHuntCost(Animal predator, Organism prey) {
-        double preyWeight = prey.getWeight();
+    public long calculateHuntCost(Animal predator, Organism prey) {
+        long preyWeight = prey.getWeight();
 
         // Strike effort
-        double strikeCost = Math.min(preyWeight * HUNT_STRIKE_COST_PREY_WEIGHT_FRACTION, 
-                                     predator.getMaxEnergy() * HUNT_STRIKE_COST_MAX_ENERGY_CAP);
+        long strikeCost = Math.min((preyWeight * HUNT_STRIKE_COST_PREY_WEIGHT_BP) / SCALE_10K, 
+                                     (predator.getMaxEnergy() * HUNT_STRIKE_COST_MAX_ENERGY_CAP_BP) / SCALE_10K);
         
         // Chase cost (only for animals)
-        double chaseCost = 0;
+        long chaseCost = 0;
         if (prey instanceof Animal a) {
             int speedDifference = a.getSpeed() - predator.getSpeed();
             if (speedDifference > 0) {
-                chaseCost = predator.getMaxEnergy() * (speedDifference * PREY_RELATIVE_SPEED_HUNT_COST_STEP_PERCENT);
+                chaseCost = (predator.getMaxEnergy() * speedDifference * PREY_RELATIVE_SPEED_HUNT_COST_STEP_BP) / SCALE_10K;
             }
         }
 
@@ -57,18 +57,19 @@ public class DefaultHuntingStrategy implements HuntingStrategy {
     }
 
     @Override
-    public boolean isWorthHunting(Animal predator, Organism prey, double successRate, double cost) {
-        double preyWeight = prey.getWeight();
-        double expectedGain = preyWeight * successRate;
-        // ROI Check: Expected profit must be at least ROI threshold higher than effort
-        return expectedGain >= cost * HUNT_ROI_THRESHOLD;
+    public boolean isWorthHunting(Animal predator, Organism prey, int successRateBP, long cost) {
+        long preyWeight = prey.getWeight();
+        // expectedGain = (preyWeight * successRateBP) / SCALE_10K
+        long expectedGain = (preyWeight * successRateBP) / SCALE_10K;
+        // ROI Check: expectedGain >= (cost * HUNT_ROI_THRESHOLD_BP) / SCALE_10K
+        return expectedGain >= (cost * HUNT_ROI_THRESHOLD_BP) / SCALE_10K;
     }
 
     @Override
     public Organism selectPrey(Animal predator, PreyProvider provider) {
         for (Organism prey : provider.getPreyFor(predator)) {
-            double successRate = calculateSuccessRate(predator, prey);
-            double cost = calculateHuntCost(predator, prey);
+            int successRate = calculateSuccessRate(predator, prey);
+            long cost = calculateHuntCost(predator, prey);
             if (isWorthHunting(predator, prey, successRate, cost)) {
                 return prey;
             }

@@ -1,24 +1,23 @@
 package com.island.content;
 
-import static com.island.config.SimulationConstants.HERBIVORE_METABOLISM_MODIFIER;
-import static com.island.config.SimulationConstants.HERBIVORE_OFFSPRING_BONUS;
-import static com.island.config.SimulationConstants.SPEED_MOVE_COST_STEP_PERCENT;
+import static com.island.config.SimulationConstants.SCALE_10K;
 
 import com.island.config.EnergyPolicy;
-import com.island.content.animals.herbivores.Herbivore;
 
 import lombok.Getter;
 import lombok.Setter;
 
 /**
  * Base class for all animals in the simulation.
- * Represents the state and properties of an animal.
+ * Represents the state and properties of an animal using integer arithmetic.
  */
 @Getter
 public abstract class Animal extends Organism {
     protected final AnimalType animalType; 
     @Setter
     protected boolean isHiding = false;
+    protected long weightOverride = 0;
+    protected int speedOverride = -1;
 
     protected Animal(AnimalType animalType) {
         super(animalType.getMaxEnergy(), animalType.getMaxLifespan());
@@ -35,13 +34,20 @@ public abstract class Animal extends Organism {
         return animalType.getSpeciesKey();
     }
 
-    public void init(AnimalType type, double energyFactor) {
-        super.init(type.getMaxEnergy(), type.getMaxLifespan(), energyFactor);
+    public void init(AnimalType type, int energyPercent) {
+        super.init(type.getMaxEnergy(), type.getMaxLifespan(), energyPercent);
         this.isHiding = false;
+        this.weightOverride = 0;
+        this.speedOverride = -1;
+    }
+
+    public void mutate(double weightFactor, int speedDelta) {
+        this.weightOverride = (long) (getWeight() * weightFactor);
+        this.speedOverride = Math.max(0, getSpeed() + speedDelta);
     }
 
     public boolean canInitiateReproduction() {
-        return isAlive() && getAge() >= 1 && getEnergyPercentage() >= EnergyPolicy.REPRODUCTION_MIN.getPercent();
+        return isAlive() && getAge() >= 1 && getEnergyPercentage() >= com.island.config.EnergyPolicy.REPRODUCTION_MIN.getPercent();
     }
 
     public boolean isProtected(int currentTick) {
@@ -49,8 +55,8 @@ public abstract class Animal extends Organism {
     }
 
     @Override
-    public double getWeight() {
-        return animalType.getWeight();
+    public long getWeight() {
+        return weightOverride > 0 ? weightOverride : animalType.getWeight();
     }
 
     public int getMaxPerCell() {
@@ -58,10 +64,10 @@ public abstract class Animal extends Organism {
     }
 
     public int getSpeed() {
-        return animalType.getSpeed();
+        return speedOverride >= 0 ? speedOverride : animalType.getSpeed();
     }
 
-    public double getFoodForSaturation() {
+    public long getFoodForSaturation() {
         return animalType.getFoodForSaturation();
     }
 
@@ -78,8 +84,8 @@ public abstract class Animal extends Organism {
     }
 
     @Override
-    protected double getSpecialMetabolismModifier() {
-        return 1.0;
+    protected int getSpecialMetabolismModifierBP() {
+        return SCALE_10K;
     }
 
     public int getOffspringBonus() {

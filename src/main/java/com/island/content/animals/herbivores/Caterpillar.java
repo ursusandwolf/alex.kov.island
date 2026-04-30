@@ -1,7 +1,8 @@
 package com.island.content.animals.herbivores;
 
-import static com.island.config.SimulationConstants.CATERPILLAR_FEED_EFFICIENCY;
-import static com.island.config.SimulationConstants.CATERPILLAR_METABOLISM_RATE;
+import static com.island.config.SimulationConstants.CATERPILLAR_FEED_EFFICIENCY_BP;
+import static com.island.config.SimulationConstants.CATERPILLAR_METABOLISM_RATE_BP;
+import static com.island.config.SimulationConstants.SCALE_10K;
 
 import com.island.content.Biomass;
 import com.island.content.SpeciesKey;
@@ -10,33 +11,37 @@ import com.island.model.Cell;
 import java.util.List;
 
 /**
- * Generalized Caterpillar using SwarmOrganism (LOD 1).
+ * Generalized Caterpillar using SwarmOrganism (LOD 1) with integer arithmetic.
  */
 public class Caterpillar extends SwarmOrganism {
-    private final double[] sleepBuckets = new double[20];
+    private final long[] sleepBuckets = new long[20];
 
-    public Caterpillar(double maxBiomass, int speed) {
+    public Caterpillar(long maxBiomass, int speed) {
         super("Caterpillar", SpeciesKey.CATERPILLAR, maxBiomass, speed, 40, 
-                CATERPILLAR_METABOLISM_RATE, 0); // Reproduction handled by Butterfly
+                CATERPILLAR_METABOLISM_RATE_BP, 0); // Reproduction handled by Butterfly
         ageBuckets[0] = maxBiomass;
         updateTotalBiomass();
     }
 
     @Override
     protected void processFeeding(Cell cell) {
-        double totalActive = 0;
-        for (double s : ageBuckets) {
+        long totalActive = 0;
+        for (long s : ageBuckets) {
             totalActive += s;
         }
 
-        double appetite = totalActive * 0.10; 
+        long appetite = totalActive / 10; // 10%
         if (appetite > 0) {
             List<Biomass> availablePlants = cell.getBiomassContainers();
             for (Biomass p : availablePlants) {
                 if (p != this && p.isAlive() && !(p instanceof Butterfly)) {
-                    double eaten = p.consumeBiomass(appetite / CATERPILLAR_FEED_EFFICIENCY, cell);
-                    ageBuckets[0] += (eaten * CATERPILLAR_FEED_EFFICIENCY);
-                    appetite -= eaten;
+                    // appetite = consumed * efficiency / SCALE_10K
+                    // consumed = appetite * SCALE_10K / efficiency
+                    long consumed = (appetite * SCALE_10K) / CATERPILLAR_FEED_EFFICIENCY_BP;
+                    long actualEaten = p.consumeBiomass(consumed, cell);
+                    long energyGain = (actualEaten * CATERPILLAR_FEED_EFFICIENCY_BP) / SCALE_10K;
+                    ageBuckets[0] += energyGain;
+                    appetite -= energyGain;
                     if (appetite <= 0) {
                         break;
                     }
@@ -48,10 +53,10 @@ public class Caterpillar extends SwarmOrganism {
     @Override
     protected void advanceAge(Cell cell) {
         // Handle metamorphosis
-        double maturing = ageBuckets[ageBuckets.length - 1];
+        long maturing = ageBuckets[ageBuckets.length - 1];
         
         // Emerging from sleep to Butterfly
-        double emerging = sleepBuckets[sleepBuckets.length - 1];
+        long emerging = sleepBuckets[sleepBuckets.length - 1];
         if (emerging > 0) {
             Butterfly b = (Butterfly) cell.getBiomass(SpeciesKey.BUTTERFLY);
             if (b == null) {
@@ -65,13 +70,13 @@ public class Caterpillar extends SwarmOrganism {
         for (int i = sleepBuckets.length - 1; i > 0; i--) {
             sleepBuckets[i] = sleepBuckets[i - 1];
         }
-        sleepBuckets[0] = maturing * 0.5; // 50% go to sleep
+        sleepBuckets[0] = maturing / 2; // 50% go to sleep
 
         // Standard age advance
         for (int i = ageBuckets.length - 1; i > 0; i--) {
             ageBuckets[i] = ageBuckets[i - 1];
         }
-        ageBuckets[0] = maturing * 0.5; // 50% reset cycle
+        ageBuckets[0] = maturing / 2; // 50% reset cycle
     }
 
     @Override
@@ -81,11 +86,11 @@ public class Caterpillar extends SwarmOrganism {
 
     @Override
     protected void updateTotalBiomass() {
-        double total = 0;
-        for (double b : ageBuckets) {
+        long total = 0;
+        for (long b : ageBuckets) {
             total += b;
         }
-        for (double b : sleepBuckets) {
+        for (long b : sleepBuckets) {
             total += b;
         }
         this.biomass = total;
@@ -93,10 +98,10 @@ public class Caterpillar extends SwarmOrganism {
 
     @Override
     public boolean isHibernating() {
-        double sleepTotal = 0;
-        for (double b : sleepBuckets) {
+        long sleepTotal = 0;
+        for (long b : sleepBuckets) {
             sleepTotal += b;
         }
-        return sleepTotal > (biomass * 0.1);
+        return sleepTotal > (biomass / 10);
     }
 }

@@ -3,12 +3,11 @@ package com.island.content.animals.herbivores;
 import com.island.config.SimulationConstants;
 
 /**
- * Interface for herbivores.
- * Provides default values for herbivore-specific behavior.
+ * Interface for herbivores with integer-based metabolism and offspring logic.
  */
 public interface Herbivore {
-    default double getHerbivoreMetabolismModifier() {
-        return SimulationConstants.HERBIVORE_METABOLISM_MODIFIER;
+    default int getHerbivoreMetabolismModifierBP() {
+        return SimulationConstants.HERBIVORE_METABOLISM_MODIFIER_BP;
     }
 
     default int getHerbivoreOffspringBonus() {

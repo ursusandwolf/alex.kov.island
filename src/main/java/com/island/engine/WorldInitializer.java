@@ -14,8 +14,10 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
+import static com.island.config.SimulationConstants.SCALE_1M;
+
 /**
- * Initializes the island world with organisms.
+ * Initializes the island world with organisms using integer-based arithmetic.
  */
 public class WorldInitializer {
 
@@ -49,6 +51,10 @@ public class WorldInitializer {
                     b = new com.island.content.animals.herbivores.Butterfly(type.getMaxEnergy() * type.getMaxPerCell(), type.getSpeed());
                 } else if (biomassKey == SpeciesKey.CATERPILLAR) {
                     b = new com.island.content.animals.herbivores.Caterpillar(type.getMaxEnergy() * type.getMaxPerCell(), type.getSpeed());
+                } else if (biomassKey == SpeciesKey.GRASS) {
+                    b = new com.island.content.plants.Grass(type.getMaxEnergy() * type.getMaxPerCell(), type.getSpeed());
+                } else if (biomassKey == SpeciesKey.CABBAGE) {
+                    b = new com.island.content.plants.Cabbage(type.getMaxEnergy() * type.getMaxPerCell(), type.getSpeed());
                 } else {
                     b = new GenericBiomass(type);
                 }
@@ -64,10 +70,14 @@ public class WorldInitializer {
                 continue;
             }
 
-            // Data-driven settlement for animals
-            if (random.nextDouble() < type.getPresenceProb()) {
-                double settlementRate = type.getSettlementBase() + (random.nextDouble() * type.getSettlementRange());
-                int count = (int) (type.getMaxPerCell() * settlementRate);                
+            // Data-driven settlement for animals (0-100)
+            if (random.nextInt(0, 100) < type.getPresenceChance()) {
+                // settlementRate in percent
+                long base = type.getSettlementBase() * 100 / SCALE_1M;
+                long range = type.getSettlementRange() * 100 / SCALE_1M;
+                int settlementPercent = (int) (base + (range > 0 ? random.nextInt(0, (int) range + 1) : 0));
+                
+                int count = (type.getMaxPerCell() * settlementPercent) / 100;                
                 count = Math.max(count, 1);
                 
                 for (int i = 0; i < count; i++) {

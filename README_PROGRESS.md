@@ -16,7 +16,9 @@ Interactive educational project for building a multithreaded ecosystem simulator
 | `OrganismBehavior.java` | Interface with default methods (`canPerformAction`, `canOnlyEat`) | ✅ Complete |
 | `Organism.java` | Abstract base class (energy, age, life status, ID) | ✅ Complete |
 | `Animal.java` | Abstract animal class (weight, speed, diet, movement) | ✅ Complete |
-| `Plant.java` | Abstract plant class (biomass, growth) | ✅ Complete |
+| Biomass.java | Abstract base class for plants/insects (mass, growth) | ✅ Complete |
+| Grass.java | Concrete plant implementation | ✅ Complete |
+| Cabbage.java | Concrete plant implementation | ✅ Complete |
 | `Predator.java` | **Marker interface** - predators move first in tick | ✅ NEW |
 | `Herbivore.java` | **Marker interface** - herbivores move second | ✅ NEW |
 | `SpeciesConfig.java` | Singleton configuration + probability matrix | ⏳ Needs matrix data |

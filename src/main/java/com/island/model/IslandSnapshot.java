@@ -40,36 +40,12 @@ public class IslandSnapshot implements WorldSnapshot {
 
     @Override
     public double getGlobalSatiety() {
-        double totalMax = 0;
-        double totalCurrent = 0;
-        int animalCount = 0;
-        for (int x = 0; x < getWidth(); x++) {
-            for (int y = 0; y < getHeight(); y++) {
-                for (com.island.content.Animal a : island.getGrid()[x][y].getAnimals()) {
-                    if (a.isAlive()) {
-                        totalMax += a.getMaxEnergy();
-                        totalCurrent += a.getCurrentEnergy();
-                        animalCount++;
-                    }
-                }
-            }
-        }
-        return (animalCount == 0) ? 100.0 : (totalCurrent / totalMax) * 100.0;
+        return island.getStatisticsService().calculateGlobalSatiety(island);
     }
 
     @Override
     public int getStarvingCount() {
-        int starving = 0;
-        for (int x = 0; x < getWidth(); x++) {
-            for (int y = 0; y < getHeight(); y++) {
-                for (com.island.content.Animal a : island.getGrid()[x][y].getAnimals()) {
-                    if (a.isAlive() && a.getEnergyPercentage() < 30.0) {
-                        starving++;
-                    }
-                }
-            }
-        }
-        return starving;
+        return island.getStatisticsService().calculateStarvingCount(island);
     }
 
     @Override

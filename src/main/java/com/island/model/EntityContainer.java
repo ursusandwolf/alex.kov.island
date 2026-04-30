@@ -102,7 +102,7 @@ public class EntityContainer {
         
         Biomass b = biomassBySpecies.get(key);
         if (b != null) {
-            count += (int) b.getBiomass();
+            count += (int) (b.getBiomass() / com.island.config.SimulationConstants.SCALE_1M);
         }
         
         return count;

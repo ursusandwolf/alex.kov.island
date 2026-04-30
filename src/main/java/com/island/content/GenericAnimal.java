@@ -1,15 +1,16 @@
 package com.island.content;
 
-import static com.island.config.SimulationConstants.HERBIVORE_METABOLISM_MODIFIER;
+import static com.island.config.SimulationConstants.HERBIVORE_METABOLISM_MODIFIER_BP;
 import static com.island.config.SimulationConstants.HERBIVORE_OFFSPRING_BONUS;
-import static com.island.config.SimulationConstants.REPTILE_METABOLISM_MODIFIER;
+import static com.island.config.SimulationConstants.REPTILE_METABOLISM_MODIFIER_BP;
+import static com.island.config.SimulationConstants.SCALE_10K;
 
 import com.island.content.animals.herbivores.Herbivore;
 import com.island.content.animals.predators.Predator;
 
 /**
  * A generic animal implementation that uses AnimalType for all its properties.
- * This class replaces simple species-specific marker classes (OCP).
+ * Uses integer-based arithmetic for metabolism.
  */
 public class GenericAnimal extends Animal implements Herbivore, Predator {
     private final boolean isHerbivore;
@@ -25,10 +26,10 @@ public class GenericAnimal extends Animal implements Herbivore, Predator {
     }
 
     @Override
-    protected double getSpecialMetabolismModifier() {
-        double modifier = isHerbivore ? HERBIVORE_METABOLISM_MODIFIER : 1.0;
+    protected int getSpecialMetabolismModifierBP() {
+        int modifier = isHerbivore ? HERBIVORE_METABOLISM_MODIFIER_BP : SCALE_10K;
         if (isColdBlooded) {
-            modifier *= REPTILE_METABOLISM_MODIFIER;
+            modifier = (modifier * REPTILE_METABOLISM_MODIFIER_BP) / SCALE_10K;
         }
         return modifier;
     }

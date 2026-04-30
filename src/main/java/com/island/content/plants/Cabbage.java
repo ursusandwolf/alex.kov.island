@@ -7,7 +7,7 @@ import com.island.content.SpeciesKey;
  * Cabbage implementation.
  */
 public class Cabbage extends Biomass {
-    public Cabbage(double maxBiomass, int speed) {
+    public Cabbage(long maxBiomass, int speed) {
         super("Cabbage", SpeciesKey.CABBAGE, maxBiomass, speed);
     }
 }

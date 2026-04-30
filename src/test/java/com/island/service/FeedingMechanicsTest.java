@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.BDDMockito.given;
+import static com.island.config.SimulationConstants.SCALE_1M;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -83,8 +84,8 @@ class FeedingMechanicsTest {
         Animal wolf = animalFactory.createAnimal(SpeciesKey.WOLF).orElseThrow();
         Animal rabbit = animalFactory.createAnimal(SpeciesKey.RABBIT).orElseThrow();
         
-        wolf.setEnergy(2.0); 
-        double initialWolfEnergy = wolf.getCurrentEnergy();
+        wolf.setEnergy(2L * SCALE_1M); 
+        long initialWolfEnergy = wolf.getCurrentEnergy();
         
         cell.addAnimal(wolf);
         cell.addAnimal(rabbit);
@@ -105,14 +106,14 @@ class FeedingMechanicsTest {
         // Given
         Animal rabbit = animalFactory.createAnimal(SpeciesKey.RABBIT).orElseThrow();
         
-        rabbit.setEnergy(0.1);
-        double initialRabbitEnergy = rabbit.getCurrentEnergy();
+        rabbit.setEnergy((long) (0.1 * SCALE_1M));
+        long initialRabbitEnergy = rabbit.getCurrentEnergy();
         
         cell.addAnimal(rabbit);
         
         // Add real biomass container
-        Biomass grass = new Grass(100.0, 0);
-        grass.setBiomass(10.0);
+        Biomass grass = new Grass(100L * SCALE_1M, 0);
+        grass.setBiomass(10L * SCALE_1M);
         cell.addBiomass(grass);
 
         // When
@@ -120,6 +121,6 @@ class FeedingMechanicsTest {
 
         // Then
         assertTrue(rabbit.getCurrentEnergy() > initialRabbitEnergy, "Rabbit energy should increase");
-        assertTrue(grass.getBiomass() < 10.0, "Grass biomass should decrease");
+        assertTrue(grass.getBiomass() < 10L * SCALE_1M, "Grass biomass should decrease");
     }
 }
