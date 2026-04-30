@@ -3,6 +3,7 @@ package com.island.content;
 import com.island.content.animals.predators.Bear;
 import com.island.content.animals.predators.Chameleon;
 import com.island.util.ObjectPool;
+import com.island.util.RandomProvider;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -17,11 +18,11 @@ import static com.island.config.SimulationConstants.SCALE_1M;
  */
 public final class AnimalFactory {
     private final SpeciesRegistry speciesRegistry;
-    private final com.island.util.RandomProvider random;
+    private final RandomProvider random;
     private final Map<SpeciesKey, Function<AnimalType, Animal>> creators = new HashMap<>();
     private final Map<SpeciesKey, ObjectPool<Animal>> pools = new HashMap<>();
 
-    public AnimalFactory(SpeciesRegistry speciesRegistry, com.island.util.RandomProvider random) {
+    public AnimalFactory(SpeciesRegistry speciesRegistry, RandomProvider random) {
         this.speciesRegistry = speciesRegistry;
         this.random = random;
         creators.put(SpeciesKey.BEAR, Bear::new);

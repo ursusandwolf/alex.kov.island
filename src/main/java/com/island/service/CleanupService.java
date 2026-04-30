@@ -12,7 +12,7 @@ import java.util.concurrent.ExecutorService;
 /**
  * Service responsible for cleaning up dead organisms and returning them to the pool.
  */
-public class CleanupService extends AbstractService<Cell> {
+public class CleanupService extends AbstractService<SimulationNode> {
     private final AnimalFactory animalFactory;
 
     public CleanupService(SimulationWorld world, AnimalFactory animalFactory, 
@@ -22,8 +22,8 @@ public class CleanupService extends AbstractService<Cell> {
     }
 
     @Override
-    protected void processCell(Cell cell, int tickCount) {
-        List<Animal> deadAnimals = cell.cleanupDeadOrganisms();
+    protected void processCell(SimulationNode node, int tickCount) {
+        List<Animal> deadAnimals = node.cleanupDeadOrganisms();
         for (Animal a : deadAnimals) {
             animalFactory.releaseAnimal(a);
         }

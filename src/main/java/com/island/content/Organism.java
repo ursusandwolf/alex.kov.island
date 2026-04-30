@@ -3,31 +3,25 @@ package com.island.content;
 import static com.island.config.SimulationConstants.BASE_METABOLISM_BP;
 import static com.island.config.SimulationConstants.SCALE_10K;
 import static com.island.config.SimulationConstants.SCALE_1M;
+import static com.island.config.SimulationConstants.STARVATION_THRESHOLD_PERCENT;
 
 import com.island.config.EnergyPolicy;
+import com.island.engine.Mortal;
+import com.island.util.Poolable;
 import java.util.UUID;
+import java.util.concurrent.locks.ReentrantLock;
 import lombok.Getter;
 import lombok.experimental.NonFinal;
 
-/**
- * Base class for all organisms using integer-based arithmetic.
- * Energy and weight are stored as long (SCALE_1M).
- * Rates and modifiers are handled via basis points (SCALE_10K).
- */
 @Getter
-public abstract class Organism implements com.island.util.Poolable, com.island.engine.Mortal {
-
-    private final String id = java.util.UUID.randomUUID().toString();
-    @NonFinal
-    private volatile long currentEnergy; 
-    @NonFinal
-    private long maxEnergy; 
-    @NonFinal
-    private int age; 
-    @NonFinal
-    private int maxLifespan; 
-    @NonFinal
-    private volatile boolean isAlive;
+public abstract class Organism implements Poolable, Mortal {
+    private final String id = UUID.randomUUID().toString();
+    @NonFinal private volatile long currentEnergy; 
+    @NonFinal private long maxEnergy; 
+    @NonFinal private int age; 
+    @NonFinal private int maxLifespan; 
+    @NonFinal private volatile boolean isAlive;
+    private final ReentrantLock energyLock = new ReentrantLock();
 
     protected Organism(long maxEnergy, int maxLifespan) {
         this(maxEnergy, maxLifespan, EnergyPolicy.BIRTH_INITIAL.getPercent()); 
@@ -71,8 +65,6 @@ public abstract class Organism implements com.island.util.Poolable, com.island.e
     public boolean canPerformAction() { 
         return getEnergyPercentage() >= EnergyPolicy.ACTION_MIN.getPercent(); 
     }
-
-    private final java.util.concurrent.locks.ReentrantLock energyLock = new java.util.concurrent.locks.ReentrantLock();
 
     public boolean tryConsumeEnergy(long amount) {
         energyLock.lock();
@@ -122,11 +114,11 @@ public abstract class Organism implements com.island.util.Poolable, com.island.e
     }
 
     public boolean isStarving() {
-        return getEnergyPercentage() < com.island.config.SimulationConstants.STARVATION_THRESHOLD_PERCENT;
+        return getEnergyPercentage() < STARVATION_THRESHOLD_PERCENT;
     }
 
     public long getWeight() {
-        return SCALE_1M; // Default 1.0 unit
+        return SCALE_1M; 
     }
 
     public long getDynamicMetabolismRate() {
@@ -137,7 +129,7 @@ public abstract class Organism implements com.island.util.Poolable, com.island.e
     }
 
     protected int getSpecialMetabolismModifierBP() {
-        return SCALE_10K; // 1.0
+        return SCALE_10K;
     }
 
     public boolean isHibernating() {

@@ -9,6 +9,8 @@ import static com.island.config.SimulationConstants.SCALE_1M;
 import com.island.content.Biomass;
 import com.island.content.SpeciesKey;
 import com.island.content.SwarmOrganism;
+import com.island.engine.Mortal;
+import com.island.engine.SimulationNode;
 import com.island.model.Cell;
 import java.util.List;
 
@@ -23,14 +25,14 @@ public class Butterfly extends SwarmOrganism {
     }
 
     @Override
-    protected void processFeeding(Cell cell) {
+    protected void processFeeding(SimulationNode node) {
         long appetite = (biomass * 10) / 100; // 10%
         if (appetite > 0) {
-            List<Biomass> availablePlants = cell.getBiomassContainers();
-            for (Biomass p : availablePlants) {
-                if (p != this && p.isAlive() && !(p instanceof Caterpillar)) {
+            List<? extends Mortal> availablePlants = node.getBiomassEntities();
+            for (Mortal m : availablePlants) {
+                if (m instanceof Biomass p && p != this && p.isAlive() && !(p instanceof Caterpillar)) {
                     long consumed = (appetite * SCALE_10K) / CATERPILLAR_FEED_EFFICIENCY_BP;
-                    long actualEaten = p.consumeBiomass(consumed, cell);
+                    long actualEaten = p.consumeBiomass(consumed, node);
                     long energyGain = (actualEaten * CATERPILLAR_FEED_EFFICIENCY_BP) / SCALE_10K;
                     spawn(energyGain);
                     appetite -= energyGain;
@@ -43,17 +45,19 @@ public class Butterfly extends SwarmOrganism {
     }
 
     @Override
-    protected void processReproduction(Cell cell) {
+    protected void processReproduction(SimulationNode node) {
         if (biomass > 0) {
             long offspringBiomass = (biomass * reproductionRateBP) / SCALE_10K;
-            consumeBiomass(offspringBiomass, cell);
+            consumeBiomass(offspringBiomass, node);
 
-            Caterpillar c = (Caterpillar) cell.getBiomass(SpeciesKey.CATERPILLAR);
-            if (c == null) {
-                c = new Caterpillar(0, 0);
-                cell.addBiomass(c);
+            if (node instanceof Cell cell) {
+                Caterpillar c = (Caterpillar) cell.getBiomass(SpeciesKey.CATERPILLAR);
+                if (c == null) {
+                    c = new Caterpillar(0, 0);
+                    cell.addBiomass(c);
+                }
+                c.spawn(offspringBiomass);
             }
-            c.spawn(offspringBiomass);
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.island.content;
 
-import com.island.model.Cell;
+import com.island.engine.Mortal;
+import com.island.engine.SimulationNode;
 import com.island.util.InteractionProvider;
 import com.island.util.RandomProvider;
 import java.util.ArrayList;
@@ -10,10 +11,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Provider for prey selection within a cell using integer arithmetic.
+ * Provider for prey selection within a node using integer arithmetic.
  */
 public class PreyProvider {
-    private final Cell cell;
+    private final SimulationNode node;
     private final InteractionProvider matrix;
     private final int currentTick;
     private final Map<SpeciesKey, Integer> protectionMap; // Chance in percent
@@ -23,18 +24,18 @@ public class PreyProvider {
     private List<Organism> buffet;
     private boolean isEatenListChanged = false;
 
-    public PreyProvider(Cell cell, InteractionProvider matrix, RandomProvider random) {
-        this(cell, matrix, 0, Collections.emptyMap(), random);
+    public PreyProvider(SimulationNode node, InteractionProvider matrix, RandomProvider random) {
+        this(node, matrix, 0, Collections.emptyMap(), random);
     }
 
-    public PreyProvider(Cell cell, InteractionProvider matrix, int currentTick, 
+    public PreyProvider(SimulationNode node, InteractionProvider matrix, int currentTick, 
                         Map<SpeciesKey, Integer> protectionMap, RandomProvider random) {
-        this(cell, matrix, currentTick, protectionMap, false, random);
+        this(node, matrix, currentTick, protectionMap, false, random);
     }
 
-    public PreyProvider(Cell cell, InteractionProvider matrix, int tick, 
+    public PreyProvider(SimulationNode node, InteractionProvider matrix, int tick, 
                         Map<SpeciesKey, Integer> protectionMap, boolean isWolfPack, RandomProvider random) {
-        this.cell = cell;
+        this.node = node;
         this.matrix = matrix;
         this.currentTick = tick;
         this.protectionMap = (protectionMap != null) ? protectionMap : Collections.emptyMap();
@@ -54,8 +55,8 @@ public class PreyProvider {
         List<Organism> potential = new ArrayList<>();
         
         // 1. Animals
-        cell.forEachAnimal(a -> {
-            if (a != predator && a.isAlive() && matrix.getChance(predator.getSpeciesKey(), a.getSpeciesKey()) > 0) {
+        node.getLivingEntities().forEach(m -> {
+            if (m instanceof Animal a && a != predator && a.isAlive() && matrix.getChance(predator.getSpeciesKey(), a.getSpeciesKey()) > 0) {
                 if (!a.isProtected(currentTick)) {
                     potential.add(a);
                 }
@@ -63,8 +64,8 @@ public class PreyProvider {
         });
         
         // 2. Plants/Biomass
-        for (Biomass b : cell.getBiomassContainers()) {
-            if (b.getBiomass() > 0 && matrix.getChance(predator.getSpeciesKey(), b.getSpeciesKey()) > 0) {
+        for (Mortal m : node.getBiomassEntities()) {
+            if (m instanceof Biomass b && b.getBiomass() > 0 && matrix.getChance(predator.getSpeciesKey(), b.getSpeciesKey()) > 0) {
                 if (!isPlantProtected(b)) {
                     potential.add(b);
                 }
@@ -91,6 +92,6 @@ public class PreyProvider {
     }
 
     public void markAsEaten(Organism prey) {
-        // Handled by cell.removeAnimal
+        // Handled by node.removeEntity
     }
 }

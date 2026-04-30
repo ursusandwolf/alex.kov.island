@@ -1,5 +1,6 @@
 package com.island.service;
 
+import com.island.engine.SimulationNode;
 import com.island.engine.SimulationWorld;
 import com.island.content.Animal;
 import com.island.content.Biomass;
@@ -11,21 +12,21 @@ import java.util.concurrent.ExecutorService;
 /**
  * Service responsible for aging, energy decay, and natural growth/death using integer arithmetic.
  */
-public class LifecycleService extends AbstractService<Cell> {
+public class LifecycleService extends AbstractService<SimulationNode> {
 
     public LifecycleService(SimulationWorld world, ExecutorService executor, RandomProvider random) {
         super(world, executor, random);
     }
 
     @Override
-    protected void processCell(Cell cell, int tickCount) {
-        processAging(cell);
-        processBiomassGrowth(cell);
+    protected void processCell(SimulationNode node, int tickCount) {
+        processAging(node);
+        processBiomassGrowth(node);
     }
 
-    private void processAging(Cell cell) {
-        cell.forEachAnimal(a -> {
-            if (a.isAlive()) {
+    private void processAging(SimulationNode node) {
+        node.getLivingEntities().forEach(m -> {
+            if (m instanceof Animal a && a.isAlive()) {
                 // 1. Metabolism (Energy decay)
                 long metabolism = a.getDynamicMetabolismRate();
                 
@@ -46,10 +47,10 @@ public class LifecycleService extends AbstractService<Cell> {
         });
     }
 
-    private void processBiomassGrowth(Cell cell) {
-        for (Biomass b : cell.getBiomassContainers()) {
-            if (b.isAlive()) {
-                b.grow(cell);
+    private void processBiomassGrowth(SimulationNode node) {
+        for (com.island.engine.Mortal m : node.getBiomassEntities()) {
+            if (m instanceof Biomass b && b.isAlive()) {
+                b.grow(node);
             }
         }
     }

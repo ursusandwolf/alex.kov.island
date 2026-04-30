@@ -6,6 +6,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.AllArgsConstructor;
 
+import static com.island.config.SimulationConstants.COLD_BLOODED_FEED_INTERVAL;
+import static com.island.config.SimulationConstants.COLD_BLOODED_MOVE_INTERVAL;
+import static com.island.config.SimulationConstants.COLD_BLOODED_REPRO_INTERVAL;
 import static com.island.config.SimulationConstants.SCALE_1M;
 
 /**
@@ -60,9 +63,9 @@ public final class AnimalType {
             return 1;
         }
         return switch (action) {
-            case MOVE -> com.island.config.SimulationConstants.COLD_BLOODED_MOVE_INTERVAL;
-            case FEED -> com.island.config.SimulationConstants.COLD_BLOODED_FEED_INTERVAL;
-            case REPRODUCE -> com.island.config.SimulationConstants.COLD_BLOODED_REPRO_INTERVAL;
+            case MOVE -> COLD_BLOODED_MOVE_INTERVAL;
+            case FEED -> COLD_BLOODED_FEED_INTERVAL;
+            case REPRODUCE -> COLD_BLOODED_REPRO_INTERVAL;
         };
     }
 }

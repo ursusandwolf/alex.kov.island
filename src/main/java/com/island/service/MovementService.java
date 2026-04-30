@@ -21,7 +21,7 @@ import com.island.content.AnimalType;
 /**
  * Service responsible for animal and mobile biomass movement using integer arithmetic.
  */
-public class MovementService extends AbstractService<Cell> {
+public class MovementService extends AbstractService<SimulationNode> {
     private final SpeciesRegistry speciesRegistry;
 
     public MovementService(SimulationWorld world, SpeciesRegistry speciesRegistry, ExecutorService executor, RandomProvider random) {
@@ -30,13 +30,13 @@ public class MovementService extends AbstractService<Cell> {
     }
 
     @Override
-    protected void processCell(Cell cell, int tickCount) {
-        processAnimals(cell, tickCount);
-        processMobileBiomass(cell);
+    protected void processCell(SimulationNode node, int tickCount) {
+        processAnimals(node, tickCount);
+        processMobileBiomass(node);
     }
 
-    private void processAnimals(Cell cell, int tickCount) {
-        cell.forEachAnimalSampled(com.island.config.SimulationConstants.MOVEMENT_LOD_LIMIT, getRandom(), animal -> {
+    private void processAnimals(SimulationNode node, int tickCount) {
+        node.forEachAnimalSampled(com.island.config.SimulationConstants.MOVEMENT_LOD_LIMIT, getRandom(), animal -> {
             if (animal.isAlive()) {
                 if (shouldAct(animal, AnimalType.Action.MOVE, tickCount)) {
                     // moveCost = maxEnergy * (1 + speed) * stepBP / SCALE_10K
@@ -52,9 +52,9 @@ public class MovementService extends AbstractService<Cell> {
                         }
                         
                         if (speed > 0) {
-                            SimulationNode target = selectTargetNode(cell, speed);
-                            if (target != cell) {
-                                getWorld().moveAnimal(animal, cell, target);
+                            SimulationNode target = selectTargetNode(node, speed);
+                            if (target != node) {
+                                getWorld().moveAnimal(animal, node, target);
                             }
                         }
                     }
@@ -63,10 +63,10 @@ public class MovementService extends AbstractService<Cell> {
         });
     }
 
-    private void processMobileBiomass(Cell cell) {
-        List<Biomass> containers = cell.getBiomassContainers();
-        for (Biomass b : containers) {
-            if (b.isAlive() && b.getSpeed() > 0 && b.getBiomass() > 0) {
+    private void processMobileBiomass(SimulationNode node) {
+        List<? extends com.island.engine.Mortal> containers = node.getBiomassEntities();
+        for (com.island.engine.Mortal m : containers) {
+            if (m instanceof Biomass b && b.isAlive() && b.getSpeed() > 0 && b.getBiomass() > 0) {
                 long totalMass = b.getBiomass();
                 long chunk = (totalMass * BIOMASS_MOVE_CHUNK_BP) / SCALE_10K;
 
@@ -81,9 +81,9 @@ public class MovementService extends AbstractService<Cell> {
                     default -> { }
                 }
 
-                getWorld().getNode(cell, dx, dy).ifPresent(target -> {
-                    if (target != cell) {
-                        getWorld().moveBiomassPartially(b, cell, target, chunk);
+                getWorld().getNode(node, dx, dy).ifPresent(target -> {
+                    if (target != node) {
+                        getWorld().moveBiomassPartially(b, node, target, chunk);
                     }
                 });
             }

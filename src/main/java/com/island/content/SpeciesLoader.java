@@ -1,36 +1,26 @@
 package com.island.content;
 
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-
 import static com.island.config.SimulationConstants.SCALE_1M;
 
-/**
- * Loads species configuration from properties file.
- * Converts double properties to integer-based formats (SCALE_1M or percent 0-100).
- */
 public class SpeciesLoader {
     private static final String CONFIG_FILE = "species.properties";
 
     public SpeciesRegistry load() {
         Properties props = new Properties();
         try (InputStream is = getClass().getClassLoader().getResourceAsStream(CONFIG_FILE)) {
-            if (is != null) {
-                props.load(is);
-            }
+            if (is != null) props.load(is);
         } catch (Exception e) {
             System.err.println("Error loading species config: " + e.getMessage());
         }
 
         Map<SpeciesKey, AnimalType> animalTypes = new HashMap<>();
         Map<SpeciesKey, AnimalType> biomassTypes = new HashMap<>();
-        Map<SpeciesKey, Long> plantWeights = new HashMap<>();
-        Map<SpeciesKey, Integer> plantMaxCounts = new HashMap<>();
-        Map<SpeciesKey, Integer> plantSpeeds = new HashMap<>();
 
-        // Discover species from list
         String listStr = props.getProperty("species.list", "");
         if (!listStr.isEmpty()) {
             for (String code : listStr.split(",")) {
@@ -40,29 +30,21 @@ public class SpeciesLoader {
             }
         }
 
-        // Load all registered species
         for (SpeciesKey key : SpeciesKey.values()) {
-            String code = key.getCode();
-            if (props.containsKey(code + ".weight")) {
-                loadEntry(key, props, animalTypes, biomassTypes, plantWeights, plantMaxCounts, plantSpeeds);
+            if (props.containsKey(key.getCode() + ".weight")) {
+                loadEntry(key, props, animalTypes, biomassTypes);
             }
         }
 
         return new SpeciesRegistry(
-                java.util.Collections.unmodifiableMap(animalTypes),
-                java.util.Collections.unmodifiableMap(biomassTypes),
-                java.util.Collections.unmodifiableMap(plantWeights),
-                java.util.Collections.unmodifiableMap(plantMaxCounts),
-                java.util.Collections.unmodifiableMap(plantSpeeds)
+                Collections.unmodifiableMap(animalTypes),
+                Collections.unmodifiableMap(biomassTypes)
         );
     }
 
     private void loadEntry(SpeciesKey key, Properties props, 
                            Map<SpeciesKey, AnimalType> animalTypes,
-                           Map<SpeciesKey, AnimalType> biomassTypes,
-                           Map<SpeciesKey, Long> plantWeights, 
-                           Map<SpeciesKey, Integer> plantMaxCounts,
-                           Map<SpeciesKey, Integer> plantSpeeds) {
+                           Map<SpeciesKey, AnimalType> biomassTypes) {
         String code = key.getCode();
         long weight = toScaledLong(props.getProperty(code + ".weight", "1"));
         int maxCount = Math.max(0, Integer.parseInt(props.getProperty(code + ".maxPerCell", "1")));
@@ -98,12 +80,6 @@ public class SpeciesLoader {
         };
         int maxOffspring = Integer.parseInt(props.getProperty(code + ".maxOffspring", String.valueOf(defaultMaxOffspring)));
 
-        if (isPlant) {
-            plantWeights.put(key, weight);
-            plantMaxCounts.put(key, maxCount);
-            plantSpeeds.put(key, speed);
-        }
-        
         long food = toScaledLong(props.getProperty(code + ".foodForSaturation", "1"));
         int lifespan = Math.max(1, Integer.parseInt(props.getProperty(code + ".lifespan", "100")));
         
@@ -112,54 +88,30 @@ public class SpeciesLoader {
         if (!preyStr.isEmpty()) {
             for (String part : preyStr.split(",")) {
                 String[] sub = part.split(":");
-                if (sub.length == 2) {
-                    preyMap.put(SpeciesKey.fromCode(sub[0]), Integer.parseInt(sub[1]));
-                }
+                if (sub.length == 2) preyMap.put(SpeciesKey.fromCode(sub[0]), Integer.parseInt(sub[1]));
             }
         }
         
         AnimalType type = AnimalType.builder()
-                .speciesKey(key)
-                .typeName(code)
-                .weight(weight)
-                .maxPerCell(maxCount)
-                .speed(speed)
-                .foodForSaturation(food)
-                .maxEnergy(food)
-                .maxLifespan(lifespan)
-                .huntProbabilities(java.util.Collections.unmodifiableMap(preyMap))
-                .isPredator(key.isPredator())
-                .sizeClass(sizeClass)
-                .isColdBlooded(isColdBlooded)
-                .isPackHunter(isPackHunter)
-                .isBiomass(isBiomass)
-                .isPlant(isPlant)
-                .reproductionChance(reproChance)
-                .maxOffspring(maxOffspring)
-                .presenceChance(presenceChance)
-                .settlementBase(settlementBase)
-                .settlementRange(settlementRange)
+                .speciesKey(key).typeName(code).weight(weight).maxPerCell(maxCount).speed(speed)
+                .foodForSaturation(food).maxEnergy(food).maxLifespan(lifespan)
+                .huntProbabilities(Collections.unmodifiableMap(preyMap))
+                .isPredator(key.isPredator()).sizeClass(sizeClass)
+                .isColdBlooded(isColdBlooded).isPackHunter(isPackHunter).isBiomass(isBiomass).isPlant(isPlant)
+                .reproductionChance(reproChance).maxOffspring(maxOffspring)
+                .presenceChance(presenceChance).settlementBase(settlementBase).settlementRange(settlementRange)
                 .build();
         
-        if (isPlant || isBiomass) {
-            biomassTypes.put(key, type);
-        } else {
-            animalTypes.put(key, type);
-        }
+        if (isPlant || isBiomass) biomassTypes.put(key, type);
+        else animalTypes.put(key, type);
     }
 
-    private long toScaledLong(String val) {
-        return (long) (Double.parseDouble(val) * SCALE_1M);
-    }
+    private long toScaledLong(String val) { return (long) (Double.parseDouble(val) * SCALE_1M); }
 
-    private int toPercent(String val) {
-        return (int) (Double.parseDouble(val) * 100);
-    }
+    private int toPercent(String val) { return (int) (Double.parseDouble(val) * 100); }
 
     private int toPercent(String val, int defaultVal) {
-        if (val == null) {
-            return defaultVal;
-        }
+        if (val == null) return defaultVal;
         return (int) (Double.parseDouble(val) * 100);
     }
 }

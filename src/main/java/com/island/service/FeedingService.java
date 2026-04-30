@@ -1,5 +1,6 @@
 package com.island.service;
 
+import com.island.engine.SimulationNode;
 import com.island.engine.SimulationWorld;
 import com.island.content.Animal;
 import com.island.content.AnimalFactory;
@@ -26,7 +27,7 @@ import static com.island.config.SimulationConstants.SCALE_10K;
 /**
  * Service responsible for feeding logic using integer-based arithmetic.
  */
-public class FeedingService extends AbstractService<Cell> {
+public class FeedingService extends AbstractService<SimulationNode> {
     private final AnimalFactory animalFactory;
     private final InteractionProvider interactionMatrix;
     private final SpeciesRegistry speciesRegistry;
@@ -54,16 +55,16 @@ public class FeedingService extends AbstractService<Cell> {
     }
 
     @Override
-    protected void processCell(Cell cell, int tickCount) {
-        processPredators(cell, tickCount);
-        processHerbivores(cell, tickCount);
+    protected void processCell(SimulationNode node, int tickCount) {
+        processPredators(node, tickCount);
+        processHerbivores(node, tickCount);
     }
 
-    private void processPredators(Cell cell, int tickCount) {
+    private void processPredators(SimulationNode node, int tickCount) {
         List<Animal> packHunters = new java.util.ArrayList<>();
         List<Animal> others = new java.util.ArrayList<>();
 
-        cell.forEachPredator(p -> {
+        node.forEachPredator(p -> {
             if (p.getAnimalType().isPackHunter()) {
                 packHunters.add(p);
             } else {
@@ -72,35 +73,35 @@ public class FeedingService extends AbstractService<Cell> {
         });
 
         if (packHunters.size() >= minPackSize) {
-            processPackHunting(packHunters, cell);
+            processPackHunting(packHunters, node);
         } else {
             others.addAll(packHunters);
         }
 
         for (Animal predator : others) {
             if (predator.isAlive() && shouldAct(predator, AnimalType.Action.FEED, tickCount)) {
-                tryEat(predator, cell);
+                tryEat(predator, node);
             }
         }
     }
 
-    private void processHerbivores(Cell cell, int tickCount) {
-        cell.forEachHerbivoreSampled(FEEDING_LOD_LIMIT, getRandom(), herbivore -> {
+    private void processHerbivores(SimulationNode node, int tickCount) {
+        node.forEachHerbivoreSampled(FEEDING_LOD_LIMIT, getRandom(), herbivore -> {
             if (herbivore.isAlive() && shouldAct(herbivore, AnimalType.Action.FEED, tickCount)) {
-                tryEat(herbivore, cell);
+                tryEat(herbivore, node);
             }
         });
     }
 
-    private void processPackHunting(List<Animal> pack, Cell cell) {
-        PreyProvider packPreyProvider = new PreyProvider(cell, interactionMatrix, 0, protectionMap, true, getRandom());
+    private void processPackHunting(List<Animal> pack, SimulationNode node) {
+        PreyProvider packPreyProvider = new PreyProvider(node, interactionMatrix, 0, protectionMap, true, getRandom());
         int maxKills = Math.max(1, pack.size() / 2);
         int kills = 0;
 
         for (int i = 0; i < pack.size() && kills < maxKills; i++) {
             Organism prey = huntingStrategy.selectPrey(pack.get(0), packPreyProvider);
             if (prey instanceof Animal a) {
-                if (a.isAlive() && !isProtected(a) && cell.removeAnimal(a)) {
+                if (a.isAlive() && !isProtected(a) && node.removeEntity(a)) {
                     a.die();
                     long gainPerWolf = a.getWeight() / pack.size();
                     for (Animal wolf : pack) {
@@ -117,12 +118,12 @@ public class FeedingService extends AbstractService<Cell> {
         }
     }
 
-    private void tryEat(Animal consumer, Cell cell) {
+    private void tryEat(Animal consumer, SimulationNode node) {
         if (consumer.getCurrentEnergy() >= consumer.getFoodForSaturation()) {
             return;
         }
 
-        PreyProvider preyProvider = new PreyProvider(cell, interactionMatrix, 0, protectionMap, getRandom());
+        PreyProvider preyProvider = new PreyProvider(node, interactionMatrix, 0, protectionMap, getRandom());
         int attempts = 0;
         boolean success = false;
         int maxAttempts = consumer.getAnimalType().isPredator() ? 5 : 3;
@@ -137,12 +138,12 @@ public class FeedingService extends AbstractService<Cell> {
             if (prey instanceof Animal a) {
                 if (a.isAlive() && !isProtected(a)) {
                     int chance = interactionMatrix.getChance(consumer.getSpeciesKey(), a.getSpeciesKey());
-                    int preyCount = cell.getOrganismCount(a.getSpeciesKey());
+                    int preyCount = node.getOrganismCount(a.getSpeciesKey());
                     if (preyCount > a.getAnimalType().getMaxPerCell() / 2) {
                         chance += OVERPOPULATION_HUNT_BONUS_PERCENT; 
                     }
 
-                    if (getRandom().nextInt(0, 100) < chance && cell.removeAnimal(a)) {
+                    if (getRandom().nextInt(0, 100) < chance && node.removeEntity(a)) {
                         a.die();
                         consumer.addEnergy(a.getWeight());
                         preyProvider.markAsEaten(a);
@@ -153,7 +154,7 @@ public class FeedingService extends AbstractService<Cell> {
                 }
             } else if (prey instanceof Biomass b && b.getBiomass() > 0 && !isPlantProtected(b.getSpeciesKey())) {
                 long foodNeeded = consumer.getFoodForSaturation() - consumer.getCurrentEnergy();
-                consumer.addEnergy(b.consumeBiomass(foodNeeded, cell));
+                consumer.addEnergy(b.consumeBiomass(foodNeeded, node));
                 success = true;
             }
         }

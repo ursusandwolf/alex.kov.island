@@ -29,7 +29,6 @@ public abstract class AbstractService<N extends SimulationNode> implements Ticka
     protected Map<SpeciesKey, Integer> protectionMap; // Chance in percent (0-100)
 
     @Override
-    @SuppressWarnings("unchecked")
     public void tick(int tickCount) {
         if (executor.isShutdown()) {
             return;

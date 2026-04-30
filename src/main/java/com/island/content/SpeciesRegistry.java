@@ -11,13 +11,14 @@ import lombok.RequiredArgsConstructor;
  * Immutable registry of species data.
  */
 @Getter
-@RequiredArgsConstructor
 public class SpeciesRegistry {
     private final Map<SpeciesKey, AnimalType> animalTypes;
     private final Map<SpeciesKey, AnimalType> biomassTypes;
-    private final Map<SpeciesKey, Long> plantWeights; // SCALE_1M
-    private final Map<SpeciesKey, Integer> plantMaxCounts;
-    private final Map<SpeciesKey, Integer> plantSpeeds;
+
+    public SpeciesRegistry(Map<SpeciesKey, AnimalType> animalTypes, Map<SpeciesKey, AnimalType> biomassTypes) {
+        this.animalTypes = java.util.Collections.unmodifiableMap(new java.util.HashMap<>(animalTypes));
+        this.biomassTypes = java.util.Collections.unmodifiableMap(new java.util.HashMap<>(biomassTypes));
+    }
 
     public Optional<AnimalType> getAnimalType(SpeciesKey key) {
         return Optional.ofNullable(animalTypes.get(key));
@@ -33,15 +34,15 @@ public class SpeciesRegistry {
     }
 
     public long getPlantWeight(SpeciesKey key) {
-        return plantWeights.getOrDefault(key, 0L);
+        return Optional.ofNullable(biomassTypes.get(key)).map(AnimalType::getWeight).orElse(0L);
     }
 
     public int getPlantMaxCount(SpeciesKey key) {
-        return plantMaxCounts.getOrDefault(key, 0);
+        return Optional.ofNullable(biomassTypes.get(key)).map(AnimalType::getMaxPerCell).orElse(0);
     }
 
     public int getPlantSpeed(SpeciesKey key) {
-        return plantSpeeds.getOrDefault(key, 0);
+        return Optional.ofNullable(biomassTypes.get(key)).map(AnimalType::getSpeed).orElse(0);
     }
 
     public Set<SpeciesKey> getAllAnimalKeys() {

@@ -1,12 +1,15 @@
 package com.island.content.animals.herbivores;
 
+import static com.island.config.SimulationConstants.BUTTERFLY_REPRODUCTION_RATE_BP;
 import static com.island.config.SimulationConstants.CATERPILLAR_FEED_EFFICIENCY_BP;
 import static com.island.config.SimulationConstants.CATERPILLAR_METABOLISM_RATE_BP;
 import static com.island.config.SimulationConstants.SCALE_10K;
+import static com.island.config.SimulationConstants.SCALE_1M;
 
 import com.island.content.Biomass;
 import com.island.content.SpeciesKey;
 import com.island.content.SwarmOrganism;
+import com.island.engine.SimulationNode;
 import com.island.model.Cell;
 import java.util.List;
 
@@ -14,33 +17,23 @@ import java.util.List;
  * Generalized Caterpillar using SwarmOrganism (LOD 1) with integer arithmetic.
  */
 public class Caterpillar extends SwarmOrganism {
-    private final long[] sleepBuckets = new long[20];
-
-    public Caterpillar(long maxBiomass, int speed) {
-        super("Caterpillar", SpeciesKey.CATERPILLAR, maxBiomass, speed, 40, 
-                CATERPILLAR_METABOLISM_RATE_BP, 0); // Reproduction handled by Butterfly
-        ageBuckets[0] = maxBiomass;
-        updateTotalBiomass();
+    public Caterpillar(long initialBiomass, int speed) {
+        super("Caterpillar", SpeciesKey.CATERPILLAR, 1000L * SCALE_1M, speed, 30, 
+                CATERPILLAR_METABOLISM_RATE_BP, BUTTERFLY_REPRODUCTION_RATE_BP);
+        spawn(initialBiomass);
     }
 
     @Override
-    protected void processFeeding(Cell cell) {
-        long totalActive = 0;
-        for (long s : ageBuckets) {
-            totalActive += s;
-        }
-
-        long appetite = totalActive / 10; // 10%
+    protected void processFeeding(SimulationNode node) {
+        long appetite = (biomass * 10) / 100; // 10%
         if (appetite > 0) {
-            List<Biomass> availablePlants = cell.getBiomassContainers();
-            for (Biomass p : availablePlants) {
-                if (p != this && p.isAlive() && !(p instanceof Butterfly)) {
-                    // appetite = consumed * efficiency / SCALE_10K
-                    // consumed = appetite * SCALE_10K / efficiency
+            List<? extends com.island.engine.Mortal> availablePlants = node.getBiomassEntities();
+            for (com.island.engine.Mortal m : availablePlants) {
+                if (m instanceof Biomass p && p != this && p.isAlive() && !(p instanceof Butterfly)) {
                     long consumed = (appetite * SCALE_10K) / CATERPILLAR_FEED_EFFICIENCY_BP;
-                    long actualEaten = p.consumeBiomass(consumed, cell);
+                    long actualEaten = p.consumeBiomass(consumed, node);
                     long energyGain = (actualEaten * CATERPILLAR_FEED_EFFICIENCY_BP) / SCALE_10K;
-                    ageBuckets[0] += energyGain;
+                    spawn(energyGain);
                     appetite -= energyGain;
                     if (appetite <= 0) {
                         break;
@@ -51,57 +44,21 @@ public class Caterpillar extends SwarmOrganism {
     }
 
     @Override
-    protected void advanceAge(Cell cell) {
-        // Handle metamorphosis
-        long maturing = ageBuckets[ageBuckets.length - 1];
-        
-        // Emerging from sleep to Butterfly
-        long emerging = sleepBuckets[sleepBuckets.length - 1];
-        if (emerging > 0) {
-            Butterfly b = (Butterfly) cell.getBiomass(SpeciesKey.BUTTERFLY);
-            if (b == null) {
-                b = new Butterfly(0, this.getSpeed());
-                cell.addBiomass(b);
+    protected void processReproduction(SimulationNode node) {
+        // Reproduce if old enough (max age bucket)
+        long readyToTransform = ageBuckets[ageBuckets.length - 1];
+        if (readyToTransform > 0) {
+            ageBuckets[ageBuckets.length - 1] = 0;
+            updateTotalBiomass();
+
+            if (node instanceof Cell cell) {
+                Butterfly b = (Butterfly) cell.getBiomass(SpeciesKey.BUTTERFLY);
+                if (b == null) {
+                    b = new Butterfly(0, 0);
+                    cell.addBiomass(b);
+                }
+                b.spawn(readyToTransform);
             }
-            b.spawn(emerging);
         }
-
-        // Shift sleep buckets
-        for (int i = sleepBuckets.length - 1; i > 0; i--) {
-            sleepBuckets[i] = sleepBuckets[i - 1];
-        }
-        sleepBuckets[0] = maturing / 2; // 50% go to sleep
-
-        // Standard age advance
-        for (int i = ageBuckets.length - 1; i > 0; i--) {
-            ageBuckets[i] = ageBuckets[i - 1];
-        }
-        ageBuckets[0] = maturing / 2; // 50% reset cycle
-    }
-
-    @Override
-    protected void processReproduction(Cell cell) {
-        // Handled by Butterfly
-    }
-
-    @Override
-    protected void updateTotalBiomass() {
-        long total = 0;
-        for (long b : ageBuckets) {
-            total += b;
-        }
-        for (long b : sleepBuckets) {
-            total += b;
-        }
-        this.biomass = total;
-    }
-
-    @Override
-    public boolean isHibernating() {
-        long sleepTotal = 0;
-        for (long b : sleepBuckets) {
-            sleepTotal += b;
-        }
-        return sleepTotal > (biomass / 10);
     }
 }

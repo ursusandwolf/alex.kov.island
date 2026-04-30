@@ -1,21 +1,14 @@
 package com.island.content;
 
 import static com.island.config.SimulationConstants.SCALE_10K;
-
 import com.island.config.EnergyPolicy;
-
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * Base class for all animals in the simulation.
- * Represents the state and properties of an animal using integer arithmetic.
- */
 @Getter
 public abstract class Animal extends Organism {
     protected final AnimalType animalType; 
-    @Setter
-    protected boolean isHiding = false;
+    @Setter protected boolean hiding = false;
     protected long weightOverride = 0;
     protected int speedOverride = -1;
 
@@ -36,7 +29,7 @@ public abstract class Animal extends Organism {
 
     public void init(AnimalType type, int energyPercent) {
         super.init(type.getMaxEnergy(), type.getMaxLifespan(), energyPercent);
-        this.isHiding = false;
+        this.hiding = false;
         this.weightOverride = 0;
         this.speedOverride = -1;
     }
@@ -47,11 +40,11 @@ public abstract class Animal extends Organism {
     }
 
     public boolean canInitiateReproduction() {
-        return isAlive() && getAge() >= 1 && getEnergyPercentage() >= com.island.config.EnergyPolicy.REPRODUCTION_MIN.getPercent();
+        return isAlive() && getAge() >= 1 && getEnergyPercentage() >= EnergyPolicy.REPRODUCTION_MIN.getPercent();
     }
 
     public boolean isProtected(int currentTick) {
-        return isHiding;
+        return hiding;
     }
 
     @Override

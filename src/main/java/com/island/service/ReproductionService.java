@@ -3,6 +3,7 @@ package com.island.service;
 import static com.island.config.SimulationConstants.SCALE_10K;
 
 import com.island.config.EnergyPolicy;
+import com.island.engine.SimulationNode;
 import com.island.engine.SimulationWorld;
 import com.island.content.Animal;
 import com.island.content.AnimalFactory;
@@ -18,7 +19,7 @@ import java.util.concurrent.ExecutorService;
 /**
  * Service responsible for animal reproduction using integer-based arithmetic.
  */
-public class ReproductionService extends AbstractService<Cell> {
+public class ReproductionService extends AbstractService<SimulationNode> {
     private final AnimalFactory animalFactory;
     private final SpeciesRegistry speciesRegistry;
 
@@ -30,12 +31,12 @@ public class ReproductionService extends AbstractService<Cell> {
     }
 
     @Override
-    protected void processCell(Cell cell, int tickCount) {
+    protected void processCell(SimulationNode node, int tickCount) {
         List<Animal> candidates = new ArrayList<>();
-        int totalAnimalsInCell = cell.getAnimalCount();
+        int totalAnimalsInCell = node.getLivingEntities().size(); 
         int limit = com.island.config.SimulationConstants.REPRODUCTION_LOD_LIMIT;
         
-        cell.forEachAnimalSampled(limit, getRandom(), a -> {
+        node.forEachAnimalSampled(limit, getRandom(), a -> {
             if (shouldAct(a, AnimalType.Action.REPRODUCE, tickCount)) {
                 candidates.add(a);
             }
@@ -64,7 +65,7 @@ public class ReproductionService extends AbstractService<Cell> {
                     // Check reproduction chance from AnimalType
                     int chance = a1.getAnimalType().getReproductionChance();
                     if (getRandom().nextInt(0, 100) < chance) {
-                        if (tryReproduceScaled(a1, a2, cell, samplingScale)) {
+                        if (tryReproduceScaled(a1, a2, node, samplingScale)) {
                             alreadyMated.add(a1);
                             alreadyMated.add(a2);
                             break;
@@ -75,7 +76,7 @@ public class ReproductionService extends AbstractService<Cell> {
         }
     }
 
-    private boolean tryReproduceScaled(Animal parent1, Animal parent2, Cell cell, int scale) {
+    private boolean tryReproduceScaled(Animal parent1, Animal parent2, SimulationNode node, int scale) {
         AnimalType type = parent1.getAnimalType();
         int baseMaxOffspring = type.getMaxOffspring();
         boolean isEndangered = protectionMap != null && protectionMap.containsKey(type.getSpeciesKey());
@@ -99,11 +100,11 @@ public class ReproductionService extends AbstractService<Cell> {
             Optional<Animal> baby = animalFactory.createBaby(type.getSpeciesKey());
             if (baby.isPresent()) {
                 Animal babyAnimal = baby.get();
-                if (cell.addAnimal(babyAnimal)) {
+                if (node.addEntity(babyAnimal)) {
                     success = true;
                 } else {
                     animalFactory.releaseAnimal(babyAnimal);
-                    break; // Cell is full
+                    break; // Node is full
                 }
             }
         }
@@ -116,7 +117,7 @@ public class ReproductionService extends AbstractService<Cell> {
         return success;
     }
 
-    private boolean tryReproduce(Animal parent1, Animal parent2, Cell cell) {
-        return tryReproduceScaled(parent1, parent2, cell, 1);
+    private boolean tryReproduce(Animal parent1, Animal parent2, SimulationNode node) {
+        return tryReproduceScaled(parent1, parent2, node, 1);
     }
 }

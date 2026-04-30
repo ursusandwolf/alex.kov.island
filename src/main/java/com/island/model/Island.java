@@ -1,7 +1,9 @@
 package com.island.model;
 
+import com.island.engine.Season;
 import com.island.engine.SimulationNode;
 import com.island.engine.SimulationWorld;
+import com.island.engine.WorldSnapshot;
 import com.island.content.Animal;
 import com.island.content.AnimalType;
 import com.island.content.Biomass;
@@ -17,33 +19,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import lombok.Getter;
+import lombok.Setter;
 
 import static com.island.config.SimulationConstants.ENDANGERED_MAX_HIDE_CHANCE_PERCENT;
 import static com.island.config.SimulationConstants.ENDANGERED_MIN_HIDE_CHANCE_PERCENT;
 import static com.island.config.SimulationConstants.ENDANGERED_POPULATION_THRESHOLD_BP;
 import static com.island.config.SimulationConstants.SCALE_10K;
 
-/**
- * Composite: Island consists of cells.
- * Uses integer arithmetic for protection chances and movement logic.
- */
+@Getter
 public class Island implements SimulationWorld {
-    @Getter
     private final int width;
-    @Getter
     private final int height;
-    @Getter
     private final Cell[][] grid;
-    @Getter
     private final List<Chunk> chunks = new ArrayList<>();
     private final SpeciesRegistry registry;
     private final StatisticsService statisticsService;
-    @Getter
     private int tickCount = 0;
-    @Getter
-    private boolean redBookProtectionEnabled = true;
-    @Getter
-    private com.island.engine.Season currentSeason = com.island.engine.Season.SPRING;
+    @Setter private boolean redBookProtectionEnabled = true;
+    private Season currentSeason = Season.SPRING;
+
+    private Map<SpeciesKey, Integer> cachedProtectionMap = null;
+    private int protectionMapTick = -1;
 
     public Island(int width, int height, SpeciesRegistry registry, StatisticsService statisticsService) {
         this.width = width;
@@ -66,9 +62,7 @@ public class Island implements SimulationWorld {
                 List<SimulationNode> neighbors = new ArrayList<>();
                 for (int dx = -1; dx <= 1; dx++) {
                     for (int dy = -1; dy <= 1; dy++) {
-                        if (dx == 0 && dy == 0) {
-                            continue;
-                        }
+                        if (dx == 0 && dy == 0) continue;
                         getNode(cell, dx, dy).ifPresent(neighbors::add);
                     }
                 }
@@ -77,44 +71,26 @@ public class Island implements SimulationWorld {
         }
     }
 
-    public void setRedBookProtectionEnabled(boolean enabled) {
-        this.redBookProtectionEnabled = enabled;
-    }
-
-    private Map<SpeciesKey, Integer> cachedProtectionMap = null;
-    private int protectionMapTick = -1;
-
     @Override
     public Map<SpeciesKey, Integer> getProtectionMap(SpeciesRegistry passedRegistry) {
-        if (!redBookProtectionEnabled) {
-            return Collections.emptyMap();
-        }
-        
-        if (protectionMapTick == tickCount && cachedProtectionMap != null) {
-            return cachedProtectionMap;
-        }
+        if (!redBookProtectionEnabled) return Collections.emptyMap();
+        if (protectionMapTick == tickCount && cachedProtectionMap != null) return cachedProtectionMap;
 
         SpeciesRegistry activeRegistry = (passedRegistry != null) ? passedRegistry : this.registry;
-        if (activeRegistry == null) {
-            return Collections.emptyMap();
-        }
+        if (activeRegistry == null) return Collections.emptyMap();
 
         Map<SpeciesKey, Integer> protectionMap = new HashMap<>();
         int islandArea = width * height;
 
         for (SpeciesKey key : activeRegistry.getAllAnimalKeys()) {
             AnimalType type = activeRegistry.getAnimalType(key).orElse(null);
-            if (type == null) {
-                continue;
-            }
+            if (type == null) continue;
 
             int currentCount = getSpeciesCount(key);
             long globalCapacity = (long) islandArea * type.getMaxPerCell();
-            
             long threshold = (globalCapacity * ENDANGERED_POPULATION_THRESHOLD_BP) / SCALE_10K; 
+            
             if (currentCount > 0 && currentCount < threshold) {
-                // hideChance = MAX - (current/threshold) * (MAX - MIN)
-                // Using 1000 scale for intermediate calculation
                 int ratio1000 = (int) ((currentCount * 1000) / threshold);
                 int diff = ENDANGERED_MAX_HIDE_CHANCE_PERCENT - ENDANGERED_MIN_HIDE_CHANCE_PERCENT;
                 int hideChance = ENDANGERED_MAX_HIDE_CHANCE_PERCENT - (ratio1000 * diff) / 1000;
@@ -124,14 +100,11 @@ public class Island implements SimulationWorld {
         
         this.cachedProtectionMap = Collections.unmodifiableMap(protectionMap);
         this.protectionMapTick = tickCount;
-        
         return cachedProtectionMap;
     }
 
     @Override
-    public SpeciesRegistry getRegistry() {
-        return registry;
-    }
+    public SpeciesRegistry getRegistry() { return registry; }
 
     @Override
     public void reportDeath(SpeciesKey speciesKey, DeathCause cause) {
@@ -139,37 +112,23 @@ public class Island implements SimulationWorld {
     }
 
     @Override
-    public void onOrganismAdded(SpeciesKey key) {
-        statisticsService.registerBirth(key);
-    }
+    public void onOrganismAdded(SpeciesKey key) { statisticsService.registerBirth(key); }
 
     @Override
-    public void onOrganismRemoved(SpeciesKey key) {
-        statisticsService.registerRemoval(key);
-    }
+    public void onOrganismRemoved(SpeciesKey key) { statisticsService.registerRemoval(key); }
 
     @Override
-    public int getSpeciesCount(SpeciesKey key) {
-        return statisticsService.getSpeciesCount(key);
-    }
+    public int getSpeciesCount(SpeciesKey key) { return statisticsService.getSpeciesCount(key); }
 
     @Override
-    public com.island.engine.WorldSnapshot createSnapshot() {
-        return new IslandSnapshot(this);
-    }
+    public WorldSnapshot createSnapshot() { return new IslandSnapshot(this); }
 
     @Override
-    public StatisticsService getStatisticsService() {
-        return statisticsService;
-    }
+    public StatisticsService getStatisticsService() { return statisticsService; }
 
-    public Map<SpeciesKey, Integer> getSpeciesCounts() {
-        return statisticsService.getSpeciesCountsMap();
-    }
+    public Map<SpeciesKey, Integer> getSpeciesCounts() { return statisticsService.getSpeciesCountsMap(); }
 
-    public int getTotalOrganismCount() {
-        return statisticsService.getTotalPopulation();
-    }
+    public int getTotalOrganismCount() { return statisticsService.getTotalPopulation(); }
 
     public int getTotalAnimalDeathCount(DeathCause cause) {
         return statisticsService.getTotalDeaths(cause).entrySet().stream()
@@ -205,22 +164,16 @@ public class Island implements SimulationWorld {
 
     @Override
     public void moveAnimal(Animal animal, SimulationNode from, SimulationNode to) {
-        if (from instanceof Cell f && to instanceof Cell t) {
-            moveOrganism(animal, f, t);
-        }
+        if (from instanceof Cell f && to instanceof Cell t) moveOrganism(animal, f, t);
     }
 
     @Override
     public void moveBiomassPartially(Biomass b, SimulationNode from, SimulationNode to, long amount) {
-        if (from instanceof Cell f && to instanceof Cell t) {
-            moveBiomassPartially(b, f, t, amount);
-        }
+        if (from instanceof Cell f && to instanceof Cell t) moveBiomassPartially(b, f, t, amount);
     }
 
     public void moveBiomassPartially(Biomass b, Cell from, Cell to, long amount) {
-        if (from == to || amount <= 0 || b.getBiomass() <= 0) {
-            return;
-        }
+        if (from == to || amount <= 0 || b.getBiomass() <= 0) return;
         Cell first = (from.getX() < to.getX() || (from.getX() == to.getX() && from.getY() < to.getY())) ? from : to;
         Cell second = (first == from) ? to : from;
         first.getLock().lock();
@@ -228,9 +181,7 @@ public class Island implements SimulationWorld {
             second.getLock().lock();
             try {
                 long actualToMove = Math.min(b.getBiomass(), amount);
-                if (to.addBiomass(b.getSpeciesKey(), actualToMove)) {
-                    b.consumeBiomass(actualToMove, from);
-                }
+                if (to.addBiomass(b.getSpeciesKey(), actualToMove)) b.consumeBiomass(actualToMove, from);
             } finally {
                 second.getLock().unlock();
             }
@@ -249,14 +200,12 @@ public class Island implements SimulationWorld {
     private void updateSeason() {
         int seasonDuration = 50;
         int seasonIndex = (tickCount / seasonDuration) % 4;
-        this.currentSeason = com.island.engine.Season.values()[seasonIndex];
+        this.currentSeason = Season.values()[seasonIndex];
     }
 
     private void initializeGrid() {
         for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                grid[x][y] = new Cell(x, y, this);
-            }
+            for (int y = 0; y < height; y++) grid[x][y] = new Cell(x, y, this);
         }
     }
 
@@ -272,9 +221,7 @@ public class Island implements SimulationWorld {
     }
 
     public void moveOrganism(Animal animal, Cell from, Cell to) {
-        if (from == to) {
-            return;
-        }
+        if (from == to) return;
         Cell first = (from.getX() < to.getX() || (from.getX() == to.getX() && from.getY() < to.getY())) ? from : to;
         Cell second = (first == from) ? to : from;
         first.getLock().lock();
@@ -283,9 +230,7 @@ public class Island implements SimulationWorld {
             try {
                 if (from.removeAnimal(animal)) {
                     if (!to.addAnimal(animal)) {
-                        // If failed to add to target, try to return back
                         if (!from.addAnimal(animal)) {
-                            // If failed to return, the animal dies
                             animal.tryConsumeEnergy(animal.getCurrentEnergy()); 
                             reportDeath(animal.getSpeciesKey(), DeathCause.MOVEMENT_EXHAUSTION);
                         }

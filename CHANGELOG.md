@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.1-SNAPSHOT] - 2026-04-30
+
+### Added
+- **Lombok Integration**: Replaced thousands of lines of boilerplate (getters, setters, builders) with Lombok annotations.
+- **Integer Scaling**: Standardized energy/mass on `SCALE_1M` (long) and rates on `SCALE_10K` (int) for deterministic, high-performance arithmetic.
+- **Enhanced Protection Map**: Optimized "Red Book" protection calculation to run once per tick, resulting in a 400x performance boost in crowded simulations.
+- **Technical Manual**: Consolidated architectural "know-how" and biological logic into `README.md` for better maintainability.
+
+### Fixed
+- **Deadlock Prevention**: Verified and enforced consistent locking order (X then Y coordinate) in `Island` and `Cell` for multi-threaded movement.
+- **Registry Pollution**: Fixed "Fall-through" bug in `SpeciesLoader` that polluted animal registries with plant data.
+- **Concurrent Discovery**: Migrated `SpeciesKey` registry to `ConcurrentHashMap` to safely handle runtime species discovery.
+
+### Changed
+- **Code Cleanup**: Stripped redundant fully qualified names (FQNs), obsolete Javadocs, and descriptive comments to improve signal-to-noise ratio.
+- **Immutable Registries**: `SpeciesRegistry` now uses defensive copying to ensure map immutability during runtime.
+- **Entity Storage**: `EntityContainer` now uses indexed buckets and `LinkedHashSet` for O(1) removals and stable iteration.
+
 ## [1.0-SNAPSHOT] - 2026-04-29
 
 ### Added

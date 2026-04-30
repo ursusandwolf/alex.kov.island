@@ -1,52 +1,42 @@
-# Island Simulator Architecture (v1.1)
+# Island Simulator Architecture (v1.2)
 
 ## Class Diagram Concepts
 
 ### Engine Layer
-- `SimulationWorld` (Island): Central hub.
-- `SimulationNode` (Cell): Spatial unit.
-- `AbstractService`: Parallel task processor.
-- `WorldInitializer`: Setup and bootstrap.
+- `SimulationWorld` (Island): Central hub. Enforces X-Y locking order for dead-lock free concurrency.
+- `SimulationNode` (Cell): Spatial unit. Uses `ReentrantReadWriteLock` for fine-grained thread safety.
+- `AbstractService`: Parallel task processor using Java 21 Virtual Threads.
+- `SimulationConstants`: Pure constant registry for `SCALE_1M` and `SCALE_10K` arithmetic.
 
-### Domain Layer
-- `Organism`: Base for all life.
-- `Animal` (Herbivore/Predator): Complex life with energy and metabolism.
-- `Biomass` (Plants/Insects): Simple mass-based life.
-- `SpeciesRegistry`: Metadata for all species.
+### Domain Layer (Lombok Powered)
+- `Organism`: Base for all life. Standardized on `long` energy (fixed-point).
+- `Animal` (Herbivore/Predator): LOD 0 entities with individual logic.
+- `SwarmOrganism`: LOD 1 entities (Plants, Butterflies) using mass-based aggregation.
+- `EntityContainer`: O(1) management using indexed buckets and `LinkedHashSet`.
 
 ### Services (The Logic)
-- `MovementService`: Handles spatial transitions.
-- `FeedingService`: Handles hunting and grazing.
-- `ReproductionService`: Handles population growth.
-- `LifecycleService`: Aging and metabolism.
-- `CleanupService`: Recycles dead organisms to pools.
+- `MovementService`: Coordinate-ordered cell transitions.
+- `FeedingService`: Optimized hunting/grazing with pre-calculated interaction matrices.
+- `ReproductionService`: Population growth with LOD scaling.
+- `LifecycleService`: Aging, metabolism, and seasonal cycle integration.
+- `CleanupService`: Pool-based recycling of dead entities.
 
-## How It Works: The Execution Loop
+## Core Principles
 
-1. **Bootstrap**: `WorldInitializer` creates the `Island`, populates it using `AnimalFactory` and `SpeciesRegistry`, and injects services.
-2. **Game Loop**: `GameLoop` triggers a `tick()` on all services in a predefined sequence:
-    - `LifecycleService`: Subtracts energy (metabolism) and increments age.
-    - `FeedingService`: Predators hunt, herbivores graze.
-    - `MovementService`: Animals move to neighboring cells.
-    - `ReproductionService`: Mature animals produce offspring.
-    - `CleanupService`: Final pass to remove dead entities and recycle them to pools.
-3. **Optimized Processing**:
-    - Every service uses `AbstractService.tick()`, which submits tasks to a **Virtual Thread Executor**.
-    - **Skip-Tick logic** in `FeedingService` and `MovementService` ensures cold-blooded animals consume less CPU.
-    - **LOD logic** ensures that "super-cells" (overcrowded) don't bottleneck the simulation by processing only a statistical sample.
-4. **Energy Economy**: Every action (moving, hunting, reproducing) costs energy. Energy is replenished by eating. If energy hits zero, the organism is marked for death and recycled.
+### 1. Integer-Based Arithmetic
+To ensure deterministic results and high performance, the engine uses fixed-point arithmetic:
+- `SCALE_1M` (1,000,000) for mass, energy, and consumption.
+- `SCALE_10K` (basis points) for growth rates, hunting probabilities, and mutation chances.
 
-## Optimization Strategy
+### 2. Level of Detail (LOD)
+- **LOD 0**: Individual processing for complex animals.
+- **LOD 1**: Statistical sampling and swarm aggregation for high-density species (plants, insects).
 
-### 1. Object Pooling
-`AnimalFactory` maintains a pool of `Animal` objects. When an animal dies, it's not GC'd but sent back to the pool for reuse.
+### 3. Concurrency Model
+- **Cell-Level Locking**: Services lock only the cells they are working on.
+- **Lock Ordering**: To prevent deadlocks during cross-cell movement, cells are always locked in (X, Y) order.
+- **Tick-Level Caching**: Expensive global lookups (like Protection Maps) are cached once per tick.
 
-### 2. Tick Scheduler (LOD & Skip Ticks)
-- **LOD**: If a cell has >100 animals, only a sample is processed.
-- **Skip Ticks**: Cold-blooded species (e.g., SNAKE) act every 2nd or 3rd tick.
-
-### 3. Spatial Indexing
-Cells store a pre-calculated list of `neighbors` for O(1) movement lookups.
-
-### 4. Concurrency
-Simulation uses **Java 21 Virtual Threads**. Work is divided into independent units (rows/chunks) to minimize lock contention.
+### 4. Boilerplate-Free Domain
+- Mandatory use of **Lombok** (`@Getter`, `@Setter`, `@Builder`) to keep domain logic clean.
+- Removal of redundant Javadocs and FQNs; architectural "know-how" is deferred to `README.md`.

@@ -27,6 +27,11 @@ public interface SimulationNode {
     java.util.List<SimulationNode> getNeighbors();
 
     /**
+     * Gets the world this node belongs to.
+     */
+    SimulationWorld getWorld();
+
+    /**
      * Gets all living entities in this node.
      */
     java.util.List<? extends Mortal> getLivingEntities();
@@ -35,6 +40,32 @@ public interface SimulationNode {
      * Gets only biomass-based entities in this node.
      */
     java.util.List<? extends Mortal> getBiomassEntities();
+
+    /**
+     * Iterates over predators in this node.
+     */
+    void forEachPredator(java.util.function.Consumer<com.island.content.Animal> action);
+
+    /**
+     * Iterates over herbivores in this node with LOD sampling.
+     */
+    void forEachHerbivoreSampled(int limit, com.island.util.RandomProvider random, java.util.function.Consumer<com.island.content.Animal> action);
+
+    /**
+     * Iterates over all animals in this node with LOD sampling.
+     */
+    void forEachAnimalSampled(int limit, com.island.util.RandomProvider random, java.util.function.Consumer<com.island.content.Animal> action);
+
+    /**
+     * Gets the count of a specific species in this node.
+     */
+    int getOrganismCount(com.island.content.SpeciesKey key);
+
+    /**
+     * Removes all dead organisms from this node.
+     * @return List of removed animals.
+     */
+    java.util.List<com.island.content.Animal> cleanupDeadOrganisms();
 
     /**
      * Adds an entity to this node.

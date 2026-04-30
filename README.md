@@ -54,6 +54,32 @@ mvn test -Dtest=ReproducibilityTest,StabilityIntegrationTest
 mvn checkstyle:check
 ```
 
+## Technical Manual
+
+### Integer Arithmetic
+To prevent floating-point drift and ensure determinism, the simulator uses custom scaling:
+- **Mass & Energy**: `long` scaled by `SCALE_1M` (1,000,000). 1.0 unit = 1,000,000.
+- **Rates & Probabilities**: `int` scaled by `SCALE_10K` (basis points). 100% = 10,000; 1% = 100.
+- **Metabolism**: Calculated via Kleiber's Law using size-class modifiers in basis points.
+
+### Level of Detail (LOD)
+- **LOD 0 (Individuals)**: Predators and large herbivores are modeled as individual objects.
+- **LOD 1 (Swarm/Biomass)**: Plants, Butterflies, and Caterpillars are aggregated into `Biomass` containers. 
+- **Reproduction LOD**: Sampled populations scale birth rates by `(total / limit)` to maintain ecological consistency.
+
+### Concurrency & Performance
+- **Grid Locking**: Each `Cell` has a `ReentrantReadWriteLock`. 
+- **Deadlock Prevention**: Interactions involving multiple cells (e.g., Movement) must acquire locks in a consistent order (by X, then Y coordinates).
+- **O(1) Access**: `EntityContainer` uses indexed buckets (by Species, Role, Size) for constant-time lookups.
+- **Snapshot Iteration**: Services iterate over snapshots or use internal `forEach` abstractions to ensure thread safety without blocking the entire world.
+
+### Ecological Protection
+- **Red Book**: If a species population falls below 5% of its global capacity, it receives:
+    - Guaranteed reproduction success.
+    - +2 offspring bonus.
+    - 50% metabolism reduction.
+    - Automatic stealth (protection from predators).
+
 ## Emergency & Rollback Plan
 In case of critical regression or performance degradation:
 1. **Revert Merge**: `git revert -m 1 <merge_commit>`
