@@ -7,9 +7,9 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public interface SimulationNode {
     /**
-     * Gets the synchronization lock for this node.
+     * Gets the synchronization lock for this node (usually the write lock).
      */
-    ReentrantLock getLock();
+    java.util.concurrent.locks.Lock getLock();
 
     /**
      * Gets coordinates or identifier of this node.

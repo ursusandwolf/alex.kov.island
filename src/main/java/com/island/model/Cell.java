@@ -24,7 +24,7 @@ public class Cell implements SimulationNode {
     private final int y;
     private final SimulationWorld world;
     private final EntityContainer container = new EntityContainer();
-    private final ReentrantLock lock = new ReentrantLock();
+    private final java.util.concurrent.locks.ReadWriteLock rwLock = new java.util.concurrent.locks.ReentrantReadWriteLock();
     private List<SimulationNode> cachedNeighbors = java.util.Collections.emptyList();
 
     public Cell(int x, int y, SimulationWorld world) { 
@@ -46,8 +46,8 @@ public class Cell implements SimulationNode {
     }
 
     @Override
-    public ReentrantLock getLock() {
-        return lock;
+    public java.util.concurrent.locks.Lock getLock() {
+        return rwLock.writeLock();
     }
 
     @Override
@@ -57,31 +57,41 @@ public class Cell implements SimulationNode {
 
     @Override
     public void setNeighbors(List<SimulationNode> neighbors) {
-        this.cachedNeighbors = List.copyOf(neighbors);
+        rwLock.writeLock().lock();
+        try {
+            this.cachedNeighbors = List.copyOf(neighbors);
+        } finally {
+            rwLock.writeLock().unlock();
+        }
     }
 
     @Override
     public List<SimulationNode> getNeighbors() {
-        return cachedNeighbors;
+        rwLock.readLock().lock();
+        try {
+            return cachedNeighbors;
+        } finally {
+            rwLock.readLock().unlock();
+        }
     }
 
     @Override
     public List<? extends com.island.engine.Mortal> getLivingEntities() {
-        lock.lock();
+        rwLock.readLock().lock();
         try {
             return new ArrayList<>(container.getAllAnimals());
         } finally {
-            lock.unlock();
+            rwLock.readLock().unlock();
         }
     }
 
     @Override
     public List<? extends com.island.engine.Mortal> getBiomassEntities() {
-        lock.lock();
+        rwLock.readLock().lock();
         try {
             return new ArrayList<>(container.getAllBiomass());
         } finally {
-            lock.unlock();
+            rwLock.readLock().unlock();
         }
     }
 
@@ -106,7 +116,7 @@ public class Cell implements SimulationNode {
     }
 
     public boolean addAnimal(Animal animal) {
-        lock.lock();
+        rwLock.writeLock().lock();
         try {
             if (container.countByType(animal.getAnimalType()) >= animal.getMaxPerCell()) {
                 return false;
@@ -116,12 +126,12 @@ public class Cell implements SimulationNode {
             world.onOrganismAdded(animal.getSpeciesKey());
             return true;
         } finally {
-            lock.unlock();
+            rwLock.writeLock().unlock();
         }
     }
 
     public boolean removeAnimal(Animal animal) {
-        lock.lock();
+        rwLock.writeLock().lock();
         try { 
             if (container.removeAnimal(animal)) {
                 world.onOrganismRemoved(animal.getSpeciesKey());
@@ -129,84 +139,84 @@ public class Cell implements SimulationNode {
             }
             return false;
         } finally {
-            lock.unlock();
+            rwLock.writeLock().unlock();
         }
     }
 
     public List<Animal> getAnimals() {
-        lock.lock();
+        rwLock.readLock().lock();
         try {
             return new ArrayList<>(container.getAllAnimals());
         } finally {
-            lock.unlock();
+            rwLock.readLock().unlock();
         }
     }
 
     public List<Animal> getPredators() {
-        lock.lock();
+        rwLock.readLock().lock();
         try {
             return new ArrayList<>(container.getPredators());
         } finally {
-            lock.unlock();
+            rwLock.readLock().unlock();
         }
     }
 
     public List<Animal> getHerbivores() {
-        lock.lock();
+        rwLock.readLock().lock();
         try {
             return new ArrayList<>(container.getHerbivores());
         } finally {
-            lock.unlock();
+            rwLock.readLock().unlock();
         }
     }
 
     public List<Animal> getAnimalsByType(AnimalType type) {
-        lock.lock();
+        rwLock.readLock().lock();
         try {
             return new ArrayList<>(container.getByType(type));
         } finally {
-            lock.unlock();
+            rwLock.readLock().unlock();
         }
     }
 
     public List<Animal> getAnimalsBySize(SizeClass size) {
-        lock.lock();
+        rwLock.readLock().lock();
         try {
             return new ArrayList<>(container.getBySize(size));
         } finally {
-            lock.unlock();
+            rwLock.readLock().unlock();
         }
     }
 
     public int countAnimalsByType(AnimalType type) {
-        lock.lock();
+        rwLock.readLock().lock();
         try {
             return container.countByType(type);
         } finally {
-            lock.unlock();
+            rwLock.readLock().unlock();
         }
     }
 
     public int getOrganismCount(SpeciesKey key) {
-        lock.lock();
+        rwLock.readLock().lock();
         try {
             return container.countBySpecies(key);
         } finally {
-            lock.unlock();
+            rwLock.readLock().unlock();
         }
     }
 
     public int getAnimalCount() {
-        lock.lock();
+        rwLock.readLock().lock();
         try {
             return container.getAllAnimals().size();
         } finally {
-            lock.unlock();
+            rwLock.readLock().unlock();
         }
     }
 
     public boolean addBiomass(Biomass b) {
-        lock.lock();
+        rwLock.writeLock().lock();
         try {
             Biomass existing = container.getBiomass(b.getSpeciesKey());
             if (existing != null) {
@@ -216,12 +226,12 @@ public class Cell implements SimulationNode {
             container.addBiomass(b);
             return true;
         } finally {
-            lock.unlock();
+            rwLock.writeLock().unlock();
         }
     }
 
     public boolean addBiomass(SpeciesKey key, double amount) {
-        lock.lock();
+        rwLock.writeLock().lock();
         try {
             Biomass existing = container.getBiomass(key);
             if (existing != null) {
@@ -230,39 +240,39 @@ public class Cell implements SimulationNode {
             }
             return false;
         } finally {
-            lock.unlock();
+            rwLock.writeLock().unlock();
         }
     }
 
     public boolean removeBiomass(Biomass b) {
-        lock.lock();
+        rwLock.writeLock().lock();
         try {
             return container.removeBiomass(b);
         } finally {
-            lock.unlock();
+            rwLock.writeLock().unlock();
         }
     }
 
     public List<Biomass> getBiomassContainers() {
-        lock.lock();
+        rwLock.readLock().lock();
         try {
             return new ArrayList<>(container.getAllBiomass());
         } finally {
-            lock.unlock();
+            rwLock.readLock().unlock();
         }
     }
 
     public Biomass getBiomass(SpeciesKey key) {
-        lock.lock();
+        rwLock.readLock().lock();
         try {
             return container.getBiomass(key);
         } finally {
-            lock.unlock();
+            rwLock.readLock().unlock();
         }
     }
 
     public int getPlantCount() { 
-        lock.lock();
+        rwLock.readLock().lock();
         try {
             double total = 0;
             for (Biomass b : container.getAllBiomass()) {
@@ -270,12 +280,12 @@ public class Cell implements SimulationNode {
             }
             return (int) total;
         } finally {
-            lock.unlock();
+            rwLock.readLock().unlock();
         }
     }
 
     public List<Animal> cleanupDeadOrganisms() {
-        lock.lock();
+        rwLock.writeLock().lock();
         try {
             List<Animal> toRemove = new ArrayList<>();
             for (Animal a : container.getAllAnimals()) {
@@ -284,20 +294,21 @@ public class Cell implements SimulationNode {
                 }
             }
             for (Animal a : toRemove) {
-                removeAnimal(a);
+                container.removeAnimal(a);
+                world.onOrganismRemoved(a.getSpeciesKey());
             }
             return toRemove;
         } finally {
-            lock.unlock();
+            rwLock.writeLock().unlock();
         }
     }
 
     public String getStatistics() {
-        lock.lock();
+        rwLock.readLock().lock();
         try {
             return String.format("Cell[%d,%d]: Animals=%d, Biomass=%d", x, y, container.getAllAnimals().size(), (int) getPlantCount());
         } finally {
-            lock.unlock();
+            rwLock.readLock().unlock();
         }
     }
 }

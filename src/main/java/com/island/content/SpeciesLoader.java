@@ -85,6 +85,16 @@ public class SpeciesLoader {
         };
         double reproChance = Double.parseDouble(props.getProperty(code + ".reproductionChance", String.valueOf(defaultReproChance)));
 
+        int defaultMaxOffspring = switch (sizeClass) {
+            case TINY -> 10;
+            case SMALL -> 6;
+            case NORMAL -> 4;
+            case MEDIUM -> 2;
+            case LARGE -> 1;
+            case HUGE -> 1;
+        };
+        int maxOffspring = Integer.parseInt(props.getProperty(code + ".maxOffspring", String.valueOf(defaultMaxOffspring)));
+
         if (isPlant) {
             plantWeights.put(key, weight);
             plantMaxCounts.put(key, maxCount);
@@ -122,6 +132,7 @@ public class SpeciesLoader {
                 .isBiomass(isBiomass)
                 .isPlant(isPlant)
                 .reproductionChance(reproChance)
+                .maxOffspring(maxOffspring)
                 .presenceProb(presenceProb)
                 .settlementBase(settlementBase)
                 .settlementRange(settlementRange)

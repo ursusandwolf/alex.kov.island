@@ -62,27 +62,37 @@ public class ReproductionService extends AbstractService<Cell> {
 
     private boolean tryReproduce(Animal parent1, Animal parent2, Cell cell) {
         AnimalType type = parent1.getAnimalType();
-        double chance = type.getReproductionChance();
+        int maxOffspring = type.getMaxOffspring();
         
-        // Endangered protection bonus
+        // Endangered protection bonus: +1 to potential offspring
         if (protectionMap != null && protectionMap.containsKey(type.getSpeciesKey())) {
-            chance *= (1.0 + com.island.config.SimulationConstants.ENDANGERED_REPRO_BONUS_PERCENT / 100.0);
+            maxOffspring++;
         }
 
-        if (getRandom().nextDouble() < chance) {
-            Optional<Animal> baby = animalFactory.createAnimal(type.getSpeciesKey());
+        int count = getRandom().nextInt(0, maxOffspring + 1);
+        if (count <= 0) {
+            return false;
+        }
+
+        boolean success = false;
+        for (int i = 0; i < count; i++) {
+            Optional<Animal> baby = animalFactory.createBaby(type.getSpeciesKey());
             if (baby.isPresent()) {
                 Animal babyAnimal = baby.get();
                 if (cell.addAnimal(babyAnimal)) {
-                    double costFactor = com.island.config.EnergyPolicy.REPRODUCTION_COST.getFactor();
-                    parent1.consumeEnergy(parent1.getMaxEnergy() * costFactor);
-                    parent2.consumeEnergy(parent2.getMaxEnergy() * costFactor);
-                    return true;
+                    success = true;
                 } else {
                     animalFactory.releaseAnimal(babyAnimal);
+                    break; // Cell is full
                 }
             }
         }
-        return false;
+
+        if (success) {
+            double costFactor = com.island.config.EnergyPolicy.REPRODUCTION_COST.getFactor();
+            parent1.consumeEnergy(parent1.getMaxEnergy() * costFactor);
+            parent2.consumeEnergy(parent2.getMaxEnergy() * costFactor);
+        }
+        return success;
     }
 }

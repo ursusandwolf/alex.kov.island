@@ -30,4 +30,9 @@ public class DefaultRandomProvider implements RandomProvider {
     public double nextDouble(double bound) {
         return ThreadLocalRandom.current().nextDouble(bound);
     }
+
+    @Override
+    public boolean nextBoolean() {
+        return ThreadLocalRandom.current().nextBoolean();
+    }
 }

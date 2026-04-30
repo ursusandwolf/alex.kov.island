@@ -33,6 +33,7 @@ public final class AnimalType {
     private final boolean isBiomass;
     private final boolean isPlant;
     private final double reproductionChance;
+    private final int maxOffspring;
 
     // Data-driven settlement properties
     private final double presenceProb;

@@ -42,6 +42,7 @@ class ReproducibilityTest {
             @Override public double nextDouble() { return (double) ((counter++) % 100) / 100.0; }
             @Override public double nextDouble(double bound) { return ((double) ((counter++) % 100) / 100.0) * bound; }
             @Override public long nextLong() { return 0L; }
+            @Override public boolean nextBoolean() { return (counter++) % 2 == 0; }
         };
         RandomUtils.setProvider(fixedProvider);
 

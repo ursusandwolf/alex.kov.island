@@ -15,11 +15,13 @@ import lombok.experimental.NonFinal;
  */
 @Getter
 public abstract class Organism implements com.island.util.Poolable, com.island.engine.Mortal {
+    private static final long ENERGY_SCALE = 1_000_000L;
+
     private final String id = java.util.UUID.randomUUID().toString();
-    @NonFinal @Setter
-    private volatile double currentEnergy; 
     @NonFinal
-    private double maxEnergy; 
+    private volatile long currentEnergy; 
+    @NonFinal
+    private long maxEnergy; 
     @NonFinal
     private int age; 
     @NonFinal
@@ -32,10 +34,10 @@ public abstract class Organism implements com.island.util.Poolable, com.island.e
     }
 
     protected Organism(double maxEnergy, int maxLifespan, double energyFactor) {
-        this.maxEnergy = maxEnergy;
+        this.maxEnergy = (long) (maxEnergy * ENERGY_SCALE);
         this.maxLifespan = maxLifespan;
         this.isAlive = true;
-        this.currentEnergy = maxEnergy * energyFactor;
+        this.currentEnergy = (long) (this.maxEnergy * energyFactor);
         this.age = 0;
     }
 
@@ -49,9 +51,9 @@ public abstract class Organism implements com.island.util.Poolable, com.island.e
     }
 
     public void init(double maxEnergy, int maxLifespan, double energyFactor) {
-        this.maxEnergy = maxEnergy;
+        this.maxEnergy = (long) (maxEnergy * ENERGY_SCALE);
         this.maxLifespan = maxLifespan;
-        this.currentEnergy = maxEnergy * energyFactor;
+        this.currentEnergy = (long) (this.maxEnergy * energyFactor);
         this.isAlive = true;
         this.age = 0;
     }
@@ -63,7 +65,15 @@ public abstract class Organism implements com.island.util.Poolable, com.island.e
     public abstract String getTypeName();
 
     public double getEnergyPercentage() {
-        return (maxEnergy == 0) ? 0 : (currentEnergy / maxEnergy) * 100.0;
+        return (maxEnergy == 0) ? 0 : ((double) currentEnergy / maxEnergy) * 100.0;
+    }
+
+    public double getCurrentEnergy() {
+        return (double) currentEnergy / ENERGY_SCALE;
+    }
+
+    public double getMaxEnergy() {
+        return (double) maxEnergy / ENERGY_SCALE;
     }
 
     public boolean canPerformAction() { 
@@ -71,16 +81,17 @@ public abstract class Organism implements com.island.util.Poolable, com.island.e
     }
 
     public void setEnergyFactor(double factor) {
-        this.currentEnergy = maxEnergy * Math.max(0.0, Math.min(1.0, factor));
+        this.currentEnergy = (long) (maxEnergy * Math.max(0.0, Math.min(1.0, factor)));
     }
 
     private final java.util.concurrent.locks.ReentrantLock energyLock = new java.util.concurrent.locks.ReentrantLock();
 
     public boolean tryConsumeEnergy(double amount) {
+        long longAmount = (long) (amount * ENERGY_SCALE);
         energyLock.lock();
         try {
-            currentEnergy = Math.max(0, currentEnergy - amount);
-            if (currentEnergy < DEATH_EPSILON && isAlive) {
+            currentEnergy = Math.max(0, currentEnergy - longAmount);
+            if (currentEnergy < 1 && isAlive) { // Using 1 instead of EPSILON for long
                 isAlive = false;
             }
             return isAlive;
@@ -94,14 +105,14 @@ public abstract class Organism implements com.island.util.Poolable, com.island.e
     }
 
     public void setEnergy(double energy) {
-        this.currentEnergy = Math.min(energy, maxEnergy);
-        if (this.currentEnergy < DEATH_EPSILON && isAlive) {
+        this.currentEnergy = Math.min((long) (energy * ENERGY_SCALE), maxEnergy);
+        if (this.currentEnergy < 1 && isAlive) {
             isAlive = false;
         }
     }
 
     public void addEnergy(double amount) {
-        currentEnergy = Math.min(maxEnergy, currentEnergy + amount);
+        currentEnergy = Math.min(maxEnergy, currentEnergy + (long) (amount * ENERGY_SCALE));
     }
 
     public boolean checkAgeDeath() {

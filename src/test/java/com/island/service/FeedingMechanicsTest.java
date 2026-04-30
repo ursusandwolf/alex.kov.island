@@ -64,6 +64,7 @@ class FeedingMechanicsTest {
             @Override public long nextLong() { return 0L; }
             @Override public double nextDouble() { return 0.5; } 
             @Override public double nextDouble(double bound) { return 0.0; }
+            @Override public boolean nextBoolean() { return false; }
         };
 
         animalFactory = new AnimalFactory(registry, deterministicRandom);
