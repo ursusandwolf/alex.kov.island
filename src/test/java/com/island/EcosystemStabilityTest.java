@@ -42,7 +42,7 @@ public class EcosystemStabilityTest {
             if (key == SpeciesKey.PLANT || key == SpeciesKey.CABBAGE || key == SpeciesKey.CATERPILLAR || key == SpeciesKey.GRASS) continue;
             
             int count = entry.getValue();
-            int maxPerCell = speciesRegistry.getAnimalType(key).orElseThrow().getMaxPerCell();
+            int maxPerCell = speciesRegistry.getAnyType(key).orElseThrow().getMaxPerCell();
             int globalCapacity = maxPerCell * islandArea;
             
             assertTrue(count < globalCapacity * 3.0, "Overpopulation of " + key + ": " + count);

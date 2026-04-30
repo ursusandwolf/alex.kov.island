@@ -24,6 +24,12 @@ import static com.island.config.SimulationConstants.HERBIVORE_FAIL_FEED_PENALTY_
 import static com.island.config.SimulationConstants.OVERPOPULATION_HUNT_BONUS;
 import static com.island.config.SimulationConstants.PREDATOR_FAIL_HUNT_PENALTY_PERCENT;
 
+import lombok.RequiredArgsConstructor;
+import static com.island.config.SimulationConstants.FEEDING_LOD_LIMIT;
+import static com.island.config.SimulationConstants.HERBIVORE_FAIL_FEED_PENALTY_PERCENT;
+import static com.island.config.SimulationConstants.OVERPOPULATION_HUNT_BONUS;
+import static com.island.config.SimulationConstants.PREDATOR_FAIL_HUNT_PENALTY_PERCENT;
+
 /**
  * Service responsible for feeding logic of all animals.
  */
@@ -33,7 +39,6 @@ public class FeedingService extends AbstractService<Cell> {
     private final SpeciesRegistry speciesRegistry;
     private final HuntingStrategy huntingStrategy;
     private final int minPackSize;
-    private Map<SpeciesKey, Double> protectionMap;
 
     public FeedingService(SimulationWorld world, AnimalFactory animalFactory, 
                           InteractionProvider interactionMatrix, 
@@ -53,12 +58,6 @@ public class FeedingService extends AbstractService<Cell> {
         this.speciesRegistry = speciesRegistry;
         this.huntingStrategy = huntingStrategy;
         this.minPackSize = minPackSize;
-    }
-
-    @Override
-    public void tick(int tickCount) {
-        this.protectionMap = getWorld().getProtectionMap(speciesRegistry);
-        super.tick(tickCount);
     }
 
     @Override
@@ -85,30 +84,18 @@ public class FeedingService extends AbstractService<Cell> {
         }
 
         for (Animal predator : predators) {
-            if (predator.isAlive() && shouldAct(predator, tickCount)) {
+            if (predator.isAlive() && shouldAct(predator, AnimalType.Action.FEED, tickCount)) {
                 tryEat(predator, cell);
             }
         }
     }
 
     private void processHerbivores(Cell cell, int tickCount) {
-        // High limit for herbivores (500) to ensure everyone in a standard cell can eat.
-        // Skipping meals is the primary cause of starvation in dense populations.
         forEachSampled(cell.getHerbivores(), FEEDING_LOD_LIMIT, herbivore -> {
-            if (herbivore.isAlive() && shouldAct(herbivore, tickCount)) {
+            if (herbivore.isAlive() && shouldAct(herbivore, AnimalType.Action.FEED, tickCount)) {
                 tryEat(herbivore, cell);
             }
         });
-    }
-
-    private boolean shouldAct(Animal animal, int tickCount) {
-        if (!animal.canPerformAction()) {
-            return false;
-        }
-        if (tickCount == 0) {
-            return true;
-        }
-        return (tickCount % animal.getAnimalType().getTickInterval(AnimalType.Action.FEED) == 0);
     }
 
     private void processPackHunting(List<Animal> pack, Cell cell) {
@@ -119,7 +106,7 @@ public class FeedingService extends AbstractService<Cell> {
         for (int i = 0; i < pack.size() && kills < maxKills; i++) {
             Organism prey = huntingStrategy.selectPrey(pack.get(0), packPreyProvider);
             if (prey instanceof Animal a) {
-                if (a.isAlive() && !isAnimalProtected(a) && cell.removeAnimal(a)) {
+                if (a.isAlive() && !isProtected(a) && cell.removeAnimal(a)) {
                     a.die();
                     double gainPerWolf = a.getWeight() / pack.size();
                     for (Animal wolf : pack) {
@@ -154,7 +141,7 @@ public class FeedingService extends AbstractService<Cell> {
             }
 
             if (prey instanceof Animal a) {
-                if (a.isAlive() && !isAnimalProtected(a)) {
+                if (a.isAlive() && !isProtected(a)) {
                     double chance = interactionMatrix.getChance(consumer.getSpeciesKey(), a.getSpeciesKey());
                     int preyCount = cell.getOrganismCount(a.getSpeciesKey());
                     if (preyCount > a.getAnimalType().getMaxPerCell() / 2) {
@@ -170,7 +157,7 @@ public class FeedingService extends AbstractService<Cell> {
                         success = true;
                     }
                 }
-            } else if (prey instanceof Biomass b && b.getBiomass() > 0 && !isPlantProtected(b)) {
+            } else if (prey instanceof Biomass b && b.getBiomass() > 0 && !isPlantProtected(b.getSpeciesKey())) {
                 double foodNeeded = consumer.getFoodForSaturation() - consumer.getCurrentEnergy();
                 consumer.addEnergy(b.consumeBiomass(foodNeeded, cell));
                 success = true;
@@ -182,18 +169,5 @@ public class FeedingService extends AbstractService<Cell> {
         } else if (!success) {
             consumer.consumeEnergy(consumer.getMaxEnergy() * HERBIVORE_FAIL_FEED_PENALTY_PERCENT);
         }
-    }
-
-    private boolean isAnimalProtected(Animal animal) {
-        if (animal.isProtected(0)) {
-            return true;
-        }
-        Double hideChance = (protectionMap != null) ? protectionMap.get(animal.getSpeciesKey()) : null;
-        return hideChance != null && getRandom().nextDouble() < hideChance;
-    }
-
-    private boolean isPlantProtected(Biomass plant) {
-        Double hideChance = (protectionMap != null) ? protectionMap.get(plant.getSpeciesKey()) : null;
-        return hideChance != null && getRandom().nextDouble() < hideChance;
     }
 }

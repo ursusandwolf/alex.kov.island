@@ -17,22 +17,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
+import com.island.content.AnimalType;
+
 /**
  * Service responsible for animal and mobile biomass movement.
  */
 public class MovementService extends AbstractService<Cell> {
     private final SpeciesRegistry speciesRegistry;
-    private Map<SpeciesKey, Double> protectionMap;
 
     public MovementService(SimulationWorld world, SpeciesRegistry speciesRegistry, ExecutorService executor, RandomProvider random) {
         super(world, executor, random);
         this.speciesRegistry = speciesRegistry;
-    }
-
-    @Override
-    public void tick(int tickCount) {
-        this.protectionMap = getWorld().getProtectionMap(speciesRegistry);
-        super.tick(tickCount);
     }
 
     @Override
@@ -44,7 +39,7 @@ public class MovementService extends AbstractService<Cell> {
     private void processAnimals(Cell cell, int tickCount) {
         forEachSampled(cell.getAnimals(), 100, animal -> {
             if (animal.isAlive()) {
-                if (shouldMove(animal, tickCount)) {
+                if (shouldAct(animal, AnimalType.Action.MOVE, tickCount)) {
                     double moveCost = animal.getMaxEnergy() * (1 + animal.getSpeed()) * SPEED_MOVE_COST_STEP_PERCENT;
                     animal.consumeEnergy(moveCost);
 
@@ -66,13 +61,6 @@ public class MovementService extends AbstractService<Cell> {
                 }
             }
         });
-    }
-
-    private boolean shouldMove(Animal animal, int tickCount) {
-        if (!animal.canPerformAction()) {
-            return false;
-        }
-        return (tickCount % animal.getAnimalType().getTickInterval(com.island.content.AnimalType.Action.MOVE) == 0);
     }
 
     private void processMobileBiomass(Cell cell) {

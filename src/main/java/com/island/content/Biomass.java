@@ -6,13 +6,18 @@ import static com.island.config.SimulationConstants.PLANT_INITIAL_BIOMASS_FACTOR
 import com.island.util.RandomUtils;
 import com.island.model.Cell;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * Base class for all biomass-based organisms (Plants, Insects).
  * Represents the total biomass of their type in a cell.
  */
+@Getter
 public abstract class Biomass extends Organism {
     protected final String typeName;
     protected final SpeciesKey speciesKey;
+    @Setter
     protected double biomass;
     protected final double maxBiomass;
     protected final int speed;
@@ -27,11 +32,6 @@ public abstract class Biomass extends Organism {
     }
 
     @Override
-    public String getTypeName() {
-        return typeName;
-    }
-
-    @Override
     public SpeciesKey getSpeciesKey() {
         return speciesKey;
     }
@@ -39,18 +39,6 @@ public abstract class Biomass extends Organism {
     @Override
     public double getEnergyPercentage() {
         return 100.0; // Biomass always has full energy for logic purposes
-    }
-
-    public double getBiomass() {
-        return biomass;
-    }
-
-    public void setBiomass(double biomass) {
-        this.biomass = Math.max(0, Math.min(maxBiomass, biomass));
-    }
-
-    public int getSpeed() {
-        return speed;
     }
 
     public void tick(Cell cell) {

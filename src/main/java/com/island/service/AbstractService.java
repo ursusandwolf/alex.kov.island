@@ -1,5 +1,8 @@
 package com.island.service;
 
+import com.island.content.Animal;
+import com.island.content.AnimalType;
+import com.island.content.SpeciesKey;
 import com.island.engine.SimulationNode;
 import com.island.engine.SimulationWorld;
 import com.island.engine.Tickable;
@@ -7,10 +10,10 @@ import com.island.util.RandomProvider;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -23,6 +26,7 @@ public abstract class AbstractService<N extends SimulationNode> implements Ticka
     private final SimulationWorld world;
     private final ExecutorService executor;
     private final RandomProvider random;
+    protected Map<SpeciesKey, Double> protectionMap;
 
     @Override
     @SuppressWarnings("unchecked")
@@ -30,6 +34,9 @@ public abstract class AbstractService<N extends SimulationNode> implements Ticka
         if (executor.isShutdown()) {
             return;
         }
+
+        // Shared logic: update protection map once per tick per service
+        this.protectionMap = world.getProtectionMap(null);
 
         List<Callable<Void>> tasks = new ArrayList<>();
         for (Collection<? extends SimulationNode> workUnit : world.getParallelWorkUnits()) {
@@ -67,4 +74,30 @@ public abstract class AbstractService<N extends SimulationNode> implements Ticka
     }
 
     protected abstract void processCell(N node, int tickCount);
+
+    protected boolean shouldAct(Animal animal, AnimalType.Action action, int tickCount) {
+        if (!animal.canPerformAction()) {
+            return false;
+        }
+        return (tickCount % animal.getAnimalType().getTickInterval(action) == 0);
+    }
+
+    protected boolean isProtected(Animal animal) {
+        if (animal.isProtected(0)) {
+            return true;
+        }
+        if (protectionMap != null) {
+            Double chance = protectionMap.get(animal.getSpeciesKey());
+            return chance != null && random.nextDouble() < chance;
+        }
+        return false;
+    }
+
+    protected boolean isPlantProtected(SpeciesKey speciesKey) {
+        if (protectionMap != null) {
+            Double chance = protectionMap.get(speciesKey);
+            return chance != null && random.nextDouble() < chance;
+        }
+        return false;
+    }
 }

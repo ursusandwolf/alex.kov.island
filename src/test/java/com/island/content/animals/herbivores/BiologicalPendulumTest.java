@@ -29,7 +29,7 @@ class BiologicalPendulumTest {
         double initialBiomass = caterpillar.getBiomass();
         double initialGrass = grass.getBiomass();
         
-        caterpillar.processPendulum(cell);
+        caterpillar.tick(cell);
         
         assertTrue(caterpillar.getBiomass() != initialBiomass, "Biomass should change after pendulum process");
     }

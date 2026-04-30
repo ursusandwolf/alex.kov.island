@@ -7,12 +7,17 @@ import static com.island.config.SimulationConstants.SPEED_MOVE_COST_STEP_PERCENT
 import com.island.config.EnergyPolicy;
 import com.island.content.animals.herbivores.Herbivore;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * Base class for all animals in the simulation.
  * Represents the state and properties of an animal.
  */
+@Getter
 public abstract class Animal extends Organism {
     protected final AnimalType animalType; 
+    @Setter
     protected boolean isHiding = false;
 
     protected Animal(AnimalType animalType) {
@@ -30,21 +35,9 @@ public abstract class Animal extends Organism {
         return animalType.getSpeciesKey();
     }
 
-    public AnimalType getAnimalType() {
-        return animalType;
-    }
-
-    public boolean isHiding() {
-        return isHiding;
-    }
-
     public void init(AnimalType type, double energyFactor) {
         super.init(type.getMaxEnergy(), type.getMaxLifespan(), energyFactor);
         this.isHiding = false;
-    }
-
-    public void setHiding(boolean h) {
-        this.isHiding = h;
     }
 
     public boolean canInitiateReproduction() {

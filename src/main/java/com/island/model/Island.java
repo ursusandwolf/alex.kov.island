@@ -74,16 +74,21 @@ public class Island implements SimulationWorld {
     }
 
     @Override
-    public Map<SpeciesKey, Double> getProtectionMap(SpeciesRegistry registry) {
+    public Map<SpeciesKey, Double> getProtectionMap(SpeciesRegistry passedRegistry) {
         if (!redBookProtectionEnabled) {
             return Collections.emptyMap();
         }
         
+        SpeciesRegistry activeRegistry = (passedRegistry != null) ? passedRegistry : this.registry;
+        if (activeRegistry == null) {
+            return Collections.emptyMap();
+        }
+
         Map<SpeciesKey, Double> protectionMap = new HashMap<>();
         int islandArea = width * height;
 
-        for (SpeciesKey key : registry.getAllAnimalKeys()) {
-            AnimalType type = registry.getAnimalType(key).orElse(null);
+        for (SpeciesKey key : activeRegistry.getAllAnimalKeys()) {
+            AnimalType type = activeRegistry.getAnimalType(key).orElse(null);
             if (type == null) {
                 continue;
             }

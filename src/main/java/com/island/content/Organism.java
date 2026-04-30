@@ -6,15 +6,25 @@ import static com.island.config.SimulationConstants.DEATH_EPSILON;
 import com.island.config.EnergyPolicy;
 import java.util.UUID;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.NonFinal;
+
 /**
  * Базовый класс организмов.
  */
+@Getter
 public abstract class Organism implements com.island.util.Poolable, com.island.engine.Mortal {
-    private String id; 
+    private final String id = java.util.UUID.randomUUID().toString();
+    @NonFinal @Setter
     private volatile double currentEnergy; 
+    @NonFinal
     private double maxEnergy; 
+    @NonFinal
     private int age; 
+    @NonFinal
     private int maxLifespan; 
+    @NonFinal
     private volatile boolean isAlive;
 
     protected Organism(double maxEnergy, int maxLifespan) {
@@ -22,7 +32,6 @@ public abstract class Organism implements com.island.util.Poolable, com.island.e
     }
 
     protected Organism(double maxEnergy, int maxLifespan, double energyFactor) {
-        this.id = java.util.UUID.randomUUID().toString();
         this.maxEnergy = maxEnergy;
         this.maxLifespan = maxLifespan;
         this.isAlive = true;
@@ -47,28 +56,8 @@ public abstract class Organism implements com.island.util.Poolable, com.island.e
         this.age = 0;
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public boolean isAlive() {
-        return isAlive;
-    }
-
     public void die() {
         this.isAlive = false;
-    }
-
-    public double getCurrentEnergy() {
-        return currentEnergy;
-    }
-
-    public double getMaxEnergy() {
-        return maxEnergy;
-    }
-
-    public int getAge() {
-        return age;
     }
 
     public abstract String getTypeName();

@@ -41,11 +41,17 @@ public class TaskRegistry {
     public void registerAll() {
         HuntingStrategy huntingStrategy = new DefaultHuntingStrategy(matrix);
         gameLoop.addRecurringTask(world);
-        gameLoop.addRecurringTask(new LifecycleService(world, gameLoop.getTaskExecutor(), random));
+        // Food
         gameLoop.addRecurringTask(new FeedingService(world, animalFactory, matrix, speciesRegistry, huntingStrategy, gameLoop.getTaskExecutor(), random));
+        // Move
         gameLoop.addRecurringTask(new MovementService(world, speciesRegistry, gameLoop.getTaskExecutor(), random));
+        // Repro
         gameLoop.addRecurringTask(new ReproductionService(world, animalFactory, speciesRegistry, gameLoop.getTaskExecutor(), random));
+        // Death (Metabolism, Age)
+        gameLoop.addRecurringTask(new LifecycleService(world, gameLoop.getTaskExecutor(), random));
+        // Cleanup
         gameLoop.addRecurringTask(new CleanupService(world, animalFactory, gameLoop.getTaskExecutor(), random));
+        // View
         gameLoop.addRecurringTask(() -> view.display(world.createSnapshot()));
     }
 }

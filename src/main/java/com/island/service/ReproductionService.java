@@ -21,19 +21,12 @@ import java.util.concurrent.ExecutorService;
 public class ReproductionService extends AbstractService<Cell> {
     private final AnimalFactory animalFactory;
     private final SpeciesRegistry speciesRegistry;
-    private Map<SpeciesKey, Double> protectionMap;
 
     public ReproductionService(SimulationWorld world, AnimalFactory animalFactory, 
                                SpeciesRegistry speciesRegistry, ExecutorService executor, RandomProvider random) {
         super(world, executor, random);
         this.animalFactory = animalFactory;
         this.speciesRegistry = speciesRegistry;
-    }
-
-    @Override
-    public void tick(int tickCount) {
-        this.protectionMap = getWorld().getProtectionMap(speciesRegistry);
-        super.tick(tickCount);
     }
 
     @Override
@@ -46,13 +39,13 @@ public class ReproductionService extends AbstractService<Cell> {
         java.util.Set<Animal> alreadyMated = new java.util.HashSet<>();
 
         forEachSampled(potentialParents, com.island.config.SimulationConstants.REPRODUCTION_LOD_LIMIT, a1 -> {
-            if (alreadyMated.contains(a1) || !shouldReproduce(a1, tickCount)) {
+            if (alreadyMated.contains(a1) || !shouldAct(a1, AnimalType.Action.REPRODUCE, tickCount)) {
                 return;
             }
 
             // Try to find a mate
             for (Animal a2 : potentialParents) {
-                if (a1 == a2 || alreadyMated.contains(a2) || !shouldReproduce(a2, tickCount)) {
+                if (a1 == a2 || alreadyMated.contains(a2) || !shouldAct(a2, AnimalType.Action.REPRODUCE, tickCount)) {
                     continue;
                 }
 
@@ -65,13 +58,6 @@ public class ReproductionService extends AbstractService<Cell> {
                 }
             }
         });
-    }
-
-    private boolean shouldReproduce(Animal animal, int tickCount) {
-        if (!animal.canInitiateReproduction()) {
-            return false;
-        }
-        return (tickCount % animal.getAnimalType().getTickInterval(com.island.content.AnimalType.Action.REPRODUCE) == 0);
     }
 
     private boolean tryReproduce(Animal parent1, Animal parent2, Cell cell) {

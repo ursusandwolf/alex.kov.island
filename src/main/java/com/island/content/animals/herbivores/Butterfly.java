@@ -6,33 +6,29 @@ import static com.island.config.SimulationConstants.CATERPILLAR_METABOLISM_RATE;
 
 import com.island.content.Biomass;
 import com.island.content.SpeciesKey;
+import com.island.content.SwarmOrganism;
 import com.island.model.Cell;
 import java.util.List;
 
 /**
- * Butterfly implementation (Biomass container).
- * Butterflies now live "long" like caterpillars, with metabolism and feeding.
+ * Generalized Butterfly using SwarmOrganism (LOD 1).
  */
-public class Butterfly extends Biomass {
+public class Butterfly extends SwarmOrganism {
     public Butterfly(double initialBiomass, int speed) {
-        super("Butterfly", SpeciesKey.BUTTERFLY, initialBiomass, speed);
+        super("Butterfly", SpeciesKey.BUTTERFLY, 1000, speed, 30, 
+                CATERPILLAR_METABOLISM_RATE, BUTTERFLY_REPRODUCTION_RATE);
+        spawn(initialBiomass);
     }
 
-    public void processPendulum(Cell cell) {
-        // 1. Natural metabolic loss
-        final double oldBiomass = biomass;
-        double metabolicLoss = biomass * CATERPILLAR_METABOLISM_RATE;
-        biomass = Math.max(0, biomass - metabolicLoss);
-        reportChange(cell, biomass - oldBiomass);
-
-        // 2. Feed on actual plants (Butterflies also eat to survive)
+    @Override
+    protected void processFeeding(Cell cell) {
         double appetite = biomass * 0.10; 
         if (appetite > 0) {
             List<Biomass> availablePlants = cell.getBiomassContainers();
             for (Biomass p : availablePlants) {
                 if (p != this && p.isAlive() && !(p instanceof Caterpillar)) {
-                    double eaten = p.consumeBiomass(appetite * (1.0 / CATERPILLAR_FEED_EFFICIENCY), cell);
-                    addBiomass(eaten * CATERPILLAR_FEED_EFFICIENCY, cell);
+                    double eaten = p.consumeBiomass(appetite / CATERPILLAR_FEED_EFFICIENCY, cell);
+                    spawn(eaten * CATERPILLAR_FEED_EFFICIENCY);
                     appetite -= eaten;
                     if (appetite <= 0) {
                         break;
@@ -40,45 +36,20 @@ public class Butterfly extends Biomass {
                 }
             }
         }
-
-        // 3. Reproduction (lay eggs)
-        reproduce(cell);
     }
 
-    private void reproduce(Cell cell) {
+    @Override
+    protected void processReproduction(Cell cell) {
         if (biomass > 0) {
-            double offspringBiomass = biomass * BUTTERFLY_REPRODUCTION_RATE;
-            addBiomass(-offspringBiomass, cell); // Conversion of mass
+            double offspringBiomass = biomass * reproductionRate;
+            consumeBiomass(offspringBiomass, cell);
 
             Caterpillar c = (Caterpillar) cell.getBiomass(SpeciesKey.CATERPILLAR);
             if (c == null) {
-                // If no caterpillars exist, create a new container
-                c = new Caterpillar(0, 0); // Speed 0 for caterpillars
+                c = new Caterpillar(0, 0);
                 cell.addBiomass(c);
             }
-            c.spawn(offspringBiomass, cell);
+            c.spawn(offspringBiomass);
         }
-    }
-
-    @Override
-    public void addBiomass(double amount, Cell cell) {
-        double oldBiomass = biomass;
-        if (maxBiomass > 0) {
-            this.biomass = Math.min(maxBiomass, this.biomass + amount);
-        } else {
-            this.biomass += amount;
-        }
-        reportChange(cell, biomass - oldBiomass);
-    }
-
-    private void reportChange(Cell cell, double delta) {
-        if (delta != 0) {
-            cell.getWorld().getStatisticsService().registerBiomassChange(speciesKey, delta);
-        }
-    }
-
-    @Override
-    public void tick(Cell cell) {
-        processPendulum(cell);
     }
 }
