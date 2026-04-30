@@ -5,6 +5,7 @@
 ### Added
 - **Dynamic Partitioning**: Implemented `partitionIntoChunks` in `Island.java` that adapts `chunkSize` based on world density and CPU core count. This ensures at least 16 tasks for small 8x8 worlds, eliminating the single-thread bottleneck.
 - **Wolf Pack Coordination**: Refined `DefaultHuntingStrategy` to allow Wolf packs to hunt any animal over 150kg (including Bears) with a coordinate bonus of up to 30%.
+- **Fox Special Ability**: Implemented **Agility Bonus** for Foxes, providing a 60% reduction in hunting energy costs. This allows the Fox to survive better in highly competitive ecosystems by attacking fast prey with minimal exhaustion.
 - **Extinction Diagnostic Suite**: Added `ExtinctionBalanceTest` to track species survival and death causes across multiple simulation runs for scientific balancing.
 
 ### Optimized

@@ -54,7 +54,15 @@ public class DefaultHuntingStrategy implements HuntingStrategy {
                 chaseCost = (predator.getMaxEnergy() * speedDifference * PREY_RELATIVE_SPEED_HUNT_COST_STEP_BP) / SCALE_10K;
             }
         }
-        return strikeCost + chaseCost;
+        
+        long totalCost = strikeCost + chaseCost;
+        
+        // Fox Special Ability: High Agility (60% energy discount on hunting)
+        if (predator.getSpeciesKey().equals(com.island.content.SpeciesKey.FOX)) {
+            totalCost = (totalCost * 4000) / SCALE_10K;
+        }
+        
+        return totalCost;
     }
 
     @Override

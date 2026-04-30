@@ -13,6 +13,7 @@
 ### Domain Layer (Lombok Powered)
 - `Organism`: Base for all life. Standardized on `long` energy (fixed-point).
 - `Animal` (Herbivore/Predator): LOD 0 entities with individual logic and hibernation support.
+- **Special Abilities**: `Fox` (High Agility -60% hunt cost), `Bear` (Hibernation), `Wolf` (Pack Hunting).
 - `SwarmOrganism`: LOD 1 entities (Plants, Butterflies) using mass-based aggregation.
 - `EntityContainer`: O(1) management using indexed buckets and `LinkedHashSet`.
 
