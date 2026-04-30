@@ -54,22 +54,36 @@ public abstract class Biomass extends Organism {
     }
 
     public void tick(Cell cell) {
-        grow();
+        grow(cell);
     }
 
-    public void grow() {
-        // Growth logic centralized around fixed rate for stability
+    public void grow(Cell cell) {
+        double old = biomass;
         biomass = Math.min(maxBiomass, biomass + (maxBiomass * PLANT_GROWTH_RATE));
+        reportChange(cell, biomass - old);
     }
 
-    public double consumeBiomass(double amount) {
+    public double consumeBiomass(double amount, Cell cell) {
         double actualEaten = Math.min(biomass, amount);
         biomass -= actualEaten;
+        reportChange(cell, -actualEaten);
         return actualEaten;
     }
 
-    public void addBiomass(double amount) {
-        this.biomass = Math.min(maxBiomass, this.biomass + amount);
+    public void addBiomass(double amount, Cell cell) {
+        double old = biomass;
+        if (maxBiomass > 0) {
+            this.biomass = Math.min(maxBiomass, this.biomass + amount);
+        } else {
+            this.biomass += amount;
+        }
+        reportChange(cell, biomass - old);
+    }
+
+    private void reportChange(Cell cell, double delta) {
+        if (delta != 0) {
+            cell.getWorld().getStatisticsService().registerBiomassChange(speciesKey, delta);
+        }
     }
 
     @Override

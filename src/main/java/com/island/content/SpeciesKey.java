@@ -12,7 +12,7 @@ import java.util.Objects;
  */
 public record SpeciesKey(String code, boolean predator) implements Comparable<SpeciesKey> {
     
-    private static final Map<String, SpeciesKey> REGISTRY = new HashMap<>();
+    private static final Map<String, SpeciesKey> REGISTRY = new java.util.concurrent.ConcurrentHashMap<>();
 
     public static final SpeciesKey WOLF = register("wolf", true);
     public static final SpeciesKey BOA = register("boa", true);

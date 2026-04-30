@@ -9,7 +9,7 @@ import java.util.UUID;
 /**
  * Базовый класс организмов.
  */
-public abstract class Organism implements com.island.util.Poolable {
+public abstract class Organism implements com.island.util.Poolable, com.island.engine.Mortal {
     private String id; 
     private volatile double currentEnergy; 
     private double maxEnergy; 
@@ -32,11 +32,11 @@ public abstract class Organism implements com.island.util.Poolable {
 
     @Override
     public void reset() {
-        this.isAlive = true;
+        this.isAlive = false;
         this.age = 0;
-        // Keep ID for now or generate new one? Let's keep it but mark as reborn
-        // Actually, generating UUID is slow. Let's just keep the old ID.
         this.currentEnergy = 0; 
+        this.maxEnergy = 0;
+        this.maxLifespan = 0;
     }
 
     public void init(double maxEnergy, int maxLifespan, double energyFactor) {

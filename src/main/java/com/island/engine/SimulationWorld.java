@@ -74,4 +74,9 @@ public interface SimulationWorld extends Tickable {
      * Gets the statistics service for the world.
      */
     StatisticsService getStatisticsService();
+
+    /**
+     * Creates a domain-agnostic snapshot of the current world state.
+     */
+    WorldSnapshot createSnapshot();
 }

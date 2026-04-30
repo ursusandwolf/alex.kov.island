@@ -2,6 +2,7 @@ package com.island.engine;
 
 import com.island.content.AnimalFactory;
 import com.island.content.AnimalType;
+import com.island.content.Biomass;
 import com.island.content.SpeciesKey;
 import com.island.content.SpeciesRegistry;
 import com.island.content.GenericBiomass;
@@ -40,18 +41,29 @@ public class WorldInitializer {
     }
 
     private void initializeCell(Cell cell, SpeciesRegistry registry, AnimalFactory animalFactory, com.island.util.RandomProvider random) {
+        // Initialize biomass containers (Plants, Insects modeled as biomass)
+        for (SpeciesKey biomassKey : registry.getAllBiomassKeys()) {
+            registry.getBiomassType(biomassKey).ifPresent(type -> {
+                Biomass b;
+                if (biomassKey == SpeciesKey.BUTTERFLY) {
+                    b = new com.island.content.animals.herbivores.Butterfly(type.getMaxEnergy() * type.getMaxPerCell(), type.getSpeed());
+                } else if (biomassKey == SpeciesKey.CATERPILLAR) {
+                    b = new com.island.content.animals.herbivores.Caterpillar(type.getMaxEnergy() * type.getMaxPerCell(), type.getSpeed());
+                } else {
+                    b = new GenericBiomass(type);
+                }
+                cell.addBiomass(b);
+                cell.getWorld().getStatisticsService().registerBiomassChange(biomassKey, b.getBiomass());
+            });
+        }
+
+        // Initialize animal species
         for (SpeciesKey species : animalFactory.getRegisteredSpecies()) {
             AnimalType type = registry.getAnimalType(species).orElse(null);
             if (type == null) {
                 continue;
             }
 
-            if (type.isBiomass() || type.isPlant()) {
-                // Initialize biomass containers
-                cell.addBiomass(new GenericBiomass(type));
-                continue;
-            }
-            
             // Data-driven settlement for animals
             if (random.nextDouble() < type.getPresenceProb()) {
                 double settlementRate = type.getSettlementBase() + (random.nextDouble() * type.getSettlementRange());

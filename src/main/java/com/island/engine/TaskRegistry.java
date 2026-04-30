@@ -43,13 +43,9 @@ public class TaskRegistry {
         gameLoop.addRecurringTask(world);
         gameLoop.addRecurringTask(new LifecycleService(world, gameLoop.getTaskExecutor(), random));
         gameLoop.addRecurringTask(new FeedingService(world, animalFactory, matrix, speciesRegistry, huntingStrategy, gameLoop.getTaskExecutor(), random));
-        gameLoop.addRecurringTask(new MovementService(world, gameLoop.getTaskExecutor(), random));
+        gameLoop.addRecurringTask(new MovementService(world, speciesRegistry, gameLoop.getTaskExecutor(), random));
         gameLoop.addRecurringTask(new ReproductionService(world, animalFactory, speciesRegistry, gameLoop.getTaskExecutor(), random));
         gameLoop.addRecurringTask(new CleanupService(world, animalFactory, gameLoop.getTaskExecutor(), random));
-        gameLoop.addRecurringTask(() -> {
-            if (world instanceof com.island.model.Island island) {
-                view.display(island);
-            }
-        });
+        gameLoop.addRecurringTask(() -> view.display(world.createSnapshot()));
     }
 }

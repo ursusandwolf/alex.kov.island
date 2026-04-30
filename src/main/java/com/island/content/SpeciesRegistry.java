@@ -16,12 +16,22 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SpeciesRegistry {
     private final Map<SpeciesKey, AnimalType> animalTypes;
+    private final Map<SpeciesKey, AnimalType> biomassTypes;
     private final Map<SpeciesKey, Double> plantWeights;
     private final Map<SpeciesKey, Integer> plantMaxCounts;
     private final Map<SpeciesKey, Integer> plantSpeeds;
 
     public Optional<AnimalType> getAnimalType(SpeciesKey key) {
         return Optional.ofNullable(animalTypes.get(key));
+    }
+
+    public Optional<AnimalType> getBiomassType(SpeciesKey key) {
+        return Optional.ofNullable(biomassTypes.get(key));
+    }
+
+    public Optional<AnimalType> getAnyType(SpeciesKey key) {
+        AnimalType type = animalTypes.get(key);
+        return (type != null) ? Optional.of(type) : Optional.ofNullable(biomassTypes.get(key));
     }
 
     public double getPlantWeight(SpeciesKey key) {
@@ -40,10 +50,14 @@ public class SpeciesRegistry {
         return animalTypes.keySet();
     }
 
+    public Set<SpeciesKey> getAllBiomassKeys() {
+        return biomassTypes.keySet();
+    }
+
     public Set<String> getAllSpeciesCodes() {
         Set<String> allCodes = new HashSet<>();
         animalTypes.keySet().forEach(k -> allCodes.add(k.getCode()));
-        plantWeights.keySet().forEach(k -> allCodes.add(k.getCode()));
+        biomassTypes.keySet().forEach(k -> allCodes.add(k.getCode()));
         return allCodes;
     }
 

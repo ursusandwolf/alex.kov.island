@@ -22,6 +22,7 @@ public class SpeciesLoader {
         }
 
         Map<SpeciesKey, AnimalType> animalTypes = new HashMap<>();
+        Map<SpeciesKey, AnimalType> biomassTypes = new HashMap<>();
         Map<SpeciesKey, Double> plantWeights = new HashMap<>();
         Map<SpeciesKey, Integer> plantMaxCounts = new HashMap<>();
         Map<SpeciesKey, Integer> plantSpeeds = new HashMap<>();
@@ -40,15 +41,22 @@ public class SpeciesLoader {
         for (SpeciesKey key : SpeciesKey.values()) {
             String code = key.getCode();
             if (props.containsKey(code + ".weight")) {
-                loadEntry(key, props, animalTypes, plantWeights, plantMaxCounts, plantSpeeds);
+                loadEntry(key, props, animalTypes, biomassTypes, plantWeights, plantMaxCounts, plantSpeeds);
             }
         }
 
-        return new SpeciesRegistry(animalTypes, plantWeights, plantMaxCounts, plantSpeeds);
+        return new SpeciesRegistry(
+                java.util.Collections.unmodifiableMap(animalTypes),
+                java.util.Collections.unmodifiableMap(biomassTypes),
+                java.util.Collections.unmodifiableMap(plantWeights),
+                java.util.Collections.unmodifiableMap(plantMaxCounts),
+                java.util.Collections.unmodifiableMap(plantSpeeds)
+        );
     }
 
     private void loadEntry(SpeciesKey key, Properties props, 
                            Map<SpeciesKey, AnimalType> animalTypes,
+                           Map<SpeciesKey, AnimalType> biomassTypes,
                            Map<SpeciesKey, Double> plantWeights, 
                            Map<SpeciesKey, Integer> plantMaxCounts,
                            Map<SpeciesKey, Integer> plantSpeeds) {
@@ -65,6 +73,17 @@ public class SpeciesLoader {
         double presenceProb = Double.parseDouble(props.getProperty(code + ".presenceProb", "0.2"));
         double settlementBase = Double.parseDouble(props.getProperty(code + ".settlementBase", "0.1"));
         double settlementRange = Double.parseDouble(props.getProperty(code + ".settlementRange", "0.1"));
+
+        SizeClass sizeClass = SizeClass.fromWeight(weight);
+        double defaultReproChance = switch (sizeClass) {
+            case TINY -> 0.25;
+            case SMALL -> 0.18;
+            case NORMAL -> 0.12;
+            case MEDIUM -> 0.08;
+            case LARGE -> 0.04;
+            case HUGE -> 0.02;
+        };
+        double reproChance = Double.parseDouble(props.getProperty(code + ".reproductionChance", String.valueOf(defaultReproChance)));
 
         if (isPlant) {
             plantWeights.put(key, weight);
@@ -97,16 +116,21 @@ public class SpeciesLoader {
                 .maxLifespan(lifespan)
                 .huntProbabilities(java.util.Collections.unmodifiableMap(preyMap))
                 .isPredator(key.isPredator())
-                .sizeClass(SizeClass.fromWeight(weight))
+                .sizeClass(sizeClass)
                 .isColdBlooded(isColdBlooded)
                 .isPackHunter(isPackHunter)
                 .isBiomass(isBiomass)
                 .isPlant(isPlant)
+                .reproductionChance(reproChance)
                 .presenceProb(presenceProb)
                 .settlementBase(settlementBase)
                 .settlementRange(settlementRange)
                 .build();
         
-        animalTypes.put(key, type);
+        if (isPlant || isBiomass) {
+            biomassTypes.put(key, type);
+        } else {
+            animalTypes.put(key, type);
+        }
     }
 }

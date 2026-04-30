@@ -25,4 +25,24 @@ public interface SimulationNode {
      * Gets pre-calculated neighbors.
      */
     java.util.List<SimulationNode> getNeighbors();
+
+    /**
+     * Gets all living entities in this node.
+     */
+    java.util.List<? extends Mortal> getLivingEntities();
+
+    /**
+     * Gets only biomass-based entities in this node.
+     */
+    java.util.List<? extends Mortal> getBiomassEntities();
+
+    /**
+     * Adds an entity to this node.
+     */
+    boolean addEntity(Mortal entity);
+
+    /**
+     * Removes an entity from this node.
+     */
+    boolean removeEntity(Mortal entity);
 }

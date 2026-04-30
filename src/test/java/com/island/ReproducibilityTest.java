@@ -66,7 +66,7 @@ class ReproducibilityTest {
         // 2. Run one tick of services
         new LifecycleService(island, executor, fixedProvider).tick(1);
         new FeedingService(island, factory, matrix, registry, strategy, executor, fixedProvider).tick(1);
-        new MovementService(island, executor, fixedProvider).tick(1);
+        new MovementService(island, registry, executor, fixedProvider).tick(1);
 
         String state = island.getSpeciesCounts().toString() + "_" + island.getTotalOrganismCount();
         

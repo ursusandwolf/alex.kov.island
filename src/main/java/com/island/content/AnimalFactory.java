@@ -25,7 +25,7 @@ public final class AnimalFactory {
         // Only register animals with unique logic here. 
         // All others will be created as GenericAnimal.
         creators.put(SpeciesKey.BEAR, Bear::new);
-        creators.put(SpeciesKey.CHAMELEON, Chameleon::new);
+        creators.put(SpeciesKey.CHAMELEON, type -> new Chameleon(type, random));
         
         // Initialize pools for all animal species
         for (SpeciesKey key : speciesRegistry.getAllAnimalKeys()) {

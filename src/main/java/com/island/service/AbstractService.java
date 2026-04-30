@@ -19,12 +19,13 @@ import lombok.RequiredArgsConstructor;
  */
 @Getter
 @RequiredArgsConstructor
-public abstract class AbstractService implements Tickable {
+public abstract class AbstractService<N extends SimulationNode> implements Tickable {
     private final SimulationWorld world;
     private final ExecutorService executor;
     private final RandomProvider random;
 
     @Override
+    @SuppressWarnings("unchecked")
     public void tick(int tickCount) {
         if (executor.isShutdown()) {
             return;
@@ -34,7 +35,7 @@ public abstract class AbstractService implements Tickable {
         for (Collection<? extends SimulationNode> workUnit : world.getParallelWorkUnits()) {
             tasks.add(() -> {
                 for (SimulationNode node : workUnit) {
-                    processCell(node, tickCount);
+                    processCell((N) node, tickCount);
                 }
                 return null;
             });
@@ -59,10 +60,11 @@ public abstract class AbstractService implements Tickable {
             return;
         }
         int step = (size > limit) ? (size / limit + 1) : 1;
-        for (int i = 0; i < size; i += step) {
+        int startOffset = (size > limit) ? random.nextInt(step) : 0;
+        for (int i = startOffset; i < size; i += step) {
             action.accept(list.get(i));
         }
     }
 
-    protected abstract void processCell(SimulationNode node, int tickCount);
+    protected abstract void processCell(N node, int tickCount);
 }

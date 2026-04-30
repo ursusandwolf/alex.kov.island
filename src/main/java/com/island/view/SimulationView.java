@@ -8,10 +8,10 @@ import com.island.model.Island;
  */
 public interface SimulationView {
     /**
-     * Renders the current state of the island.
-     * @param island the island model to display
+     * Renders the current state of the simulation.
+     * @param snapshot the world snapshot to display
      */
-    void display(Island island);
+    void display(com.island.engine.WorldSnapshot snapshot);
 
     /**
      * Enables or disables silent mode (no output).

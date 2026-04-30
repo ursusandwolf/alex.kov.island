@@ -65,6 +65,46 @@ public class Cell implements SimulationNode {
         return cachedNeighbors;
     }
 
+    @Override
+    public List<? extends com.island.engine.Mortal> getLivingEntities() {
+        lock.lock();
+        try {
+            return new ArrayList<>(container.getAllAnimals());
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public List<? extends com.island.engine.Mortal> getBiomassEntities() {
+        lock.lock();
+        try {
+            return new ArrayList<>(container.getAllBiomass());
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public boolean addEntity(com.island.engine.Mortal entity) {
+        if (entity instanceof Animal a) {
+            return addAnimal(a);
+        } else if (entity instanceof Biomass b) {
+            return addBiomass(b);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean removeEntity(com.island.engine.Mortal entity) {
+        if (entity instanceof Animal a) {
+            return removeAnimal(a);
+        } else if (entity instanceof Biomass b) {
+            return removeBiomass(b);
+        }
+        return false;
+    }
+
     public boolean addAnimal(Animal animal) {
         lock.lock();
         try {
@@ -168,6 +208,11 @@ public class Cell implements SimulationNode {
     public boolean addBiomass(Biomass b) {
         lock.lock();
         try {
+            Biomass existing = container.getBiomass(b.getSpeciesKey());
+            if (existing != null) {
+                existing.addBiomass(b.getBiomass(), this);
+                return true;
+            }
             container.addBiomass(b);
             return true;
         } finally {
@@ -180,7 +225,7 @@ public class Cell implements SimulationNode {
         try {
             Biomass existing = container.getBiomass(key);
             if (existing != null) {
-                existing.addBiomass(amount);
+                existing.addBiomass(amount, this);
                 return true;
             }
             return false;

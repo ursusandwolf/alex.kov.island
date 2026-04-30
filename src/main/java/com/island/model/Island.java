@@ -122,42 +122,21 @@ public class Island implements SimulationWorld {
     }
 
     @Override
+    public com.island.engine.WorldSnapshot createSnapshot() {
+        return new IslandSnapshot(this);
+    }
+
+    @Override
     public StatisticsService getStatisticsService() {
         return statisticsService;
     }
 
     public Map<SpeciesKey, Integer> getSpeciesCounts() {
-        Map<SpeciesKey, Integer> counts = new HashMap<>();
-        statisticsService.getSpeciesCounts().forEach((k, v) -> {
-            if (v.get() > 0) {
-                counts.put(k, v.get());
-            }
-        });
-        
-        // Sum biomass mass
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                for (Biomass b : grid[x][y].getBiomassContainers()) {
-                    if (b.isAlive() && b.getBiomass() > 0) {
-                        counts.merge(b.getSpeciesKey(), (int) b.getBiomass(), Integer::sum);
-                    }
-                }
-            }
-        }
-        return counts;
+        return statisticsService.getSpeciesCountsMap();
     }
 
     public int getTotalOrganismCount() {
-        int animalTotal = statisticsService.getTotalPopulation();
-        int biomassTotal = 0;
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                for (Biomass b : grid[x][y].getBiomassContainers()) {
-                    biomassTotal += (int) b.getBiomass();
-                }
-            }
-        }
-        return animalTotal + biomassTotal;
+        return statisticsService.getTotalPopulation();
     }
 
     public int getTotalAnimalDeathCount(DeathCause cause) {
@@ -171,38 +150,6 @@ public class Island implements SimulationWorld {
         return statisticsService.getTotalDeaths(cause);
     }
 
-    public double getGlobalSatiety() {
-        double totalMax = 0;
-        double totalCurrent = 0;
-        int animalCount = 0;
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                for (Animal a : grid[x][y].getAnimals()) {
-                    if (a.isAlive()) {
-                        totalMax += a.getMaxEnergy();
-                        totalCurrent += a.getCurrentEnergy();
-                        animalCount++;
-                    }
-                }
-            }
-        }
-        return (animalCount == 0) ? 100.0 : (totalCurrent / totalMax) * 100.0;
-    }
-
-    public int getStarvingCount() {
-        int starving = 0;
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                for (Animal a : grid[x][y].getAnimals()) {
-                    if (a.isAlive() && a.getEnergyPercentage() < 30.0) {
-                        starving++;
-                    }
-                }
-            }
-        }
-        return starving;
-    }
-
     @Override
     public Collection<? extends Collection<? extends SimulationNode>> getParallelWorkUnits() {
         return chunks.stream().map(Chunk::getCells).toList();
@@ -211,11 +158,9 @@ public class Island implements SimulationWorld {
     @Override
     public Optional<SimulationNode> getNode(SimulationNode current, int dx, int dy) {
         if (current instanceof Cell cell) {
-            int tx = cell.getX() + dx;
-            int ty = cell.getY() + dy;
-            if (tx >= 0 && tx < width && ty >= 0 && ty < height) {
-                return Optional.of(grid[tx][ty]);
-            }
+            int tx = (cell.getX() + dx % width + width) % width;
+            int ty = (cell.getY() + dy % height + height) % height;
+            return Optional.of(grid[tx][ty]);
         }
         return Optional.empty();
     }
@@ -252,7 +197,7 @@ public class Island implements SimulationWorld {
             try {
                 double actualToMove = Math.min(b.getBiomass(), amount);
                 if (to.addBiomass(b.getSpeciesKey(), actualToMove)) {
-                    b.consumeBiomass(actualToMove);
+                    b.consumeBiomass(actualToMove, from);
                 }
             } finally {
                 second.getLock().unlock();

@@ -14,18 +14,16 @@ import java.util.concurrent.ExecutorService;
 /**
  * Service responsible for aging, energy decay, and natural growth/death.
  */
-public class LifecycleService extends AbstractService {
+public class LifecycleService extends AbstractService<Cell> {
 
     public LifecycleService(SimulationWorld world, ExecutorService executor, RandomProvider random) {
         super(world, executor, random);
     }
 
     @Override
-    protected void processCell(SimulationNode node, int tickCount) {
-        if (node instanceof Cell cell) {
-            processAging(cell);
-            processBiomassGrowth(cell);
-        }
+    protected void processCell(Cell cell, int tickCount) {
+        processAging(cell);
+        processBiomassGrowth(cell);
     }
 
     private void processAging(Cell cell) {
@@ -49,7 +47,7 @@ public class LifecycleService extends AbstractService {
     private void processBiomassGrowth(Cell cell) {
         for (Biomass b : cell.getBiomassContainers()) {
             if (b.isAlive()) {
-                b.grow();
+                b.grow(cell);
             }
         }
     }

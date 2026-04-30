@@ -2,32 +2,43 @@ package com.island.service;
 
 import static com.island.config.SimulationConstants.BIOMASS_MOVE_CHUNK_FRACTION;
 import static com.island.config.SimulationConstants.SPEED_MOVE_COST_STEP_PERCENT;
+import static com.island.config.SimulationConstants.ENDANGERED_SPEED_BONUS;
 
 import com.island.engine.SimulationNode;
 import com.island.engine.SimulationWorld;
 import com.island.content.Animal;
 import com.island.content.Biomass;
 import com.island.content.DeathCause;
+import com.island.content.SpeciesKey;
+import com.island.content.SpeciesRegistry;
 import com.island.model.Cell;
 import com.island.util.RandomProvider;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
 /**
  * Service responsible for animal and mobile biomass movement.
  */
-public class MovementService extends AbstractService {
+public class MovementService extends AbstractService<Cell> {
+    private final SpeciesRegistry speciesRegistry;
+    private Map<SpeciesKey, Double> protectionMap;
 
-    public MovementService(SimulationWorld world, ExecutorService executor, RandomProvider random) {
+    public MovementService(SimulationWorld world, SpeciesRegistry speciesRegistry, ExecutorService executor, RandomProvider random) {
         super(world, executor, random);
+        this.speciesRegistry = speciesRegistry;
     }
 
     @Override
-    protected void processCell(SimulationNode node, int tickCount) {
-        if (node instanceof Cell cell) {
-            processAnimals(cell, tickCount);
-            processMobileBiomass(cell);
-        }
+    public void tick(int tickCount) {
+        this.protectionMap = getWorld().getProtectionMap(speciesRegistry);
+        super.tick(tickCount);
+    }
+
+    @Override
+    protected void processCell(Cell cell, int tickCount) {
+        processAnimals(cell, tickCount);
+        processMobileBiomass(cell);
     }
 
     private void processAnimals(Cell cell, int tickCount) {
@@ -41,6 +52,10 @@ public class MovementService extends AbstractService {
                         getWorld().reportDeath(animal.getSpeciesKey(), DeathCause.MOVEMENT_EXHAUSTION);
                     } else {
                         int speed = animal.getSpeed();
+                        if (protectionMap != null && protectionMap.containsKey(animal.getSpeciesKey())) {
+                            speed += ENDANGERED_SPEED_BONUS;
+                        }
+                        
                         if (speed > 0) {
                             SimulationNode target = selectTargetNode(cell, speed);
                             if (target != cell) {
@@ -57,11 +72,7 @@ public class MovementService extends AbstractService {
         if (!animal.canPerformAction()) {
             return false;
         }
-        // Cold-blooded animals move every 2nd tick
-        if (animal.getAnimalType().isColdBlooded()) {
-            return (tickCount % 2 == 0);
-        }
-        return true;
+        return (tickCount % animal.getAnimalType().getTickInterval(com.island.content.AnimalType.Action.MOVE) == 0);
     }
 
     private void processMobileBiomass(Cell cell) {

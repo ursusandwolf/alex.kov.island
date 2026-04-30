@@ -20,8 +20,10 @@ public class Butterfly extends Biomass {
 
     public void processPendulum(Cell cell) {
         // 1. Natural metabolic loss
+        final double oldBiomass = biomass;
         double metabolicLoss = biomass * CATERPILLAR_METABOLISM_RATE;
         biomass = Math.max(0, biomass - metabolicLoss);
+        reportChange(cell, biomass - oldBiomass);
 
         // 2. Feed on actual plants (Butterflies also eat to survive)
         double appetite = biomass * 0.10; 
@@ -29,8 +31,8 @@ public class Butterfly extends Biomass {
             List<Biomass> availablePlants = cell.getBiomassContainers();
             for (Biomass p : availablePlants) {
                 if (p != this && p.isAlive() && !(p instanceof Caterpillar)) {
-                    double eaten = p.consumeBiomass(appetite * (1.0 / CATERPILLAR_FEED_EFFICIENCY));
-                    biomass += (eaten * CATERPILLAR_FEED_EFFICIENCY);
+                    double eaten = p.consumeBiomass(appetite * (1.0 / CATERPILLAR_FEED_EFFICIENCY), cell);
+                    addBiomass(eaten * CATERPILLAR_FEED_EFFICIENCY, cell);
                     appetite -= eaten;
                     if (appetite <= 0) {
                         break;
@@ -46,7 +48,7 @@ public class Butterfly extends Biomass {
     private void reproduce(Cell cell) {
         if (biomass > 0) {
             double offspringBiomass = biomass * BUTTERFLY_REPRODUCTION_RATE;
-            biomass -= offspringBiomass; // Conversion of mass
+            addBiomass(-offspringBiomass, cell); // Conversion of mass
 
             Caterpillar c = (Caterpillar) cell.getBiomass(SpeciesKey.CATERPILLAR);
             if (c == null) {
@@ -54,12 +56,25 @@ public class Butterfly extends Biomass {
                 c = new Caterpillar(0, 0); // Speed 0 for caterpillars
                 cell.addBiomass(c);
             }
-            c.spawn(offspringBiomass);
+            c.spawn(offspringBiomass, cell);
         }
     }
 
-    public void addBiomass(double amount) {
-        this.biomass += amount;
+    @Override
+    public void addBiomass(double amount, Cell cell) {
+        double oldBiomass = biomass;
+        if (maxBiomass > 0) {
+            this.biomass = Math.min(maxBiomass, this.biomass + amount);
+        } else {
+            this.biomass += amount;
+        }
+        reportChange(cell, biomass - oldBiomass);
+    }
+
+    private void reportChange(Cell cell, double delta) {
+        if (delta != 0) {
+            cell.getWorld().getStatisticsService().registerBiomassChange(speciesKey, delta);
+        }
     }
 
     @Override

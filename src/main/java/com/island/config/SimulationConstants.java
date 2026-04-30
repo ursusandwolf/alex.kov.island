@@ -22,13 +22,26 @@ public final class SimulationConstants {
     public static final int HUNT_FATIGUE_THRESHOLD = 5; 
     public static final double HUNT_FATIGUE_COST_MULTIPLIER = 1.3; 
     
+    // Feeding Penalties & Bonuses
+    public static final double PREDATOR_FAIL_HUNT_PENALTY_PERCENT = 0.05;
+    public static final double HERBIVORE_FAIL_FEED_PENALTY_PERCENT = 0.03;
+    public static final double OVERPOPULATION_HUNT_BONUS = 15.0;
+
+    // LOD Sampling
+    public static final int FEEDING_LOD_LIMIT = 500;
+    public static final int REPRODUCTION_LOD_LIMIT = 30;
+
     // Thresholds
     public static final double DEATH_EPSILON = 0.00001;
+    public static final double STARVATION_THRESHOLD_PERCENT = 30.0;
+    public static final double REPRODUCTION_MIN_ENERGY_PERCENT = 50.0; 
 
     // Red Book / Endangered Protection
     public static final double ENDANGERED_POPULATION_THRESHOLD = 0.05; 
     public static final double ENDANGERED_REPRO_BONUS_PERCENT = 20.0; 
     public static final int ENDANGERED_SPEED_BONUS = 2;
+    public static final double ENDANGERED_MAX_HIDE_CHANCE = 0.60;
+    public static final double ENDANGERED_MIN_HIDE_CHANCE = 0.30;
 
     // Reproduction Scaling
     public static final int HERBIVORE_OFFSPRING_BONUS = 1; 
@@ -42,6 +55,11 @@ public final class SimulationConstants {
     public static final double CATERPILLAR_METABOLISM_RATE = 0.05;
     public static final double CATERPILLAR_FEED_EFFICIENCY = 1.0; 
     public static final double BUTTERFLY_REPRODUCTION_RATE = 0.10; 
+
+    // Cold-blooded Intervals
+    public static final int COLD_BLOODED_MOVE_INTERVAL = 2;
+    public static final int COLD_BLOODED_FEED_INTERVAL = 3;
+    public static final int COLD_BLOODED_REPRO_INTERVAL = 4;
 
     // World Initialization Probability
     public static final double DEFAULT_PREDATOR_PRESENCE_PROB = 0.2;

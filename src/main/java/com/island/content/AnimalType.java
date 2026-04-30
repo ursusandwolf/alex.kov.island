@@ -32,6 +32,7 @@ public final class AnimalType {
     private final boolean isPackHunter;
     private final boolean isBiomass;
     private final boolean isPlant;
+    private final double reproductionChance;
 
     // Data-driven settlement properties
     private final double presenceProb;
@@ -48,5 +49,18 @@ public final class AnimalType {
 
     public Set<SpeciesKey> getPreySpecies() {
         return huntProbabilities.keySet();
+    }
+
+    public enum Action { MOVE, FEED, REPRODUCE }
+
+    public int getTickInterval(Action action) {
+        if (!isColdBlooded) {
+            return 1;
+        }
+        return switch (action) {
+            case MOVE -> com.island.config.SimulationConstants.COLD_BLOODED_MOVE_INTERVAL;
+            case FEED -> com.island.config.SimulationConstants.COLD_BLOODED_FEED_INTERVAL;
+            case REPRODUCE -> com.island.config.SimulationConstants.COLD_BLOODED_REPRO_INTERVAL;
+        };
     }
 }

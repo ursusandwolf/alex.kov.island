@@ -26,7 +26,7 @@ public class ChameleonTest {
                 .settlementRange(0.2)
                 .build();
                 
-        Chameleon chameleon = new Chameleon(type);
+        Chameleon chameleon = new Chameleon(type, new com.island.util.DefaultRandomProvider());
 
         int protectedCount = 0;
         int iterations = 10000;

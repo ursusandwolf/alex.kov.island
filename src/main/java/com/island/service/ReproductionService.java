@@ -5,20 +5,23 @@ import com.island.engine.SimulationWorld;
 import com.island.content.Animal;
 import com.island.content.AnimalFactory;
 import com.island.content.AnimalType;
+import com.island.content.SpeciesKey;
 import com.island.content.SpeciesRegistry;
 import com.island.model.Cell;
 import com.island.util.RandomProvider;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 
 /**
  * Service responsible for animal reproduction.
  */
-public class ReproductionService extends AbstractService {
+public class ReproductionService extends AbstractService<Cell> {
     private final AnimalFactory animalFactory;
     private final SpeciesRegistry speciesRegistry;
+    private Map<SpeciesKey, Double> protectionMap;
 
     public ReproductionService(SimulationWorld world, AnimalFactory animalFactory, 
                                SpeciesRegistry speciesRegistry, ExecutorService executor, RandomProvider random) {
@@ -28,61 +31,57 @@ public class ReproductionService extends AbstractService {
     }
 
     @Override
-    protected void processCell(SimulationNode node, int tickCount) {
-        if (node instanceof Cell cell) {
-            List<Animal> potentialParents = cell.getAnimals();
-            if (potentialParents.size() < 2) {
+    public void tick(int tickCount) {
+        this.protectionMap = getWorld().getProtectionMap(speciesRegistry);
+        super.tick(tickCount);
+    }
+
+    @Override
+    protected void processCell(Cell cell, int tickCount) {
+        List<Animal> potentialParents = cell.getAnimals();
+        if (potentialParents.size() < 2) {
+            return;
+        }
+        
+        java.util.Set<Animal> alreadyMated = new java.util.HashSet<>();
+
+        forEachSampled(potentialParents, com.island.config.SimulationConstants.REPRODUCTION_LOD_LIMIT, a1 -> {
+            if (alreadyMated.contains(a1) || !shouldReproduce(a1, tickCount)) {
                 return;
             }
-            
-            java.util.Set<Animal> alreadyMated = new java.util.HashSet<>();
 
-            forEachSampled(potentialParents, 30, a1 -> {
-                if (alreadyMated.contains(a1) || !shouldReproduce(a1, tickCount)) {
-                    return;
+            // Try to find a mate
+            for (Animal a2 : potentialParents) {
+                if (a1 == a2 || alreadyMated.contains(a2) || !shouldReproduce(a2, tickCount)) {
+                    continue;
                 }
 
-                // Try to find a mate
-                for (Animal a2 : potentialParents) {
-                    if (a1 == a2 || alreadyMated.contains(a2) || !shouldReproduce(a2, tickCount)) {
-                        continue;
-                    }
-
-                    if (a1.getAnimalType().equals(a2.getAnimalType())) {
-                        if (tryReproduce(a1, a2, cell)) {
-                            alreadyMated.add(a1);
-                            alreadyMated.add(a2);
-                            break;
-                        }
+                if (a1.getAnimalType().equals(a2.getAnimalType())) {
+                    if (tryReproduce(a1, a2, cell)) {
+                        alreadyMated.add(a1);
+                        alreadyMated.add(a2);
+                        break;
                     }
                 }
-            });
-        }
+            }
+        });
     }
 
     private boolean shouldReproduce(Animal animal, int tickCount) {
         if (!animal.canInitiateReproduction()) {
             return false;
         }
-        // Cold-blooded reproduce less frequently (every 4th tick)
-        if (animal.getAnimalType().isColdBlooded()) {
-            return (tickCount % 4 == 0);
-        }
-        return true;
+        return (tickCount % animal.getAnimalType().getTickInterval(com.island.content.AnimalType.Action.REPRODUCE) == 0);
     }
 
     private boolean tryReproduce(Animal parent1, Animal parent2, Cell cell) {
         AnimalType type = parent1.getAnimalType();
+        double chance = type.getReproductionChance();
         
-        // Final balanced reproduction chance
-        double chance = switch (type.getSizeClass()) {
-            case TINY -> 0.25;    // Mouse, Hamster
-            case SMALL -> 0.18;   // Duck, Rabbit
-            case NORMAL -> 0.12;  // Fox, Eagle
-            case MEDIUM -> 0.08;  // Wolf, Goat, Sheep
-            case LARGE -> 0.04;   // Bear, Boar, Deer
-            case HUGE -> 0.02;    // Buffalo, Horse
-        };
+        // Endangered protection bonus
+        if (protectionMap != null && protectionMap.containsKey(type.getSpeciesKey())) {
+            chance *= (1.0 + com.island.config.SimulationConstants.ENDANGERED_REPRO_BONUS_PERCENT / 100.0);
+        }
 
         if (getRandom().nextDouble() < chance) {
             Optional<Animal> baby = animalFactory.createAnimal(type.getSpeciesKey());

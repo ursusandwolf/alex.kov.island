@@ -120,14 +120,8 @@ public class EntityContainer {
     }
 
     public void addBiomass(Biomass b) {
-        SpeciesKey key = b.getSpeciesKey();
-        Biomass existing = biomassBySpecies.get(key);
-        if (existing != null) {
-            existing.addBiomass(b.getBiomass());
-        } else {
-            biomassBySpecies.put(key, b);
-            allBiomass.add(b);
-        }
+        biomassBySpecies.put(b.getSpeciesKey(), b);
+        allBiomass.add(b);
     }
 
     public boolean removeBiomass(Biomass b) {

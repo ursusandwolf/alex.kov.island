@@ -14,14 +14,17 @@ import static com.island.config.SimulationConstants.REPTILE_METABOLISM_MODIFIER;
  * It also uses combined Herbivore and Reptile metabolism for better survival.
  */
 public class Chameleon extends Animal implements Herbivore {
-    public Chameleon(AnimalType type) {
+    private final com.island.util.RandomProvider random;
+
+    public Chameleon(AnimalType type, com.island.util.RandomProvider random) {
         super(type);
+        this.random = random;
     }
 
     @Override
     public boolean isProtected(int currentTick) {
         // Unique ability: 95% chance to be invisible to predators
-        return super.isProtected(currentTick) || RandomUtils.nextDouble() < 0.95;
+        return super.isProtected(currentTick) || random.nextDouble() < 0.95;
     }
 
     @Override

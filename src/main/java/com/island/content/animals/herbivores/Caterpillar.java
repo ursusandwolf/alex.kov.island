@@ -25,6 +25,7 @@ public class Caterpillar extends Biomass {
 
     public void processPendulum(Cell cell) {
         // 1. Natural metabolic loss (only for active stages)
+        final double oldBiomass = biomass;
         double totalActive = 0;
         for (int i = 0; i < activeStages.length; i++) {
             activeStages[i] *= (1.0 - CATERPILLAR_METABOLISM_RATE);
@@ -37,7 +38,7 @@ public class Caterpillar extends Biomass {
             List<Biomass> availablePlants = cell.getBiomassContainers();
             for (Biomass p : availablePlants) {
                 if (p != this && p.isAlive() && !(p instanceof Butterfly)) {
-                    double eaten = p.consumeBiomass(appetite * (1.0 / CATERPILLAR_FEED_EFFICIENCY));
+                    double eaten = p.consumeBiomass(appetite * (1.0 / CATERPILLAR_FEED_EFFICIENCY), cell);
                     activeStages[0] += (eaten * CATERPILLAR_FEED_EFFICIENCY);
                     appetite -= eaten;
                     if (appetite <= 0) {
@@ -52,6 +53,7 @@ public class Caterpillar extends Biomass {
         
         // 4. Sync total biomass
         updateTotalBiomass();
+        reportChange(cell, biomass - oldBiomass);
     }
 
     private void advanceStages(Cell cell) {
@@ -63,7 +65,7 @@ public class Caterpillar extends Biomass {
                 b = new Butterfly(0, this.speed);
                 cell.addBiomass(b);
             }
-            b.addBiomass(emergingButterflies);
+            b.addBiomass(emergingButterflies, cell);
         }
 
         // Shift sleep stages
@@ -111,15 +113,17 @@ public class Caterpillar extends Biomass {
         return sleepTotal > (biomass * 0.1); // Simple threshold
     }
 
-    public void spawn(double amount) {
+    public void spawn(double amount, Cell cell) {
         if (amount > 0) {
             activeStages[0] += amount;
+            double old = biomass;
             updateTotalBiomass();
+            reportChange(cell, biomass - old);
         }
     }
 
     @Override
-    public double consumeBiomass(double amount) {
+    public double consumeBiomass(double amount, Cell cell) {
         double activeTotal = 0;
         for (double s : activeStages) {
             activeTotal += s;
@@ -131,9 +135,16 @@ public class Caterpillar extends Biomass {
             for (int i = 0; i < activeStages.length; i++) {
                 activeStages[i] *= factor;
             }
+            double old = biomass;
             updateTotalBiomass();
+            reportChange(cell, biomass - old);
         }
         return actualEaten;
     }
-}
 
+    private void reportChange(Cell cell, double delta) {
+        if (delta != 0) {
+            cell.getWorld().getStatisticsService().registerBiomassChange(speciesKey, delta);
+        }
+    }
+}
