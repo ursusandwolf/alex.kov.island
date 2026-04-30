@@ -62,29 +62,33 @@ public class MovementService extends AbstractService<SimulationNode> {
     }
 
     private void processMobileBiomass(SimulationNode node) {
-        List<? extends com.island.engine.Mortal> containers = node.getBiomassEntities();
-        for (com.island.engine.Mortal m : containers) {
-            if (m instanceof Biomass b && b.isAlive() && b.getSpeed() > 0 && b.getBiomass() > 0) {
-                long totalMass = b.getBiomass();
-                long chunk = (totalMass * BIOMASS_MOVE_CHUNK_BP) / SCALE_10K;
-
-                int direction = getRandom().nextInt(4);
-                int dx = 0;
-                int dy = 0;
-                switch (direction) {
-                    case 0 -> dy = -1;
-                    case 1 -> dy = 1;
-                    case 2 -> dx = -1;
-                    case 3 -> dx = 1;
-                    default -> { }
-                }
-
-                getWorld().getNode(node, dx, dy).ifPresent(target -> {
-                    if (target != node) {
-                        getWorld().moveBiomassPartially(b, node, target, chunk);
-                    }
-                });
+        List<Biomass> mobile = new java.util.ArrayList<>();
+        node.forEachBiomass(b -> {
+            if (b.isAlive() && b.getSpeed() > 0 && b.getBiomass() > 0) {
+                mobile.add(b);
             }
+        });
+
+        for (Biomass b : mobile) {
+            long totalMass = b.getBiomass();
+            long chunk = (totalMass * BIOMASS_MOVE_CHUNK_BP) / SCALE_10K;
+
+            int direction = getRandom().nextInt(4);
+            int dx = 0;
+            int dy = 0;
+            switch (direction) {
+                case 0 -> dy = -1;
+                case 1 -> dy = 1;
+                case 2 -> dx = -1;
+                case 3 -> dx = 1;
+                default -> { }
+            }
+
+            getWorld().getNode(node, dx, dy).ifPresent(target -> {
+                if (target != node) {
+                    getWorld().moveBiomassPartially(b, node, target, chunk);
+                }
+            });
         }
     }
 

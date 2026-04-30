@@ -62,25 +62,33 @@ public class FeedingService extends AbstractService<SimulationNode> {
 
     private void processPredators(SimulationNode node, int tickCount) {
         List<Animal> packHunters = new java.util.ArrayList<>();
-        List<Animal> others = new java.util.ArrayList<>();
+        List<Animal> soloHunters = new java.util.ArrayList<>();
 
         node.forEachPredator(p -> {
             if (p.getAnimalType().isPackHunter()) {
                 packHunters.add(p);
             } else {
-                others.add(p);
+                if (p.isAlive() && shouldAct(p, AnimalType.Action.FEED, tickCount)) {
+                    soloHunters.add(p);
+                }
             }
         });
 
+        // Process solo hunters
+        for (Animal predator : soloHunters) {
+            if (predator.isAlive()) {
+                tryEat(predator, node);
+            }
+        }
+
+        // Process pack hunters
         if (packHunters.size() >= minPackSize) {
             processPackHunting(packHunters, node);
         } else {
-            others.addAll(packHunters);
-        }
-
-        for (Animal predator : others) {
-            if (predator.isAlive() && shouldAct(predator, AnimalType.Action.FEED, tickCount)) {
-                tryEat(predator, node);
+            for (Animal wolf : packHunters) {
+                if (wolf.isAlive() && shouldAct(wolf, AnimalType.Action.FEED, tickCount)) {
+                    tryEat(wolf, node);
+                }
             }
         }
     }
@@ -106,9 +114,10 @@ public class FeedingService extends AbstractService<SimulationNode> {
 
         while (kills < maxKills && attempts < maxAttempts) {
             attempts++;
-            Organism prey = huntingStrategy.selectPackPrey(pack, packPreyProvider);
-            if (prey instanceof Animal a) {
-                if (a.isAlive() && !isProtected(a)) {
+            Organism preyCandidate = huntingStrategy.selectPackPrey(pack, packPreyProvider);
+            if (preyCandidate instanceof Animal aCandidate) {
+                Animal a = findActualPrey(node, aCandidate.getSpeciesKey());
+                if (a != null && a.isAlive() && !isProtected(a)) {
                     int baseChance = interactionMatrix.getChance(pack.get(0).getSpeciesKey(), a.getSpeciesKey());
                     int packChanceBP = huntingStrategy.calculatePackSuccessRate(pack, a, baseChance);
                     
@@ -155,14 +164,16 @@ public class FeedingService extends AbstractService<SimulationNode> {
 
         while (!success && attempts < maxAttempts) {
             attempts++;
-            Organism prey = huntingStrategy.selectPrey(consumer, preyProvider);
-            if (prey == null) {
+            Organism preyCandidate = huntingStrategy.selectPrey(consumer, preyProvider);
+            if (preyCandidate == null) {
                 break;
             }
             
             strikeAttempted = true;
-            if (prey instanceof Animal a) {
-                if (a.isAlive() && !isProtected(a)) {
+            if (preyCandidate instanceof Animal aCandidate) {
+                // Pick a random alive animal of this species from the cell to avoid collision with other predators
+                Animal a = findActualPrey(node, aCandidate.getSpeciesKey());
+                if (a != null && a.isAlive() && !isProtected(a)) {
                     int chance = interactionMatrix.getChance(consumer.getSpeciesKey(), a.getSpeciesKey());
                     int preyCount = node.getOrganismCount(a.getSpeciesKey());
                     if (preyCount > a.getAnimalType().getMaxPerCell() / 2) {
@@ -178,7 +189,7 @@ public class FeedingService extends AbstractService<SimulationNode> {
                         success = true;
                     }
                 }
-            } else if (prey instanceof Biomass b && b.getBiomass() > 0 && !isPlantProtected(b.getSpeciesKey())) {
+            } else if (preyCandidate instanceof Biomass b && b.getBiomass() > 0 && !isPlantProtected(b.getSpeciesKey())) {
                 long foodNeeded = consumer.getFoodForSaturation() - consumer.getCurrentEnergy();
                 consumer.addEnergy(b.consumeBiomass(foodNeeded, node));
                 success = true;
@@ -192,5 +203,16 @@ public class FeedingService extends AbstractService<SimulationNode> {
                 consumer.consumeEnergy((consumer.getMaxEnergy() * HERBIVORE_FAIL_FEED_PENALTY_BP) / SCALE_10K);
             }
         }
+    }
+
+    private Animal findActualPrey(SimulationNode node, SpeciesKey speciesKey) {
+        if (node instanceof Cell cell) {
+            AnimalType type = speciesRegistry.getAnimalType(speciesKey).orElse(null);
+            if (type == null) {
+                return null;
+            }
+            return cell.getRandomAnimalByType(type, getRandom());
+        }
+        return null;
     }
 }

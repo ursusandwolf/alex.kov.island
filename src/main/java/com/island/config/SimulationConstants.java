@@ -7,8 +7,8 @@ public final class SimulationConstants {
 
     public static final int SPEED_MOVE_COST_STEP_BP = 100; 
     public static final int PREY_RELATIVE_SPEED_HUNT_COST_STEP_BP = 500; 
-    public static final int BASE_METABOLISM_BP = 150; 
-    public static final int HERBIVORE_METABOLISM_MODIFIER_BP = 7000; 
+    public static final int BASE_METABOLISM_BP = 100; 
+    public static final int HERBIVORE_METABOLISM_MODIFIER_BP = 5000; 
     public static final int REPTILE_METABOLISM_MODIFIER_BP = 4000; 
 
     public static final int HUNT_STRIKE_COST_PREY_WEIGHT_BP = 1000; 

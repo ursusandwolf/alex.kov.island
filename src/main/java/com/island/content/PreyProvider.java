@@ -55,37 +55,42 @@ public class PreyProvider {
         List<Organism> potential = new ArrayList<>();
         boolean canHuntAsPack = isWolfPack && predator.getAnimalType().isPackHunter();
         
-        // 1. Animals
-        node.getLivingEntities().forEach(m -> {
-            if (m instanceof Animal a && a != predator && a.isAlive()) {
+        // Use species grouping from the node's world registry/statistics or iteration
+        // For simplicity and speed, we'll iterate once and collect unique species representatives
+        java.util.Map<SpeciesKey, Organism> uniquePrey = new java.util.HashMap<>();
+
+        // 1. Animals - group by species
+        node.forEachAnimal(a -> {
+            if (a != predator && a.isAlive() && !uniquePrey.containsKey(a.getSpeciesKey())) {
                 int baseChance = matrix.getChance(predator.getSpeciesKey(), a.getSpeciesKey());
                 boolean canHunt = baseChance > 0;
                 
-                // Special case: Wolf packs can hunt large prey (like bears) even if solo chance is 0
                 if (!canHunt && canHuntAsPack && a.getWeight() > 150 * com.island.config.SimulationConstants.SCALE_1M) {
                     canHunt = true;
                 }
 
                 if (canHunt && !a.isProtected(currentTick)) {
-                    potential.add(a);
+                    uniquePrey.put(a.getSpeciesKey(), a);
                 }
             }
         });
         
+        potential.addAll(uniquePrey.values());
+
         // 2. Plants/Biomass
-        for (Mortal m : node.getBiomassEntities()) {
-            if (m instanceof Biomass b && b.getBiomass() > 0 && matrix.getChance(predator.getSpeciesKey(), b.getSpeciesKey()) > 0) {
+        node.forEachBiomass(b -> {
+            if (b.getBiomass() > 0 && matrix.getChance(predator.getSpeciesKey(), b.getSpeciesKey()) > 0) {
                 if (!isPlantProtected(b)) {
                     potential.add(b);
                 }
             }
-        }
+        });
 
         // Sort by ROI (weight * probability) descending
         potential.sort(Comparator.comparingLong((Organism o) -> {
             long weight = o instanceof Biomass ? ((Biomass) o).getBiomass() : o.getWeight();
             int chance = matrix.getChance(predator.getSpeciesKey(), o.getSpeciesKey());
-            return weight * chance;
+            return weight * (long) chance;
         }).reversed());
 
         return potential;

@@ -28,8 +28,8 @@ public class LifecycleService extends AbstractService<SimulationNode> {
         com.island.engine.Season season = getWorld().getCurrentSeason();
         int seasonMetabolismModifierBP = (int) (season.getMetabolismModifier() * com.island.config.SimulationConstants.SCALE_10K);
 
-        node.getLivingEntities().forEach(m -> {
-            if (m instanceof Animal a && a.isAlive()) {
+        node.forEachAnimal(a -> {
+            if (a.isAlive()) {
                 // 1. Metabolism (Energy decay)
                 long metabolism = a.getDynamicMetabolismRate();
                 
@@ -62,10 +62,10 @@ public class LifecycleService extends AbstractService<SimulationNode> {
         com.island.engine.Season season = getWorld().getCurrentSeason();
         double growthModifier = season.getGrowthModifier();
         
-        for (com.island.engine.Mortal m : node.getBiomassEntities()) {
-            if (m instanceof Biomass b && b.isAlive()) {
+        node.forEachBiomass(b -> {
+            if (b.isAlive()) {
                 b.grow(node, growthModifier);
             }
-        }
+        });
     }
 }

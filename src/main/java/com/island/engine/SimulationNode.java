@@ -37,9 +37,20 @@ public interface SimulationNode {
     java.util.List<? extends Mortal> getLivingEntities();
 
     /**
+     * Iterates over all animals in this node without copying the underlying collection.
+     * The implementation must ensure thread-safety (e.g., by holding a read lock).
+     */
+    void forEachAnimal(java.util.function.Consumer<com.island.content.Animal> action);
+
+    /**
      * Gets only biomass-based entities in this node.
      */
     java.util.List<? extends Mortal> getBiomassEntities();
+
+    /**
+     * Iterates over all biomass entities in this node without copying.
+     */
+    void forEachBiomass(java.util.function.Consumer<com.island.content.Biomass> action);
 
     /**
      * Iterates over predators in this node.
@@ -55,6 +66,16 @@ public interface SimulationNode {
      * Iterates over all animals in this node with LOD sampling.
      */
     void forEachAnimalSampled(int limit, com.island.util.RandomProvider random, java.util.function.Consumer<com.island.content.Animal> action);
+
+    /**
+     * Gets total animal count in this node.
+     */
+    int getAnimalCount();
+
+    /**
+     * Gets total biomass count in this node.
+     */
+    int getBiomassCount();
 
     /**
      * Gets the count of a specific species in this node.

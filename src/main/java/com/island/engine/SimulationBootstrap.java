@@ -28,7 +28,17 @@ public class SimulationBootstrap {
         Island island = new Island(config.getIslandWidth(), config.getIslandHeight(), registry, statisticsService);
         AnimalFactory animalFactory = new AnimalFactory(registry, random);
 
-        GameLoop gameLoop = new GameLoop(config.getTickDurationMs());
+        int processors = Runtime.getRuntime().availableProcessors();
+        int totalCells = config.getIslandWidth() * config.getIslandHeight();
+        // Используем доступные процессоры, но ограничиваем количество потоков для маленьких карт,
+        // чтобы избежать избыточного Context Switching.
+        // Минимум 4 потока (если клеток достаточно), максимум - availableProcessors.
+        int threadCount = Math.min(processors, Math.max(1, totalCells / 4));
+        if (totalCells >= 64 && threadCount < 4) {
+            threadCount = 4;
+        }
+
+        GameLoop gameLoop = new GameLoop(config.getTickDurationMs(), threadCount);
         gameLoop.setWorld(island);
 
         WorldInitializer initializer = new WorldInitializer();

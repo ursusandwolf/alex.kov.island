@@ -88,6 +88,16 @@ public class Cell implements SimulationNode {
     }
 
     @Override
+    public void forEachBiomass(Consumer<Biomass> action) {
+        rwLock.readLock().lock();
+        try {
+            container.getAllBiomass().forEach(action);
+        } finally {
+            rwLock.readLock().unlock();
+        }
+    }
+
+    @Override
     public boolean canAccept(Animal animal) {
         rwLock.readLock().lock();
         try {
@@ -156,15 +166,14 @@ public class Cell implements SimulationNode {
         }
     }
 
+    @Override
     public void forEachAnimal(Consumer<Animal> action) {
-        List<Animal> copy;
         rwLock.readLock().lock();
         try {
-            copy = new ArrayList<>(container.getAllAnimals());
+            container.getAllAnimals().forEach(action);
         } finally {
             rwLock.readLock().unlock();
         }
-        copy.forEach(action);
     }
 
     public void forEachAnimalReadOnly(Consumer<Animal> action) {
@@ -176,6 +185,7 @@ public class Cell implements SimulationNode {
         }
     }
 
+    @Override
     public void forEachAnimalSampled(int limit, RandomProvider random, Consumer<Animal> action) {
         List<Animal> sampled = new ArrayList<>();
         rwLock.readLock().lock();
@@ -191,6 +201,9 @@ public class Cell implements SimulationNode {
             for (Animal a : set) {
                 if (i >= startOffset && (i - startOffset) % step == 0) {
                     sampled.add(a);
+                    if (sampled.size() >= limit) {
+                        break;
+                    }
                 }
                 i++;
             }
@@ -200,17 +213,17 @@ public class Cell implements SimulationNode {
         sampled.forEach(action);
     }
 
+    @Override
     public void forEachPredator(Consumer<Animal> action) {
-        List<Animal> copy;
         rwLock.readLock().lock();
         try {
-            copy = new ArrayList<>(container.getPredators());
+            container.getPredators().forEach(action);
         } finally {
             rwLock.readLock().unlock();
         }
-        copy.forEach(action);
     }
 
+    @Override
     public void forEachHerbivoreSampled(int limit, RandomProvider random, Consumer<Animal> action) {
         List<Animal> sampled = new ArrayList<>();
         rwLock.readLock().lock();
@@ -226,6 +239,9 @@ public class Cell implements SimulationNode {
             for (Animal a : set) {
                 if (i >= startOffset && (i - startOffset) % step == 0) {
                     sampled.add(a);
+                    if (sampled.size() >= limit) {
+                        break;
+                    }
                 }
                 i++;
             }
@@ -248,6 +264,28 @@ public class Cell implements SimulationNode {
         rwLock.readLock().lock();
         try {
             return new ArrayList<>(container.getHerbivores());
+        } finally {
+            rwLock.readLock().unlock();
+        }
+    }
+
+    public Animal getRandomAnimalByType(AnimalType type, RandomProvider random) {
+        rwLock.readLock().lock();
+        try {
+            Set<Animal> set = container.getByType(type);
+            if (set.isEmpty()) {
+                return null;
+            }
+            int size = set.size();
+            int index = random.nextInt(size);
+            int i = 0;
+            for (Animal a : set) {
+                if (i == index) {
+                    return a;
+                }
+                i++;
+            }
+            return null;
         } finally {
             rwLock.readLock().unlock();
         }
@@ -289,10 +327,21 @@ public class Cell implements SimulationNode {
         }
     }
 
+    @Override
     public int getAnimalCount() {
         rwLock.readLock().lock();
         try {
             return container.getAllAnimals().size();
+        } finally {
+            rwLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public int getBiomassCount() {
+        rwLock.readLock().lock();
+        try {
+            return container.getAllBiomass().size();
         } finally {
             rwLock.readLock().unlock();
         }

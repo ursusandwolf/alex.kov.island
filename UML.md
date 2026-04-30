@@ -1,15 +1,15 @@
-# Island Simulator Architecture (v1.3)
+# Island Simulator Architecture (v1.4)
 
 ## Class Diagram Concepts
 
 ### Engine Layer
-- `SimulationWorld` (Island): Central hub. Enforces X-Y locking order for dead-lock free concurrency.
+- `SimulationWorld` (Island): Central hub. Uses **Dynamic Partitioning** to calculate optimal `chunkSize` based on core count and grid density.
 - `SimulationNode` (Cell): Spatial unit. Uses `ReentrantReadWriteLock` for fine-grained thread safety.
 - `GameLoop`: Orchestrates grouped `CellService` execution across world chunks.
 - `CellService`: Interface for business logic (Feeding, Movement, etc.) optimized for parallel grouping.
 - `SimulationMetrics`: Thread-safe builder for incremental aggregation of population and energy stats.
 - `SimulationConstants`: Pure constant registry for `SCALE_1M` and `SCALE_10K` arithmetic.
-
+...
 ### Domain Layer (Lombok Powered)
 - `Organism`: Base for all life. Standardized on `long` energy (fixed-point).
 - `Animal` (Herbivore/Predator): LOD 0 entities with individual logic and hibernation support.

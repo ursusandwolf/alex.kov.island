@@ -1,7 +1,25 @@
 # Changelog
 
-## [1.2-SNAPSHOT] - 2026-04-30
+## [1.3-SNAPSHOT] - 2026-04-30
 
+### Added
+- **Dynamic Partitioning**: Implemented `partitionIntoChunks` in `Island.java` that adapts `chunkSize` based on world density and CPU core count. This ensures at least 16 tasks for small 8x8 worlds, eliminating the single-thread bottleneck.
+- **Wolf Pack Coordination**: Refined `DefaultHuntingStrategy` to allow Wolf packs to hunt any animal over 150kg (including Bears) with a coordinate bonus of up to 30%.
+- **Extinction Diagnostic Suite**: Added `ExtinctionBalanceTest` to track species survival and death causes across multiple simulation runs for scientific balancing.
+
+### Optimized
+- **Scalable Concurrency**: `SimulationBootstrap` now dynamically tunes `threadCount` (4 to `availableProcessors`) based on map size, maximizing core utilization across all hardware tiers.
+- **Energy Buffering**: Increased `foodForSaturation` for predators (e.g., Fox) to act as an energy "buffer", reducing extinction rates caused by short-term hunt failures.
+
+### Fixed
+- **Buffalo Paradox Resolution**: Balanced the ecosystem by increasing Buffalo `settlementBase` (0.25) and `reproductionChance` (0.10) while tuning predator success rates to prevent boom-bust extinction cycles.
+- **Founder Effect Fix**: Increased initial population density for low-reproduction giants to ensure viable breeding pairs at simulation start.
+
+### Changed
+- **Metabolic Scaling**: Tuned `BASE_METABOLISM_BP` to 100 BP (1% per tick) and added `HERBIVORE_METABOLISM_MODIFIER_BP` (5000) to sustain larger, more stable prey populations.
+
+## [1.2-SNAPSHOT] - 2026-04-30
+...
 ### Added
 - **Parallel Task Grouping**: Refactored `GameLoop` to execute multiple `CellService` tasks (Feeding, Movement, Reproduction, etc.) in a single parallel pass per cell. This significantly reduces thread synchronization overhead and improves CPU cache locality.
 - **Incremental Metrics Aggregation**: Integrated `SimulationMetrics` collection directly into parallel chunk processing. Global statistics are now aggregated on-the-fly, eliminating the need for expensive post-tick grid scans.

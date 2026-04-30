@@ -16,9 +16,9 @@ public class GameLoop {
     private int tickCount = 0;
     private SimulationWorld world;
 
-    public GameLoop(long tickDurationMs) {
+    public GameLoop(long tickDurationMs, int threadCount) {
         this.tickDurationMs = tickDurationMs;
-        this.taskExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        this.taskExecutor = Executors.newFixedThreadPool(threadCount);
     }
 
     public void setWorld(SimulationWorld world) {
@@ -109,6 +109,7 @@ public class GameLoop {
                 long totalMax = 0;
                 int animalCount = 0;
                 int starvingCount = 0;
+                final long[] nodeStats = new long[4];
 
                 for (SimulationNode node : unit) {
                     for (CellService service : services) {
@@ -116,21 +117,24 @@ public class GameLoop {
                     }
                     
                     if (node instanceof com.island.model.Cell cell) {
-                        long[] stats = new long[4]; 
+                        nodeStats[0] = 0;
+                        nodeStats[1] = 0;
+                        nodeStats[2] = 0;
+                        nodeStats[3] = 0;
                         cell.forEachAnimalReadOnly(a -> {
                             if (a.isAlive()) {
-                                stats[0] += a.getCurrentEnergy();
-                                stats[1] += a.getMaxEnergy();
-                                stats[2]++;
+                                nodeStats[0] += a.getCurrentEnergy();
+                                nodeStats[1] += a.getMaxEnergy();
+                                nodeStats[2]++;
                                 if (a.isStarving()) {
-                                    stats[3]++;
+                                    nodeStats[3]++;
                                 }
                             }
                         });
-                        totalCurrent += stats[0];
-                        totalMax += stats[1];
-                        animalCount += (int) stats[2];
-                        starvingCount += (int) stats[3];
+                        totalCurrent += nodeStats[0];
+                        totalMax += nodeStats[1];
+                        animalCount += (int) nodeStats[2];
+                        starvingCount += (int) nodeStats[3];
                     }
                 }
                 return SimulationMetrics.builder()

@@ -218,11 +218,42 @@ public class Island implements SimulationWorld {
     }
 
     private void partitionIntoChunks() {
-        int chunkSize = 20; 
+        int processors = Runtime.getRuntime().availableProcessors();
+        int totalCells = width * height;
+
+        // Определяем желаемое количество задач для оптимальной утилизации ядер.
+        // Для маленьких миров (например, 8x8) фиксируем 16 задач, чтобы гарантировать параллелизм.
+        // Для больших миров используем запас (2-4 задачи на ядро) для балансировки нагрузки.
+        int targetTasks;
+        if (totalCells <= 64) {
+            targetTasks = 16;
+        } else if (totalCells <= processors * 16) {
+            targetTasks = processors * 2;
+        } else {
+            targetTasks = processors * 4;
+        }
+
+        // Не можем создать больше задач, чем есть клеток
+        targetTasks = Math.min(targetTasks, totalCells);
+
+        // Рассчитываем размер стороны чанка: chunkSize^2 ≈ totalCells / targetTasks
+        int cellsPerChunk = Math.max(1, totalCells / targetTasks);
+        int chunkSize = (int) Math.sqrt(cellsPerChunk);
+
+        if (chunkSize < 1) {
+            chunkSize = 1;
+        }
+
+        // Ограничение сверху для chunkSize, чтобы даже на огромных картах 
+        // не терять гранулярность параллелизма (не более 32x32 на чанк)
+        if (totalCells > 1000 && chunkSize > 32) {
+            chunkSize = 32;
+        }
+
         for (int x = 0; x < width; x += chunkSize) {
             for (int y = 0; y < height; y += chunkSize) {
-                chunks.add(new Chunk(x / chunkSize, y / chunkSize, 
-                        x, Math.min(x + chunkSize, width), 
+                chunks.add(new Chunk(x / chunkSize, y / chunkSize,
+                        x, Math.min(x + chunkSize, width),
                         y, Math.min(y + chunkSize, height), this));
             }
         }
