@@ -15,6 +15,9 @@ public class SimCitySmokeTest {
     void testCityGrowthAndEconomy() {
         // 1. Setup
         CityMap map = new CityMap(5, 5);
+        map.initialize();
+        map.setResDemand(50); // Ensure demand for growth
+        
         PopulationService popService = new PopulationService(map);
         EconomyService economyService = new EconomyService(map);
 
@@ -23,8 +26,9 @@ public class SimCitySmokeTest {
         gameLoop.addRecurringTask(popService);
         gameLoop.addRecurringTask(economyService);
 
-        // Add one residential building
+        // Add one residential building and mark as connected for simplicity
         map.getGrid()[0][0].addEntity(new Building(Building.Type.RESIDENTIAL));
+        map.getGrid()[0][0].setConnected(true);
         
         long initialMoney = map.getMoney();
 

@@ -32,11 +32,9 @@ public class MovementService extends AbstractService {
     }
 
     @Override
-    public void processCell(SimulationNode<Organism> node, int tickCount) {
-        if (node instanceof Cell cell) {
-            processAnimals(cell, tickCount);
-            processMobileBiomass(cell);
-        }
+    public void processCell(Cell cell, int tickCount) {
+        processAnimals(cell, tickCount);
+        processMobileBiomass(cell);
     }
 
     private void processAnimals(Cell node, int tickCount) {

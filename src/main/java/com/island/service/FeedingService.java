@@ -55,11 +55,9 @@ public class FeedingService extends AbstractService {
     }
 
     @Override
-    public void processCell(SimulationNode<Organism> node, int tickCount) {
-        if (node instanceof Cell cell) {
-            processPredators(cell, tickCount);
-            processHerbivores(cell, tickCount);
-        }
+    public void processCell(Cell cell, int tickCount) {
+        processPredators(cell, tickCount);
+        processHerbivores(cell, tickCount);
     }
 
     private void processPredators(Cell node, int tickCount) {

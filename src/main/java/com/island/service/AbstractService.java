@@ -8,6 +8,7 @@ import com.island.content.SpeciesKey;
 import com.island.content.Season;
 import com.island.engine.CellService;
 import com.island.engine.SimulationNode;
+import com.island.model.Cell;
 import com.island.util.RandomProvider;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +22,7 @@ import lombok.RequiredArgsConstructor;
  */
 @Getter
 @RequiredArgsConstructor
-public abstract class AbstractService implements CellService<Organism> {
+public abstract class AbstractService implements CellService<Organism, Cell> {
     private final NatureWorld world;
     private final ExecutorService executor;
     private final RandomProvider random;
@@ -40,14 +41,16 @@ public abstract class AbstractService implements CellService<Organism> {
         // Fallback for direct service usage (e.g. in tests)
         for (java.util.Collection<? extends SimulationNode<Organism>> unit : world.getParallelWorkUnits()) {
             for (SimulationNode<Organism> node : unit) {
-                processCell(node, tickCount);
+                if (node instanceof Cell cell) {
+                    processCell(cell, tickCount);
+                }
             }
         }
         afterTick(tickCount);
     }
 
     @Override
-    public abstract void processCell(SimulationNode<Organism> node, int tickCount);
+    public abstract void processCell(Cell node, int tickCount);
 
     protected <T> void forEachSampled(List<T> list, int limit, Consumer<T> action) {
         int size = list.size();

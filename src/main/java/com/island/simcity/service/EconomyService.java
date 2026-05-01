@@ -9,7 +9,7 @@ import com.island.simcity.model.CityMap;
 import com.island.simcity.model.CityTile;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class EconomyService implements CellService<SimEntity> {
+public class EconomyService implements CellService<SimEntity, CityTile> {
     private final CityMap map;
     private final AtomicLong tickIncome = new AtomicLong(0);
     private final AtomicLong tickExpenses = new AtomicLong(0);
@@ -25,12 +25,11 @@ public class EconomyService implements CellService<SimEntity> {
     }
 
     @Override
-    public void processCell(SimulationNode<SimEntity> node, int tickCount) {
-        CityTile tile = (CityTile) node;
+    public void processCell(CityTile tile, int tickCount) {
         long cellIncome = 0;
         long cellExpenses = 0;
 
-        for (SimEntity entity : node.getEntities()) {
+        for (SimEntity entity : tile.getEntities()) {
             if (entity instanceof Building building) {
                 // Maintenance costs (always applied if building exists)
                 cellExpenses += switch (building.getType()) {

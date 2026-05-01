@@ -11,7 +11,7 @@ import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
 
-public class ConnectivityService implements CellService<SimEntity> {
+public class ConnectivityService implements CellService<SimEntity, CityTile> {
     private final CityMap map;
 
     public ConnectivityService(CityMap map) {
@@ -71,7 +71,7 @@ public class ConnectivityService implements CellService<SimEntity> {
     }
 
     @Override
-    public void processCell(SimulationNode<SimEntity> node, int tickCount) {
+    public void processCell(CityTile node, int tickCount) {
         // Connectivity is handled in beforeTick for the whole map
     }
 }

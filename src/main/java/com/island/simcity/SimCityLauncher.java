@@ -5,7 +5,6 @@ import com.island.simcity.entities.Building;
 import com.island.simcity.entities.Resident;
 import com.island.simcity.entities.SimEntity;
 import com.island.simcity.model.CityMap;
-import com.island.simcity.model.CityTile;
 import com.island.simcity.service.CityAnalyticsService;
 import com.island.simcity.service.ConnectivityService;
 import com.island.simcity.service.EconomyService;
@@ -18,6 +17,7 @@ public class SimCityLauncher {
 
         // 1. Initialize World
         CityMap map = new CityMap(10, 10);
+        map.initialize();
 
         // 2. Initialize Tasks
         ConnectivityService connService = new ConnectivityService(map);
@@ -64,23 +64,6 @@ public class SimCityLauncher {
         
         // Isolated zone (no connectivity)
         map.getGrid()[9][9].addEntity(new Building(Building.Type.RESIDENTIAL));
-
-        // 4b. Setup neighbors for BFS and happiness logic
-        for (int x = 0; x < map.getWidth(); x++) {
-            for (int y = 0; y < map.getHeight(); y++) {
-                CityTile tile = map.getGrid()[x][y];
-                java.util.List<com.island.engine.SimulationNode<SimEntity>> neighbors = new java.util.ArrayList<>();
-                for (int dx = -1; dx <= 1; dx++) {
-                    for (int dy = -1; dy <= 1; dy++) {
-                        if (dx == 0 && dy == 0) {
-                            continue;
-                        }
-                        map.getNode(tile, dx, dy).ifPresent(neighbors::add);
-                    }
-                }
-                tile.setNeighbors(neighbors);
-            }
-        }
 
         // 5. Run simulation
         for (int i = 0; i < 30; i++) {

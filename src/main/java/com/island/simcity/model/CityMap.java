@@ -96,6 +96,25 @@ public class CityMap implements SimulationWorld<SimEntity> {
     }
 
     @Override
+    public void initialize() {
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                CityTile tile = grid[x][y];
+                List<SimulationNode<SimEntity>> neighbors = new ArrayList<>();
+                for (int dx = -1; dx <= 1; dx++) {
+                    for (int dy = -1; dy <= 1; dy++) {
+                        if (dx == 0 && dy == 0) {
+                            continue;
+                        }
+                        getNode(tile, dx, dy).ifPresent(neighbors::add);
+                    }
+                }
+                tile.setNeighbors(neighbors);
+            }
+        }
+    }
+
+    @Override
     public void tick(int tickCount) {
         // Global logic per tick
     }

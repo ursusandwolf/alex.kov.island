@@ -74,12 +74,13 @@ public class ConsoleView implements SimulationView {
         sb.append(CYAN).append("=== SIMULATION DASHBOARD ===").append(RESET).append(CLEAR_EOL).append("\n");
         
         String totalGraph = ViewUtils.getSparkline(totalPopulationHistory, HISTORY_SIZE * 2);
-        sb.append(String.format("Tick: %d | Total Organisms: %d %s", 
-                snapshot.getTickCount(), snapshot.getTotalOrganismCount(), totalGraph)).append(CLEAR_EOL).append("\n");
+        sb.append(String.format("Tick: %d | Total Entities: %d %s", 
+                snapshot.getTickCount(), snapshot.getTotalEntityCount(), totalGraph)).append(CLEAR_EOL).append("\n");
         
         // Hunger Stats
-        double satiety = snapshot.getGlobalSatiety();
-        int starving = snapshot.getStarvingCount();
+        Map<String, Number> metrics = snapshot.getMetrics();
+        double satiety = metrics.getOrDefault("globalSatiety", 0.0).doubleValue();
+        int starving = metrics.getOrDefault("starvingCount", 0).intValue();
         String satietyColor = satiety > 70 ? GREEN : (satiety > 40 ? YELLOW : "\u001B[31m"); 
         
         sb.append(String.format("Global Satiety: %s%3.1f%%%s [", satietyColor, satiety, RESET));
@@ -87,10 +88,10 @@ public class ConsoleView implements SimulationView {
         sb.append(satietyColor).append("#".repeat(progress)).append(".".repeat(20 - progress)).append(RESET).append("] ");
         sb.append(String.format("| Starving: %s%d%s", (starving > 0 ? "\u001B[31m" : GREEN), starving, RESET)).append(CLEAR_EOL).append("\n");
         
-        int hungerTotal = snapshot.getTotalDeathCount("HUNGER");
-        int ageTotal = snapshot.getTotalDeathCount("AGE");
-        int eatenTotal = snapshot.getTotalDeathCount("EATEN");
-        int exhaustTotal = snapshot.getTotalDeathCount("MOVEMENT_EXHAUSTION");
+        int hungerTotal = metrics.getOrDefault("deaths.HUNGER", 0).intValue();
+        int ageTotal = metrics.getOrDefault("deaths.AGE", 0).intValue();
+        int eatenTotal = metrics.getOrDefault("deaths.EATEN", 0).intValue();
+        int exhaustTotal = metrics.getOrDefault("deaths.MOVEMENT_EXHAUSTION", 0).intValue();
 
         sb.append(String.format("Total Deaths: Hunger: %s%d%s | Old Age: %s%d%s | Exhausted: %s%d%s", 
                 "\u001B[31m", hungerTotal, RESET, 
@@ -101,7 +102,12 @@ public class ConsoleView implements SimulationView {
 
         sb.append("-".repeat(60)).append(CLEAR_EOL).append("\n");
 
-        Map<String, Integer> currentCounts = new TreeMap<>(snapshot.getSpeciesCounts());
+        Map<String, Integer> currentCounts = new TreeMap<>();
+        metrics.forEach((k, v) -> {
+            if (k.startsWith("species.")) {
+                currentCounts.put(k.substring(8), v.intValue());
+            }
+        });
 
         renderStatsWithGraphs(sb, currentCounts);
 
@@ -124,20 +130,23 @@ public class ConsoleView implements SimulationView {
     }
 
     private void updateHistory(WorldSnapshot snapshot) {
-        totalPopulationHistory.add(snapshot.getTotalOrganismCount());
+        totalPopulationHistory.add(snapshot.getTotalEntityCount());
         if (totalPopulationHistory.size() > HISTORY_SIZE * 2) {
             totalPopulationHistory.removeFirst();
         }
 
-        Map<String, Integer> currentCounts = snapshot.getSpeciesCounts();
-        for (String speciesCode : currentCounts.keySet()) {
-            populationHistory.putIfAbsent(speciesCode, new LinkedList<>());
-            LinkedList<Integer> history = populationHistory.get(speciesCode);
-            history.add(currentCounts.getOrDefault(speciesCode, 0));
-            if (history.size() > HISTORY_SIZE) {
-                history.removeFirst();
+        Map<String, Number> metrics = snapshot.getMetrics();
+        metrics.forEach((k, v) -> {
+            if (k.startsWith("species.")) {
+                String speciesCode = k.substring(8);
+                populationHistory.putIfAbsent(speciesCode, new LinkedList<>());
+                LinkedList<Integer> history = populationHistory.get(speciesCode);
+                history.add(v.intValue());
+                if (history.size() > HISTORY_SIZE) {
+                    history.removeFirst();
+                }
             }
-        }
+        });
     }
 
     private void renderStatsWithGraphs(StringBuilder sb, Map<String, Integer> currentCounts) {

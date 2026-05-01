@@ -12,26 +12,15 @@ public interface WorldSnapshot {
 
     int getHeight();
 
-    int getTotalOrganismCount();
+    /**
+     * Total number of entities in the world.
+     */
+    int getTotalEntityCount();
 
-    double getGlobalSatiety();
-
-    int getStarvingCount();
-    
     /**
-     * Maps species code to total count.
+     * Gets domain-specific metrics (e.g., population by species, happiness, etc.).
      */
-    Map<String, Integer> getSpeciesCounts();
-    
-    /**
-     * Maps species code to death count for a specific cause.
-     */
-    Map<String, Integer> getDeathStatsBySpecies(String causeCode);
-    
-    /**
-     * Total death count for a specific cause.
-     */
-    int getTotalDeathCount(String causeCode);
+    Map<String, Number> getMetrics();
 
     /**
      * Gets snapshot of a specific node.

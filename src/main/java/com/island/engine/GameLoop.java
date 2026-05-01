@@ -99,7 +99,7 @@ public class GameLoop<T extends Mortal> {
     @SuppressWarnings("unchecked")
     private void executeGroup(List<Tickable> group, boolean isCellServiceGroup) {
         if (isCellServiceGroup && world != null && !taskExecutor.isShutdown()) {
-            runCellServicesParallel(group.stream().map(t -> (CellService<T>) t).toList());
+            runCellServicesParallel(group.stream().map(t -> (CellService<T, SimulationNode<T>>) t).toList());
         } else {
             for (Tickable task : group) {
                 try {
@@ -112,8 +112,8 @@ public class GameLoop<T extends Mortal> {
         }
     }
 
-    private void runCellServicesParallel(List<CellService<T>> services) {
-        for (CellService<T> service : services) {
+    private void runCellServicesParallel(List<CellService<T, SimulationNode<T>>> services) {
+        for (CellService<T, SimulationNode<T>> service : services) {
             service.beforeTick(tickCount);
         }
 
@@ -123,7 +123,7 @@ public class GameLoop<T extends Mortal> {
         for (Collection<? extends SimulationNode<T>> unit : workUnits) {
             tasks.add(() -> {
                 for (SimulationNode<T> node : unit) {
-                    for (CellService<T> service : services) {
+                    for (CellService<T, SimulationNode<T>> service : services) {
                         service.processCell(node, tickCount);
                     }
                 }
@@ -139,7 +139,7 @@ public class GameLoop<T extends Mortal> {
             // Ignore if shutting down
         }
 
-        for (CellService<T> service : services) {
+        for (CellService<T, SimulationNode<T>> service : services) {
             service.afterTick(tickCount);
         }
     }

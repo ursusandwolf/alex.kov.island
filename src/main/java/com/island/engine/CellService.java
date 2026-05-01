@@ -4,8 +4,9 @@ package com.island.engine;
  * A simulation task that processes individual nodes in parallel.
  *
  * @param <T> The base type of entities in the nodes processed by this service.
+ * @param <N> The type of simulation node processed by this service.
  */
-public interface CellService<T extends Mortal> extends Tickable {
+public interface CellService<T extends Mortal, N extends SimulationNode<T>> extends Tickable {
     /**
      * Optional setup phase called once per tick before parallel processing starts.
      */
@@ -14,7 +15,7 @@ public interface CellService<T extends Mortal> extends Tickable {
     /**
      * Processes a single simulation node.
      */
-    void processCell(SimulationNode<T> node, int tickCount);
+    void processCell(N node, int tickCount);
 
     /**
      * Optional cleanup phase called once per tick after parallel processing finishes.

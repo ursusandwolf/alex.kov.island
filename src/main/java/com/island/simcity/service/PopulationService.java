@@ -9,7 +9,7 @@ import com.island.simcity.model.CityMap;
 import com.island.simcity.model.CityTile;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class PopulationService implements CellService<SimEntity> {
+public class PopulationService implements CellService<SimEntity, CityTile> {
     private final CityMap map;
     private final AtomicInteger totalPopulation = new AtomicInteger(0);
 
@@ -23,8 +23,7 @@ public class PopulationService implements CellService<SimEntity> {
     }
 
     @Override
-    public void processCell(SimulationNode<SimEntity> node, int tickCount) {
-        CityTile tile = (CityTile) node;
+    public void processCell(CityTile tile, int tickCount) {
         int cellPopulation = 0;
         boolean hasResidential = false;
         int neighborIndustrial = 0;
@@ -45,7 +44,7 @@ public class PopulationService implements CellService<SimEntity> {
         }
 
         if (!tile.isConnected()) {
-            for (SimEntity entity : node.getEntities()) {
+            for (SimEntity entity : tile.getEntities()) {
                 if (entity instanceof Resident resident) {
                     resident.updateHappiness(-30);
                     if (resident.getHappiness() < 10) {
@@ -56,7 +55,7 @@ public class PopulationService implements CellService<SimEntity> {
             return;
         }
 
-        for (SimEntity entity : node.getEntities()) {
+        for (SimEntity entity : tile.getEntities()) {
             if (entity instanceof Resident resident) {
                 cellPopulation++;
                 resident.setAge(resident.getAge() + 1);
@@ -86,14 +85,14 @@ public class PopulationService implements CellService<SimEntity> {
         // Migration in (growth)
         if (hasResidential && cellPopulation < 5) {
             // Check if city is attractive and there is demand
-            boolean attractive = node.getEntities().stream()
+            boolean attractive = tile.getEntities().stream()
                     .filter(e -> e instanceof Resident)
                     .map(e -> (Resident) e)
                     .mapToInt(Resident::getHappiness)
                     .average().orElse(100.0) > 40;
                 
             if (attractive && map.getResDemand() > 0) {
-                node.addEntity(new Resident());
+                tile.addEntity(new Resident());
             }
         }
 

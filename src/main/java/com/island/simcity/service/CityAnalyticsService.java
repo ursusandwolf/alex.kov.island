@@ -6,9 +6,10 @@ import com.island.simcity.entities.Building;
 import com.island.simcity.entities.Resident;
 import com.island.simcity.entities.SimEntity;
 import com.island.simcity.model.CityMap;
+import com.island.simcity.model.CityTile;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class CityAnalyticsService implements CellService<SimEntity> {
+public class CityAnalyticsService implements CellService<SimEntity, CityTile> {
     private final CityMap map;
     private final AtomicInteger pop = new AtomicInteger(0);
     private final AtomicInteger jobs = new AtomicInteger(0);
@@ -24,7 +25,7 @@ public class CityAnalyticsService implements CellService<SimEntity> {
     }
 
     @Override
-    public void processCell(SimulationNode<SimEntity> node, int tickCount) {
+    public void processCell(CityTile node, int tickCount) {
         for (SimEntity entity : node.getEntities()) {
             if (entity instanceof Resident) {
                 pop.incrementAndGet();

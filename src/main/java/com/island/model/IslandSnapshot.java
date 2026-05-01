@@ -34,47 +34,27 @@ public class IslandSnapshot implements WorldSnapshot {
     }
 
     @Override
-    public int getTotalOrganismCount() {
+    public int getTotalEntityCount() {
         return island.getTotalOrganismCount();
     }
 
     @Override
-    public double getGlobalSatiety() {
-        return island.getStatisticsService().calculateGlobalSatiety(island);
-    }
-
-    @Override
-    public int getStarvingCount() {
-        return island.getStatisticsService().calculateStarvingCount(island);
-    }
-
-    @Override
-    public Map<String, Integer> getSpeciesCounts() {
-        Map<String, Integer> counts = new HashMap<>();
-        island.getSpeciesCounts().forEach((k, v) -> counts.put(k.getCode(), v));
-        return counts;
-    }
-
-    @Override
-    public Map<String, Integer> getDeathStatsBySpecies(String causeCode) {
-        try {
-            DeathCause cause = DeathCause.valueOf(causeCode);
-            Map<String, Integer> stats = new HashMap<>();
-            island.getTotalDeathsBySpecies(cause).forEach((k, v) -> stats.put(k.getCode(), v));
-            return stats;
-        } catch (IllegalArgumentException e) {
-            return java.util.Collections.emptyMap();
+    public Map<String, Number> getMetrics() {
+        Map<String, Number> metrics = new HashMap<>();
+        metrics.put("globalSatiety", island.getStatisticsService().calculateGlobalSatiety(island));
+        metrics.put("starvingCount", island.getStatisticsService().calculateStarvingCount(island));
+        
+        // Add species counts as metrics with prefix
+        island.getSpeciesCounts().forEach((k, v) -> metrics.put("species." + k.getCode(), v));
+        
+        // Add death stats
+        for (DeathCause cause : DeathCause.values()) {
+            metrics.put("deaths." + cause.name(), (double) island.getTotalAnimalDeathCount(cause));
+            island.getTotalDeathsBySpecies(cause).forEach((k, v) ->
+                    metrics.put("deaths." + cause.name() + "." + k.getCode(), v));
         }
-    }
-
-    @Override
-    public int getTotalDeathCount(String causeCode) {
-        try {
-            DeathCause cause = DeathCause.valueOf(causeCode);
-            return island.getTotalAnimalDeathCount(cause);
-        } catch (IllegalArgumentException e) {
-            return 0;
-        }
+        
+        return metrics;
     }
 
     @Override

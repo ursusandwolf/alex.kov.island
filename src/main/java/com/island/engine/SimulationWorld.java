@@ -41,4 +41,9 @@ public interface SimulationWorld<T extends Mortal> extends Tickable {
      * Creates a domain-agnostic snapshot of the current world state.
      */
     WorldSnapshot createSnapshot();
+
+    /**
+     * Performs initialization of the world (e.g., topology setup).
+     */
+    default void initialize() { }
 }

@@ -2,7 +2,7 @@ package com.island.simcity.model;
 
 import com.island.engine.NodeSnapshot;
 import com.island.engine.WorldSnapshot;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 
@@ -26,33 +26,19 @@ public class CitySnapshot implements WorldSnapshot {
     }
 
     @Override
-    public int getTotalOrganismCount() {
+    public int getTotalEntityCount() {
         return map.getPopulation();
     }
 
     @Override
-    public double getGlobalSatiety() {
-        return 1.0;
-    }
-
-    @Override
-    public int getStarvingCount() {
-        return 0;
-    }
-
-    @Override
-    public Map<String, Integer> getSpeciesCounts() {
-        return Collections.emptyMap();
-    }
-
-    @Override
-    public Map<String, Integer> getDeathStatsBySpecies(String causeCode) {
-        return Collections.emptyMap();
-    }
-
-    @Override
-    public int getTotalDeathCount(String causeCode) {
-        return 0;
+    public Map<String, Number> getMetrics() {
+        Map<String, Number> metrics = new HashMap<>();
+        metrics.put("money", map.getMoney());
+        metrics.put("resDemand", map.getResDemand());
+        metrics.put("comDemand", map.getComDemand());
+        metrics.put("indDemand", map.getIndDemand());
+        metrics.put("totalJobs", map.getTotalJobs());
+        return metrics;
     }
 
     @Override
