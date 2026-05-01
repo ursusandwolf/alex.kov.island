@@ -25,12 +25,14 @@ class DeterminismTest {
 
         RandomUtils.setProvider(mockProvider);
 
-        assertEquals(42 % 100, RandomUtils.nextInt(100));
-        assertEquals(0.5, RandomUtils.nextDouble());
-        assertTrue(RandomUtils.checkChance(60), "0.5 < 0.6 should be true");
-        assertFalse(RandomUtils.checkChance(40), "0.5 < 0.4 should be false");
-
-        // Restore default provider
-        RandomUtils.setProvider(new DefaultRandomProvider());
+        try {
+            assertEquals(42 % 100, RandomUtils.nextInt(100));
+            assertEquals(0.5, RandomUtils.nextDouble());
+            assertTrue(RandomUtils.checkChance(60), "0.5 < 0.6 should be true");
+            assertFalse(RandomUtils.checkChance(40), "0.5 < 0.4 should be false");
+        } finally {
+            // Restore default provider
+            RandomUtils.setProvider(new DefaultRandomProvider());
+        }
     }
 }
