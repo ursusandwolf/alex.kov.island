@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,16 +18,20 @@ public class CityMap implements SimulationWorld<SimEntity> {
     private final int width;
     private final int height;
     private final CityTile[][] grid;
-    private long money = 10000;
-    private int population = 0;
+    private volatile long money = 10000;
+    private volatile int population = 0;
     
-    // Global metrics
-    private int totalJobs = 0;
-    private int resDemand = 50;
-    private int comDemand = 50;
-    private int indDemand = 50;
-    private long lastTickIncome = 0;
-    private long lastTickExpenses = 0;
+    private volatile int totalJobs = 0;
+    private volatile int resDemand = 50;
+    private volatile int comDemand = 50;
+    private volatile int indDemand = 50;
+    private volatile long lastTickIncome = 0;
+    private volatile long lastTickExpenses = 0;
+    
+    private volatile int taxRate = 15;
+    private volatile int bankruptcyTicks = 0;
+    private static final int BANKRUPTCY_THRESHOLD = 5;
+    private final List<String> alerts = new CopyOnWriteArrayList<>();
 
     public CityMap(int width, int height) {
         this.width = width;
@@ -39,18 +44,12 @@ public class CityMap implements SimulationWorld<SimEntity> {
         }
     }
 
-    public void addMoney(long amount) {
+    public synchronized void addMoney(long amount) {
         this.money += amount;
-    }
-
-    public void setPopulation(int population) {
-        this.population = population;
     }
 
     @Override
     public Collection<? extends Collection<? extends SimulationNode<SimEntity>>> getParallelWorkUnits() {
-        // For simplicity, one unit containing all nodes (not truly parallel but valid)
-        // Or we can chunk it if needed. Let's do a simple chunking.
         List<List<CityTile>> chunks = new ArrayList<>();
         List<CityTile> currentChunk = new ArrayList<>();
         for (int x = 0; x < width; x++) {
@@ -82,10 +81,8 @@ public class CityMap implements SimulationWorld<SimEntity> {
 
     @Override
     public boolean moveEntity(SimEntity entity, SimulationNode<SimEntity> from, SimulationNode<SimEntity> to) {
-        if (to.canAccept(entity)) {
-            if (from.removeEntity(entity)) {
-                return to.addEntity(entity);
-            }
+        if (to.canAccept(entity) && from.removeEntity(entity)) {
+            return to.addEntity(entity);
         }
         return false;
     }
@@ -115,7 +112,29 @@ public class CityMap implements SimulationWorld<SimEntity> {
     }
 
     @Override
-    public void tick(int tickCount) {
-        // Global logic per tick
+    public synchronized void tick(int tickCount) {
+        alerts.clear();
+        if (money < 0) {
+            bankruptcyTicks++;
+            alerts.add("CITY BANKRUPT!");
+        } else {
+            bankruptcyTicks = Math.max(0, bankruptcyTicks - 1);
+        }
+        if (taxRate > 30) {
+            alerts.add("High Taxes!");
+        }
+        if (resDemand > 50) {
+            alerts.add("Housing Shortage!");
+        }
+    }
+
+    public synchronized void addAlert(String alert) {
+        if (!alerts.contains(alert)) {
+            alerts.add(alert);
+        }
+    }
+
+    public synchronized boolean isBankrupt() {
+        return bankruptcyTicks >= BANKRUPTCY_THRESHOLD;
     }
 }

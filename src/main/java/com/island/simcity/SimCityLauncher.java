@@ -5,6 +5,7 @@ import com.island.simcity.entities.Building;
 import com.island.simcity.entities.Resident;
 import com.island.simcity.entities.SimEntity;
 import com.island.simcity.model.CityMap;
+import com.island.simcity.service.BuildingService;
 import com.island.simcity.service.CityAnalyticsService;
 import com.island.simcity.service.ConnectivityService;
 import com.island.simcity.service.EconomyService;
@@ -24,6 +25,7 @@ public class SimCityLauncher {
         CityAnalyticsService analyticsService = new CityAnalyticsService(map);
         PopulationService popService = new PopulationService(map);
         EconomyService economyService = new EconomyService(map);
+        BuildingService buildingService = new BuildingService(map);
         CityConsoleView view = new CityConsoleView();
 
         // 3. Register with GameLoop
@@ -43,30 +45,43 @@ public class SimCityLauncher {
             }
         });
 
-        // 4. Create a road network and zones
+        // 4. Create a road network and zones using BuildingService
         // Road from (0,0) to (5,0)
         for (int x = 0; x <= 5; x++) {
-            map.getGrid()[x][0].addEntity(new Building(Building.Type.ROAD));
+            buildingService.build(x, 0, Building.Type.ROAD);
         }
         
         // Road branch to (2,5)
         for (int y = 1; y <= 5; y++) {
-            map.getGrid()[2][y].addEntity(new Building(Building.Type.ROAD));
+            buildingService.build(2, y, Building.Type.ROAD);
         }
 
         // Residential zones next to road
-        map.getGrid()[0][1].addEntity(new Building(Building.Type.RESIDENTIAL));
-        map.getGrid()[1][1].addEntity(new Building(Building.Type.RESIDENTIAL));
-        map.getGrid()[3][1].addEntity(new Building(Building.Type.RESIDENTIAL));
+        buildingService.build(0, 1, Building.Type.RESIDENTIAL);
+        buildingService.build(1, 1, Building.Type.RESIDENTIAL);
+        buildingService.build(3, 1, Building.Type.RESIDENTIAL);
         
         // Industrial zone next to road
-        map.getGrid()[2][6].addEntity(new Building(Building.Type.INDUSTRIAL));
+        buildingService.build(2, 6, Building.Type.INDUSTRIAL);
         
         // Isolated zone (no connectivity)
-        map.getGrid()[9][9].addEntity(new Building(Building.Type.RESIDENTIAL));
+        buildingService.build(9, 9, Building.Type.RESIDENTIAL);
 
         // 5. Run simulation
         for (int i = 0; i < 30; i++) {
+            // Dynamic player actions
+            if (i == 10) {
+                System.out.println("PLAYER ACTION: Increasing taxes to 40%");
+                map.setTaxRate(40);
+            }
+            if (i == 20) {
+                System.out.println("PLAYER ACTION: Reducing taxes to 10%");
+                map.setTaxRate(10);
+                System.out.println("PLAYER ACTION: Building more residential...");
+                buildingService.build(4, 1, Building.Type.RESIDENTIAL);
+                buildingService.build(5, 1, Building.Type.RESIDENTIAL);
+            }
+
             gameLoop.runTick();
             view.render(map, i + 1);
             printHappiness(map);

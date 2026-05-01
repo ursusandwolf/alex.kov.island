@@ -76,6 +76,10 @@ public class GameLoop<T extends Mortal> {
     public void runTick() {
         tickCount++;
         
+        if (world != null) {
+            world.tick(tickCount);
+        }
+        
         List<Tickable> currentGroup = new ArrayList<>();
         boolean inCellServiceGroup = false;
 

@@ -52,6 +52,7 @@ public class PopulationService implements CellService<SimEntity, CityTile> {
                     }
                 }
             }
+            totalPopulation.addAndGet(cellPopulation);
             return;
         }
 
@@ -65,11 +66,22 @@ public class PopulationService implements CellService<SimEntity, CityTile> {
                 happinessDelta -= neighborIndustrial * 10; // Pollution penalty
                 happinessDelta += neighborCommercial * 15; // Amenities bonus
                 
+                // Tax penalty
+                if (map.getTaxRate() > 20) {
+                    happinessDelta -= (map.getTaxRate() - 20);
+                }
+                
+                // Bankruptcy penalty
+                if (map.isBankrupt()) {
+                    happinessDelta -= 20;
+                }
+
                 resident.updateHappiness(happinessDelta);
                 
                 // Migration out
                 if (resident.getHappiness() < 20 && tickCount % 2 == 0) {
                     resident.die(); // Leaves the city
+                    map.addAlert("Residents leaving: Low Happiness");
                 }
                 
                 if (resident.getAge() > 100) {
@@ -83,7 +95,7 @@ public class PopulationService implements CellService<SimEntity, CityTile> {
         }
 
         // Migration in (growth)
-        if (hasResidential && cellPopulation < 5) {
+        if (hasResidential && cellPopulation < 5 && !map.isBankrupt()) {
             // Check if city is attractive and there is demand
             boolean attractive = tile.getEntities().stream()
                     .filter(e -> e instanceof Resident)
@@ -94,6 +106,8 @@ public class PopulationService implements CellService<SimEntity, CityTile> {
             if (attractive && map.getResDemand() > 0) {
                 tile.addEntity(new Resident());
             }
+        } else if (hasResidential && cellPopulation < 5 && map.isBankrupt()) {
+            map.addAlert("No growth: Bankruptcy");
         }
 
         totalPopulation.addAndGet(cellPopulation);
@@ -101,6 +115,6 @@ public class PopulationService implements CellService<SimEntity, CityTile> {
 
     @Override
     public void afterTick(int tickCount) {
-        // Update global map population if needed
+        map.setPopulation(totalPopulation.get());
     }
 }

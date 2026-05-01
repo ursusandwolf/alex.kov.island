@@ -3,7 +3,6 @@ package com.island.simcity.model;
 import com.island.engine.SimulationNode;
 import com.island.engine.SimulationWorld;
 import com.island.simcity.entities.SimEntity;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -12,6 +11,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @RequiredArgsConstructor
@@ -21,33 +21,14 @@ public class CityTile implements SimulationNode<SimEntity> {
     private final SimulationWorld<SimEntity> world;
     private final List<SimEntity> entities = new CopyOnWriteArrayList<>();
     private final Lock lock = new ReentrantLock();
+    @Setter
     private List<SimulationNode<SimEntity>> neighbors = Collections.emptyList();
-    @lombok.Setter
+    @Setter
     private boolean connected = false;
-
-    @Override
-    public Lock getLock() {
-        return lock;
-    }
 
     @Override
     public String getCoordinates() {
         return x + "," + y;
-    }
-
-    @Override
-    public void setNeighbors(List<SimulationNode<SimEntity>> neighbors) {
-        this.neighbors = neighbors;
-    }
-
-    @Override
-    public List<SimulationNode<SimEntity>> getNeighbors() {
-        return neighbors;
-    }
-
-    @Override
-    public List<SimEntity> getEntities() {
-        return entities;
     }
 
     @Override
