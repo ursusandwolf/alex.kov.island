@@ -116,26 +116,24 @@ public class GameLoop {
                         service.processCell(node, tickCount);
                     }
                     
-                    if (node instanceof com.island.model.Cell cell) {
-                        nodeStats[0] = 0;
-                        nodeStats[1] = 0;
-                        nodeStats[2] = 0;
-                        nodeStats[3] = 0;
-                        cell.forEachAnimalReadOnly(a -> {
-                            if (a.isAlive()) {
-                                nodeStats[0] += a.getCurrentEnergy();
-                                nodeStats[1] += a.getMaxEnergy();
-                                nodeStats[2]++;
-                                if (a.isStarving()) {
-                                    nodeStats[3]++;
-                                }
+                    nodeStats[0] = 0;
+                    nodeStats[1] = 0;
+                    nodeStats[2] = 0;
+                    nodeStats[3] = 0;
+                    node.forEachAnimal(a -> {
+                        if (a.isAlive()) {
+                            nodeStats[0] += a.getCurrentEnergy();
+                            nodeStats[1] += a.getMaxEnergy();
+                            nodeStats[2]++;
+                            if (a.isStarving()) {
+                                nodeStats[3]++;
                             }
-                        });
-                        totalCurrent += nodeStats[0];
-                        totalMax += nodeStats[1];
-                        animalCount += (int) nodeStats[2];
-                        starvingCount += (int) nodeStats[3];
-                    }
+                        }
+                    });
+                    totalCurrent += nodeStats[0];
+                    totalMax += nodeStats[1];
+                    animalCount += (int) nodeStats[2];
+                    starvingCount += (int) nodeStats[3];
                 }
                 return SimulationMetrics.builder()
                         .totalCurrentEnergy(totalCurrent)

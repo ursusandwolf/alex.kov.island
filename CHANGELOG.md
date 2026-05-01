@@ -9,6 +9,8 @@
   - Expanded `SimulationNode` interface with necessary abstraction methods (`getRandomAnimalByType`, `removeEntity`, `getBiomass`, `addBiomass`, `cleanupDeadEntities`).
   - Implemented the interface in `Cell` using read/write locks for thread safety.
   - Refactored `FeedingService`, `LifecycleService`, `MovementService`, `ReproductionService`, `CleanupService`, and specific animal classes to use `SimulationNode` directly.
+  - Removed remaining `instanceof Cell` checks from `GameLoop` during metrics aggregation by utilizing `node.forEachAnimal`.
+- **Mutable Collection Leaks**: Secured `EntityContainer` by explicitly returning `Collections.unmodifiableSet` and `unmodifiableList` instead of leaking internal state through Lombok getters.
 
 ## [1.3-SNAPSHOT] - 2026-04-30
 

@@ -13,17 +13,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import lombok.Getter;
 import static com.island.config.SimulationConstants.SCALE_1M;
 
 public class EntityContainer {
     private final Map<AnimalType, Set<Animal>> animalsByType = new HashMap<>();
     private final Map<SizeClass, Set<Animal>> animalsBySize = new EnumMap<>(SizeClass.class);
-    @Getter private final Set<Animal> predators = new LinkedHashSet<>();
-    @Getter private final Set<Animal> herbivores = new LinkedHashSet<>();
+    private final Set<Animal> predators = new LinkedHashSet<>();
+    private final Set<Animal> herbivores = new LinkedHashSet<>();
     private final Map<SpeciesKey, Biomass> biomassBySpecies = new HashMap<>();
-    @Getter private final Set<Animal> allAnimals = new LinkedHashSet<>();
-    @Getter private final List<Biomass> allBiomass = new ArrayList<>();
+    private final Set<Animal> allAnimals = new LinkedHashSet<>();
+    private final List<Biomass> allBiomass = new ArrayList<>();
 
     public void addAnimal(Animal animal) {
         AnimalType type = animal.getAnimalType();
@@ -59,11 +58,29 @@ public class EntityContainer {
     }
 
     public Set<Animal> getByType(AnimalType type) {
-        return animalsByType.getOrDefault(type, Collections.emptySet());
+        Set<Animal> set = animalsByType.get(type);
+        return set != null ? Collections.unmodifiableSet(set) : Collections.emptySet();
     }
 
     public Set<Animal> getBySize(SizeClass size) {
-        return animalsBySize.getOrDefault(size, Collections.emptySet());
+        Set<Animal> set = animalsBySize.get(size);
+        return set != null ? Collections.unmodifiableSet(set) : Collections.emptySet();
+    }
+
+    public Set<Animal> getPredators() {
+        return Collections.unmodifiableSet(predators);
+    }
+
+    public Set<Animal> getHerbivores() {
+        return Collections.unmodifiableSet(herbivores);
+    }
+
+    public Set<Animal> getAllAnimals() {
+        return Collections.unmodifiableSet(allAnimals);
+    }
+
+    public List<Biomass> getAllBiomass() {
+        return Collections.unmodifiableList(allBiomass);
     }
 
     public int countByType(AnimalType type) {

@@ -176,15 +176,6 @@ public class Cell implements SimulationNode {
         }
     }
 
-    public void forEachAnimalReadOnly(Consumer<Animal> action) {
-        rwLock.readLock().lock();
-        try {
-            container.getAllAnimals().forEach(action);
-        } finally {
-            rwLock.readLock().unlock();
-        }
-    }
-
     @Override
     public void forEachAnimalSampled(int limit, RandomProvider random, Consumer<Animal> action) {
         List<Animal> sampled = new ArrayList<>();
