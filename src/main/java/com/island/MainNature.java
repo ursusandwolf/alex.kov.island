@@ -1,17 +1,23 @@
-package com.island.engine;
+package com.island;
 
+import com.island.content.Organism;
+import com.island.content.SimulationBootstrap;
 import com.island.content.SpeciesKey;
+import com.island.content.AnimalType;
+import com.island.engine.GameLoop;
+import com.island.engine.SimulationContext;
+import com.island.model.Island;
 import java.util.Map;
 
 /**
- * Main entry point for the simulation.
+ * Main entry point for the Nature Simulation (Island).
  */
-public class SimulatorMain {
+public class MainNature {
     public static void main(String[] args) {
         SimulationBootstrap bootstrap = new SimulationBootstrap();
-        SimulationContext context = bootstrap.setup();
+        SimulationContext<Organism> context = bootstrap.setup();
         
-        GameLoop gameLoop = context.getGameLoop();
+        GameLoop<Organism> gameLoop = context.getGameLoop();
         
         System.out.println("Запуск симуляции острова...");
         System.out.println("Лимит времени: 5 минут. Условие остановки: вымирание любого вида.");
@@ -22,10 +28,12 @@ public class SimulatorMain {
         monitor(context);
     }
 
-    private static void monitor(SimulationContext context) {
-        GameLoop gameLoop = context.getGameLoop();
+    private static void monitor(SimulationContext<Organism> context) {
+        GameLoop<Organism> gameLoop = context.getGameLoop();
         long startTime = System.currentTimeMillis();
         long maxDurationMs = 5 * 60 * 1000;
+        
+        Island island = (Island) context.getWorld();
 
         try {
             while (gameLoop.isRunning()) {
@@ -37,10 +45,10 @@ public class SimulatorMain {
                     break;
                 }
 
-                Map<SpeciesKey, Integer> counts = context.getIsland().getSpeciesCounts();
-                for (SpeciesKey species : context.getSpeciesRegistry().getAllAnimalKeys()) {
-                    boolean isBiomass = context.getSpeciesRegistry().getAnimalType(species)
-                            .map(com.island.content.AnimalType::isBiomass).orElse(false);
+                Map<SpeciesKey, Integer> counts = island.getSpeciesCounts();
+                for (SpeciesKey species : island.getRegistry().getAllAnimalKeys()) {
+                    boolean isBiomass = island.getRegistry().getAnimalType(species)
+                            .map(AnimalType::isBiomass).orElse(false);
                     if (isBiomass) {
                         continue;
                     }

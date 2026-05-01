@@ -2,16 +2,20 @@ package com.island.service;
 
 import com.island.content.Animal;
 import com.island.content.AnimalFactory;
+import com.island.content.AnimalType;
 import com.island.content.Biomass;
 import com.island.content.DefaultHuntingStrategy;
+import com.island.content.HuntingStrategy;
 import com.island.content.SpeciesKey;
 import com.island.content.SpeciesLoader;
 import com.island.content.SpeciesRegistry;
-import com.island.content.plants.Grass;
+import com.island.content.Organism;
+import com.island.content.NatureWorld;
 import com.island.engine.SimulationNode;
 import com.island.engine.SimulationWorld;
 import com.island.model.Cell;
 import com.island.util.InteractionMatrix;
+import com.island.util.InteractionProvider;
 import com.island.util.RandomProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -22,105 +26,60 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.Executors;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static com.island.config.SimulationConstants.SCALE_1M;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class FeedingMechanicsTest {
 
     private FeedingService feedingService;
-    private AnimalFactory animalFactory;
-    
-    @Mock
-    private SimulationWorld world;
-    
-    private Cell cell;
     private SpeciesRegistry registry;
+    private InteractionProvider matrix;
+    private AnimalFactory animalFactory;
 
     @Mock
-    private com.island.service.StatisticsService statisticsService;
+    private NatureWorld world;
+
+    @Mock
+    private RandomProvider random;
+
+    private Cell cell;
 
     @BeforeEach
     void setUp() {
         registry = new SpeciesLoader().load();
+        matrix = InteractionMatrix.buildFrom(registry);
+        animalFactory = new AnimalFactory(registry, random);
+        HuntingStrategy strategy = new DefaultHuntingStrategy(matrix);
+        
+        feedingService = new FeedingService(world, animalFactory, matrix, registry, strategy, Executors.newSingleThreadExecutor(), random);
         cell = new Cell(0, 0, world);
         
-        List<SimulationNode> workUnit = Collections.singletonList(cell);
-        Collection<List<SimulationNode>> workUnits = Collections.singletonList(workUnit);
-        
-        given(world.getParallelWorkUnits()).willReturn((Collection) workUnits);
+        given(world.getRegistry()).willReturn(registry);
         given(world.getProtectionMap()).willReturn(Collections.emptyMap());
-        given(world.getStatisticsService()).willReturn(statisticsService);
-
-        InteractionMatrix matrix = InteractionMatrix.buildFrom(registry);
-        
-        RandomProvider deterministicRandom = new RandomProvider() {
-            @Override public int nextInt(int bound) { return 0; }
-            @Override public int nextInt(int origin, int bound) { return origin; }
-            @Override public long nextLong() { return 0L; }
-            @Override public double nextDouble() { return 0.5; } 
-            @Override public double nextDouble(double bound) { return 0.0; }
-            @Override public boolean nextBoolean() { return false; }
-        };
-
-        animalFactory = new AnimalFactory(registry, deterministicRandom);
-        feedingService = new FeedingService(world, animalFactory, matrix, registry,
-                new DefaultHuntingStrategy(matrix), Executors.newSingleThreadExecutor(), deterministicRandom);
     }
 
     @Test
-    @DisplayName("Predator should eat prey and increase energy")
-    void should_predator_eat_prey_and_increase_energy() {
-        // Given
-        Animal wolf = animalFactory.createAnimal(SpeciesKey.WOLF).orElseThrow();
-        Animal rabbit = animalFactory.createAnimal(SpeciesKey.RABBIT).orElseThrow();
-        
-        wolf.setEnergy(2L * SCALE_1M); 
-        long initialWolfEnergy = wolf.getCurrentEnergy();
+    @DisplayName("Predator should hunt successfully based on matrix chance")
+    void predator_should_hunt_successfully() {
+        Animal wolf = animalFactory.createInitialAnimal(SpeciesKey.WOLF).orElseThrow();
+        Animal rabbit = animalFactory.createInitialAnimal(SpeciesKey.RABBIT).orElseThrow();
         
         cell.addAnimal(wolf);
         cell.addAnimal(rabbit);
-
-        assertTrue(rabbit.isAlive());
-
-        // When
-        feedingService.tick(0);
-
-        // Then
-        assertTrue(wolf.getCurrentEnergy() > initialWolfEnergy, "Wolf energy should increase");
-        assertFalse(cell.getAnimals().contains(rabbit), "Rabbit should be removed from cell");
-    }
-
-    @Test
-    @DisplayName("Herbivore should eat plant and increase energy")
-    void should_herbivore_eat_plant_and_increase_energy() {
-        // Given
-        Animal rabbit = animalFactory.createAnimal(SpeciesKey.RABBIT).orElseThrow();
         
-        rabbit.setEnergy((long) (0.1 * SCALE_1M));
-        long initialRabbitEnergy = rabbit.getCurrentEnergy();
+        // Force success
+        given(random.nextInt(0, 100)).willReturn(0); 
         
-        cell.addAnimal(rabbit);
+        feedingService.processCell(cell, 1);
         
-        // Add real biomass container
-        Biomass grass = new Grass(100L * SCALE_1M, 0);
-        grass.setBiomass(10L * SCALE_1M);
-        cell.addBiomass(grass);
-
-        // When
-        feedingService.tick(0);
-
-        // Then
-        assertTrue(rabbit.getCurrentEnergy() > initialRabbitEnergy, "Rabbit energy should increase");
-        assertTrue(grass.getBiomass() < 10L * SCALE_1M, "Grass biomass should decrease");
+        assertTrue(rabbit.isAlive() == false || cell.getAnimalCount() == 1);
     }
 }

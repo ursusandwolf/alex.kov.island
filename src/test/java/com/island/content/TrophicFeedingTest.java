@@ -84,7 +84,7 @@ class TrophicFeedingTest {
         wolf.setEnergy(wolf.getMaxEnergy() / 2);
         cell.addAnimal(wolf);
         
-        Animal target = (Animal) cell.getHerbivores().get(0);
+        Animal target = (Animal) cell.getAnimals().get(0);
         target.setHiding(true);
         
         feedingService.tick(1);

@@ -1,10 +1,9 @@
-package com.island.engine;
+package com.island.content;
 
 import com.island.config.ConfigLoader;
 import com.island.config.Configuration;
-import com.island.content.AnimalFactory;
-import com.island.content.SpeciesLoader;
-import com.island.content.SpeciesRegistry;
+import com.island.engine.GameLoop;
+import com.island.engine.SimulationContext;
 import com.island.model.Island;
 import com.island.service.StatisticsService;
 import com.island.util.DefaultRandomProvider;
@@ -16,11 +15,11 @@ import com.island.view.SimulationView;
 public class SimulationBootstrap {
     private final ConfigLoader configLoader = new ConfigLoader();
 
-    public SimulationContext setup() {
+    public SimulationContext<Organism> setup() {
         return setup(configLoader.loadGeneralConfig());
     }
 
-    public SimulationContext setup(Configuration config) {
+    public SimulationContext<Organism> setup(Configuration config) {
         SpeciesRegistry registry = new SpeciesLoader().load();
         StatisticsService statisticsService = new StatisticsService();
         RandomProvider random = new DefaultRandomProvider();
@@ -30,15 +29,12 @@ public class SimulationBootstrap {
 
         int processors = Runtime.getRuntime().availableProcessors();
         int totalCells = config.getIslandWidth() * config.getIslandHeight();
-        // Используем доступные процессоры, но ограничиваем количество потоков для маленьких карт,
-        // чтобы избежать избыточного Context Switching.
-        // Минимум 4 потока (если клеток достаточно), максимум - availableProcessors.
         int threadCount = Math.min(processors, Math.max(1, totalCells / 4));
         if (totalCells >= 64 && threadCount < 4) {
             threadCount = 4;
         }
 
-        GameLoop gameLoop = new GameLoop(config.getTickDurationMs(), threadCount);
+        GameLoop<Organism> gameLoop = new GameLoop<>(config.getTickDurationMs(), threadCount);
         gameLoop.setWorld(island);
 
         WorldInitializer initializer = new WorldInitializer();
@@ -50,6 +46,6 @@ public class SimulationBootstrap {
         TaskRegistry taskRegistry = new TaskRegistry(gameLoop, island, matrix, animalFactory, registry, view, random);
         taskRegistry.registerAll();
 
-        return new SimulationContext(island, gameLoop, registry, view, random);
+        return new SimulationContext<>(island, gameLoop, view, random);
     }
 }

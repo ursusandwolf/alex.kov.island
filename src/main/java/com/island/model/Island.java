@@ -1,6 +1,6 @@
 package com.island.model;
 
-import com.island.engine.Season;
+import com.island.content.Season;
 import com.island.engine.SimulationNode;
 import com.island.engine.SimulationWorld;
 import com.island.engine.WorldSnapshot;
@@ -8,6 +8,7 @@ import com.island.content.Animal;
 import com.island.content.AnimalType;
 import com.island.content.Biomass;
 import com.island.content.DeathCause;
+import com.island.content.Organism;
 import com.island.content.SpeciesRegistry;
 import com.island.content.SpeciesKey;
 import com.island.service.StatisticsService;
@@ -21,8 +22,10 @@ import java.util.Optional;
 import lombok.Getter;
 import lombok.Setter;
 
+import com.island.content.NatureWorld;
+
 @Getter
-public class Island implements SimulationWorld {
+public class Island implements NatureWorld {
     private final int width;
     private final int height;
     private final Cell[][] grid;
@@ -53,7 +56,7 @@ public class Island implements SimulationWorld {
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 Cell cell = grid[x][y];
-                List<SimulationNode> neighbors = new ArrayList<>();
+                List<SimulationNode<Organism>> neighbors = new ArrayList<>();
                 for (int dx = -1; dx <= 1; dx++) {
                     for (int dy = -1; dy <= 1; dy++) {
                         if (dx == 0 && dy == 0) {
@@ -67,7 +70,6 @@ public class Island implements SimulationWorld {
         }
     }
 
-    @Override
     public Map<SpeciesKey, Integer> getProtectionMap() {
         if (!redBookProtectionEnabled) {
             return Collections.emptyMap();
@@ -75,27 +77,22 @@ public class Island implements SimulationWorld {
         return protectionService.getProtectionModifiers();
     }
 
-    @Override
     public SpeciesRegistry getRegistry() {
         return registry;
     }
 
-    @Override
     public void reportDeath(SpeciesKey speciesKey, DeathCause cause) {
         statisticsService.registerDeath(speciesKey, cause);
     }
 
-    @Override
     public void onOrganismAdded(SpeciesKey key) {
         statisticsService.registerBirth(key);
     }
 
-    @Override
     public void onOrganismRemoved(SpeciesKey key) {
         statisticsService.registerRemoval(key);
     }
 
-    @Override
     public int getSpeciesCount(SpeciesKey key) {
         return statisticsService.getSpeciesCount(key);
     }
@@ -105,12 +102,10 @@ public class Island implements SimulationWorld {
         return new IslandSnapshot(this);
     }
 
-    @Override
     public com.island.service.ProtectionService getProtectionService() {
         return protectionService;
     }
 
-    @Override
     public StatisticsService getStatisticsService() {
         return statisticsService;
     }
@@ -135,12 +130,12 @@ public class Island implements SimulationWorld {
     }
 
     @Override
-    public Collection<? extends Collection<? extends SimulationNode>> getParallelWorkUnits() {
+    public Collection<? extends Collection<? extends SimulationNode<Organism>>> getParallelWorkUnits() {
         return chunks.stream().map(Chunk::getCells).toList();
     }
 
     @Override
-    public Optional<SimulationNode> getNode(SimulationNode current, int dx, int dy) {
+    public Optional<SimulationNode<Organism>> getNode(SimulationNode<Organism> current, int dx, int dy) {
         if (current instanceof Cell cell) {
             int tx = cell.getX() + dx;
             int ty = cell.getY() + dy;
@@ -159,15 +154,21 @@ public class Island implements SimulationWorld {
     }
 
     @Override
-    public boolean moveAnimal(Animal animal, SimulationNode from, SimulationNode to) {
+    public boolean moveEntity(Organism entity, SimulationNode<Organism> from, SimulationNode<Organism> to) {
         if (from instanceof Cell f && to instanceof Cell t) {
-            return moveOrganism(animal, f, t);
+            if (entity instanceof Animal a) {
+                return moveOrganism(a, f, t);
+            } else if (entity instanceof Biomass b) {
+                // Moving partial biomass is specific to nature logic, but full movement is possible
+                if (t.addEntity(b)) {
+                    return f.removeEntity(b);
+                }
+            }
         }
         return false;
     }
 
-    @Override
-    public void moveBiomassPartially(Biomass b, SimulationNode from, SimulationNode to, long amount) {
+    public void moveBiomassPartially(Biomass b, SimulationNode<Organism> from, SimulationNode<Organism> to, long amount) {
         if (from instanceof Cell f && to instanceof Cell t) {
             moveBiomassPartially(b, f, t, amount);
         }
@@ -221,9 +222,6 @@ public class Island implements SimulationWorld {
         int processors = Runtime.getRuntime().availableProcessors();
         int totalCells = width * height;
 
-        // Определяем желаемое количество задач для оптимальной утилизации ядер.
-        // Для маленьких миров (например, 8x8) фиксируем 16 задач, чтобы гарантировать параллелизм.
-        // Для больших миров используем запас (2-4 задачи на ядро) для балансировки нагрузки.
         int targetTasks;
         if (totalCells <= 64) {
             targetTasks = 16;
@@ -233,10 +231,7 @@ public class Island implements SimulationWorld {
             targetTasks = processors * 4;
         }
 
-        // Не можем создать больше задач, чем есть клеток
         targetTasks = Math.min(targetTasks, totalCells);
-
-        // Рассчитываем размер стороны чанка: chunkSize^2 ≈ totalCells / targetTasks
         int cellsPerChunk = Math.max(1, totalCells / targetTasks);
         int chunkSize = (int) Math.sqrt(cellsPerChunk);
 
@@ -244,8 +239,6 @@ public class Island implements SimulationWorld {
             chunkSize = 1;
         }
 
-        // Ограничение сверху для chunkSize, чтобы даже на огромных картах 
-        // не терять гранулярность параллелизма (не более 32x32 на чанк)
         if (totalCells > 1000 && chunkSize > 32) {
             chunkSize = 32;
         }

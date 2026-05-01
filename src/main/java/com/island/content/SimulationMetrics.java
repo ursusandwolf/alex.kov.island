@@ -1,4 +1,4 @@
-package com.island.engine;
+package com.island.content;
 
 import lombok.Builder;
 import lombok.Value;

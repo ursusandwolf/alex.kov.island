@@ -7,12 +7,11 @@ import static com.island.config.SimulationConstants.SCALE_10K;
 import static com.island.config.SimulationConstants.SCALE_1M;
 
 import com.island.content.Biomass;
+import com.island.content.Organism;
 import com.island.content.SpeciesKey;
 import com.island.content.SwarmOrganism;
-import com.island.engine.Mortal;
 import com.island.engine.SimulationNode;
 import com.island.model.Cell;
-import java.util.List;
 
 /**
  * Generalized Butterfly using SwarmOrganism (LOD 1) with integer arithmetic.
@@ -25,12 +24,11 @@ public class Butterfly extends SwarmOrganism {
     }
 
     @Override
-    protected void processFeeding(SimulationNode node) {
-        long appetite = (biomass * 10) / 100; // 10%
-        if (appetite > 0) {
-            List<? extends Mortal> availablePlants = node.getBiomassEntities();
-            for (Mortal m : availablePlants) {
-                if (m instanceof Biomass p && p != this && p.isAlive() && !(p instanceof Caterpillar)) {
+    protected void processFeeding(SimulationNode<Organism> node) {
+        long appetite = (getBiomass() * 10) / 100; // 10%
+        if (appetite > 0 && node instanceof Cell cell) {
+            for (Biomass p : cell.getBiomassContainers()) {
+                if (p != this && p.isAlive() && !(p instanceof Caterpillar)) {
                     long consumed = (appetite * SCALE_10K) / CATERPILLAR_FEED_EFFICIENCY_BP;
                     long actualEaten = p.consumeBiomass(consumed, node);
                     long energyGain = (actualEaten * CATERPILLAR_FEED_EFFICIENCY_BP) / SCALE_10K;
@@ -45,15 +43,15 @@ public class Butterfly extends SwarmOrganism {
     }
 
     @Override
-    protected void processReproduction(SimulationNode node) {
-        if (biomass > 0) {
-            long offspringBiomass = (biomass * reproductionRateBP) / SCALE_10K;
+    protected void processReproduction(SimulationNode<Organism> node) {
+        if (getBiomass() > 0 && node instanceof Cell cell) {
+            long offspringBiomass = (getBiomass() * reproductionRateBP) / SCALE_10K;
             consumeBiomass(offspringBiomass, node);
 
-            Caterpillar c = (Caterpillar) node.getBiomass(SpeciesKey.CATERPILLAR);
+            Caterpillar c = (Caterpillar) cell.getBiomass(SpeciesKey.CATERPILLAR);
             if (c == null) {
                 c = new Caterpillar(0, 0);
-                node.addBiomass(c);
+                cell.addEntity(c);
             }
             c.spawn(offspringBiomass);
         }

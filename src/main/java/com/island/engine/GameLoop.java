@@ -4,22 +4,23 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 
 /**
  * Orchestrates the simulation ticks.
+ * Generic engine component that schedules and executes simulation tasks.
+ *
+ * @param <T> The base type of entities in the simulation world.
  */
-public class GameLoop {
+public class GameLoop<T extends Mortal> {
     private final List<Tickable> recurringTasks = new ArrayList<>();
     private final long tickDurationMs;
     private final ExecutorService taskExecutor;
     private volatile boolean running = false;
     private int tickCount = 0;
-    private SimulationWorld world;
+    private SimulationWorld<T> world;
     private Thread loopThread;
 
     public GameLoop(long tickDurationMs, int threadCount) {
@@ -27,7 +28,7 @@ public class GameLoop {
         this.taskExecutor = Executors.newFixedThreadPool(threadCount);
     }
 
-    public void setWorld(SimulationWorld world) {
+    public void setWorld(SimulationWorld<T> world) {
         this.world = world;
     }
 
@@ -95,9 +96,10 @@ public class GameLoop {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void executeGroup(List<Tickable> group, boolean isCellServiceGroup) {
         if (isCellServiceGroup && world != null && !taskExecutor.isShutdown()) {
-            runCellServicesParallel(group.stream().map(t -> (CellService) t).toList());
+            runCellServicesParallel(group.stream().map(t -> (CellService<T>) t).toList());
         } else {
             for (Tickable task : group) {
                 try {
@@ -110,71 +112,34 @@ public class GameLoop {
         }
     }
 
-    private void runCellServicesParallel(List<CellService> services) {
-        for (CellService service : services) {
+    private void runCellServicesParallel(List<CellService<T>> services) {
+        for (CellService<T> service : services) {
             service.beforeTick(tickCount);
         }
 
-        Collection<? extends Collection<? extends SimulationNode>> workUnits = world.getParallelWorkUnits();
-        List<Callable<SimulationMetrics>> tasks = new ArrayList<>();
+        Collection<? extends Collection<? extends SimulationNode<T>>> workUnits = world.getParallelWorkUnits();
+        List<Callable<Void>> tasks = new ArrayList<>();
 
-        for (Collection<? extends SimulationNode> unit : workUnits) {
+        for (Collection<? extends SimulationNode<T>> unit : workUnits) {
             tasks.add(() -> {
-                long totalCurrent = 0;
-                long totalMax = 0;
-                int animalCount = 0;
-                int starvingCount = 0;
-                final long[] nodeStats = new long[4];
-
-                for (SimulationNode node : unit) {
-                    for (CellService service : services) {
+                for (SimulationNode<T> node : unit) {
+                    for (CellService<T> service : services) {
                         service.processCell(node, tickCount);
                     }
-                    
-                    nodeStats[0] = 0;
-                    nodeStats[1] = 0;
-                    nodeStats[2] = 0;
-                    nodeStats[3] = 0;
-                    node.forEachAnimal(a -> {
-                        if (a.isAlive()) {
-                            nodeStats[0] += a.getCurrentEnergy();
-                            nodeStats[1] += a.getMaxEnergy();
-                            nodeStats[2]++;
-                            if (a.isStarving()) {
-                                nodeStats[3]++;
-                            }
-                        }
-                    });
-                    totalCurrent += nodeStats[0];
-                    totalMax += nodeStats[1];
-                    animalCount += (int) nodeStats[2];
-                    starvingCount += (int) nodeStats[3];
                 }
-                return SimulationMetrics.builder()
-                        .totalCurrentEnergy(totalCurrent)
-                        .totalMaxEnergy(totalMax)
-                        .animalCount(animalCount)
-                        .starvingCount(starvingCount)
-                        .build();
+                return null;
             });
         }
 
         try {
-            List<Future<SimulationMetrics>> futures = taskExecutor.invokeAll(tasks);
-            SimulationMetrics totalMetrics = SimulationMetrics.empty();
-            for (Future<SimulationMetrics> future : futures) {
-                totalMetrics = SimulationMetrics.combine(totalMetrics, future.get());
-            }
-            if (world.getStatisticsService() != null) {
-                world.getStatisticsService().updateMetrics(totalMetrics);
-            }
-        } catch (InterruptedException | ExecutionException e) {
+            taskExecutor.invokeAll(tasks);
+        } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } catch (RejectedExecutionException e) {
             // Ignore if shutting down
         }
 
-        for (CellService service : services) {
+        for (CellService<T> service : services) {
             service.afterTick(tickCount);
         }
     }

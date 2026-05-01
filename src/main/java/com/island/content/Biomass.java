@@ -5,7 +5,6 @@ import static com.island.config.SimulationConstants.PLANT_INITIAL_BIOMASS_BP;
 import static com.island.config.SimulationConstants.SCALE_10K;
 
 import com.island.engine.SimulationNode;
-import com.island.model.Cell;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -42,11 +41,11 @@ public abstract class Biomass extends Organism {
         return 100; // Biomass always has full energy for logic purposes
     }
 
-    public void tick(SimulationNode node) {
+    public void tick(SimulationNode<Organism> node) {
         grow(node, 1.0);
     }
 
-    public void grow(SimulationNode node, double growthModifier) {
+    public void grow(SimulationNode<Organism> node, double growthModifier) {
         long old = biomass;
         long growth = (maxBiomass * PLANT_GROWTH_RATE_BP) / SCALE_10K;
         growth = (long) (growth * growthModifier);
@@ -54,14 +53,14 @@ public abstract class Biomass extends Organism {
         reportChange(node, biomass - old);
     }
 
-    public long consumeBiomass(long amount, SimulationNode node) {
+    public long consumeBiomass(long amount, SimulationNode<Organism> node) {
         long actualEaten = Math.min(biomass, amount);
         biomass -= actualEaten;
         reportChange(node, -actualEaten);
         return actualEaten;
     }
 
-    public void addBiomass(long amount, SimulationNode node) {
+    public void addBiomass(long amount, SimulationNode<Organism> node) {
         long old = biomass;
         if (maxBiomass > 0) {
             this.biomass = Math.min(maxBiomass, this.biomass + amount);
@@ -71,9 +70,9 @@ public abstract class Biomass extends Organism {
         reportChange(node, biomass - old);
     }
 
-    private void reportChange(SimulationNode node, long delta) {
-        if (delta != 0) {
-            node.getWorld().getStatisticsService().registerBiomassChange(speciesKey, delta);
+    private void reportChange(SimulationNode<Organism> node, long delta) {
+        if (delta != 0 && node.getWorld() instanceof NatureWorld nw) {
+            nw.getStatisticsService().registerBiomassChange(speciesKey, delta);
         }
     }
 

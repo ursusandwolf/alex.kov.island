@@ -2,10 +2,12 @@ package com.island.service;
 
 import com.island.content.Animal;
 import com.island.content.AnimalType;
+import com.island.content.NatureWorld;
+import com.island.content.Organism;
 import com.island.content.SpeciesKey;
+import com.island.content.Season;
 import com.island.engine.CellService;
 import com.island.engine.SimulationNode;
-import com.island.engine.SimulationWorld;
 import com.island.util.RandomProvider;
 import java.util.List;
 import java.util.Map;
@@ -19,8 +21,8 @@ import lombok.RequiredArgsConstructor;
  */
 @Getter
 @RequiredArgsConstructor
-public abstract class AbstractService<N extends SimulationNode> implements CellService {
-    private final SimulationWorld world;
+public abstract class AbstractService implements CellService<Organism> {
+    private final NatureWorld world;
     private final ExecutorService executor;
     private final RandomProvider random;
     protected Map<SpeciesKey, Integer> protectionMap; // Chance in percent (0-100)
@@ -36,8 +38,8 @@ public abstract class AbstractService<N extends SimulationNode> implements CellS
     public void tick(int tickCount) {
         beforeTick(tickCount);
         // Fallback for direct service usage (e.g. in tests)
-        for (java.util.Collection<? extends SimulationNode> unit : world.getParallelWorkUnits()) {
-            for (SimulationNode node : unit) {
+        for (java.util.Collection<? extends SimulationNode<Organism>> unit : world.getParallelWorkUnits()) {
+            for (SimulationNode<Organism> node : unit) {
                 processCell(node, tickCount);
             }
         }
@@ -45,7 +47,7 @@ public abstract class AbstractService<N extends SimulationNode> implements CellS
     }
 
     @Override
-    public abstract void processCell(SimulationNode node, int tickCount);
+    public abstract void processCell(SimulationNode<Organism> node, int tickCount);
 
     protected <T> void forEachSampled(List<T> list, int limit, Consumer<T> action) {
         int size = list.size();
@@ -67,7 +69,7 @@ public abstract class AbstractService<N extends SimulationNode> implements CellS
     }
 
     private boolean isHibernating(Animal animal) {
-        return animal.getAnimalType().isColdBlooded() && world.getCurrentSeason() == com.island.engine.Season.WINTER;
+        return animal.getAnimalType().isColdBlooded() && world.getCurrentSeason() == Season.WINTER;
     }
 
     protected boolean isProtected(Animal animal) {

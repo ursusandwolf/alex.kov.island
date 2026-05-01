@@ -1,7 +1,7 @@
 package com.island.content;
 
-import com.island.engine.Mortal;
 import com.island.engine.SimulationNode;
+import com.island.model.Cell;
 import com.island.util.InteractionProvider;
 import com.island.util.RandomProvider;
 import java.util.ArrayList;
@@ -15,7 +15,7 @@ import java.util.Map;
  * Provider for prey selection within a node using integer arithmetic.
  */
 public class PreyProvider {
-    private final SimulationNode node;
+    private final SimulationNode<Organism> node;
     private final InteractionProvider matrix;
     private final int currentTick;
     private final Map<SpeciesKey, Integer> protectionMap; // Chance in percent
@@ -25,16 +25,16 @@ public class PreyProvider {
     private List<Organism> buffet;
     private boolean isEatenListChanged = false;
 
-    public PreyProvider(SimulationNode node, InteractionProvider matrix, RandomProvider random) {
+    public PreyProvider(SimulationNode<Organism> node, InteractionProvider matrix, RandomProvider random) {
         this(node, matrix, 0, Collections.emptyMap(), random);
     }
 
-    public PreyProvider(SimulationNode node, InteractionProvider matrix, int currentTick, 
+    public PreyProvider(SimulationNode<Organism> node, InteractionProvider matrix, int currentTick, 
                         Map<SpeciesKey, Integer> protectionMap, RandomProvider random) {
         this(node, matrix, currentTick, protectionMap, false, random);
     }
 
-    public PreyProvider(SimulationNode node, InteractionProvider matrix, int tick, 
+    public PreyProvider(SimulationNode<Organism> node, InteractionProvider matrix, int tick, 
                         Map<SpeciesKey, Integer> protectionMap, boolean isWolfPack, RandomProvider random) {
         this.node = node;
         this.matrix = matrix;
@@ -56,36 +56,45 @@ public class PreyProvider {
         List<Organism> potential = new ArrayList<>();
         boolean canHuntAsPack = isWolfPack && predator.getAnimalType().isPackHunter();
         
-        // Use species grouping from the node's world registry/statistics or iteration
-        // For simplicity and speed, we'll iterate once and collect unique species representatives
         Map<SpeciesKey, Organism> uniquePrey = new HashMap<>();
 
-        // 1. Animals - group by species
-        node.forEachAnimal(a -> {
-            if (a != predator && a.isAlive() && !uniquePrey.containsKey(a.getSpeciesKey())) {
-                int baseChance = matrix.getChance(predator.getSpeciesKey(), a.getSpeciesKey());
-                boolean canHunt = baseChance > 0;
-                
-                if (!canHunt && canHuntAsPack && a.getWeight() > 150 * com.island.config.SimulationConstants.SCALE_1M) {
-                    canHunt = true;
-                }
+        if (node instanceof Cell cell) {
+            // 1. Animals - group by species
+            cell.forEachAnimal(a -> {
+                if (a != predator && a.isAlive() && !uniquePrey.containsKey(a.getSpeciesKey())) {
+                    int baseChance = matrix.getChance(predator.getSpeciesKey(), a.getSpeciesKey());
+                    boolean canHunt = baseChance > 0;
+                    
+                    if (!canHunt && canHuntAsPack && a.getWeight() > 150 * com.island.config.SimulationConstants.SCALE_1M) {
+                        canHunt = true;
+                    }
 
-                if (canHunt && !a.isProtected(currentTick)) {
-                    uniquePrey.put(a.getSpeciesKey(), a);
+                    if (canHunt && !a.isProtected(currentTick)) {
+                        uniquePrey.put(a.getSpeciesKey(), a);
+                    }
                 }
-            }
-        });
-        
-        potential.addAll(uniquePrey.values());
+            });
+            
+            potential.addAll(uniquePrey.values());
 
-        // 2. Plants/Biomass
-        node.forEachBiomass(b -> {
-            if (b.getBiomass() > 0 && matrix.getChance(predator.getSpeciesKey(), b.getSpeciesKey()) > 0) {
-                if (!isPlantProtected(b)) {
-                    potential.add(b);
+            // 2. Plants/Biomass
+            cell.forEachEntity(e -> {
+                if (e instanceof Biomass b && b.getBiomass() > 0 && matrix.getChance(predator.getSpeciesKey(), b.getSpeciesKey()) > 0) {
+                    if (!isPlantProtected(b)) {
+                        potential.add(b);
+                    }
                 }
-            }
-        });
+            });
+        } else {
+            // Fallback for generic node (though in this simulation it's always Cell)
+            node.forEachEntity(e -> {
+                if (e != predator && e.isAlive()) {
+                    if (matrix.getChance(predator.getSpeciesKey(), e.getSpeciesKey()) > 0) {
+                        potential.add(e);
+                    }
+                }
+            });
+        }
 
         // Sort by ROI (weight * probability) descending
         potential.sort(Comparator.comparingLong((Organism o) -> {

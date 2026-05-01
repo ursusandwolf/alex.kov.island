@@ -2,7 +2,10 @@ package com.island.service;
 
 import com.island.content.DeathCause;
 import com.island.content.SpeciesKey;
-import com.island.engine.SimulationMetrics;
+import com.island.content.SimulationMetrics;
+import com.island.engine.SimulationWorld;
+import com.island.content.Organism;
+import com.island.content.NatureWorld;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
@@ -81,11 +84,11 @@ public class StatisticsService {
         return animalCount + mass;
     }
 
-    public double calculateGlobalSatiety(com.island.engine.SimulationWorld world) {
+    public double calculateGlobalSatiety(SimulationWorld<Organism> world) {
         return latestMetrics.getGlobalSatiety();
     }
 
-    public int calculateStarvingCount(com.island.engine.SimulationWorld world) {
+    public int calculateStarvingCount(SimulationWorld<Organism> world) {
         return latestMetrics.getStarvingCount();
     }
 

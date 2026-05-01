@@ -3,6 +3,7 @@ package com.island.engine;
 import com.island.content.AnimalFactory;
 import com.island.content.SpeciesRegistry;
 import com.island.content.SpeciesLoader;
+import com.island.content.WorldInitializer;
 import com.island.model.Island;
 import com.island.service.StatisticsService;
 import com.island.util.DefaultRandomProvider;

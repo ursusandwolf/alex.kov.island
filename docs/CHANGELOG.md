@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.5-SNAPSHOT] - 2026-05-01
+
+### Added
+- **Plugin Architecture**: Transformed the project into a modular platform with a generic simulation engine and a pluggable world implementation.
+- **Generic Engine Core**: Refactored `SimulationWorld`, `SimulationNode`, and `GameLoop` to use generics (`<T extends Mortal>`), making them domain-agnostic.
+- **NatureWorld Interface**: Introduced a bridging interface to allow nature-specific logic (statistics, registries) to extend the generic core.
+- **Technical Documentation**: Added `MODULAR_ARCHITECTURE.md` detailing the new decoupled design and extension points.
+
+### Changed
+- **Domain Decoupling**: Completely removed all biology-specific imports from the `com.island.engine` package.
+- **Inversion of Control**: Moved `TaskRegistry`, `SimulationBootstrap`, and `Season` from the engine to the `content` package. The engine now only hosts and executes tasks registered by the plugin.
+- **LOD-Enabled Spatial Model**: Generalized `SimulationNode` to support broad entity iteration while maintaining domain-specific sampling methods in the `Cell` implementation.
+
+### Fixed
+- **Test Suite Alignment**: Updated all 43 tests to reflect the generic architecture, including mock adjustments for `NatureWorld` and fixed generic type signatures.
+- **Hibernation Logic Consistency**: Corrected metabolism calculation in `LifecycleServiceTest` to align with the new seasonal scaling factors.
+
 ## [1.4-SNAPSHOT] - 2026-05-01
 
 ### Fixed

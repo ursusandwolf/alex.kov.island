@@ -1,10 +1,6 @@
-package com.island.engine;
+package com.island.content;
 
-import com.island.content.AnimalFactory;
-import com.island.content.DefaultHuntingStrategy;
-import com.island.content.HuntingStrategy;
-import com.island.content.SpeciesRegistry;
-import com.island.model.Island;
+import com.island.engine.GameLoop;
 import com.island.service.CleanupService;
 import com.island.service.FeedingService;
 import com.island.service.LifecycleService;
@@ -18,15 +14,15 @@ import com.island.view.SimulationView;
  * Responsible for registering simulation tasks in the game loop.
  */
 public class TaskRegistry {
-    private final GameLoop gameLoop;
-    private final SimulationWorld world;
+    private final GameLoop<Organism> gameLoop;
+    private final NatureWorld world;
     private final InteractionProvider matrix;
     private final AnimalFactory animalFactory;
     private final SpeciesRegistry speciesRegistry;
     private final SimulationView view;
     private final RandomProvider random;
 
-    public TaskRegistry(GameLoop gameLoop, SimulationWorld world, InteractionProvider matrix, 
+    public TaskRegistry(GameLoop<Organism> gameLoop, NatureWorld world, InteractionProvider matrix, 
                         AnimalFactory animalFactory, SpeciesRegistry speciesRegistry, 
                         SimulationView view, RandomProvider random) {
         this.gameLoop = gameLoop;

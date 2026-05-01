@@ -1,14 +1,10 @@
-package com.island.engine;
+package com.island.content;
 
-import com.island.content.AnimalFactory;
-import com.island.content.AnimalType;
-import com.island.content.Biomass;
-import com.island.content.SpeciesKey;
-import com.island.content.SpeciesRegistry;
-import com.island.content.GenericBiomass;
+import com.island.engine.SimulationNode;
 import com.island.model.Cell;
 import com.island.model.Chunk;
 import com.island.model.Island;
+import com.island.util.RandomProvider;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -22,7 +18,7 @@ import static com.island.config.SimulationConstants.SCALE_1M;
 public class WorldInitializer {
 
     public void initialize(Island island, SpeciesRegistry registry, AnimalFactory animalFactory, 
-                           ExecutorService executor, com.island.util.RandomProvider random) {
+                           ExecutorService executor, RandomProvider random) {
         List<Callable<Void>> tasks = new ArrayList<>();
         
         for (Chunk chunk : island.getChunks()) {
@@ -42,7 +38,7 @@ public class WorldInitializer {
         }
     }
 
-    private void initializeCell(Cell cell, SpeciesRegistry registry, AnimalFactory animalFactory, com.island.util.RandomProvider random) {
+    private void initializeCell(Cell cell, SpeciesRegistry registry, AnimalFactory animalFactory, RandomProvider random) {
         // Randomly assign terrain type
         int terrainRoll = random.nextInt(100);
         if (terrainRoll < 10) {
@@ -71,7 +67,9 @@ public class WorldInitializer {
                     b = new GenericBiomass(type);
                 }
                 cell.addBiomass(b);
-                cell.getWorld().getStatisticsService().registerBiomassChange(biomassKey, b.getBiomass());
+                if (cell.getWorld() instanceof NatureWorld nw) {
+                    nw.getStatisticsService().registerBiomassChange(biomassKey, b.getBiomass());
+                }
             });
         }
 

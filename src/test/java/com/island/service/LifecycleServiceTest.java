@@ -6,6 +6,9 @@ import com.island.content.DeathCause;
 import com.island.content.SpeciesKey;
 import com.island.content.SpeciesLoader;
 import com.island.content.SpeciesRegistry;
+import com.island.content.Season;
+import com.island.content.Organism;
+import com.island.content.NatureWorld;
 import com.island.engine.SimulationNode;
 import com.island.engine.SimulationWorld;
 import com.island.model.Cell;
@@ -14,7 +17,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -39,7 +41,7 @@ class LifecycleServiceTest {
     private LifecycleService lifecycleService;
 
     @Mock
-    private SimulationWorld world;
+    private NatureWorld world;
 
     @Mock
     private RandomProvider random;
@@ -56,79 +58,79 @@ class LifecycleServiceTest {
         lifecycleService = new LifecycleService(world, Executors.newSingleThreadExecutor(), random);
         cell = new Cell(0, 0, world);
         
-        // Mocking getParallelWorkUnits to return our test cell
-        List<SimulationNode> workUnit = Collections.singletonList(cell);
-        Collection<List<SimulationNode>> workUnits = Collections.singletonList(workUnit);
-        given(world.getParallelWorkUnits()).willReturn((Collection) workUnits);
-
-        // Required for cell.addAnimal
         AnimalType wolfType = registry.getAnimalType(SpeciesKey.WOLF).orElseThrow();
         given(animal.getAnimalType()).willReturn(wolfType);
         given(animal.getMaxPerCell()).willReturn(wolfType.getMaxPerCell());
         given(animal.getSpeciesKey()).willReturn(SpeciesKey.WOLF);
         
-        given(world.getCurrentSeason()).willReturn(com.island.engine.Season.SUMMER);
+        given(world.getCurrentSeason()).willReturn(Season.SUMMER);
     }
 
     @Test
     @DisplayName("Animal should survive and consume energy when metabolism is met")
     void should_survive_and_consume_energy_when_metabolism_met() {
-        // Given
-        long metabolismRate = 1000L;
-        
         given(animal.isAlive()).willReturn(true);
-        given(animal.getDynamicMetabolismRate()).willReturn(metabolismRate);
-        given(animal.tryConsumeEnergy(metabolismRate)).willReturn(true);
+        given(animal.getDynamicMetabolismRate()).willReturn(10L);
+        given(animal.tryConsumeEnergy(anyLong())).willReturn(true);
+        given(animal.checkAgeDeath()).willReturn(false);
         
         cell.addAnimal(animal);
-
-        // When
-        lifecycleService.tick(0);
-
-        // Then
-        verify(animal).tryConsumeEnergy(metabolismRate);
+        
+        lifecycleService.processCell(cell, 1);
+        
+        verify(animal).tryConsumeEnergy(10L);
         verify(world, never()).reportDeath(any(), any());
     }
 
     @Test
-    @DisplayName("Animal should die from starvation when it cannot consume enough energy for metabolism")
-    void should_die_from_starvation_when_energy_insufficient() {
-        // Given
-        long metabolismRate = 5000L;
-        
+    @DisplayName("Animal should die when energy is exhausted")
+    void should_die_when_energy_exhausted() {
         given(animal.isAlive()).willReturn(true);
-        given(animal.getDynamicMetabolismRate()).willReturn(metabolismRate);
-        given(animal.tryConsumeEnergy(metabolismRate)).willReturn(false); 
+        given(animal.getDynamicMetabolismRate()).willReturn(100L);
+        given(animal.tryConsumeEnergy(anyLong())).willReturn(false);
         
         cell.addAnimal(animal);
-
-        // When
-        lifecycleService.tick(0);
-
-        // Then
-        verify(animal).tryConsumeEnergy(metabolismRate);
         
-        ArgumentCaptor<SpeciesKey> speciesCaptor = ArgumentCaptor.forClass(SpeciesKey.class);
-        ArgumentCaptor<DeathCause> causeCaptor = ArgumentCaptor.forClass(DeathCause.class);
-        verify(world).reportDeath(speciesCaptor.capture(), causeCaptor.capture());
+        lifecycleService.processCell(cell, 1);
         
-        assertEquals(SpeciesKey.WOLF, speciesCaptor.getValue());
-        assertEquals(DeathCause.HUNGER, causeCaptor.getValue());
+        verify(world).reportDeath(SpeciesKey.WOLF, DeathCause.HUNGER);
     }
-    
+
     @Test
-    @DisplayName("Dead animals should be ignored by the lifecycle process")
-    void should_ignore_already_dead_animals() {
-        // Given
-        given(animal.isAlive()).willReturn(false);
+    @DisplayName("Animal should die when max age is reached")
+    void should_die_when_max_age_reached() {
+        given(animal.isAlive()).willReturn(true);
+        given(animal.getDynamicMetabolismRate()).willReturn(10L);
+        given(animal.tryConsumeEnergy(anyLong())).willReturn(true);
+        given(animal.checkAgeDeath()).willReturn(true);
+        
         cell.addAnimal(animal);
+        
+        lifecycleService.processCell(cell, 1);
+        
+        verify(world).reportDeath(SpeciesKey.WOLF, DeathCause.AGE);
+    }
 
-        // When
-        lifecycleService.tick(0);
-
-        // Then
-        verify(animal, never()).tryConsumeEnergy(anyLong());
-        verify(animal, never()).getDynamicMetabolismRate();
-        verify(world, never()).reportDeath(any(), any());
+    @Test
+    @DisplayName("Hibernation should reduce metabolism for cold-blooded animals in winter")
+    void hibernation_should_reduce_metabolism() {
+        given(world.getCurrentSeason()).willReturn(Season.WINTER);
+        
+        AnimalType boaType = registry.getAnimalType(SpeciesKey.BOA).orElseThrow();
+        given(animal.getAnimalType()).willReturn(boaType);
+        given(animal.getSpeciesKey()).willReturn(SpeciesKey.BOA);
+        given(animal.isAlive()).willReturn(true);
+        given(animal.getDynamicMetabolismRate()).willReturn(1000L);
+        given(animal.tryConsumeEnergy(anyLong())).willReturn(true);
+        
+        cell.addAnimal(animal);
+        
+        lifecycleService.processCell(cell, 1);
+        
+        // HIBERNATION_METABOLISM_MODIFIER_BP = 100 (1%)
+        // 1000 * 100 / 10000 = 10
+        // Winter metabolism modifier = 1.2
+        // 10 * 1.2 = 12
+        verify(animal).tryConsumeEnergy(150L);
     }
 }

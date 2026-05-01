@@ -1,13 +1,13 @@
 package com.island.service;
 
 import com.island.engine.SimulationNode;
-import com.island.engine.SimulationWorld;
 import com.island.content.Animal;
 import com.island.content.AnimalFactory;
 import com.island.content.AnimalType;
 import com.island.content.Biomass;
 import com.island.content.DeathCause;
 import com.island.content.HuntingStrategy;
+import com.island.content.NatureWorld;
 import com.island.content.Organism;
 import com.island.content.PreyProvider;
 import com.island.content.SpeciesKey;
@@ -27,14 +27,14 @@ import static com.island.config.SimulationConstants.SCALE_10K;
 /**
  * Service responsible for feeding logic using integer-based arithmetic.
  */
-public class FeedingService extends AbstractService<SimulationNode> {
+public class FeedingService extends AbstractService {
     private final AnimalFactory animalFactory;
     private final InteractionProvider interactionMatrix;
     private final SpeciesRegistry speciesRegistry;
     private final HuntingStrategy huntingStrategy;
     private final int minPackSize;
 
-    public FeedingService(SimulationWorld world, AnimalFactory animalFactory, 
+    public FeedingService(NatureWorld world, AnimalFactory animalFactory, 
                           InteractionProvider interactionMatrix, 
                           SpeciesRegistry speciesRegistry, HuntingStrategy huntingStrategy, 
                           ExecutorService executor, RandomProvider random) {
@@ -42,7 +42,7 @@ public class FeedingService extends AbstractService<SimulationNode> {
                 com.island.config.SimulationConstants.WOLF_PACK_MIN_SIZE, random);
     }
 
-    public FeedingService(SimulationWorld world, AnimalFactory animalFactory, 
+    public FeedingService(NatureWorld world, AnimalFactory animalFactory, 
                           InteractionProvider interactionMatrix, 
                           SpeciesRegistry speciesRegistry, HuntingStrategy huntingStrategy, 
                           ExecutorService executor, int minPackSize, RandomProvider random) {
@@ -55,12 +55,14 @@ public class FeedingService extends AbstractService<SimulationNode> {
     }
 
     @Override
-    public void processCell(SimulationNode node, int tickCount) {
-        processPredators(node, tickCount);
-        processHerbivores(node, tickCount);
+    public void processCell(SimulationNode<Organism> node, int tickCount) {
+        if (node instanceof Cell cell) {
+            processPredators(cell, tickCount);
+            processHerbivores(cell, tickCount);
+        }
     }
 
-    private void processPredators(SimulationNode node, int tickCount) {
+    private void processPredators(Cell node, int tickCount) {
         List<Animal> packHunters = new java.util.ArrayList<>();
         List<Animal> soloHunters = new java.util.ArrayList<>();
 
@@ -93,7 +95,7 @@ public class FeedingService extends AbstractService<SimulationNode> {
         }
     }
 
-    private void processHerbivores(SimulationNode node, int tickCount) {
+    private void processHerbivores(Cell node, int tickCount) {
         node.forEachHerbivoreSampled(FEEDING_LOD_LIMIT, getRandom(), herbivore -> {
             if (herbivore.isAlive() && shouldAct(herbivore, AnimalType.Action.FEED, tickCount)) {
                 tryEat(herbivore, node);
@@ -101,7 +103,7 @@ public class FeedingService extends AbstractService<SimulationNode> {
         });
     }
 
-    private void processPackHunting(List<Animal> pack, SimulationNode node) {
+    private void processPackHunting(List<Animal> pack, Cell node) {
         if (pack.isEmpty()) {
             return;
         }
@@ -151,7 +153,7 @@ public class FeedingService extends AbstractService<SimulationNode> {
         }
     }
 
-    private void tryEat(Animal consumer, SimulationNode node) {
+    private void tryEat(Animal consumer, Cell node) {
         if (consumer.getCurrentEnergy() >= consumer.getFoodForSaturation()) {
             return;
         }
@@ -205,20 +207,16 @@ public class FeedingService extends AbstractService<SimulationNode> {
         }
     }
 
-    private Animal findActualPrey(SimulationNode node, SpeciesKey speciesKey, Animal consumer) {
+    private Animal findActualPrey(Cell node, SpeciesKey speciesKey, Animal consumer) {
         AnimalType type = speciesRegistry.getAnimalType(speciesKey).orElse(null);
         if (type == null) {
             return null;
         }
         Animal candidate = node.getRandomAnimalByType(type, getRandom());
         if (candidate == consumer) {
-            // Try to find another one if possible. A simple fallback is to iterate, but for performance
-            // we'll just check if it's the only one.
             if (node.getOrganismCount(speciesKey) <= 1) {
                 return null;
             }
-            // For simplicity in this engine, if it picked itself, we just abort this attempt.
-            // A more robust solution would be to pick from a list excluding the consumer.
             return null;
         }
         return candidate;

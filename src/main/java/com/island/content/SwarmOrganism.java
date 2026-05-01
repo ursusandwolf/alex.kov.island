@@ -19,11 +19,11 @@ public abstract class SwarmOrganism extends Biomass {
     }
 
     @Override
-    public void tick(SimulationNode node) {
+    public void tick(SimulationNode<Organism> node) {
         processLifecycle(node);
     }
 
-    protected void processLifecycle(SimulationNode node) {
+    protected void processLifecycle(SimulationNode<Organism> node) {
         final long oldBiomass = getBiomass();
         applyMetabolism();
         processFeeding(node);
@@ -39,16 +39,16 @@ public abstract class SwarmOrganism extends Biomass {
         }
     }
 
-    protected abstract void processFeeding(SimulationNode node);
+    protected abstract void processFeeding(SimulationNode<Organism> node);
 
-    protected void advanceAge(SimulationNode node) {
+    protected void advanceAge(SimulationNode<Organism> node) {
         for (int i = ageBuckets.length - 1; i > 0; i--) {
             ageBuckets[i] = ageBuckets[i - 1];
         }
         ageBuckets[0] = 0; 
     }
 
-    protected abstract void processReproduction(SimulationNode node);
+    protected abstract void processReproduction(SimulationNode<Organism> node);
 
     protected void updateTotalBiomass() {
         long total = 0;
@@ -66,7 +66,7 @@ public abstract class SwarmOrganism extends Biomass {
     }
 
     @Override
-    public void addBiomass(long amount, SimulationNode node) {
+    public void addBiomass(long amount, SimulationNode<Organism> node) {
         if (amount > 0) {
             long newTotal = getBiomass() + amount;
             if (maxBiomass > 0 && newTotal > maxBiomass) {
@@ -81,7 +81,7 @@ public abstract class SwarmOrganism extends Biomass {
     }
 
     @Override
-    public long consumeBiomass(long amount, SimulationNode node) {
+    public long consumeBiomass(long amount, SimulationNode<Organism> node) {
         long total = getBiomass();
         long actualEaten = Math.min(total, amount);
         if (actualEaten > 0 && total > 0) {
@@ -95,9 +95,9 @@ public abstract class SwarmOrganism extends Biomass {
         return actualEaten;
     }
 
-    private void reportChange(SimulationNode node, long delta) {
-        if (delta != 0) {
-            node.getWorld().getStatisticsService().registerBiomassChange(getSpeciesKey(), delta);
+    private void reportChange(SimulationNode<Organism> node, long delta) {
+        if (delta != 0 && node.getWorld() instanceof NatureWorld nw) {
+            nw.getStatisticsService().registerBiomassChange(getSpeciesKey(), delta);
         }
     }
 }

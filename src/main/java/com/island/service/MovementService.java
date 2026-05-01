@@ -5,12 +5,12 @@ import static com.island.config.SimulationConstants.SPEED_MOVE_COST_STEP_BP;
 import static com.island.config.SimulationConstants.ENDANGERED_SPEED_BONUS;
 import static com.island.config.SimulationConstants.SCALE_10K;
 
-import com.island.config.SimulationConstants;
 import com.island.engine.SimulationNode;
-import com.island.engine.SimulationWorld;
 import com.island.content.Animal;
 import com.island.content.Biomass;
 import com.island.content.DeathCause;
+import com.island.content.NatureWorld;
+import com.island.content.Organism;
 import com.island.content.SpeciesRegistry;
 import com.island.util.RandomProvider;
 import java.util.ArrayList;
@@ -18,25 +18,28 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 import com.island.content.AnimalType;
+import com.island.model.Cell;
 
 /**
  * Service responsible for animal and mobile biomass movement using integer arithmetic.
  */
-public class MovementService extends AbstractService<SimulationNode> {
+public class MovementService extends AbstractService {
     private final SpeciesRegistry speciesRegistry;
 
-    public MovementService(SimulationWorld world, SpeciesRegistry speciesRegistry, ExecutorService executor, RandomProvider random) {
+    public MovementService(NatureWorld world, SpeciesRegistry speciesRegistry, ExecutorService executor, RandomProvider random) {
         super(world, executor, random);
         this.speciesRegistry = speciesRegistry;
     }
 
     @Override
-    public void processCell(SimulationNode node, int tickCount) {
-        processAnimals(node, tickCount);
-        processMobileBiomass(node);
+    public void processCell(SimulationNode<Organism> node, int tickCount) {
+        if (node instanceof Cell cell) {
+            processAnimals(cell, tickCount);
+            processMobileBiomass(cell);
+        }
     }
 
-    private void processAnimals(SimulationNode node, int tickCount) {
+    private void processAnimals(Cell node, int tickCount) {
         node.forEachAnimalSampled(com.island.config.SimulationConstants.MOVEMENT_LOD_LIMIT, getRandom(), animal -> {
             if (animal.isAlive()) {
                 if (shouldAct(animal, AnimalType.Action.MOVE, tickCount)) {
@@ -46,9 +49,9 @@ public class MovementService extends AbstractService<SimulationNode> {
                     }
                     
                     if (speed > 0) {
-                        SimulationNode target = selectTargetNode(node, speed);
+                        SimulationNode<Organism> target = selectTargetNode(node, speed);
                         if (target != node) {
-                            if (getWorld().moveAnimal(animal, node, target)) {
+                            if (getWorld().moveEntity(animal, node, target)) {
                                 long moveCost = (animal.getMaxEnergy() * (1 + animal.getSpeed()) * SPEED_MOVE_COST_STEP_BP) / SCALE_10K;
                                 animal.consumeEnergy(moveCost);
                                 if (!animal.isAlive()) {
@@ -62,10 +65,10 @@ public class MovementService extends AbstractService<SimulationNode> {
         });
     }
 
-    private void processMobileBiomass(SimulationNode node) {
+    private void processMobileBiomass(Cell node) {
         List<Biomass> mobile = new java.util.ArrayList<>();
-        node.forEachBiomass(b -> {
-            if (b.isAlive() && b.getSpeed() > 0 && b.getBiomass() > 0) {
+        node.forEachEntity(e -> {
+            if (e instanceof Biomass b && b.isAlive() && b.getSpeed() > 0 && b.getBiomass() > 0) {
                 mobile.add(b);
             }
         });
@@ -86,16 +89,16 @@ public class MovementService extends AbstractService<SimulationNode> {
             }
 
             getWorld().getNode(node, dx, dy).ifPresent(target -> {
-                if (target != node) {
-                    getWorld().moveBiomassPartially(b, node, target, chunk);
+                if (target != node && target instanceof Cell targetCell) {
+                    getWorld().moveBiomassPartially(b, node, targetCell, chunk);
                 }
             });
         }
     }
 
-    private SimulationNode selectTargetNode(SimulationNode node, int speed) {
+    private SimulationNode<Organism> selectTargetNode(Cell node, int speed) {
         if (speed == 1) {
-            List<SimulationNode> neighbors = node.getNeighbors();
+            List<SimulationNode<Organism>> neighbors = node.getNeighbors();
             if (!neighbors.isEmpty()) {
                 int choice = getRandom().nextInt(neighbors.size() + 1);
                 return (choice < neighbors.size()) ? neighbors.get(choice) : node;

@@ -3,6 +3,7 @@ package com.island.model;
 import com.island.engine.NodeSnapshot;
 import com.island.content.Animal;
 import com.island.content.Biomass;
+import com.island.content.NatureWorld;
 import com.island.content.SpeciesKey;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,7 +33,7 @@ public class CellSnapshot implements NodeSnapshot {
         }
 
         this.hasOrganisms = !biomassMap.isEmpty();
-        if (hasOrganisms) {
+        if (hasOrganisms && cell.getWorld() instanceof NatureWorld nw) {
             SpeciesKey top = null;
             long maxWeight = -1;
             for (Map.Entry<SpeciesKey, Long> entry : biomassMap.entrySet()) {
@@ -42,7 +43,7 @@ public class CellSnapshot implements NodeSnapshot {
                 }
             }
             this.topSpeciesCode = (top != null) ? top.getCode() : null;
-            this.isTopSpeciesPlant = top != null && cell.getWorld().getRegistry().getAnyType(top)
+            this.isTopSpeciesPlant = top != null && nw.getRegistry().getAnyType(top)
                     .map(com.island.content.AnimalType::isPlant).orElse(false);
         } else {
             this.topSpeciesCode = null;

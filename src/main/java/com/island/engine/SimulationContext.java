@@ -1,39 +1,33 @@
 package com.island.engine;
 
-import com.island.content.SpeciesRegistry;
-import com.island.model.Island;
 import com.island.util.RandomProvider;
 import com.island.view.SimulationView;
 
 /**
  * Context that holds all major components of a running simulation.
+ *
+ * @param <T> The base type of entities in the simulation.
  */
-public class SimulationContext {
-    private final Island island;
-    private final GameLoop gameLoop;
-    private final SpeciesRegistry speciesRegistry;
+public class SimulationContext<T extends Mortal> {
+    private final SimulationWorld<T> world;
+    private final GameLoop<T> gameLoop;
     private final SimulationView view;
     private final RandomProvider random;
 
-    public SimulationContext(Island island, GameLoop gameLoop, SpeciesRegistry speciesRegistry, 
+    public SimulationContext(SimulationWorld<T> world, GameLoop<T> gameLoop, 
                              SimulationView view, RandomProvider random) {
-        this.island = island;
+        this.world = world;
         this.gameLoop = gameLoop;
-        this.speciesRegistry = speciesRegistry;
         this.view = view;
         this.random = random;
     }
 
-    public Island getIsland() {
-        return island;
+    public SimulationWorld<T> getWorld() {
+        return world;
     }
 
-    public GameLoop getGameLoop() {
+    public GameLoop<T> getGameLoop() {
         return gameLoop;
-    }
-
-    public SpeciesRegistry getSpeciesRegistry() {
-        return speciesRegistry;
     }
 
     public SimulationView getView() {
