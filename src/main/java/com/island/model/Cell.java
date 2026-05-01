@@ -10,6 +10,7 @@ import com.island.content.SpeciesKey;
 import com.island.engine.Mortal;
 import com.island.util.RandomProvider;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
@@ -18,10 +19,12 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.RequiredArgsConstructor;
 
 import static com.island.config.SimulationConstants.SCALE_1M;
 
 @Getter
+@RequiredArgsConstructor
 public class Cell implements SimulationNode {
     private final int x;
     private final int y;
@@ -29,13 +32,7 @@ public class Cell implements SimulationNode {
     @Setter private TerrainType terrainType = TerrainType.MEADOW;
     private final EntityContainer container = new EntityContainer();
     private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
-    private List<SimulationNode> cachedNeighbors = java.util.Collections.emptyList();
-
-    public Cell(int x, int y, SimulationWorld world) { 
-        this.x = x; 
-        this.y = y; 
-        this.world = world;
-    }
+    private List<SimulationNode> cachedNeighbors = Collections.emptyList();
 
     @Override
     public Lock getLock() {

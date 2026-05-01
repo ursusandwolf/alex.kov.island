@@ -1,9 +1,14 @@
 package com.island.engine;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
 
 /**
  * Orchestrates the simulation ticks.
@@ -100,10 +105,10 @@ public class GameLoop {
             service.beforeTick(tickCount);
         }
 
-        java.util.Collection<? extends java.util.Collection<? extends SimulationNode>> workUnits = world.getParallelWorkUnits();
-        List<java.util.concurrent.Callable<SimulationMetrics>> tasks = new ArrayList<>();
+        Collection<? extends Collection<? extends SimulationNode>> workUnits = world.getParallelWorkUnits();
+        List<Callable<SimulationMetrics>> tasks = new ArrayList<>();
 
-        for (java.util.Collection<? extends SimulationNode> unit : workUnits) {
+        for (Collection<? extends SimulationNode> unit : workUnits) {
             tasks.add(() -> {
                 long totalCurrent = 0;
                 long totalMax = 0;
@@ -145,17 +150,17 @@ public class GameLoop {
         }
 
         try {
-            List<java.util.concurrent.Future<SimulationMetrics>> futures = taskExecutor.invokeAll(tasks);
+            List<Future<SimulationMetrics>> futures = taskExecutor.invokeAll(tasks);
             SimulationMetrics totalMetrics = SimulationMetrics.empty();
-            for (java.util.concurrent.Future<SimulationMetrics> future : futures) {
+            for (Future<SimulationMetrics> future : futures) {
                 totalMetrics = SimulationMetrics.combine(totalMetrics, future.get());
             }
             if (world.getStatisticsService() != null) {
                 world.getStatisticsService().updateMetrics(totalMetrics);
             }
-        } catch (InterruptedException | java.util.concurrent.ExecutionException e) {
+        } catch (InterruptedException | ExecutionException e) {
             Thread.currentThread().interrupt();
-        } catch (java.util.concurrent.RejectedExecutionException e) {
+        } catch (RejectedExecutionException e) {
             // Ignore if shutting down
         }
 

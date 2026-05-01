@@ -9,10 +9,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.function.Consumer;
 import static com.island.config.SimulationConstants.SCALE_1M;
 
 public class EntityContainer {
@@ -102,8 +104,8 @@ public class EntityContainer {
         return count;
     }
 
-    public void removeDeadAnimals(java.util.function.Consumer<Animal> onRemoved) {
-        java.util.Iterator<Animal> it = allAnimals.iterator();
+    public void removeDeadAnimals(Consumer<Animal> onRemoved) {
+        Iterator<Animal> it = allAnimals.iterator();
         while (it.hasNext()) {
             Animal a = it.next();
             if (!a.isAlive()) {

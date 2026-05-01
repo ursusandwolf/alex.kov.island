@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Value object representing a species key.
@@ -12,7 +13,7 @@ import java.util.Objects;
  */
 public record SpeciesKey(String code, boolean predator) implements Comparable<SpeciesKey> {
     
-    private static final Map<String, SpeciesKey> REGISTRY = new java.util.concurrent.ConcurrentHashMap<>();
+    private static final Map<String, SpeciesKey> REGISTRY = new ConcurrentHashMap<>();
 
     public static final SpeciesKey WOLF = register("wolf", true);
     public static final SpeciesKey BOA = register("boa", true);

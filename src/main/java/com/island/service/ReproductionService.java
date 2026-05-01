@@ -2,6 +2,7 @@ package com.island.service;
 
 import static com.island.config.SimulationConstants.SCALE_10K;
 
+import com.island.config.SimulationConstants;
 import com.island.config.EnergyPolicy;
 import com.island.engine.SimulationNode;
 import com.island.engine.SimulationWorld;
@@ -13,6 +14,8 @@ import com.island.util.RandomProvider;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.concurrent.ExecutorService;
 
 /**

@@ -7,6 +7,7 @@ import com.island.util.RandomProvider;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -57,7 +58,7 @@ public class PreyProvider {
         
         // Use species grouping from the node's world registry/statistics or iteration
         // For simplicity and speed, we'll iterate once and collect unique species representatives
-        java.util.Map<SpeciesKey, Organism> uniquePrey = new java.util.HashMap<>();
+        Map<SpeciesKey, Organism> uniquePrey = new HashMap<>();
 
         // 1. Animals - group by species
         node.forEachAnimal(a -> {

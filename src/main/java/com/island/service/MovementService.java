@@ -5,6 +5,7 @@ import static com.island.config.SimulationConstants.SPEED_MOVE_COST_STEP_BP;
 import static com.island.config.SimulationConstants.ENDANGERED_SPEED_BONUS;
 import static com.island.config.SimulationConstants.SCALE_10K;
 
+import com.island.config.SimulationConstants;
 import com.island.engine.SimulationNode;
 import com.island.engine.SimulationWorld;
 import com.island.content.Animal;
@@ -12,6 +13,7 @@ import com.island.content.Biomass;
 import com.island.content.DeathCause;
 import com.island.content.SpeciesRegistry;
 import com.island.util.RandomProvider;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 

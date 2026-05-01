@@ -4,6 +4,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Collections;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -16,8 +18,8 @@ public class SpeciesRegistry {
     private final Map<SpeciesKey, AnimalType> biomassTypes;
 
     public SpeciesRegistry(Map<SpeciesKey, AnimalType> animalTypes, Map<SpeciesKey, AnimalType> biomassTypes) {
-        this.animalTypes = java.util.Collections.unmodifiableMap(new java.util.HashMap<>(animalTypes));
-        this.biomassTypes = java.util.Collections.unmodifiableMap(new java.util.HashMap<>(biomassTypes));
+        this.animalTypes = Collections.unmodifiableMap(new HashMap<>(animalTypes));
+        this.biomassTypes = Collections.unmodifiableMap(new HashMap<>(biomassTypes));
     }
 
     public Optional<AnimalType> getAnimalType(SpeciesKey key) {

@@ -2,6 +2,7 @@ package com.island.content;
 
 import java.util.Map;
 import java.util.Set;
+import com.island.model.TerrainType;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.AllArgsConstructor;
@@ -49,7 +50,7 @@ public final class AnimalType {
     @Builder.Default private final boolean canSwim = false;
     @Builder.Default private final boolean canWalk = true;
 
-    public boolean isTerrainAccessible(com.island.model.TerrainType terrain) {
+    public boolean isTerrainAccessible(TerrainType terrain) {
         if (canFly) {
             return true;
         }
