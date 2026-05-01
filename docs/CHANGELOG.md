@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.6-SNAPSHOT] - 2026-05-01
+
+### Added
+- **SimCity Simulation Plugin**: Implemented a fully functional "City Builder" simulation as a proof-of-concept for engine modularity.
+  - **Entities**: Added `Resident` (with age and happiness) and `Building` (Road, Residential, Commercial, Industrial).
+  - **Models**: Created `CityMap` and `CityTile` as spatial implementations of `SimulationWorld` and `SimulationNode`.
+  - **Services**:
+    - `ConnectivityService`: Uses BFS to calculate road network connectivity from a city entrance.
+    - `PopulationService`: Manages resident lifecycle, aging, and migration (attraction/repulsion based on happiness).
+    - `EconomyService`: Handles tax collection and commercial/industrial income from connected tiles.
+  - **Happiness Dynamics**: Residents react to environmental factors (pollution from industry, amenities from commerce, and infrastructure access).
+  - **Console Visualization**: Added `CityConsoleView` to render the city map using ASCII symbols (`#`, `R`, `C`, `I`, `.` , `x`).
+- **Plugin Verification**: Added `SimCitySmokeTest` and `SimCityRunnerTest` to ensure long-term stability and demonstrate engine extensibility.
+
 ## [1.5-SNAPSHOT] - 2026-05-01
 
 ### Added
