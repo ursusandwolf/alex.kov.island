@@ -1,5 +1,6 @@
 package com.island.nature.service;
 
+import com.island.nature.config.Configuration;
 import com.island.engine.CellService;
 import com.island.engine.SimulationNode;
 import com.island.nature.entities.Animal;
@@ -24,6 +25,7 @@ import lombok.Getter;
  */
 @Getter
 public abstract class AbstractService implements CellService<Organism, Cell> {
+    protected final Configuration config;
     private final NatureWorld world;
     private final NatureEnvironment environment;
     private final ExecutorService executor;
@@ -33,6 +35,7 @@ public abstract class AbstractService implements CellService<Organism, Cell> {
     protected AbstractService(NatureWorld world, ExecutorService executor, RandomProvider random) {
         this.world = world;
         this.environment = world;
+        this.config = world.getConfiguration();
         this.executor = executor;
         this.random = random;
     }
@@ -40,6 +43,7 @@ public abstract class AbstractService implements CellService<Organism, Cell> {
     protected AbstractService(NatureEnvironment environment, ExecutorService executor, RandomProvider random) {
         this.world = (environment instanceof NatureWorld nw) ? nw : null;
         this.environment = environment;
+        this.config = environment.getConfiguration();
         this.executor = executor;
         this.random = random;
     }

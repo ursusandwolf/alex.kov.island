@@ -7,6 +7,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import com.island.nature.config.Configuration;
 import com.island.nature.entities.Animal;
 import com.island.nature.entities.AnimalType;
 import com.island.nature.entities.DeathCause;
@@ -50,10 +51,11 @@ class LifecycleServiceTest {
 
     private Cell cell;
     private SpeciesRegistry registry;
+    private final Configuration config = new Configuration();
 
     @BeforeEach
     void setUp() {
-        registry = new SpeciesLoader().load();
+        registry = new SpeciesLoader(config).load();
         lifecycleService = new LifecycleService(world, Executors.newSingleThreadExecutor(), random);
         cell = new Cell(0, 0, world);
         

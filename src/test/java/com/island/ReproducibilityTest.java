@@ -8,6 +8,7 @@ import com.island.nature.entities.HuntingStrategy;
 import com.island.nature.entities.SpeciesKey;
 import com.island.nature.entities.SpeciesLoader;
 import com.island.nature.entities.SpeciesRegistry;
+import com.island.nature.config.Configuration;
 import com.island.nature.model.Island;
 import com.island.nature.service.FeedingService;
 import com.island.nature.service.LifecycleService;
@@ -34,6 +35,7 @@ class ReproducibilityTest {
     }
 
     private String runSimulationAndGetState() {
+        Configuration config = new Configuration();
         // Use a fixed "random" provider
         RandomProvider fixedProvider = new RandomProvider() {
             private int counter = 0;
@@ -46,7 +48,7 @@ class ReproducibilityTest {
         };
         RandomUtils.setProvider(fixedProvider);
 
-        SpeciesRegistry registry = new SpeciesLoader().load();
+        SpeciesRegistry registry = new SpeciesLoader(config).load();
         InteractionMatrix matrix = new InteractionMatrix(registry);
         // Simplified matrix for test
         registry.getAllAnimalKeys().forEach(p -> 
@@ -54,9 +56,9 @@ class ReproducibilityTest {
         );
         matrix.freeze();
 
-        Island island = new Island(2, 2, registry, new StatisticsService());
+        Island island = new Island(config, 2, 2, registry, new StatisticsService(config));
         AnimalFactory factory = new AnimalFactory(registry, fixedProvider);
-        HuntingStrategy strategy = new DefaultHuntingStrategy(matrix);
+        HuntingStrategy strategy = new DefaultHuntingStrategy(config, matrix);
         var executor = Executors.newSingleThreadExecutor();
 
         // 1. Manually trigger world initialization

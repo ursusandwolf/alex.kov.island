@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.island.nature.config.Configuration;
 import com.island.nature.entities.AnimalType;
 import com.island.nature.entities.GenericAnimal;
 import com.island.nature.entities.SpeciesKey;
@@ -15,11 +16,12 @@ import org.junit.jupiter.api.Test;
 
 class CellTest {
     private Cell cell;
-    private final SpeciesRegistry registry = new SpeciesLoader().load();
+    private final Configuration config = new Configuration();
+    private final SpeciesRegistry registry = new SpeciesLoader(config).load();
 
     @BeforeEach
     void setUp() {
-        Island island = new Island(1, 1, registry, new StatisticsService());
+        Island island = new Island(config, 1, 1, registry, new StatisticsService(config));
         cell = new Cell(0, 0, island);
     }
 

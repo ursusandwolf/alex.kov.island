@@ -1,7 +1,5 @@
 package com.island.nature.entities;
 
-import static com.island.nature.config.SimulationConstants.SCALE_1M;
-
 import com.island.nature.entities.herbivores.Butterfly;
 import com.island.nature.entities.herbivores.Caterpillar;
 import com.island.nature.entities.plants.Cabbage;
@@ -56,18 +54,20 @@ public class WorldInitializer {
             cell.setTerrainType(TerrainType.MEADOW);
         }
 
+        Island island = (Island) cell.getWorld();
+
         // Initialize biomass containers (Plants, Insects modeled as biomass)
         for (SpeciesKey biomassKey : registry.getAllBiomassKeys()) {
             registry.getBiomassType(biomassKey).ifPresent(type -> {
                 Biomass b;
                 if (biomassKey == SpeciesKey.BUTTERFLY) {
-                    b = new Butterfly(type.getMaxEnergy() * type.getMaxPerCell(), type.getSpeed());
+                    b = new Butterfly(island.getConfiguration(), type.getMaxEnergy() * type.getMaxPerCell(), type.getSpeed());
                 } else if (biomassKey == SpeciesKey.CATERPILLAR) {
-                    b = new Caterpillar(type.getMaxEnergy() * type.getMaxPerCell(), type.getSpeed());
+                    b = new Caterpillar(island.getConfiguration(), type.getMaxEnergy() * type.getMaxPerCell(), type.getSpeed());
                 } else if (biomassKey == SpeciesKey.GRASS) {
-                    b = new Grass(type.getMaxEnergy() * type.getMaxPerCell(), type.getSpeed());
+                    b = new Grass(island.getConfiguration(), type.getMaxEnergy() * type.getMaxPerCell(), type.getSpeed());
                 } else if (biomassKey == SpeciesKey.CABBAGE) {
-                    b = new Cabbage(type.getMaxEnergy() * type.getMaxPerCell(), type.getSpeed());
+                    b = new Cabbage(island.getConfiguration(), type.getMaxEnergy() * type.getMaxPerCell(), type.getSpeed());
                 } else {
                     b = new GenericBiomass(type);
                 }
@@ -88,8 +88,8 @@ public class WorldInitializer {
             // Data-driven settlement for animals (0-100)
             if (random.nextInt(0, 100) < type.getPresenceChance()) {
                 // settlementRate in percent
-                long base = type.getSettlementBase() * 100 / SCALE_1M;
-                long range = type.getSettlementRange() * 100 / SCALE_1M;
+                long base = type.getSettlementBase() * 100 / island.getConfiguration().getScale1M();
+                long range = type.getSettlementRange() * 100 / island.getConfiguration().getScale1M();
                 int settlementPercent = (int) (base + (range > 0 ? random.nextInt(0, (int) range + 1) : 0));
                 
                 int count = (type.getMaxPerCell() * settlementPercent) / 100;                

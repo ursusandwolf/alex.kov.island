@@ -1,7 +1,6 @@
 package com.island.nature.entities;
 
-import static com.island.nature.config.SimulationConstants.SCALE_1M;
-
+import com.island.nature.config.Configuration;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashMap;
@@ -10,6 +9,11 @@ import java.util.Properties;
 
 public class SpeciesLoader {
     private static final String CONFIG_FILE = "species.properties";
+    private final Configuration config;
+
+    public SpeciesLoader(Configuration config) {
+        this.config = config;
+    }
 
     public SpeciesRegistry load() {
         Properties props = new Properties();
@@ -62,7 +66,7 @@ public class SpeciesLoader {
         long settlementBase = toScaledLong(props.getProperty(code + ".settlementBase", "0.1"));
         long settlementRange = toScaledLong(props.getProperty(code + ".settlementRange", "0.1"));
 
-        SizeClass sizeClass = SizeClass.fromWeight((double) weight / SCALE_1M);
+        SizeClass sizeClass = SizeClass.fromWeight((double) weight / config.getScale1M());
         int defaultReproChance = switch (sizeClass) {
             case TINY -> 25;
             case SMALL -> 18;
@@ -102,6 +106,7 @@ public class SpeciesLoader {
         }
         
         AnimalType type = AnimalType.builder()
+                .config(config)
                 .speciesKey(key).typeName(code).weight(weight).maxPerCell(maxCount).speed(speed)
                 .foodForSaturation(food).maxEnergy(food).maxLifespan(lifespan)
                 .huntProbabilities(Collections.unmodifiableMap(preyMap))
@@ -121,7 +126,7 @@ public class SpeciesLoader {
     }
 
     private long toScaledLong(String val) {
-        return (long) (Double.parseDouble(val) * SCALE_1M);
+        return (long) (Double.parseDouble(val) * config.getScale1M());
     }
 
     private int toPercent(String val) {

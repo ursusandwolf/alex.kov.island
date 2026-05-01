@@ -3,6 +3,7 @@ package com.island.nature.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.island.nature.config.Configuration;
 import com.island.nature.entities.Animal;
 import com.island.nature.entities.AnimalFactory;
 import com.island.nature.entities.GenericAnimal;
@@ -16,12 +17,13 @@ import com.island.util.RandomProvider;
 import org.junit.jupiter.api.Test;
 
 class ReproductionServiceTest {
-    private final SpeciesRegistry registry = new SpeciesLoader().load();
+    private final Configuration config = new Configuration();
+    private final SpeciesRegistry registry = new SpeciesLoader(config).load();
     private final AnimalFactory factory = new AnimalFactory(registry, new DefaultRandomProvider());
 
     @Test
     void testReproductionWithMaxEnergy() {
-        Island island = new Island(1, 1, registry, new StatisticsService());
+        Island island = new Island(config, 1, 1, registry, new StatisticsService(config));
         island.setRedBookProtectionEnabled(false);
         Cell cell = island.getCell(0, 0);
         
@@ -48,7 +50,7 @@ class ReproductionServiceTest {
 
     @Test
     void testNoEnergyConsumedWhenNoOffspring() {
-        Island island = new Island(1, 1, registry, new StatisticsService());
+        Island island = new Island(config, 1, 1, registry, new StatisticsService(config));
         island.setRedBookProtectionEnabled(false);
         Cell cell = island.getCell(0, 0);
 

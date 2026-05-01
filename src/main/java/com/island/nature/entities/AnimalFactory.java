@@ -1,7 +1,5 @@
 package com.island.nature.entities;
 
-import static com.island.nature.config.SimulationConstants.SCALE_1M;
-
 import com.island.nature.entities.predators.Bear;
 import com.island.nature.entities.predators.Chameleon;
 import com.island.util.ObjectPool;

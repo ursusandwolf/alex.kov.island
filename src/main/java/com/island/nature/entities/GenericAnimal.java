@@ -1,10 +1,5 @@
 package com.island.nature.entities;
 
-import static com.island.nature.config.SimulationConstants.HERBIVORE_METABOLISM_MODIFIER_BP;
-import static com.island.nature.config.SimulationConstants.HERBIVORE_OFFSPRING_BONUS;
-import static com.island.nature.config.SimulationConstants.REPTILE_METABOLISM_MODIFIER_BP;
-import static com.island.nature.config.SimulationConstants.SCALE_10K;
-
 import com.island.nature.entities.herbivores.Herbivore;
 import com.island.nature.entities.predators.Predator;
 
@@ -19,23 +14,38 @@ public class GenericAnimal extends Animal implements Herbivore, Predator {
     public GenericAnimal(AnimalType type) {
         super(type);
         // If an animal can eat plants, we treat it as a herbivore for metabolic bonuses
-        this.isHerbivore = type.canEat(SpeciesKey.PLANT) 
-                        || type.canEat(SpeciesKey.GRASS) 
+        this.isHerbivore = type.canEat(SpeciesKey.PLANT)
+                        || type.canEat(SpeciesKey.GRASS)
                         || type.canEat(SpeciesKey.CABBAGE);
         this.isColdBlooded = type.isColdBlooded();
     }
 
     @Override
     protected int getSpecialMetabolismModifierBP() {
-        int modifier = isHerbivore ? HERBIVORE_METABOLISM_MODIFIER_BP : SCALE_10K;
+        int modifier = isHerbivore ? config.getHerbivoreMetabolismModifierBP() : config.getScale10K();
         if (isColdBlooded) {
-            modifier = (modifier * REPTILE_METABOLISM_MODIFIER_BP) / SCALE_10K;
+            modifier = (modifier * config.getReptileMetabolismModifierBP()) / config.getScale10K();
         }
         return modifier;
     }
 
     @Override
+    public int getHerbivoreMetabolismModifierBP() {
+        return config.getHerbivoreMetabolismModifierBP();
+    }
+
+    @Override
+    public int getHerbivoreOffspringBonus() {
+        return config.getHerbivoreOffspringBonus();
+    }
+
+    @Override
+    public int getPredatorMetabolismModifierBP() {
+        return config.getScale10K();
+    }
+
+    @Override
     public int getOffspringBonus() {
-        return isHerbivore ? HERBIVORE_OFFSPRING_BONUS : 0;
+        return isHerbivore ? config.getHerbivoreOffspringBonus() : 0;
     }
 }

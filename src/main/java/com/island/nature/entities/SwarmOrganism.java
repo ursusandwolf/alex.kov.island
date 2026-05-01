@@ -1,7 +1,6 @@
 package com.island.nature.entities;
 
-import static com.island.nature.config.SimulationConstants.SCALE_10K;
-
+import com.island.nature.config.Configuration;
 import com.island.engine.SimulationNode;
 import lombok.Getter;
 
@@ -11,9 +10,9 @@ public abstract class SwarmOrganism extends Biomass {
     protected final int metabolismRateBP; 
     protected final int reproductionRateBP; 
 
-    protected SwarmOrganism(String typeName, SpeciesKey speciesKey, long maxBiomass, 
+    protected SwarmOrganism(Configuration config, String typeName, SpeciesKey speciesKey, long maxBiomass, 
                             int speed, int maxAge, int metabolismRateBP, int reproductionRateBP) {
-        super(typeName, speciesKey, maxBiomass, speed);
+        super(config, typeName, speciesKey, maxBiomass, speed);
         this.ageBuckets = new long[maxAge + 1];
         this.metabolismRateBP = metabolismRateBP;
         this.reproductionRateBP = reproductionRateBP;
@@ -36,7 +35,7 @@ public abstract class SwarmOrganism extends Biomass {
 
     protected void applyMetabolism() {
         for (int i = 0; i < ageBuckets.length; i++) {
-            ageBuckets[i] = (ageBuckets[i] * (SCALE_10K - metabolismRateBP)) / SCALE_10K;
+            ageBuckets[i] = (ageBuckets[i] * (config.getScale10K() - metabolismRateBP)) / config.getScale10K();
         }
     }
 

@@ -1,10 +1,6 @@
 package com.island.nature.entities;
 
-import static com.island.nature.config.SimulationConstants.COLD_BLOODED_FEED_INTERVAL;
-import static com.island.nature.config.SimulationConstants.COLD_BLOODED_MOVE_INTERVAL;
-import static com.island.nature.config.SimulationConstants.COLD_BLOODED_REPRO_INTERVAL;
-import static com.island.nature.config.SimulationConstants.SCALE_1M;
-
+import com.island.nature.config.Configuration;
 import com.island.nature.model.TerrainType;
 import java.util.Map;
 import java.util.Set;
@@ -20,6 +16,7 @@ import lombok.Getter;
 @Builder
 @AllArgsConstructor
 public final class AnimalType {
+    private final Configuration config;
     private final SpeciesKey speciesKey;
     private final String typeName;
     private final long weight;
@@ -82,9 +79,9 @@ public final class AnimalType {
             return 1;
         }
         return switch (action) {
-            case MOVE -> COLD_BLOODED_MOVE_INTERVAL;
-            case FEED -> COLD_BLOODED_FEED_INTERVAL;
-            case REPRODUCE -> COLD_BLOODED_REPRO_INTERVAL;
+            case MOVE -> config.getColdBloodedMoveInterval();
+            case FEED -> config.getColdBloodedFeedInterval();
+            case REPRODUCE -> config.getColdBloodedReproInterval();
         };
     }
 }

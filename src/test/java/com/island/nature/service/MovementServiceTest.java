@@ -2,6 +2,7 @@ package com.island.nature.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.island.nature.config.Configuration;
 import com.island.nature.entities.GenericAnimal;
 import com.island.nature.entities.SpeciesKey;
 import com.island.nature.entities.SpeciesLoader;
@@ -16,11 +17,12 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
 class MovementServiceTest {
-    private final SpeciesRegistry registry = new SpeciesLoader().load();
+    private final Configuration config = new Configuration();
+    private final SpeciesRegistry registry = new SpeciesLoader(config).load();
 
     @Test
     void testConcurrentMovement() throws InterruptedException {
-        Island island = new Island(2, 1, registry, new StatisticsService());
+        Island island = new Island(config, 2, 1, registry, new StatisticsService(config));
         Cell cell0 = island.getCell(0, 0);
         
         GenericAnimal wolf = new GenericAnimal(registry.getAnimalType(SpeciesKey.WOLF).orElseThrow());

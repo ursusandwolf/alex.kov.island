@@ -1,7 +1,5 @@
 package com.island.nature.entities;
 
-import static com.island.nature.config.SimulationConstants.SCALE_10K;
-
 import com.island.nature.config.EnergyPolicy;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,7 +12,7 @@ public abstract class Animal extends Organism {
     protected int speedOverride = -1;
 
     protected Animal(AnimalType animalType) {
-        super(animalType.getMaxEnergy(), animalType.getMaxLifespan());
+        super(animalType.getConfig(), animalType.getMaxEnergy(), animalType.getMaxLifespan());
         this.animalType = animalType;
     }
 
@@ -79,7 +77,7 @@ public abstract class Animal extends Organism {
 
     @Override
     protected int getSpecialMetabolismModifierBP() {
-        return SCALE_10K;
+        return config.getScale10K();
     }
 
     public int getOffspringBonus() {

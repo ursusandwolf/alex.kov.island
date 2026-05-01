@@ -1,9 +1,6 @@
 package com.island.nature.service;
 
-import static com.island.nature.config.SimulationConstants.SCALE_10K;
-
 import com.island.nature.config.EnergyPolicy;
-import com.island.nature.config.SimulationConstants;
 import com.island.nature.entities.Animal;
 import com.island.nature.entities.AnimalFactory;
 import com.island.nature.entities.AnimalType;
@@ -38,7 +35,7 @@ public class ReproductionService extends AbstractService {
     public void processCell(Cell cell, int tickCount) {
         List<Animal> candidates = new ArrayList<>();
         int totalAnimalsInCell = cell.getAnimalCount(); 
-        int limit = SimulationConstants.REPRODUCTION_LOD_LIMIT;
+        int limit = config.getReproductionLodLimit();
         
         cell.forEachAnimalSampled(limit, getRandom(), a -> {
             if (shouldAct(a, AnimalType.Action.REPRODUCE, tickCount)) {
@@ -114,8 +111,8 @@ public class ReproductionService extends AbstractService {
 
         if (success) {
             int costBP = EnergyPolicy.REPRODUCTION_COST_BP.getBasisPoints();
-            parent1.consumeEnergy((parent1.getMaxEnergy() * costBP) / SimulationConstants.SCALE_10K);
-            parent2.consumeEnergy((parent2.getMaxEnergy() * costBP) / SimulationConstants.SCALE_10K);
+            parent1.consumeEnergy((parent1.getMaxEnergy() * costBP) / config.getScale10K());
+            parent2.consumeEnergy((parent2.getMaxEnergy() * costBP) / config.getScale10K());
         }
         return success;
     }

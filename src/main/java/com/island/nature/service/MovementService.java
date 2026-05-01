@@ -1,12 +1,6 @@
 package com.island.nature.service;
 
-import static com.island.nature.config.SimulationConstants.BIOMASS_MOVE_CHUNK_BP;
-import static com.island.nature.config.SimulationConstants.ENDANGERED_SPEED_BONUS;
-import static com.island.nature.config.SimulationConstants.SCALE_10K;
-import static com.island.nature.config.SimulationConstants.SPEED_MOVE_COST_STEP_BP;
-
 import com.island.engine.SimulationNode;
-import com.island.nature.config.SimulationConstants;
 import com.island.nature.entities.Animal;
 import com.island.nature.entities.AnimalType;
 import com.island.nature.entities.Biomass;
@@ -40,7 +34,7 @@ public class MovementService extends AbstractService {
 
     public MovementService(NatureRegistry registry, NatureStatistics statistics, BiomassManager biomassManager, 
                            ExecutorService executor, RandomProvider random) {
-        super(null, executor, random);
+        super((com.island.nature.entities.NatureEnvironment) statistics, executor, random);
         this.registry = registry;
         this.statistics = statistics;
         this.biomassManager = biomassManager;
@@ -53,19 +47,19 @@ public class MovementService extends AbstractService {
     }
 
     private void processAnimals(Cell node, int tickCount) {
-        node.forEachAnimalSampled(SimulationConstants.MOVEMENT_LOD_LIMIT, getRandom(), animal -> {
+        node.forEachAnimalSampled(config.getMovementLodLimit(), getRandom(), animal -> {
             if (animal.isAlive()) {
                 if (shouldAct(animal, AnimalType.Action.MOVE, tickCount)) {
                     int speed = animal.getSpeed();
                     if (protectionMap != null && protectionMap.containsKey(animal.getSpeciesKey())) {
-                        speed += ENDANGERED_SPEED_BONUS;
+                        speed += config.getEndangeredSpeedBonus();
                     }
                     
                     if (speed > 0) {
                         SimulationNode<Organism> target = selectTargetNode(node, speed);
                         if (target != node) {
                             if (getWorld().moveEntity(animal, node, target)) {
-                                long moveCost = (animal.getMaxEnergy() * (1 + animal.getSpeed()) * SPEED_MOVE_COST_STEP_BP) / SCALE_10K;
+                                long moveCost = (animal.getMaxEnergy() * (1 + animal.getSpeed()) * config.getSpeedMoveCostStepBP()) / config.getScale10K();
                                 animal.consumeEnergy(moveCost);
                                 if (!animal.isAlive()) {
                                     statistics.reportDeath(animal.getSpeciesKey(), DeathCause.MOVEMENT_EXHAUSTION);
@@ -88,7 +82,7 @@ public class MovementService extends AbstractService {
 
         for (Biomass b : mobile) {
             long totalMass = b.getBiomass();
-            long chunk = (totalMass * BIOMASS_MOVE_CHUNK_BP) / SCALE_10K;
+            long chunk = (totalMass * config.getBiomassMoveChunkBP()) / config.getScale10K();
 
             int direction = getRandom().nextInt(4);
             int dx = 0;

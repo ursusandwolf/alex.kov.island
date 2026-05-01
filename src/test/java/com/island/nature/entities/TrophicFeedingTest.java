@@ -7,6 +7,7 @@ import com.island.nature.model.Cell;
 import com.island.nature.model.Island;
 import com.island.nature.service.FeedingService;
 import com.island.nature.service.StatisticsService;
+import com.island.nature.config.Configuration;
 import com.island.util.DefaultRandomProvider;
 import com.island.util.InteractionMatrix;
 import java.util.concurrent.Executors;
@@ -18,14 +19,15 @@ class TrophicFeedingTest {
     private Cell cell;
     private InteractionMatrix matrix;
     private FeedingService feedingService;
-    private final SpeciesRegistry registry = new SpeciesLoader().load();
+    private final Configuration config = new Configuration();
+    private final SpeciesRegistry registry = new SpeciesLoader(config).load();
 
     @BeforeEach
     void setUp() {
-        island = new Island(1, 1, registry, new StatisticsService());
+        island = new Island(config, 1, 1, registry, new StatisticsService(config));
         cell = island.getCell(0, 0);
         matrix = new InteractionMatrix(registry);
-        HuntingStrategy huntingStrategy = new DefaultHuntingStrategy(matrix);
+        HuntingStrategy huntingStrategy = new DefaultHuntingStrategy(config, matrix);
         AnimalFactory animalFactory = new AnimalFactory(registry, new DefaultRandomProvider());
         feedingService = new FeedingService(island, animalFactory, matrix, registry, huntingStrategy, Executors.newSingleThreadExecutor(), new DefaultRandomProvider());
     }

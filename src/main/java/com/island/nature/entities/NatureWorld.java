@@ -1,5 +1,6 @@
 package com.island.nature.entities;
 
+import com.island.nature.config.Configuration;
 import com.island.engine.SimulationWorld;
 
 /**
@@ -8,4 +9,6 @@ import com.island.engine.SimulationWorld;
  */
 public interface NatureWorld extends SimulationWorld<Organism>, 
         NatureRegistry, NatureStatistics, NatureEnvironment, BiomassManager {
+    @Override
+    Configuration getConfiguration();
 }

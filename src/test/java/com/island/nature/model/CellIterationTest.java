@@ -10,6 +10,7 @@ import com.island.nature.entities.SpeciesKey;
 import com.island.nature.entities.SpeciesLoader;
 import com.island.nature.entities.SpeciesRegistry;
 import com.island.nature.service.StatisticsService;
+import com.island.nature.config.Configuration;
 import com.island.util.DefaultRandomProvider;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,8 +26,9 @@ class CellIterationTest {
 
     @BeforeEach
     void setUp() {
-        registry = new SpeciesLoader().load();
-        Island island = new Island(1, 1, registry, new StatisticsService());
+        Configuration config = new Configuration();
+        registry = new SpeciesLoader(config).load();
+        Island island = new Island(config, 1, 1, registry, new StatisticsService(config));
         cell = new Cell(0, 0, island);
         factory = new AnimalFactory(registry, new DefaultRandomProvider());
     }

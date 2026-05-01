@@ -1,7 +1,5 @@
 package com.island.nature.entities.predators;
 
-import static com.island.nature.config.SimulationConstants.SCALE_10K;
-
 import com.island.nature.entities.AnimalType;
 import com.island.nature.entities.herbivores.Herbivore;
 
@@ -19,7 +17,17 @@ public class Bear extends AbstractPredator implements Herbivore {
     @Override
     protected int getSpecialMetabolismModifierBP() {
         // Combines predator and herbivore modifiers
-        return (getPredatorMetabolismModifierBP() * getHerbivoreMetabolismModifierBP()) / SCALE_10K;
+        return (getPredatorMetabolismModifierBP() * getHerbivoreMetabolismModifierBP()) / config.getScale10K();
+    }
+
+    @Override
+    public int getHerbivoreMetabolismModifierBP() {
+        return config.getHerbivoreMetabolismModifierBP();
+    }
+
+    @Override
+    public int getHerbivoreOffspringBonus() {
+        return config.getHerbivoreOffspringBonus();
     }
 
     @Override

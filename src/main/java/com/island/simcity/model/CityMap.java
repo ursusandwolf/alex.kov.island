@@ -44,6 +44,11 @@ public class CityMap implements SimulationWorld<SimEntity> {
         }
     }
 
+    @Override
+    public Object getConfiguration() {
+        return null; // SimCity doesn't use Configuration yet
+    }
+
     public synchronized void addMoney(long amount) {
         this.money += amount;
     }

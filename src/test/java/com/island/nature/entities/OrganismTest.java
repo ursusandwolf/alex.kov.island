@@ -1,18 +1,20 @@
 package com.island.nature.entities;
 
-import static com.island.nature.config.SimulationConstants.SCALE_1M;
+import com.island.nature.config.Configuration;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 class OrganismTest {
 
-    private static class TestOrganism extends Organism {
-        protected TestOrganism(long maxEnergy, int maxLifespan) {
-            super(maxEnergy, maxLifespan);
+    private final Configuration config = new Configuration();
+
+    private class TestOrganism extends Organism {
+        protected TestOrganism(Configuration config, long maxEnergy, int maxLifespan) {
+            super(config, maxEnergy, maxLifespan);
         }
 
         @Override
@@ -29,13 +31,13 @@ class OrganismTest {
     @Test
     @DisplayName("Energy should be scaled by 1,000_000 and handle precision")
     void testEnergyScaling() {
-        long maxEnergy = 50 * SCALE_1M;
-        Organism organism = new TestOrganism(maxEnergy, 10);
+        long maxEnergy = 50 * config.getScale1M();
+        Organism organism = new TestOrganism(config, maxEnergy, 10);
         
         // Initial energy is 50% of max by default (BIRTH_INITIAL factor is 0.5)
         assertEquals(maxEnergy / 2, organism.getCurrentEnergy());
         
-        long val = (long) (10.555555 * SCALE_1M);
+        long val = (long) (10.555555 * config.getScale1M());
         organism.setEnergy(val);
         assertEquals(val, organism.getCurrentEnergy());
     }
@@ -43,10 +45,10 @@ class OrganismTest {
     @Test
     @DisplayName("Energy consumption should be thread-safe and precise")
     void testEnergyConsumption() {
-        Organism organism = new TestOrganism(100 * SCALE_1M, 10);
-        organism.setEnergy(10 * SCALE_1M);
+        Organism organism = new TestOrganism(config, 100 * config.getScale1M(), 10);
+        organism.setEnergy(10 * config.getScale1M());
         
-        boolean stillAlive = organism.tryConsumeEnergy((long) (9.999999 * SCALE_1M));
+        boolean stillAlive = organism.tryConsumeEnergy((long) (9.999999 * config.getScale1M()));
         assertTrue(stillAlive);
         assertEquals(1, organism.getCurrentEnergy()); // 1 micro-unit left
         
@@ -58,8 +60,8 @@ class OrganismTest {
     @Test
     @DisplayName("Energy should not exceed maxEnergy")
     void testMaxEnergyLimit() {
-        Organism organism = new TestOrganism(100 * SCALE_1M, 10);
-        organism.addEnergy(50 * SCALE_1M); 
-        assertEquals(100 * SCALE_1M, organism.getCurrentEnergy());
+        Organism organism = new TestOrganism(config, 100 * config.getScale1M(), 10);
+        organism.addEnergy(50 * config.getScale1M()); 
+        assertEquals(100 * config.getScale1M(), organism.getCurrentEnergy());
     }
 }

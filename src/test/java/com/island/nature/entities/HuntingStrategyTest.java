@@ -8,6 +8,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.island.util.InteractionMatrix;
+import com.island.nature.config.Configuration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -19,8 +20,9 @@ class HuntingStrategyTest {
 
     @BeforeEach
     void setUp() {
+        Configuration config = new Configuration();
         matrix = mock(InteractionMatrix.class);
-        strategy = new DefaultHuntingStrategy(matrix);
+        strategy = new DefaultHuntingStrategy(config, matrix);
         
         wolf = mock(Animal.class);
         when(wolf.getSpeciesKey()).thenReturn(SpeciesKey.WOLF);

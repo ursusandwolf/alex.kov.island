@@ -1,7 +1,6 @@
 package com.island.nature.service;
 
-import static com.island.nature.config.SimulationConstants.SCALE_1M;
-
+import com.island.nature.config.Configuration;
 import com.island.nature.entities.DeathCause;
 import com.island.nature.entities.NatureWorld;
 import com.island.nature.entities.Organism;
@@ -21,6 +20,7 @@ import lombok.Getter;
  * Biomass is tracked as long (SCALE_1M).
  */
 public class StatisticsService {
+    private final Configuration config;
     @Getter
     private final Map<SpeciesKey, AtomicInteger> speciesCounts = new ConcurrentHashMap<>();
     private final Map<SpeciesKey, LongAdder> biomassMass = new ConcurrentHashMap<>();
@@ -31,7 +31,8 @@ public class StatisticsService {
     @Getter
     private volatile SimulationMetrics latestMetrics = SimulationMetrics.empty();
 
-    public StatisticsService() {
+    public StatisticsService(Configuration config) {
+        this.config = config;
         for (DeathCause cause : DeathCause.values()) {
             tickDeathStats.put(cause, new ConcurrentHashMap<>());
             totalDeathStats.put(cause, new ConcurrentHashMap<>());
@@ -79,7 +80,7 @@ public class StatisticsService {
         int animalCount = (count != null) ? Math.max(0, count.get()) : 0;
         
         LongAdder biomass = biomassMass.get(key);
-        int mass = (biomass != null) ? (int) Math.max(0, biomass.sum() / SCALE_1M) : 0;
+        int mass = (biomass != null) ? (int) Math.max(0, biomass.sum() / config.getScale1M()) : 0;
         
         return animalCount + mass;
     }
@@ -94,7 +95,7 @@ public class StatisticsService {
 
     public int getTotalPopulation() {
         int animals = speciesCounts.values().stream().mapToInt(AtomicInteger::get).map(c -> Math.max(0, c)).sum();
-        int biomass = (int) (biomassMass.values().stream().mapToLong(LongAdder::sum).map(l -> Math.max(0, l)).sum() / SCALE_1M);
+        int biomass = (int) (biomassMass.values().stream().mapToLong(LongAdder::sum).map(l -> Math.max(0, l)).sum() / config.getScale1M());
         return animals + biomass;
     }
 
@@ -106,7 +107,7 @@ public class StatisticsService {
             }
         });
         biomassMass.forEach((k, v) -> {
-            int mass = (int) (v.sum() / SCALE_1M);
+            int mass = (int) (v.sum() / config.getScale1M());
             if (mass > 0) {
                 counts.merge(k, mass, Integer::sum);
             }

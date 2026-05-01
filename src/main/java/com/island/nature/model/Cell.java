@@ -1,7 +1,6 @@
 package com.island.nature.model;
 
-import static com.island.nature.config.SimulationConstants.SCALE_1M;
-
+import com.island.nature.config.Configuration;
 import com.island.nature.entities.Animal;
 import com.island.nature.entities.AnimalType;
 import com.island.nature.entities.Biomass;
@@ -20,19 +19,26 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 @Getter
-@RequiredArgsConstructor
 public class Cell implements SimulationNode<Organism> {
     private final int x;
     private final int y;
     private final SimulationWorld<Organism> world;
+    private final Configuration config;
     @Setter private TerrainType terrainType = TerrainType.MEADOW;
-    private final EntityContainer container = new EntityContainer();
+    private final EntityContainer container;
     private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
     private List<SimulationNode<Organism>> cachedNeighbors = Collections.emptyList();
+
+    public Cell(int x, int y, SimulationWorld<Organism> world) {
+        this.x = x;
+        this.y = y;
+        this.world = world;
+        this.config = (Configuration) world.getConfiguration();
+        this.container = new EntityContainer(config);
+    }
 
     @Override
     public Lock getLock() {
@@ -373,7 +379,7 @@ public class Cell implements SimulationNode<Organism> {
             for (Biomass b : container.getAllBiomass()) {
                 total += b.getBiomass();
             }
-            return (int) (total / SCALE_1M);
+            return (int) (total / config.getScale1M());
         } finally {
             rwLock.readLock().unlock();
         }

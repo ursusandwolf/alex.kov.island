@@ -6,6 +6,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
+import com.island.nature.config.Configuration;
 import com.island.nature.entities.Animal;
 import com.island.nature.entities.AnimalFactory;
 import com.island.nature.entities.AnimalType;
@@ -42,6 +43,7 @@ class FeedingMechanicsTest {
     private SpeciesRegistry registry;
     private InteractionProvider matrix;
     private AnimalFactory animalFactory;
+    private final Configuration config = new Configuration();
 
     @Mock
     private NatureWorld world;
@@ -53,10 +55,10 @@ class FeedingMechanicsTest {
 
     @BeforeEach
     void setUp() {
-        registry = new SpeciesLoader().load();
+        registry = new SpeciesLoader(config).load();
         matrix = InteractionMatrix.buildFrom(registry);
         animalFactory = new AnimalFactory(registry, random);
-        HuntingStrategy strategy = new DefaultHuntingStrategy(matrix);
+        HuntingStrategy strategy = new DefaultHuntingStrategy(config, matrix);
         
         feedingService = new FeedingService(world, animalFactory, matrix, registry, strategy, Executors.newSingleThreadExecutor(), random);
         cell = new Cell(0, 0, world);

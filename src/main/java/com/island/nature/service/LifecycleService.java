@@ -1,6 +1,5 @@
 package com.island.nature.service;
 
-import com.island.nature.config.SimulationConstants;
 import com.island.nature.entities.Animal;
 import com.island.nature.entities.Biomass;
 import com.island.nature.entities.DeathCause;
@@ -44,7 +43,7 @@ public class LifecycleService extends AbstractService {
 
     private void processAging(Cell node) {
         Season season = environment.getCurrentSeason();
-        int seasonMetabolismModifierBP = (int) (season.getMetabolismModifier() * SimulationConstants.SCALE_10K);
+        int seasonMetabolismModifierBP = (int) (season.getMetabolismModifier() * config.getScale10K());
 
         node.forEachAnimal(a -> {
             if (a.isAlive()) {
@@ -52,16 +51,16 @@ public class LifecycleService extends AbstractService {
                 long metabolism = a.getDynamicMetabolismRate();
                 
                 // Season global modifier
-                metabolism = (metabolism * seasonMetabolismModifierBP) / SimulationConstants.SCALE_10K;
+                metabolism = (metabolism * seasonMetabolismModifierBP) / config.getScale10K();
 
                 // Hibernation: drastically reduce metabolism for cold-blooded in Winter
                 if (season == Season.WINTER && a.getAnimalType().isColdBlooded()) {
-                    metabolism = (metabolism * SimulationConstants.HIBERNATION_METABOLISM_MODIFIER_BP) / SimulationConstants.SCALE_10K;
+                    metabolism = (metabolism * config.getHibernationMetabolismModifierBP()) / config.getScale10K();
                 }
 
                 // Endangered protection: reduce metabolism if protected
                 if (protectionMap != null && protectionMap.containsKey(a.getSpeciesKey())) {
-                    metabolism = (metabolism * (SimulationConstants.SCALE_10K - 5000)) / SimulationConstants.SCALE_10K;
+                    metabolism = (metabolism * (config.getScale10K() - 5000)) / config.getScale10K();
                 }
 
                 if (!a.tryConsumeEnergy(metabolism)) {

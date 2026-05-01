@@ -1,9 +1,6 @@
 package com.island.nature.entities;
 
-import static com.island.nature.config.SimulationConstants.PLANT_GROWTH_RATE_BP;
-import static com.island.nature.config.SimulationConstants.PLANT_INITIAL_BIOMASS_BP;
-import static com.island.nature.config.SimulationConstants.SCALE_10K;
-
+import com.island.nature.config.Configuration;
 import com.island.engine.SimulationNode;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,12 +19,12 @@ public abstract class Biomass extends Organism {
     protected final long maxBiomass;
     protected final int speed;
 
-    protected Biomass(String typeName, SpeciesKey speciesKey, long maxBiomass, int speed) {
-        super(1L, 0, PLANT_INITIAL_BIOMASS_BP / 100); 
+    protected Biomass(Configuration config, String typeName, SpeciesKey speciesKey, long maxBiomass, int speed) {
+        super(config, 1L, 0, config.getPlantInitialBiomassBP() / 100); 
         this.typeName = typeName;
         this.speciesKey = speciesKey;
         this.maxBiomass = maxBiomass;
-        this.biomass = (maxBiomass * PLANT_INITIAL_BIOMASS_BP) / SCALE_10K; 
+        this.biomass = (maxBiomass * config.getPlantInitialBiomassBP()) / config.getScale10K(); 
         this.speed = speed;
     }
 
@@ -47,7 +44,7 @@ public abstract class Biomass extends Organism {
 
     public void grow(SimulationNode<Organism> node, double growthModifier) {
         long old = biomass;
-        long growth = (maxBiomass * PLANT_GROWTH_RATE_BP) / SCALE_10K;
+        long growth = (maxBiomass * config.getPlantGrowthRateBP()) / config.getScale10K();
         growth = (long) (growth * growthModifier);
         biomass = Math.min(maxBiomass, biomass + growth);
         reportChange(node, biomass - old);

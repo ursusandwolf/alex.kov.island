@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.3.0] - 2026-05-01
+### Added
+- **Configuration Injection**: Introduced `Configuration` object injection across all Nature entities and services, enabling multi-instance simulations and thread-safe parameter management.
+
+### Changed
+- **Eliminated Static Constants**: Refactored `Organism`, `Animal`, `Biomass`, `Cell`, `Island`, and all services to accept configuration parameters instead of relying on static imports from `SimulationConstants`.
+- **Refined Animal Inheritance**: Updated `Animal`, `GenericAnimal`, `Bear`, and `Chameleon` to correctly implement `Herbivore` and `Predator` interfaces with dynamic metabolism modifiers.
+- **Service Decoupling**: Fully decoupled `FeedingService`, `MovementService`, `ReproductionService`, and `LifecycleService` from global state.
+
+### Improved
+- **Test Coverage & Stability**: Updated the entire test suite (33+ compilation errors fixed) to support dependency injection and verified consistency with parallel execution.
+- **File Integrity**: Fixed several corrupted source files that contained trailing repeated code blocks.
+- **Code Quality**: Resolved 10+ Checkstyle violations related to naming conventions and control flow structures.
+
 ## [1.2.0] - 2026-05-01
 ### Added
 - **ISP-driven Interfaces**: Created `NatureRegistry`, `NatureStatistics`, `NatureEnvironment`, and `BiomassManager` to decompose the `NatureWorld` God Object.

@@ -1,10 +1,5 @@
 package com.island.nature.entities.predators;
 
-import static com.island.nature.config.SimulationConstants.HERBIVORE_METABOLISM_MODIFIER_BP;
-import static com.island.nature.config.SimulationConstants.HERBIVORE_OFFSPRING_BONUS;
-import static com.island.nature.config.SimulationConstants.REPTILE_METABOLISM_MODIFIER_BP;
-import static com.island.nature.config.SimulationConstants.SCALE_10K;
-
 import com.island.nature.entities.Animal;
 import com.island.nature.entities.AnimalType;
 import com.island.nature.entities.herbivores.Herbivore;
@@ -31,11 +26,21 @@ public class Chameleon extends Animal implements Herbivore {
     @Override
     protected int getSpecialMetabolismModifierBP() {
         // Cumulative bonus: Herbivore * Reptile
-        return (HERBIVORE_METABOLISM_MODIFIER_BP * REPTILE_METABOLISM_MODIFIER_BP) / SCALE_10K;
+        return (config.getHerbivoreMetabolismModifierBP() * config.getReptileMetabolismModifierBP()) / config.getScale10K();
+    }
+
+    @Override
+    public int getHerbivoreMetabolismModifierBP() {
+        return config.getHerbivoreMetabolismModifierBP();
+    }
+
+    @Override
+    public int getHerbivoreOffspringBonus() {
+        return config.getHerbivoreOffspringBonus();
     }
 
     @Override
     public int getOffspringBonus() {
-        return HERBIVORE_OFFSPRING_BONUS;
+        return config.getHerbivoreOffspringBonus();
     }
 }

@@ -1,10 +1,6 @@
 package com.island.nature.entities;
 
-import static com.island.nature.config.SimulationConstants.BASE_METABOLISM_BP;
-import static com.island.nature.config.SimulationConstants.SCALE_10K;
-import static com.island.nature.config.SimulationConstants.SCALE_1M;
-import static com.island.nature.config.SimulationConstants.STARVATION_THRESHOLD_PERCENT;
-
+import com.island.nature.config.Configuration;
 import com.island.nature.config.EnergyPolicy;
 import com.island.engine.Mortal;
 import com.island.util.Poolable;
@@ -16,6 +12,7 @@ import lombok.experimental.NonFinal;
 @Getter
 public abstract class Organism implements Poolable, Mortal {
     private final String id = UUID.randomUUID().toString();
+    protected final Configuration config;
     @NonFinal private volatile long currentEnergy; 
     @NonFinal private long maxEnergy; 
     @NonFinal private int age; 
@@ -23,11 +20,12 @@ public abstract class Organism implements Poolable, Mortal {
     @NonFinal private volatile boolean isAlive;
     private final ReentrantLock energyLock = new ReentrantLock();
 
-    protected Organism(long maxEnergy, int maxLifespan) {
-        this(maxEnergy, maxLifespan, EnergyPolicy.BIRTH_INITIAL.getPercent()); 
+    protected Organism(Configuration config, long maxEnergy, int maxLifespan) {
+        this(config, maxEnergy, maxLifespan, EnergyPolicy.BIRTH_INITIAL.getPercent()); 
     }
 
-    protected Organism(long maxEnergy, int maxLifespan, int initialEnergyPercent) {
+    protected Organism(Configuration config, long maxEnergy, int maxLifespan, int initialEnergyPercent) {
+        this.config = config;
         this.maxEnergy = maxEnergy;
         this.maxLifespan = maxLifespan;
         this.isAlive = true;
@@ -114,22 +112,22 @@ public abstract class Organism implements Poolable, Mortal {
     }
 
     public boolean isStarving() {
-        return getEnergyPercentage() < STARVATION_THRESHOLD_PERCENT;
+        return getEnergyPercentage() < config.getStarvationThresholdPercent();
     }
 
     public long getWeight() {
-        return SCALE_1M; 
+        return config.getScale1M(); 
     }
 
     public long getDynamicMetabolismRate() {
-        SizeClass sizeClass = SizeClass.fromWeight((double) getWeight() / SCALE_1M);
-        long baseMetabolism = (maxEnergy * BASE_METABOLISM_BP) / SCALE_10K;
-        return (baseMetabolism * sizeClass.getMetabolismModifierBP() / SCALE_10K)
-                * getSpecialMetabolismModifierBP() / SCALE_10K;
+        SizeClass sizeClass = SizeClass.fromWeight((double) getWeight() / config.getScale1M());
+        long baseMetabolism = (maxEnergy * config.getBaseMetabolismBP()) / config.getScale10K();
+        return (baseMetabolism * sizeClass.getMetabolismModifierBP() / config.getScale10K())
+                * getSpecialMetabolismModifierBP() / config.getScale10K();
     }
 
     protected int getSpecialMetabolismModifierBP() {
-        return SCALE_10K;
+        return config.getScale10K();
     }
 
     public boolean isHibernating() {

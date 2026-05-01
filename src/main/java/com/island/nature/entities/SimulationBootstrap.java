@@ -20,11 +20,11 @@ public class SimulationBootstrap {
     }
 
     public SimulationContext<Organism> setup(Configuration config) {
-        SpeciesRegistry registry = new SpeciesLoader().load();
-        StatisticsService statisticsService = new StatisticsService();
+        SpeciesRegistry registry = new SpeciesLoader(config).load();
+        StatisticsService statisticsService = new StatisticsService(config);
         RandomProvider random = new DefaultRandomProvider();
 
-        Island island = new Island(config.getIslandWidth(), config.getIslandHeight(), registry, statisticsService);
+        Island island = new Island(config, config.getIslandWidth(), config.getIslandHeight(), registry, statisticsService);
         AnimalFactory animalFactory = new AnimalFactory(registry, random);
 
         int processors = Runtime.getRuntime().availableProcessors();

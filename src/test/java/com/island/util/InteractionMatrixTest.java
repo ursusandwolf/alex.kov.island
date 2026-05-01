@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.island.nature.entities.SpeciesKey;
 import com.island.nature.entities.SpeciesLoader;
 import com.island.nature.entities.SpeciesRegistry;
+import com.island.nature.config.Configuration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -14,7 +15,8 @@ class InteractionMatrixTest {
 
     @BeforeEach
     void setUp() {
-        registry = new SpeciesLoader().load();
+        Configuration config = new Configuration();
+        registry = new SpeciesLoader(config).load();
         matrix = new InteractionMatrix(registry);
     }
 

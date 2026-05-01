@@ -12,6 +12,7 @@ import com.island.nature.entities.SizeClass;
 import com.island.nature.entities.SpeciesKey;
 import com.island.nature.entities.SpeciesLoader;
 import com.island.nature.entities.SpeciesRegistry;
+import com.island.nature.config.Configuration;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -23,8 +24,9 @@ class EntityContainerTest {
 
     @BeforeEach
     void setUp() {
-        container = new EntityContainer();
-        registry = new SpeciesLoader().load();
+        Configuration config = new Configuration();
+        container = new EntityContainer(config);
+        registry = new SpeciesLoader(config).load();
     }
 
     @Test

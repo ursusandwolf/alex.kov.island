@@ -1,18 +1,12 @@
 package com.island.nature.service;
 
-import static com.island.nature.config.SimulationConstants.FEEDING_LOD_LIMIT;
-import static com.island.nature.config.SimulationConstants.HERBIVORE_FAIL_FEED_PENALTY_BP;
-import static com.island.nature.config.SimulationConstants.OVERPOPULATION_HUNT_BONUS_PERCENT;
-import static com.island.nature.config.SimulationConstants.PREDATOR_FAIL_HUNT_PENALTY_BP;
-import static com.island.nature.config.SimulationConstants.SCALE_10K;
-
-import com.island.nature.config.SimulationConstants;
 import com.island.nature.entities.Animal;
 import com.island.nature.entities.AnimalFactory;
 import com.island.nature.entities.AnimalType;
 import com.island.nature.entities.Biomass;
 import com.island.nature.entities.DeathCause;
 import com.island.nature.entities.HuntingStrategy;
+import com.island.nature.entities.NatureEnvironment;
 import com.island.nature.entities.NatureStatistics;
 import com.island.nature.entities.NatureWorld;
 import com.island.nature.entities.Organism;
@@ -35,40 +29,29 @@ public class FeedingService extends AbstractService {
     private final SpeciesRegistry speciesRegistry;
     private final HuntingStrategy huntingStrategy;
     private final NatureStatistics statistics;
-    private final int minPackSize;
 
     public FeedingService(NatureWorld world, AnimalFactory animalFactory, 
                           InteractionProvider interactionMatrix, 
                           SpeciesRegistry speciesRegistry, HuntingStrategy huntingStrategy, 
                           ExecutorService executor, RandomProvider random) {
-        this(world, animalFactory, interactionMatrix, speciesRegistry, huntingStrategy, executor, 
-                SimulationConstants.WOLF_PACK_MIN_SIZE, random);
-    }
-
-    public FeedingService(NatureWorld world, AnimalFactory animalFactory, 
-                          InteractionProvider interactionMatrix, 
-                          SpeciesRegistry speciesRegistry, HuntingStrategy huntingStrategy, 
-                          ExecutorService executor, int minPackSize, RandomProvider random) {
         super(world, executor, random);
         this.animalFactory = animalFactory;
         this.interactionMatrix = interactionMatrix;
         this.speciesRegistry = speciesRegistry;
         this.huntingStrategy = huntingStrategy;
         this.statistics = world;
-        this.minPackSize = minPackSize;
     }
 
     public FeedingService(NatureStatistics statistics, AnimalFactory animalFactory, 
                           InteractionProvider interactionMatrix, 
                           SpeciesRegistry speciesRegistry, HuntingStrategy huntingStrategy, 
-                          ExecutorService executor, int minPackSize, RandomProvider random) {
-        super(null, executor, random);
+                          ExecutorService executor, RandomProvider random) {
+        super((NatureEnvironment) statistics, executor, random);
         this.animalFactory = animalFactory;
         this.interactionMatrix = interactionMatrix;
         this.speciesRegistry = speciesRegistry;
         this.huntingStrategy = huntingStrategy;
         this.statistics = statistics;
-        this.minPackSize = minPackSize;
     }
 
     @Override
@@ -99,7 +82,7 @@ public class FeedingService extends AbstractService {
         }
 
         // Process pack hunters
-        if (packHunters.size() >= minPackSize) {
+        if (packHunters.size() >= config.getWolfPackMinSize()) {
             processPackHunting(packHunters, node);
         } else {
             for (Animal wolf : packHunters) {
@@ -111,7 +94,7 @@ public class FeedingService extends AbstractService {
     }
 
     private void processHerbivores(Cell node, int tickCount) {
-        node.forEachHerbivoreSampled(FEEDING_LOD_LIMIT, getRandom(), herbivore -> {
+        node.forEachHerbivoreSampled(config.getFeedingLodLimit(), getRandom(), herbivore -> {
             if (herbivore.isAlive() && shouldAct(herbivore, AnimalType.Action.FEED, tickCount)) {
                 tryEat(herbivore, node);
             }
@@ -138,7 +121,7 @@ public class FeedingService extends AbstractService {
                     int baseChance = interactionMatrix.getChance(pack.get(0).getSpeciesKey(), a.getSpeciesKey());
                     int packChanceBP = huntingStrategy.calculatePackSuccessRate(pack, a, baseChance);
                     
-                    int roll = getRandom().nextInt(0, SCALE_10K);
+                    int roll = getRandom().nextInt(0, config.getScale10K());
                     if (roll < packChanceBP) {
                         if (node.removeEntity(a)) {
                             a.die();
@@ -156,7 +139,7 @@ public class FeedingService extends AbstractService {
                     } else {
                         // Pack hunt failure - all participants lose energy
                         long strikeCost = huntingStrategy.calculateHuntCost(pack.get(0), a);
-                        long penalty = (strikeCost * PREDATOR_FAIL_HUNT_PENALTY_BP) / SCALE_10K;
+                        long penalty = (strikeCost * config.getPredatorFailHuntPenaltyBP()) / config.getScale10K();
                         for (Animal wolf : pack) {
                             wolf.consumeEnergy(penalty);
                         }
@@ -194,7 +177,7 @@ public class FeedingService extends AbstractService {
                     int chance = interactionMatrix.getChance(consumer.getSpeciesKey(), a.getSpeciesKey());
                     int preyCount = node.getOrganismCount(a.getSpeciesKey());
                     if (preyCount > a.getAnimalType().getMaxPerCell() / 2) {
-                        chance += OVERPOPULATION_HUNT_BONUS_PERCENT; 
+                        chance += config.getOverpopulationHuntBonusPercent(); 
                     }
 
                     if (getRandom().nextInt(0, 100) < chance && node.removeEntity(a)) {
@@ -215,9 +198,9 @@ public class FeedingService extends AbstractService {
         
         if (!success && strikeAttempted) {
             if (consumer.getAnimalType().isPredator()) {
-                consumer.consumeEnergy((consumer.getMaxEnergy() * PREDATOR_FAIL_HUNT_PENALTY_BP) / SCALE_10K);
+                consumer.consumeEnergy((consumer.getMaxEnergy() * config.getPredatorFailHuntPenaltyBP()) / config.getScale10K());
             } else {
-                consumer.consumeEnergy((consumer.getMaxEnergy() * HERBIVORE_FAIL_FEED_PENALTY_BP) / SCALE_10K);
+                consumer.consumeEnergy((consumer.getMaxEnergy() * config.getHerbivoreFailFeedPenaltyBP()) / config.getScale10K());
             }
         }
     }

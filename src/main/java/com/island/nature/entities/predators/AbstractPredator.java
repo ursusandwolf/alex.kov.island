@@ -13,6 +13,11 @@ public abstract class AbstractPredator extends Animal implements Predator {
 
     @Override
     protected int getSpecialMetabolismModifierBP() {
-        return getPredatorMetabolismModifierBP();
+        return config.getScale10K();
+    }
+
+    @Override
+    public int getPredatorMetabolismModifierBP() {
+        return config.getScale10K();
     }
 }

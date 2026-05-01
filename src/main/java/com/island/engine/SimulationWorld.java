@@ -11,6 +11,11 @@ import java.util.Optional;
  */
 public interface SimulationWorld<T extends Mortal> extends Tickable {
     /**
+     * Gets the configuration object for this world.
+     */
+    Object getConfiguration();
+
+    /**
      * Returns "work units" (e.g. chunks) of nodes for parallel processing.
      */
     Collection<? extends Collection<? extends SimulationNode<T>>> getParallelWorkUnits();

@@ -11,6 +11,7 @@ import com.island.nature.entities.SpeciesKey;
 import com.island.nature.entities.SpeciesLoader;
 import com.island.nature.entities.SpeciesRegistry;
 import com.island.nature.entities.herbivores.Caterpillar;
+import com.island.nature.config.Configuration;
 import com.island.nature.model.Cell;
 import com.island.nature.model.Island;
 import com.island.nature.service.FeedingService;
@@ -27,15 +28,16 @@ public class SimulationOptimizationTest {
     private SpeciesRegistry registry;
     private FeedingService feedingService;
     private AnimalFactory animalFactory;
+    private final Configuration config = new Configuration();
 
     @BeforeEach
     void setUp() {
-        registry = new SpeciesLoader().load();
-        island = new Island(1, 1, registry, new StatisticsService());
+        registry = new SpeciesLoader(config).load();
+        island = new Island(config, 1, 1, registry, new StatisticsService(config));
         InteractionMatrix matrix = InteractionMatrix.buildFrom(registry);
         animalFactory = new AnimalFactory(registry, new DefaultRandomProvider());
         feedingService = new FeedingService(island, animalFactory, matrix, registry, 
-                new DefaultHuntingStrategy(matrix), Executors.newSingleThreadExecutor(), new DefaultRandomProvider());
+                new DefaultHuntingStrategy(config, matrix), Executors.newSingleThreadExecutor(), new DefaultRandomProvider());
     }
 
     @Test
@@ -60,7 +62,7 @@ public class SimulationOptimizationTest {
 
         // Tick 3: Should ACT
         // Add a caterpillar (biomass)
-        cell.addBiomass(new Caterpillar(100L * SimulationConstants.SCALE_1M, 0));
+        cell.addBiomass(new Caterpillar(config, 100L * SimulationConstants.SCALE_1M, 0));
         
         feedingService.tick(3);
     }

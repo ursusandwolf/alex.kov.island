@@ -2,6 +2,7 @@ package com.island.engine;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.island.nature.config.Configuration;
 import com.island.nature.entities.AnimalFactory;
 import com.island.nature.entities.SpeciesLoader;
 import com.island.nature.entities.SpeciesRegistry;
@@ -17,8 +18,9 @@ public class WorldInitializationTest {
 
     @Test
     public void testWorldInitializationDensity() {
-        SpeciesRegistry registry = new SpeciesLoader().load();
-        Island island = new Island(16, 16, registry, new StatisticsService());
+        Configuration config = new Configuration();
+        SpeciesRegistry registry = new SpeciesLoader(config).load();
+        Island island = new Island(config, 16, 16, registry, new StatisticsService(config));
         AnimalFactory animalFactory = new AnimalFactory(registry, new DefaultRandomProvider());
         ExecutorService executor = Executors.newSingleThreadExecutor();
         

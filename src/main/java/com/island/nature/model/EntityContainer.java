@@ -1,7 +1,6 @@
 package com.island.nature.model;
 
-import static com.island.nature.config.SimulationConstants.SCALE_1M;
-
+import com.island.nature.config.Configuration;
 import com.island.nature.entities.Animal;
 import com.island.nature.entities.AnimalType;
 import com.island.nature.entities.Biomass;
@@ -19,6 +18,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public class EntityContainer {
+    private final Configuration config;
     private final Map<AnimalType, Set<Animal>> animalsByType = new HashMap<>();
     private final Map<SizeClass, Set<Animal>> animalsBySize = new EnumMap<>(SizeClass.class);
     private final Set<Animal> predators = new LinkedHashSet<>();
@@ -26,6 +26,10 @@ public class EntityContainer {
     private final Map<SpeciesKey, Biomass> biomassBySpecies = new HashMap<>();
     private final Set<Animal> allAnimals = new LinkedHashSet<>();
     private final List<Biomass> allBiomass = new ArrayList<>();
+
+    public EntityContainer(Configuration config) {
+        this.config = config;
+    }
 
     public void addAnimal(Animal animal) {
         AnimalType type = animal.getAnimalType();
@@ -100,7 +104,7 @@ public class EntityContainer {
         }
         Biomass b = biomassBySpecies.get(key);
         if (b != null) {
-            count += (int) (b.getBiomass() / SCALE_1M);
+            count += (int) (b.getBiomass() / config.getScale1M());
         }
         return count;
     }

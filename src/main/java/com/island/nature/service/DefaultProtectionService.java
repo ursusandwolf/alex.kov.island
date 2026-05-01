@@ -1,10 +1,6 @@
 package com.island.nature.service;
 
-import static com.island.nature.config.SimulationConstants.ENDANGERED_MAX_HIDE_CHANCE_PERCENT;
-import static com.island.nature.config.SimulationConstants.ENDANGERED_MIN_HIDE_CHANCE_PERCENT;
-import static com.island.nature.config.SimulationConstants.ENDANGERED_POPULATION_THRESHOLD_BP;
-import static com.island.nature.config.SimulationConstants.SCALE_10K;
-
+import com.island.nature.config.Configuration;
 import com.island.nature.entities.AnimalType;
 import com.island.nature.entities.SpeciesKey;
 import com.island.nature.entities.SpeciesRegistry;
@@ -15,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class DefaultProtectionService implements ProtectionService {
+    private final Configuration config;
     private final SpeciesRegistry registry;
     private final StatisticsService statisticsService;
     private final int worldArea;
@@ -43,12 +40,12 @@ public class DefaultProtectionService implements ProtectionService {
 
             int currentCount = statisticsService.getSpeciesCount(key);
             long globalCapacity = (long) worldArea * type.getMaxPerCell();
-            long threshold = (globalCapacity * ENDANGERED_POPULATION_THRESHOLD_BP) / SCALE_10K; 
+            long threshold = (globalCapacity * config.getEndangeredPopulationThresholdBP()) / config.getScale10K(); 
             
             if (currentCount > 0 && currentCount < threshold) {
                 int ratio1000 = (int) ((currentCount * 1000) / threshold);
-                int diff = ENDANGERED_MAX_HIDE_CHANCE_PERCENT - ENDANGERED_MIN_HIDE_CHANCE_PERCENT;
-                int hideChance = ENDANGERED_MAX_HIDE_CHANCE_PERCENT - (ratio1000 * diff) / 1000;
+                int diff = config.getEndangeredMaxHideChancePercent() - config.getEndangeredMinHideChancePercent();
+                int hideChance = config.getEndangeredMaxHideChancePercent() - (ratio1000 * diff) / 1000;
                 protectionMap.put(key, hideChance);
             }
         }

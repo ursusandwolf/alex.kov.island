@@ -1,6 +1,6 @@
 package com.island.nature.entities;
 
-import com.island.nature.config.SimulationConstants;
+import com.island.nature.config.Configuration;
 import com.island.engine.SimulationNode;
 import com.island.nature.model.Cell;
 import com.island.util.InteractionProvider;
@@ -17,46 +17,43 @@ import java.util.Map;
  */
 public class PreyProvider {
     private final SimulationNode<Organism> node;
+    private final Configuration config;
     private final InteractionProvider matrix;
     private final int currentTick;
-    private final Map<SpeciesKey, Integer> protectionMap; // Chance in percent
-    private final RandomProvider random;
+    private final Map<SpeciesKey, Integer> protectionMap;
     private final boolean isWolfPack;
+    private final RandomProvider random;
 
-    private List<Organism> buffet;
-    private boolean isEatenListChanged = false;
-
-    public PreyProvider(SimulationNode<Organism> node, InteractionProvider matrix, RandomProvider random) {
-        this(node, matrix, 0, Collections.emptyMap(), random);
-    }
-
-    public PreyProvider(SimulationNode<Organism> node, InteractionProvider matrix, int currentTick, 
-                        Map<SpeciesKey, Integer> protectionMap, RandomProvider random) {
+    public PreyProvider(SimulationNode<Organism> node, InteractionProvider matrix, 
+                        int currentTick, Map<SpeciesKey, Integer> protectionMap, RandomProvider random) {
         this(node, matrix, currentTick, protectionMap, false, random);
     }
 
-    public PreyProvider(SimulationNode<Organism> node, InteractionProvider matrix, int tick, 
-                        Map<SpeciesKey, Integer> protectionMap, boolean isWolfPack, RandomProvider random) {
+    public PreyProvider(SimulationNode<Organism> node, InteractionProvider matrix, 
+                        int currentTick, Map<SpeciesKey, Integer> protectionMap, 
+                        boolean isWolfPack, RandomProvider random) {
         this.node = node;
+        this.config = (node instanceof Cell cell) ? cell.getConfig() : null;
         this.matrix = matrix;
-        this.currentTick = tick;
-        this.protectionMap = (protectionMap != null) ? protectionMap : Collections.emptyMap();
+        this.currentTick = currentTick;
+        this.protectionMap = protectionMap;
         this.isWolfPack = isWolfPack;
         this.random = random;
     }
 
     public List<Organism> getPreyFor(Animal predator) {
-        if (buffet == null || isEatenListChanged) {
-            buffet = buildBuffet(predator);
-            isEatenListChanged = false;
-        }
+        List<Organism> buffet = buildBuffet(predator);
+        
+        // Strategy: prefer prey that gives more energy relative to its weight/size
+        buffet.sort(Comparator.comparingLong(Organism::getWeight).reversed());
+        
         return buffet;
     }
 
     private List<Organism> buildBuffet(Animal predator) {
         List<Organism> potential = new ArrayList<>();
         boolean canHuntAsPack = isWolfPack && predator.getAnimalType().isPackHunter();
-        
+
         Map<SpeciesKey, Organism> uniquePrey = new HashMap<>();
 
         if (node instanceof Cell cell) {
@@ -65,8 +62,8 @@ public class PreyProvider {
                 if (a != predator && a.isAlive() && !uniquePrey.containsKey(a.getSpeciesKey())) {
                     int baseChance = matrix.getChance(predator.getSpeciesKey(), a.getSpeciesKey());
                     boolean canHunt = baseChance > 0;
-                    
-                    if (!canHunt && canHuntAsPack && a.getWeight() > 150 * SimulationConstants.SCALE_1M) {
+
+                    if (!canHunt && canHuntAsPack && config != null && a.getWeight() > 150 * config.getScale1M()) {
                         canHunt = true;
                     }
 
@@ -75,7 +72,7 @@ public class PreyProvider {
                     }
                 }
             });
-            
+
             potential.addAll(uniquePrey.values());
 
             // 2. Plants/Biomass
@@ -86,28 +83,16 @@ public class PreyProvider {
                     }
                 }
             });
-        } else {
-            // Fallback for generic node (though in this simulation it's always Cell)
-            node.forEachEntity(e -> {
-                if (e != predator && e.isAlive()) {
-                    if (matrix.getChance(predator.getSpeciesKey(), e.getSpeciesKey()) > 0) {
-                        potential.add(e);
-                    }
-                }
-            });
         }
-
-        // Sort by ROI (weight * probability) descending
-        potential.sort(Comparator.comparingLong((Organism o) -> {
-            long weight = o instanceof Biomass b ? b.getBiomass() : o.getWeight();
-            int chance = matrix.getChance(predator.getSpeciesKey(), o.getSpeciesKey());
-            return weight * (long) chance;
-        }).reversed());
-
+        
+        Collections.shuffle(potential);
         return potential;
     }
 
     private boolean isPlantProtected(Biomass plant) {
+        if (protectionMap == null) {
+            return false;
+        }
         Integer hideChance = protectionMap.get(plant.getSpeciesKey());
         return hideChance != null && random.nextInt(0, 100) < hideChance;
     }

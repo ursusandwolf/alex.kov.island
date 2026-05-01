@@ -1,5 +1,6 @@
 package com.island.nature.model;
 
+import com.island.nature.config.Configuration;
 import com.island.nature.entities.Animal;
 import com.island.nature.entities.AnimalType;
 import com.island.nature.entities.Biomass;
@@ -27,6 +28,7 @@ import lombok.Setter;
 
 @Getter
 public class Island implements NatureWorld {
+    private final Configuration config;
     private final int width;
     private final int height;
     private final Cell[][] grid;
@@ -38,12 +40,13 @@ public class Island implements NatureWorld {
     @Setter private boolean redBookProtectionEnabled = true;
     private Season currentSeason = Season.SPRING;
 
-    public Island(int width, int height, SpeciesRegistry registry, StatisticsService statisticsService) {
+    public Island(Configuration config, int width, int height, SpeciesRegistry registry, StatisticsService statisticsService) {
+        this.config = config;
         this.width = width;
         this.height = height;
         this.registry = registry;
         this.statisticsService = statisticsService;
-        this.protectionService = new DefaultProtectionService(registry, statisticsService, width * height);
+        this.protectionService = new DefaultProtectionService(config, registry, statisticsService, width * height);
         this.grid = new Cell[width][height];
         initializeGrid();
         partitionIntoChunks();
@@ -69,6 +72,11 @@ public class Island implements NatureWorld {
                 cell.setNeighbors(neighbors);
             }
         }
+    }
+
+    @Override
+    public Configuration getConfiguration() {
+        return config;
     }
 
     public Map<SpeciesKey, Integer> getProtectionMap() {

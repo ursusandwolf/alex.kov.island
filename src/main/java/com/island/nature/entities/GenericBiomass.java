@@ -7,6 +7,6 @@ import com.island.nature.model.Cell;
  */
 public class GenericBiomass extends Biomass {
     public GenericBiomass(AnimalType type) {
-        super(type.getTypeName(), type.getSpeciesKey(), type.getMaxEnergy() * type.getMaxPerCell(), type.getSpeed());
+        super(type.getConfig(), type.getTypeName(), type.getSpeciesKey(), type.getMaxEnergy() * type.getMaxPerCell(), type.getSpeed());
     }
 }

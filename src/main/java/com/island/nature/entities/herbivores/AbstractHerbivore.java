@@ -13,11 +13,21 @@ public abstract class AbstractHerbivore extends Animal implements Herbivore {
 
     @Override
     protected int getSpecialMetabolismModifierBP() {
-        return getHerbivoreMetabolismModifierBP();
+        return config.getHerbivoreMetabolismModifierBP();
+    }
+
+    @Override
+    public int getHerbivoreMetabolismModifierBP() {
+        return config.getHerbivoreMetabolismModifierBP();
     }
 
     @Override
     public int getOffspringBonus() {
-        return getHerbivoreOffspringBonus();
+        return config.getHerbivoreOffspringBonus();
+    }
+
+    @Override
+    public int getHerbivoreOffspringBonus() {
+        return config.getHerbivoreOffspringBonus();
     }
 }

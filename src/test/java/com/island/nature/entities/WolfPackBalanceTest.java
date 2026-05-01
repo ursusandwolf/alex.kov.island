@@ -1,7 +1,6 @@
 package com.island.nature.entities;
 
-import static com.island.nature.config.SimulationConstants.SCALE_1M;
-
+import com.island.nature.config.Configuration;
 import com.island.nature.entities.predators.Bear;
 import com.island.nature.model.Cell;
 import com.island.nature.model.Island;
@@ -18,16 +17,17 @@ class WolfPackBalanceTest {
 
     @Test
     void compareSoloVsPackPerformanceAndBalance() {
-        SpeciesRegistry registry = new SpeciesLoader().load();
+        Configuration config = new Configuration();
+        SpeciesRegistry registry = new SpeciesLoader(config).load();
         
         System.out.println("\n=== WOLF PACK BALANCE & PERFORMANCE REPORT ===");
         
         // Warmup to stabilize JIT
-        runSimulation(registry, true, 1);
-        runSimulation(registry, false, 1);
+        runSimulation(registry, true, 1, config);
+        runSimulation(registry, false, 1, config);
 
-        long packTime = runSimulation(registry, true, 100); 
-        long soloTime = runSimulation(registry, false, 100);
+        long packTime = runSimulation(registry, true, 100, config); 
+        long soloTime = runSimulation(registry, false, 100, config);
 
         System.out.println("Pack Hunting (avg): " + (packTime / 100) + " ns");
         System.out.println("Solo Hunting (avg): " + (soloTime / 100) + " ns");
@@ -36,8 +36,9 @@ class WolfPackBalanceTest {
         System.out.println("Speedup factor: " + String.format("%.2f", speedup) + "x");
     }
 
-    private long runSimulation(SpeciesRegistry registry, boolean usePack, int iterations) {
-        Island island = new Island(1, 1, registry, new StatisticsService());
+    private long runSimulation(SpeciesRegistry registry, boolean usePack, int iterations, Configuration config) {
+        config.setWolfPackMinSize(usePack ? 3 : 1000);
+        Island island = new Island(config, 1, 1, registry, new StatisticsService(config));
         island.setRedBookProtectionEnabled(false);
         Cell cell = island.getCell(0, 0);
         InteractionMatrix matrix = InteractionMatrix.buildFrom(registry);
@@ -56,11 +57,10 @@ class WolfPackBalanceTest {
             cell.addAnimal(bear);
         }
 
-        HuntingStrategy huntingStrategy = new DefaultHuntingStrategy(matrix);
-        int testMinPackSize = usePack ? 3 : 1000;
+        HuntingStrategy huntingStrategy = new DefaultHuntingStrategy(config, matrix);
         AnimalFactory animalFactory = new AnimalFactory(registry, new DefaultRandomProvider());
         FeedingService service = new FeedingService(island, animalFactory, matrix, registry, huntingStrategy, 
-                                            Executors.newSingleThreadExecutor(), testMinPackSize, new DefaultRandomProvider());
+                                            Executors.newSingleThreadExecutor(), new DefaultRandomProvider());
 
         long totalTime = 0;
         int lastSurvivors = 0;
@@ -80,7 +80,7 @@ class WolfPackBalanceTest {
                 }
             }
             lastSurvivors = survivors;
-            lastAvgEnergy = survivors > 0 ? ((double) totalEnergy / survivors / SCALE_1M) : 0;
+            lastAvgEnergy = survivors > 0 ? ((double) totalEnergy / survivors / config.getScale1M()) : 0;
         }
 
         if (iterations == 100) {

@@ -1,27 +1,90 @@
 package com.island.nature.config;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.io.InputStream;
 import java.util.Properties;
 
 /**
- * Loads and provides access to general simulation parameters.
+ * Loads and provides access to simulation parameters.
+ * Replaces static constants from SimulationConstants to allow multi-instance simulations.
  */
+@Getter
+@Setter
 public class Configuration {
-    private int islandWidth = 10;
-    private int islandHeight = 10;
+    // Island dimensions
+    private int islandWidth = 8;
+    private int islandHeight = 8;
     private int tickDurationMs = 100;
 
-    public int getIslandWidth() {
-        return islandWidth;
-    }
+    // Scaling factors
+    private long scale1M = 1_000_000L;
+    private int scale10K = 10_000;
 
-    public int getIslandHeight() {
-        return islandHeight;
-    }
+    // Movement and Hunting costs (Basis Points)
+    private int speedMoveCostStepBP = 100;
+    private int preyRelativeSpeedHuntCostStepBP = 500;
+    private int baseMetabolismBP = 100;
 
-    public int getTickDurationMs() {
-        return tickDurationMs;
-    }
+    // Metabolism modifiers (Basis Points)
+    private int herbivoreMetabolismModifierBP = 5000;
+    private int reptileMetabolismModifierBP = 4000;
+    private int hibernationMetabolismModifierBP = 1000;
+
+    // Hunting Logic (Basis Points and Percentages)
+    private int huntStrikeCostPreyWeightBP = 1000;
+    private int huntStrikeCostMaxEnergyCapBP = 50;
+    private int huntRoiThresholdBP = 11000;
+    private int predatorFailHuntPenaltyBP = 500;
+    private int herbivoreFailFeedPenaltyBP = 300;
+    private int overpopulationHuntBonusPercent = 15;
+
+    // Pack Hunting
+    private int wolfPackMinSize = 3;
+    private int wolfPackMaxBonusPercent = 30;
+    private int wolfPackBearHuntMaxChancePercent = 30;
+
+    // Fatigue
+    private int huntFatigueThreshold = 5;
+    private int huntFatigueCostModifierBP = 13000;
+
+    // Performance / LOD limits
+    private int feedingLodLimit = 500;
+    private int reproductionLodLimit = 30;
+    private int movementLodLimit = 100;
+
+    // Vital signs
+    private long deathEnergyThreshold = 1L;
+    private int starvationThresholdPercent = 30;
+    private int reproductionMinEnergyPercent = 50;
+
+    // Endangered species protection
+    private int endangeredPopulationThresholdBP = 500;
+    private int endangeredReproBonusBP = 2000;
+    private int endangeredSpeedBonus = 2;
+    private int endangeredMaxHideChancePercent = 60;
+    private int endangeredMinHideChancePercent = 30;
+
+    // Plant and Biomass
+    private int herbivoreOffspringBonus = 1;
+    private int plantInitialBiomassBP = 8000;
+    private int plantGrowthRateBP = 8000;
+    private int biomassMoveChunkBP = 2500;
+
+    // Specialized species rates
+    private int caterpillarMetabolismRateBP = 500;
+    private int caterpillarFeedEfficiencyBP = 10000;
+    private int butterflyReproductionRateBP = 1000;
+
+    // Cold-blooded intervals
+    private int coldBloodedMoveInterval = 2;
+    private int coldBloodedFeedInterval = 3;
+    private int coldBloodedReproInterval = 4;
+
+    // Default chances
+    private int defaultPredatorPresenceChance = 20;
+    private int defaultHerbivorePresenceChance = 50;
 
     public static Configuration load() {
         Configuration config = new Configuration();
@@ -31,13 +94,14 @@ public class Configuration {
                 props.load(is);
             }
         } catch (Exception e) {
-            System.err.println("Error loading configuration, using defaults: " + e.getMessage());
+            // Keep defaults
         }
-        
-        // System properties have priority
-        config.islandWidth = getIntProperty(props, "island.width", 8);
-        config.islandHeight = getIntProperty(props, "island.height", 8);
-        config.tickDurationMs = getIntProperty(props, "island.tickDurationMs", 100);
+
+        config.islandWidth = getIntProperty(props, "island.width", config.islandWidth);
+        config.islandHeight = getIntProperty(props, "island.height", config.islandHeight);
+        config.tickDurationMs = getIntProperty(props, "island.tickDurationMs", config.tickDurationMs);
+
+        // Load other properties if needed...
         
         return config;
     }
