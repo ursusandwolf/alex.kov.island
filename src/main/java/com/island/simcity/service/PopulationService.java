@@ -10,7 +10,12 @@ import com.island.simcity.model.CityTile;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class PopulationService implements CellService<SimEntity> {
+    private final CityMap map;
     private final AtomicInteger totalPopulation = new AtomicInteger(0);
+
+    public PopulationService(CityMap map) {
+        this.map = map;
+    }
 
     @Override
     public void beforeTick(int tickCount) {
@@ -80,14 +85,14 @@ public class PopulationService implements CellService<SimEntity> {
 
         // Migration in (growth)
         if (hasResidential && cellPopulation < 5) {
-            // Check if city is attractive
+            // Check if city is attractive and there is demand
             boolean attractive = node.getEntities().stream()
                     .filter(e -> e instanceof Resident)
                     .map(e -> (Resident) e)
                     .mapToInt(Resident::getHappiness)
                     .average().orElse(100.0) > 40;
                 
-            if (attractive) {
+            if (attractive && map.getResDemand() > 0) {
                 node.addEntity(new Resident());
             }
         }

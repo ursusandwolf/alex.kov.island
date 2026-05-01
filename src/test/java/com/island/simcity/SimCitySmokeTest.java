@@ -15,7 +15,7 @@ public class SimCitySmokeTest {
     void testCityGrowthAndEconomy() {
         // 1. Setup
         CityMap map = new CityMap(5, 5);
-        PopulationService popService = new PopulationService();
+        PopulationService popService = new PopulationService(map);
         EconomyService economyService = new EconomyService(map);
 
         GameLoop<SimEntity> gameLoop = new GameLoop<>(0, 1);

@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class EconomyService implements CellService<SimEntity> {
     private final CityMap map;
     private final AtomicLong tickIncome = new AtomicLong(0);
+    private final AtomicLong tickExpenses = new AtomicLong(0);
 
     public EconomyService(CityMap map) {
         this.map = map;
@@ -20,32 +21,46 @@ public class EconomyService implements CellService<SimEntity> {
     @Override
     public void beforeTick(int tickCount) {
         tickIncome.set(0);
+        tickExpenses.set(0);
     }
 
     @Override
     public void processCell(SimulationNode<SimEntity> node, int tickCount) {
         CityTile tile = (CityTile) node;
-        if (!tile.isConnected()) {
-            return;
-        }
-        
         long cellIncome = 0;
+        long cellExpenses = 0;
+
         for (SimEntity entity : node.getEntities()) {
-            if (entity instanceof Resident) {
-                cellIncome += 10; // Tax per resident
-            } else if (entity instanceof Building building) {
-                if (building.getType() == Building.Type.COMMERCIAL) {
-                    cellIncome += 50; // Commercial income
-                } else if (building.getType() == Building.Type.INDUSTRIAL) {
-                    cellIncome += 100; // Industrial income
+            if (entity instanceof Building building) {
+                // Maintenance costs (always applied if building exists)
+                cellExpenses += switch (building.getType()) {
+                    case ROAD -> 2;
+                    case RESIDENTIAL -> 5;
+                    case COMMERCIAL -> 20;
+                    case INDUSTRIAL -> 50;
+                };
+
+                // Income (only if connected)
+                if (tile.isConnected()) {
+                    if (building.getType() == Building.Type.COMMERCIAL) {
+                        cellIncome += 100;
+                    } else if (building.getType() == Building.Type.INDUSTRIAL) {
+                        cellIncome += 200;
+                    }
                 }
+            } else if (entity instanceof Resident && tile.isConnected()) {
+                cellIncome += 15; // Tax per resident
             }
         }
+        
         tickIncome.addAndGet(cellIncome);
+        tickExpenses.addAndGet(cellExpenses);
     }
 
     @Override
     public void afterTick(int tickCount) {
-        map.addMoney(tickIncome.get());
+        map.setLastTickIncome(tickIncome.get());
+        map.setLastTickExpenses(tickExpenses.get());
+        map.addMoney(tickIncome.get() - tickExpenses.get());
     }
 }

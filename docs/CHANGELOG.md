@@ -8,10 +8,11 @@
   - **Models**: Created `CityMap` and `CityTile` as spatial implementations of `SimulationWorld` and `SimulationNode`.
   - **Services**:
     - `ConnectivityService`: Uses BFS to calculate road network connectivity from a city entrance.
-    - `PopulationService`: Manages resident lifecycle, aging, and migration (attraction/repulsion based on happiness).
-    - `EconomyService`: Handles tax collection and commercial/industrial income from connected tiles.
+    - `PopulationService`: Manages resident lifecycle, aging, and migration (attraction/repulsion based on happiness and global demand).
+    - `EconomyService`: Handles tax collection and commercial/industrial income, while enforcing maintenance costs for all infrastructure.
+    - `CityAnalyticsService`: Aggregates global metrics (Total Jobs, Population) to calculate dynamic RCI (Residential/Commercial/Industrial) Demand.
   - **Happiness Dynamics**: Residents react to environmental factors (pollution from industry, amenities from commerce, and infrastructure access).
-  - **Console Visualization**: Added `CityConsoleView` to render the city map using ASCII symbols (`#`, `R`, `C`, `I`, `.` , `x`).
+  - **Console Visualization**: Enhanced `CityConsoleView` with a financial dashboard, demand bars, and ASCII map rendering.
 - **Plugin Verification**: Added `SimCitySmokeTest` and `SimCityRunnerTest` to ensure long-term stability and demonstrate engine extensibility.
 
 ## [1.5-SNAPSHOT] - 2026-05-01

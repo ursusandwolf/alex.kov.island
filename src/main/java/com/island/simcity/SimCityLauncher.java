@@ -6,6 +6,7 @@ import com.island.simcity.entities.Resident;
 import com.island.simcity.entities.SimEntity;
 import com.island.simcity.model.CityMap;
 import com.island.simcity.model.CityTile;
+import com.island.simcity.service.CityAnalyticsService;
 import com.island.simcity.service.ConnectivityService;
 import com.island.simcity.service.EconomyService;
 import com.island.simcity.service.PopulationService;
@@ -20,17 +21,19 @@ public class SimCityLauncher {
 
         // 2. Initialize Tasks
         ConnectivityService connService = new ConnectivityService(map);
-        PopulationService popService = new PopulationService();
+        CityAnalyticsService analyticsService = new CityAnalyticsService(map);
+        PopulationService popService = new PopulationService(map);
         EconomyService economyService = new EconomyService(map);
         CityConsoleView view = new CityConsoleView();
 
         // 3. Register with GameLoop
         GameLoop<SimEntity> gameLoop = new GameLoop<>(100, 4);
         gameLoop.setWorld(map);
-        gameLoop.addRecurringTask(connService); // Connectivity must run first
-        gameLoop.addRecurringTask(popService);
-        gameLoop.addRecurringTask(economyService);
-        
+        gameLoop.addRecurringTask(connService); // 1. Connectivity
+        gameLoop.addRecurringTask(analyticsService); // 2. Analytics (Demand/Pop/Jobs)
+        gameLoop.addRecurringTask(popService); // 3. Growth/Migration
+        gameLoop.addRecurringTask(economyService); // 4. Taxes/Maintenance
+
         // Cleanup task
         gameLoop.addRecurringTask(t -> {
             for (int x = 0; x < map.getWidth(); x++) {

@@ -9,14 +9,24 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
+@Setter
 public class CityMap implements SimulationWorld<SimEntity> {
     private final int width;
     private final int height;
     private final CityTile[][] grid;
     private long money = 10000;
     private int population = 0;
+    
+    // Global metrics
+    private int totalJobs = 0;
+    private int resDemand = 50;
+    private int comDemand = 50;
+    private int indDemand = 50;
+    private long lastTickIncome = 0;
+    private long lastTickExpenses = 0;
 
     public CityMap(int width, int height) {
         this.width = width;

@@ -9,7 +9,10 @@ import com.island.simcity.model.CityTile;
 public class CityConsoleView {
     public void render(CityMap map, int tick) {
         System.out.println("\n=== CITY DASHBOARD (Tick: " + tick + ") ===");
-        System.out.println("Population: " + getPopulation(map) + " | Money: " + map.getMoney());
+        System.out.printf("Population: %d | Money: %d (%+d)%n", 
+                map.getPopulation(), map.getMoney(), (map.getLastTickIncome() - map.getLastTickExpenses()));
+        System.out.printf("R Demand: %3d | C Demand: %3d | I Demand: %3d%n", 
+                map.getResDemand(), map.getComDemand(), map.getIndDemand());
         System.out.println("Map:");
         
         for (int y = 0; y < map.getHeight(); y++) {
