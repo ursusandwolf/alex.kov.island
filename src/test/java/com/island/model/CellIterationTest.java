@@ -1,5 +1,9 @@
 package com.island.model;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.island.content.Animal;
 import com.island.content.AnimalFactory;
 import com.island.content.SpeciesKey;
@@ -7,15 +11,12 @@ import com.island.content.SpeciesLoader;
 import com.island.content.SpeciesRegistry;
 import com.island.service.StatisticsService;
 import com.island.util.DefaultRandomProvider;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 class CellIterationTest {
     private Cell cell;

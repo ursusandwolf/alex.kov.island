@@ -1,12 +1,13 @@
 package com.island.service;
 
-import com.island.engine.SimulationNode;
+import com.island.config.SimulationConstants;
 import com.island.content.Animal;
 import com.island.content.Biomass;
 import com.island.content.DeathCause;
 import com.island.content.NatureWorld;
 import com.island.content.Organism;
 import com.island.content.Season;
+import com.island.engine.SimulationNode;
 import com.island.model.Cell;
 import com.island.util.RandomProvider;
 import java.util.concurrent.ExecutorService;
@@ -28,7 +29,7 @@ public class LifecycleService extends AbstractService {
 
     private void processAging(Cell node) {
         Season season = getWorld().getCurrentSeason();
-        int seasonMetabolismModifierBP = (int) (season.getMetabolismModifier() * com.island.config.SimulationConstants.SCALE_10K);
+        int seasonMetabolismModifierBP = (int) (season.getMetabolismModifier() * SimulationConstants.SCALE_10K);
 
         node.forEachAnimal(a -> {
             if (a.isAlive()) {
@@ -36,16 +37,16 @@ public class LifecycleService extends AbstractService {
                 long metabolism = a.getDynamicMetabolismRate();
                 
                 // Season global modifier
-                metabolism = (metabolism * seasonMetabolismModifierBP) / com.island.config.SimulationConstants.SCALE_10K;
+                metabolism = (metabolism * seasonMetabolismModifierBP) / SimulationConstants.SCALE_10K;
 
                 // Hibernation: drastically reduce metabolism for cold-blooded in Winter
                 if (season == Season.WINTER && a.getAnimalType().isColdBlooded()) {
-                    metabolism = (metabolism * com.island.config.SimulationConstants.HIBERNATION_METABOLISM_MODIFIER_BP) / com.island.config.SimulationConstants.SCALE_10K;
+                    metabolism = (metabolism * SimulationConstants.HIBERNATION_METABOLISM_MODIFIER_BP) / SimulationConstants.SCALE_10K;
                 }
 
                 // Endangered protection: reduce metabolism if protected
                 if (protectionMap != null && protectionMap.containsKey(a.getSpeciesKey())) {
-                    metabolism = (metabolism * (com.island.config.SimulationConstants.SCALE_10K - 5000)) / com.island.config.SimulationConstants.SCALE_10K;
+                    metabolism = (metabolism * (SimulationConstants.SCALE_10K - 5000)) / SimulationConstants.SCALE_10K;
                 }
 
                 if (!a.tryConsumeEnergy(metabolism)) {

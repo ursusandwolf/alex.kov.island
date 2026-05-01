@@ -1,5 +1,6 @@
 package com.island.view;
 
+import com.island.engine.WorldSnapshot;
 import com.island.model.Island;
 
 /**
@@ -11,7 +12,7 @@ public interface SimulationView {
      * Renders the current state of the simulation.
      * @param snapshot the world snapshot to display
      */
-    void display(com.island.engine.WorldSnapshot snapshot);
+    void display(WorldSnapshot snapshot);
 
     /**
      * Enables or disables silent mode (no output).

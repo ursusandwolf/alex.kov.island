@@ -1,10 +1,11 @@
 package com.island.model;
 
-import com.island.engine.NodeSnapshot;
 import com.island.content.Animal;
+import com.island.content.AnimalType;
 import com.island.content.Biomass;
 import com.island.content.NatureWorld;
 import com.island.content.SpeciesKey;
+import com.island.engine.NodeSnapshot;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -44,7 +45,7 @@ public class CellSnapshot implements NodeSnapshot {
             }
             this.topSpeciesCode = (top != null) ? top.getCode() : null;
             this.isTopSpeciesPlant = top != null && nw.getRegistry().getAnyType(top)
-                    .map(com.island.content.AnimalType::isPlant).orElse(false);
+                    .map(AnimalType::isPlant).orElse(false);
         } else {
             this.topSpeciesCode = null;
             this.isTopSpeciesPlant = false;

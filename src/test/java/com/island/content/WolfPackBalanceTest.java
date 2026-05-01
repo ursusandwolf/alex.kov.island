@@ -1,19 +1,18 @@
 package com.island.content;
 
+import static com.island.config.SimulationConstants.SCALE_1M;
+
+import com.island.content.animals.predators.Bear;
 import com.island.model.Cell;
 import com.island.model.Island;
-import com.island.util.InteractionMatrix;
-import com.island.util.DefaultRandomProvider;
 import com.island.service.FeedingService;
 import com.island.service.StatisticsService;
-import com.island.content.animals.predators.Bear;
-import org.junit.jupiter.api.Test;
-import java.util.concurrent.Executors;
+import com.island.util.DefaultRandomProvider;
+import com.island.util.InteractionMatrix;
 import java.util.ArrayList;
 import java.util.List;
-import static org.junit.jupiter.api.Assertions.*;
-
-import static com.island.config.SimulationConstants.SCALE_1M;
+import java.util.concurrent.Executors;
+import org.junit.jupiter.api.Test;
 
 class WolfPackBalanceTest {
 

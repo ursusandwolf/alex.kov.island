@@ -1,19 +1,21 @@
 package com.island.model;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.island.content.Animal;
 import com.island.content.AnimalType;
 import com.island.content.GenericAnimal;
+import com.island.content.SizeClass;
 import com.island.content.SpeciesKey;
 import com.island.content.SpeciesLoader;
 import com.island.content.SpeciesRegistry;
-import com.island.content.SizeClass;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class EntityContainerTest {
     private EntityContainer container;

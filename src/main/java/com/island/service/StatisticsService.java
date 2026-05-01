@@ -1,11 +1,13 @@
 package com.island.service;
 
+import static com.island.config.SimulationConstants.SCALE_1M;
+
 import com.island.content.DeathCause;
-import com.island.content.SpeciesKey;
-import com.island.content.SimulationMetrics;
-import com.island.engine.SimulationWorld;
-import com.island.content.Organism;
 import com.island.content.NatureWorld;
+import com.island.content.Organism;
+import com.island.content.SimulationMetrics;
+import com.island.content.SpeciesKey;
+import com.island.engine.SimulationWorld;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,8 +15,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.LongAdder;
 import lombok.Getter;
-
-import static com.island.config.SimulationConstants.SCALE_1M;
 
 /**
  * Service responsible for gathering and providing simulation statistics using integer arithmetic.

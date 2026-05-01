@@ -1,5 +1,7 @@
 package com.island.model;
 
+import static com.island.config.SimulationConstants.SCALE_1M;
+
 import com.island.content.Animal;
 import com.island.content.AnimalType;
 import com.island.content.Biomass;
@@ -10,12 +12,11 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.Consumer;
-import static com.island.config.SimulationConstants.SCALE_1M;
 
 public class EntityContainer {
     private final Map<AnimalType, Set<Animal>> animalsByType = new HashMap<>();

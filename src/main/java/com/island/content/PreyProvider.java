@@ -1,5 +1,6 @@
 package com.island.content;
 
+import com.island.config.SimulationConstants;
 import com.island.engine.SimulationNode;
 import com.island.model.Cell;
 import com.island.util.InteractionProvider;
@@ -65,7 +66,7 @@ public class PreyProvider {
                     int baseChance = matrix.getChance(predator.getSpeciesKey(), a.getSpeciesKey());
                     boolean canHunt = baseChance > 0;
                     
-                    if (!canHunt && canHuntAsPack && a.getWeight() > 150 * com.island.config.SimulationConstants.SCALE_1M) {
+                    if (!canHunt && canHuntAsPack && a.getWeight() > 150 * SimulationConstants.SCALE_1M) {
                         canHunt = true;
                     }
 
@@ -98,7 +99,7 @@ public class PreyProvider {
 
         // Sort by ROI (weight * probability) descending
         potential.sort(Comparator.comparingLong((Organism o) -> {
-            long weight = o instanceof Biomass ? ((Biomass) o).getBiomass() : o.getWeight();
+            long weight = o instanceof Biomass b ? b.getBiomass() : o.getWeight();
             int chance = matrix.getChance(predator.getSpeciesKey(), o.getSpeciesKey());
             return weight * (long) chance;
         }).reversed());

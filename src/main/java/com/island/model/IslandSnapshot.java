@@ -1,8 +1,8 @@
 package com.island.model;
 
+import com.island.content.DeathCause;
 import com.island.engine.NodeSnapshot;
 import com.island.engine.WorldSnapshot;
-import com.island.content.DeathCause;
 import java.util.HashMap;
 import java.util.Map;
 

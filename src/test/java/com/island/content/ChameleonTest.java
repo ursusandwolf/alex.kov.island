@@ -1,11 +1,12 @@
 package com.island.content;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static com.island.config.SimulationConstants.SCALE_1M;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.island.content.animals.predators.Chameleon;
-import org.junit.jupiter.api.Test;
+import com.island.util.DefaultRandomProvider;
 import java.util.HashMap;
+import org.junit.jupiter.api.Test;
 
 public class ChameleonTest {
 
@@ -27,7 +28,7 @@ public class ChameleonTest {
                 .settlementRange((long) (0.2 * SCALE_1M))
                 .build();
                 
-        Chameleon chameleon = new Chameleon(type, new com.island.util.DefaultRandomProvider());
+        Chameleon chameleon = new Chameleon(type, new DefaultRandomProvider());
 
         int protectedCount = 0;
         int iterations = 10000;

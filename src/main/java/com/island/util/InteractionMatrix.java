@@ -1,8 +1,8 @@
 package com.island.util;
 
+import com.island.content.AnimalType;
 import com.island.content.SpeciesKey;
 import com.island.content.SpeciesRegistry;
-import com.island.content.AnimalType;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;

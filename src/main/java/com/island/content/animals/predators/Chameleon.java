@@ -1,22 +1,23 @@
 package com.island.content.animals.predators;
 
-import com.island.content.Animal;
-import com.island.content.AnimalType;
-import com.island.content.animals.herbivores.Herbivore;
-
 import static com.island.config.SimulationConstants.HERBIVORE_METABOLISM_MODIFIER_BP;
 import static com.island.config.SimulationConstants.HERBIVORE_OFFSPRING_BONUS;
 import static com.island.config.SimulationConstants.REPTILE_METABOLISM_MODIFIER_BP;
 import static com.island.config.SimulationConstants.SCALE_10K;
+
+import com.island.content.Animal;
+import com.island.content.AnimalType;
+import com.island.content.animals.herbivores.Herbivore;
+import com.island.util.RandomProvider;
 
 /**
  * Chameleon with integer-based arithmetic.
  * 95% invisibility and highly efficient metabolism.
  */
 public class Chameleon extends Animal implements Herbivore {
-    private final com.island.util.RandomProvider random;
+    private final RandomProvider random;
 
-    public Chameleon(AnimalType type, com.island.util.RandomProvider random) {
+    public Chameleon(AnimalType type, RandomProvider random) {
         super(type);
         this.random = random;
     }

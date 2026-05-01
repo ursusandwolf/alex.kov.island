@@ -1,16 +1,17 @@
 package com.island;
 
-import com.island.content.SimulationBootstrap;
-import com.island.engine.SimulationContext;
-import com.island.content.Organism;
-import com.island.model.Island;
-import com.island.content.SpeciesRegistry;
-import com.island.content.SpeciesKey;
-import com.island.content.AnimalType;
-import org.junit.jupiter.api.Test;
-import java.util.Map;
-import static org.junit.jupiter.api.Assertions.*;
 import static com.island.config.SimulationConstants.SCALE_1M;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.island.content.AnimalType;
+import com.island.content.Organism;
+import com.island.content.SimulationBootstrap;
+import com.island.content.SpeciesKey;
+import com.island.content.SpeciesRegistry;
+import com.island.engine.SimulationContext;
+import com.island.model.Island;
+import java.util.Map;
+import org.junit.jupiter.api.Test;
 
 public class StressStabilityTest {
 

@@ -1,17 +1,17 @@
 package com.island.content;
 
-import com.island.model.Cell;
-import com.island.model.Island;
-import com.island.service.StatisticsService;
-import com.island.util.InteractionMatrix;
-import com.island.service.FeedingService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.util.concurrent.Executors;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.island.model.Cell;
+import com.island.model.Island;
+import com.island.service.FeedingService;
+import com.island.service.StatisticsService;
+import com.island.util.DefaultRandomProvider;
+import com.island.util.InteractionMatrix;
+import java.util.concurrent.Executors;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class TrophicFeedingTest {
     private Island island;
@@ -26,8 +26,8 @@ class TrophicFeedingTest {
         cell = island.getCell(0, 0);
         matrix = new InteractionMatrix(registry);
         HuntingStrategy huntingStrategy = new DefaultHuntingStrategy(matrix);
-        AnimalFactory animalFactory = new AnimalFactory(registry, new com.island.util.DefaultRandomProvider());
-        feedingService = new FeedingService(island, animalFactory, matrix, registry, huntingStrategy, Executors.newSingleThreadExecutor(), new com.island.util.DefaultRandomProvider());
+        AnimalFactory animalFactory = new AnimalFactory(registry, new DefaultRandomProvider());
+        feedingService = new FeedingService(island, animalFactory, matrix, registry, huntingStrategy, Executors.newSingleThreadExecutor(), new DefaultRandomProvider());
     }
 
     @Test

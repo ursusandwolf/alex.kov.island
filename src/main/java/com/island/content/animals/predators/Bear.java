@@ -1,8 +1,9 @@
 package com.island.content.animals.predators;
 
 import static com.island.config.SimulationConstants.SCALE_10K;
-import com.island.content.animals.herbivores.Herbivore;
+
 import com.island.content.AnimalType;
+import com.island.content.animals.herbivores.Herbivore;
 
 /**
  * Bear implementation with integer-based metabolism and hibernation logic.

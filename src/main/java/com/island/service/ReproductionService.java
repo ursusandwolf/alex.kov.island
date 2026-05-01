@@ -2,20 +2,22 @@ package com.island.service;
 
 import static com.island.config.SimulationConstants.SCALE_10K;
 
-import com.island.engine.SimulationNode;
+import com.island.config.EnergyPolicy;
+import com.island.config.SimulationConstants;
 import com.island.content.Animal;
 import com.island.content.AnimalFactory;
 import com.island.content.AnimalType;
 import com.island.content.NatureWorld;
 import com.island.content.Organism;
 import com.island.content.SpeciesRegistry;
+import com.island.engine.SimulationNode;
 import com.island.model.Cell;
 import com.island.util.RandomProvider;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.HashSet;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -36,7 +38,7 @@ public class ReproductionService extends AbstractService {
     public void processCell(Cell cell, int tickCount) {
         List<Animal> candidates = new ArrayList<>();
         int totalAnimalsInCell = cell.getAnimalCount(); 
-        int limit = com.island.config.SimulationConstants.REPRODUCTION_LOD_LIMIT;
+        int limit = SimulationConstants.REPRODUCTION_LOD_LIMIT;
         
         cell.forEachAnimalSampled(limit, getRandom(), a -> {
             if (shouldAct(a, AnimalType.Action.REPRODUCE, tickCount)) {
@@ -49,7 +51,7 @@ public class ReproductionService extends AbstractService {
         }
         
         int samplingScale = (totalAnimalsInCell > limit) ? (totalAnimalsInCell / limit) : 1;
-        java.util.Set<Animal> alreadyMated = new java.util.HashSet<>();
+        Set<Animal> alreadyMated = new HashSet<>();
 
         for (int i = 0; i < candidates.size(); i++) {
             Animal a1 = candidates.get(i);
@@ -111,9 +113,9 @@ public class ReproductionService extends AbstractService {
         }
 
         if (success) {
-            int costBP = com.island.config.EnergyPolicy.REPRODUCTION_COST_BP.getBasisPoints();
-            parent1.consumeEnergy((parent1.getMaxEnergy() * costBP) / com.island.config.SimulationConstants.SCALE_10K);
-            parent2.consumeEnergy((parent2.getMaxEnergy() * costBP) / com.island.config.SimulationConstants.SCALE_10K);
+            int costBP = EnergyPolicy.REPRODUCTION_COST_BP.getBasisPoints();
+            parent1.consumeEnergy((parent1.getMaxEnergy() * costBP) / SimulationConstants.SCALE_10K);
+            parent2.consumeEnergy((parent2.getMaxEnergy() * costBP) / SimulationConstants.SCALE_10K);
         }
         return success;
     }

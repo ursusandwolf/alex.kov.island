@@ -1,11 +1,12 @@
 package com.island.content;
 
+import static com.island.config.SimulationConstants.SCALE_1M;
+
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import static com.island.config.SimulationConstants.SCALE_1M;
 
 public class SpeciesLoader {
     private static final String CONFIG_FILE = "species.properties";

@@ -1,5 +1,7 @@
 package com.island.content;
 
+import java.util.List;
+
 /**
  * Strategy for hunting/feeding interactions between organisms using integer arithmetic.
  */
@@ -12,7 +14,7 @@ public interface HuntingStrategy {
     /**
      * Calculates the success rate in basis points (0-10000) for a pack hunt attempt.
      */
-    default int calculatePackSuccessRate(java.util.List<Animal> pack, Organism prey, int baseChancePercent) {
+    default int calculatePackSuccessRate(List<Animal> pack, Organism prey, int baseChancePercent) {
         return baseChancePercent * 100;
     }
 
@@ -34,5 +36,5 @@ public interface HuntingStrategy {
     /**
      * Selects the best prey for a pack of predators.
      */
-    Organism selectPackPrey(java.util.List<Animal> pack, PreyProvider provider);
+    Organism selectPackPrey(List<Animal> pack, PreyProvider provider);
 }

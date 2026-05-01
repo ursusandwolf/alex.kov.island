@@ -1,15 +1,19 @@
 package com.island;
 
-import com.island.content.SpeciesKey;
-import com.island.content.SimulationBootstrap;
-import com.island.engine.SimulationContext;
-import com.island.content.Organism;
-import com.island.engine.GameLoop;
 import com.island.content.DeathCause;
-import org.junit.jupiter.api.Test;
-
-import java.util.*;
+import com.island.content.NatureWorld;
+import com.island.content.Organism;
+import com.island.content.SimulationBootstrap;
+import com.island.content.SpeciesKey;
+import com.island.engine.GameLoop;
+import com.island.engine.SimulationContext;
+import com.island.model.Island;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.jupiter.api.Test;
 
 /**
  * Diagnostic test to identify species that go extinct too often.
@@ -29,13 +33,13 @@ public class ExtinctionBalanceTest {
             SimulationContext<Organism> context = bootstrap.setup();
             GameLoop<Organism> gameLoop = context.getGameLoop();
 
-            Set<SpeciesKey> initiallyPresent = ((com.island.content.NatureWorld) context.getWorld()).getRegistry().getAllAnimalKeys();
+            Set<SpeciesKey> initiallyPresent = ((NatureWorld) context.getWorld()).getRegistry().getAllAnimalKeys();
 
             for (int t = 0; t < MAX_TICKS; t++) {
                 gameLoop.runTick();
             }
 
-            Map<SpeciesKey, Integer> counts = ((com.island.model.Island) context.getWorld()).getSpeciesCounts();
+            Map<SpeciesKey, Integer> counts = ((Island) context.getWorld()).getSpeciesCounts();
             for (SpeciesKey key : initiallyPresent) {
                 if (counts.getOrDefault(key, 0) == 0) {
                     extinctionStats.computeIfAbsent(key, k -> new AtomicInteger(0)).incrementAndGet();

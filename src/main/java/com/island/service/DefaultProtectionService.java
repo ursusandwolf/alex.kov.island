@@ -1,5 +1,10 @@
 package com.island.service;
 
+import static com.island.config.SimulationConstants.ENDANGERED_MAX_HIDE_CHANCE_PERCENT;
+import static com.island.config.SimulationConstants.ENDANGERED_MIN_HIDE_CHANCE_PERCENT;
+import static com.island.config.SimulationConstants.ENDANGERED_POPULATION_THRESHOLD_BP;
+import static com.island.config.SimulationConstants.SCALE_10K;
+
 import com.island.content.AnimalType;
 import com.island.content.SpeciesKey;
 import com.island.content.SpeciesRegistry;
@@ -7,11 +12,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
-
-import static com.island.config.SimulationConstants.ENDANGERED_MAX_HIDE_CHANCE_PERCENT;
-import static com.island.config.SimulationConstants.ENDANGERED_MIN_HIDE_CHANCE_PERCENT;
-import static com.island.config.SimulationConstants.ENDANGERED_POPULATION_THRESHOLD_BP;
-import static com.island.config.SimulationConstants.SCALE_10K;
 
 @RequiredArgsConstructor
 public class DefaultProtectionService implements ProtectionService {

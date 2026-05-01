@@ -8,6 +8,7 @@ import static com.island.config.SimulationConstants.SCALE_10K;
 import static com.island.config.SimulationConstants.SCALE_1M;
 import static com.island.config.SimulationConstants.WOLF_PACK_MAX_BONUS_PERCENT;
 
+import com.island.config.SimulationConstants;
 import com.island.util.InteractionProvider;
 import java.util.List;
 
@@ -33,8 +34,8 @@ public class DefaultHuntingStrategy implements HuntingStrategy {
             bonusBP = Math.max(bonusBP, packBonusBP);
             
             // Special rule for Bear (Apex Predator) - solo chance is 0%, but pack can kill it
-            if (prey.getSpeciesKey().equals(com.island.content.SpeciesKey.BEAR)) {
-                int bearChanceBP = Math.min(com.island.config.SimulationConstants.WOLF_PACK_BEAR_HUNT_MAX_CHANCE_PERCENT, pack.size()) * 100;
+            if (prey.getSpeciesKey().equals(SpeciesKey.BEAR)) {
+                int bearChanceBP = Math.min(SimulationConstants.WOLF_PACK_BEAR_HUNT_MAX_CHANCE_PERCENT, pack.size()) * 100;
                 return Math.max(baseChancePercent * 100, bearChanceBP);
             }
         }

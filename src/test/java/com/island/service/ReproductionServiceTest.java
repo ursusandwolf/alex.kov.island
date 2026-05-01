@@ -1,18 +1,19 @@
 package com.island.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.island.content.Animal;
 import com.island.content.AnimalFactory;
-import com.island.content.SpeciesRegistry;
-import com.island.content.SpeciesLoader;
-import com.island.content.SpeciesKey;
 import com.island.content.GenericAnimal;
+import com.island.content.SpeciesKey;
+import com.island.content.SpeciesLoader;
+import com.island.content.SpeciesRegistry;
 import com.island.model.Cell;
 import com.island.model.Island;
 import com.island.util.DefaultRandomProvider;
+import com.island.util.RandomProvider;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ReproductionServiceTest {
     private final SpeciesRegistry registry = new SpeciesLoader().load();
@@ -52,7 +53,7 @@ class ReproductionServiceTest {
         Cell cell = island.getCell(0, 0);
 
         // Controlled random that always returns 0 for nextInt (meaning 0 offspring)
-        com.island.util.RandomProvider zeroRandom = new com.island.util.RandomProvider() {
+        RandomProvider zeroRandom = new RandomProvider() {
             @Override public int nextInt(int bound) { return 0; }
             @Override public int nextInt(int origin, int bound) { return 0; }
             @Override public long nextLong() { return 0L; }

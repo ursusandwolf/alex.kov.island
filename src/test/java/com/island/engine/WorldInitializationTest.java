@@ -1,18 +1,17 @@
 package com.island.engine;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.island.content.AnimalFactory;
-import com.island.content.SpeciesRegistry;
 import com.island.content.SpeciesLoader;
+import com.island.content.SpeciesRegistry;
 import com.island.content.WorldInitializer;
 import com.island.model.Island;
 import com.island.service.StatisticsService;
 import com.island.util.DefaultRandomProvider;
-import org.junit.jupiter.api.Test;
-
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
 
 public class WorldInitializationTest {
 

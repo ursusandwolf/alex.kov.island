@@ -1,12 +1,12 @@
 package com.island.util;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.island.content.SpeciesKey;
 import com.island.content.SpeciesLoader;
 import com.island.content.SpeciesRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class InteractionMatrixTest {
     private InteractionMatrix matrix;

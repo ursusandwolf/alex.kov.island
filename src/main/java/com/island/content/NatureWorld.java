@@ -1,9 +1,9 @@
 package com.island.content;
 
 import com.island.engine.SimulationWorld;
-import com.island.service.StatisticsService;
-import com.island.service.ProtectionService;
 import com.island.model.Cell;
+import com.island.service.ProtectionService;
+import com.island.service.StatisticsService;
 import java.util.Map;
 
 /**

@@ -1,7 +1,7 @@
 package com.island.config;
 
-import com.island.content.SpeciesRegistry;
 import com.island.content.SpeciesKey;
+import com.island.content.SpeciesRegistry;
 import com.island.util.InteractionMatrix;
 
 /**

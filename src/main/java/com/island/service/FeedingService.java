@@ -1,6 +1,12 @@
 package com.island.service;
 
-import com.island.engine.SimulationNode;
+import static com.island.config.SimulationConstants.FEEDING_LOD_LIMIT;
+import static com.island.config.SimulationConstants.HERBIVORE_FAIL_FEED_PENALTY_BP;
+import static com.island.config.SimulationConstants.OVERPOPULATION_HUNT_BONUS_PERCENT;
+import static com.island.config.SimulationConstants.PREDATOR_FAIL_HUNT_PENALTY_BP;
+import static com.island.config.SimulationConstants.SCALE_10K;
+
+import com.island.config.SimulationConstants;
 import com.island.content.Animal;
 import com.island.content.AnimalFactory;
 import com.island.content.AnimalType;
@@ -12,17 +18,14 @@ import com.island.content.Organism;
 import com.island.content.PreyProvider;
 import com.island.content.SpeciesKey;
 import com.island.content.SpeciesRegistry;
+import com.island.engine.SimulationNode;
 import com.island.model.Cell;
 import com.island.util.InteractionProvider;
 import com.island.util.RandomProvider;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-
-import static com.island.config.SimulationConstants.FEEDING_LOD_LIMIT;
-import static com.island.config.SimulationConstants.HERBIVORE_FAIL_FEED_PENALTY_BP;
-import static com.island.config.SimulationConstants.OVERPOPULATION_HUNT_BONUS_PERCENT;
-import static com.island.config.SimulationConstants.PREDATOR_FAIL_HUNT_PENALTY_BP;
-import static com.island.config.SimulationConstants.SCALE_10K;
 
 /**
  * Service responsible for feeding logic using integer-based arithmetic.
@@ -39,7 +42,7 @@ public class FeedingService extends AbstractService {
                           SpeciesRegistry speciesRegistry, HuntingStrategy huntingStrategy, 
                           ExecutorService executor, RandomProvider random) {
         this(world, animalFactory, interactionMatrix, speciesRegistry, huntingStrategy, executor, 
-                com.island.config.SimulationConstants.WOLF_PACK_MIN_SIZE, random);
+                SimulationConstants.WOLF_PACK_MIN_SIZE, random);
     }
 
     public FeedingService(NatureWorld world, AnimalFactory animalFactory, 
@@ -61,8 +64,8 @@ public class FeedingService extends AbstractService {
     }
 
     private void processPredators(Cell node, int tickCount) {
-        List<Animal> packHunters = new java.util.ArrayList<>();
-        List<Animal> soloHunters = new java.util.ArrayList<>();
+        List<Animal> packHunters = new ArrayList<>();
+        List<Animal> soloHunters = new ArrayList<>();
 
         node.forEachPredator(p -> {
             if (p.getAnimalType().isPackHunter()) {

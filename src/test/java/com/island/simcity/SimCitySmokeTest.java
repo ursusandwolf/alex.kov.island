@@ -1,5 +1,8 @@
 package com.island.simcity;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.island.engine.GameLoop;
 import com.island.simcity.entities.Building;
 import com.island.simcity.entities.SimEntity;
@@ -7,7 +10,6 @@ import com.island.simcity.model.CityMap;
 import com.island.simcity.service.EconomyService;
 import com.island.simcity.service.PopulationService;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 
 public class SimCitySmokeTest {
 

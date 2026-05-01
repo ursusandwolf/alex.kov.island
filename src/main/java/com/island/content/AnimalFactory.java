@@ -1,5 +1,7 @@
 package com.island.content;
 
+import static com.island.config.SimulationConstants.SCALE_1M;
+
 import com.island.content.animals.predators.Bear;
 import com.island.content.animals.predators.Chameleon;
 import com.island.util.ObjectPool;
@@ -9,8 +11,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
-
-import static com.island.config.SimulationConstants.SCALE_1M;
 
 /**
  * Factory for creating animal instances based on SpeciesKey.

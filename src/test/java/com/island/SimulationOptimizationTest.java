@@ -1,24 +1,26 @@
 package com.island;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import com.island.config.SimulationConstants;
 import com.island.content.Animal;
 import com.island.content.AnimalFactory;
+import com.island.content.DefaultHuntingStrategy;
 import com.island.content.SpeciesKey;
 import com.island.content.SpeciesLoader;
 import com.island.content.SpeciesRegistry;
+import com.island.content.animals.herbivores.Caterpillar;
 import com.island.model.Cell;
 import com.island.model.Island;
 import com.island.service.FeedingService;
 import com.island.service.StatisticsService;
 import com.island.util.DefaultRandomProvider;
 import com.island.util.InteractionMatrix;
-import com.island.content.DefaultHuntingStrategy;
+import java.util.concurrent.Executors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import java.util.concurrent.Executors;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 public class SimulationOptimizationTest {
     private Island island;
@@ -58,7 +60,7 @@ public class SimulationOptimizationTest {
 
         // Tick 3: Should ACT
         // Add a caterpillar (biomass)
-        cell.addBiomass(new com.island.content.animals.herbivores.Caterpillar(100L * com.island.config.SimulationConstants.SCALE_1M, 0));
+        cell.addBiomass(new Caterpillar(100L * SimulationConstants.SCALE_1M, 0));
         
         feedingService.tick(3);
     }

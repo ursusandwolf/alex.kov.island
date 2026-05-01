@@ -1,16 +1,16 @@
 package com.island.content;
 
-import java.util.Map;
-import java.util.Set;
-import com.island.model.TerrainType;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.AllArgsConstructor;
-
 import static com.island.config.SimulationConstants.COLD_BLOODED_FEED_INTERVAL;
 import static com.island.config.SimulationConstants.COLD_BLOODED_MOVE_INTERVAL;
 import static com.island.config.SimulationConstants.COLD_BLOODED_REPRO_INTERVAL;
 import static com.island.config.SimulationConstants.SCALE_1M;
+
+import com.island.model.TerrainType;
+import java.util.Map;
+import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
 
 /**
  * Flyweight: common data for a species.

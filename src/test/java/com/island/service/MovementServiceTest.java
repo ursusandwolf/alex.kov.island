@@ -1,20 +1,19 @@
 package com.island.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.island.content.GenericAnimal;
-import com.island.content.SpeciesRegistry;
-import com.island.content.SpeciesLoader;
 import com.island.content.SpeciesKey;
+import com.island.content.SpeciesLoader;
+import com.island.content.SpeciesRegistry;
 import com.island.model.Cell;
 import com.island.model.Island;
 import com.island.util.DefaultRandomProvider;
-import org.junit.jupiter.api.Test;
-
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
 
 class MovementServiceTest {
     private final SpeciesRegistry registry = new SpeciesLoader().load();

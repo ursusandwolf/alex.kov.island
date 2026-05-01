@@ -1,6 +1,7 @@
 package com.island.content;
 
 import static com.island.config.SimulationConstants.SCALE_10K;
+
 import com.island.config.EnergyPolicy;
 import lombok.Getter;
 import lombok.Setter;

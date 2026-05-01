@@ -1,24 +1,24 @@
 package com.island.service;
 
 import static com.island.config.SimulationConstants.BIOMASS_MOVE_CHUNK_BP;
-import static com.island.config.SimulationConstants.SPEED_MOVE_COST_STEP_BP;
 import static com.island.config.SimulationConstants.ENDANGERED_SPEED_BONUS;
 import static com.island.config.SimulationConstants.SCALE_10K;
+import static com.island.config.SimulationConstants.SPEED_MOVE_COST_STEP_BP;
 
-import com.island.engine.SimulationNode;
+import com.island.config.SimulationConstants;
 import com.island.content.Animal;
+import com.island.content.AnimalType;
 import com.island.content.Biomass;
 import com.island.content.DeathCause;
 import com.island.content.NatureWorld;
 import com.island.content.Organism;
 import com.island.content.SpeciesRegistry;
+import com.island.engine.SimulationNode;
+import com.island.model.Cell;
 import com.island.util.RandomProvider;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-
-import com.island.content.AnimalType;
-import com.island.model.Cell;
 
 /**
  * Service responsible for animal and mobile biomass movement using integer arithmetic.
@@ -38,7 +38,7 @@ public class MovementService extends AbstractService {
     }
 
     private void processAnimals(Cell node, int tickCount) {
-        node.forEachAnimalSampled(com.island.config.SimulationConstants.MOVEMENT_LOD_LIMIT, getRandom(), animal -> {
+        node.forEachAnimalSampled(SimulationConstants.MOVEMENT_LOD_LIMIT, getRandom(), animal -> {
             if (animal.isAlive()) {
                 if (shouldAct(animal, AnimalType.Action.MOVE, tickCount)) {
                     int speed = animal.getSpeed();
@@ -64,7 +64,7 @@ public class MovementService extends AbstractService {
     }
 
     private void processMobileBiomass(Cell node) {
-        List<Biomass> mobile = new java.util.ArrayList<>();
+        List<Biomass> mobile = new ArrayList<>();
         node.forEachEntity(e -> {
             if (e instanceof Biomass b && b.isAlive() && b.getSpeed() > 0 && b.getBiomass() > 0) {
                 mobile.add(b);

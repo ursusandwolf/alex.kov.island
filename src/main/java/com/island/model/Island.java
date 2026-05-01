@@ -1,16 +1,19 @@
 package com.island.model;
 
-import com.island.content.Season;
-import com.island.engine.SimulationNode;
-import com.island.engine.SimulationWorld;
-import com.island.engine.WorldSnapshot;
 import com.island.content.Animal;
 import com.island.content.AnimalType;
 import com.island.content.Biomass;
 import com.island.content.DeathCause;
+import com.island.content.NatureWorld;
 import com.island.content.Organism;
-import com.island.content.SpeciesRegistry;
+import com.island.content.Season;
 import com.island.content.SpeciesKey;
+import com.island.content.SpeciesRegistry;
+import com.island.engine.SimulationNode;
+import com.island.engine.SimulationWorld;
+import com.island.engine.WorldSnapshot;
+import com.island.service.DefaultProtectionService;
+import com.island.service.ProtectionService;
 import com.island.service.StatisticsService;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,8 +25,6 @@ import java.util.Optional;
 import lombok.Getter;
 import lombok.Setter;
 
-import com.island.content.NatureWorld;
-
 @Getter
 public class Island implements NatureWorld {
     private final int width;
@@ -32,7 +33,7 @@ public class Island implements NatureWorld {
     private final List<Chunk> chunks = new ArrayList<>();
     private final SpeciesRegistry registry;
     private final StatisticsService statisticsService;
-    private final com.island.service.ProtectionService protectionService;
+    private final ProtectionService protectionService;
     private int tickCount = 0;
     @Setter private boolean redBookProtectionEnabled = true;
     private Season currentSeason = Season.SPRING;
@@ -42,7 +43,7 @@ public class Island implements NatureWorld {
         this.height = height;
         this.registry = registry;
         this.statisticsService = statisticsService;
-        this.protectionService = new com.island.service.DefaultProtectionService(registry, statisticsService, width * height);
+        this.protectionService = new DefaultProtectionService(registry, statisticsService, width * height);
         this.grid = new Cell[width][height];
         initializeGrid();
         partitionIntoChunks();
@@ -102,7 +103,7 @@ public class Island implements NatureWorld {
         return new IslandSnapshot(this);
     }
 
-    public com.island.service.ProtectionService getProtectionService() {
+    public ProtectionService getProtectionService() {
         return protectionService;
     }
 

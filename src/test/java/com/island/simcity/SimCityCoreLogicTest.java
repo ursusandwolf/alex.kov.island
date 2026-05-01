@@ -1,5 +1,9 @@
 package com.island.simcity;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.island.engine.GameLoop;
 import com.island.simcity.entities.Building;
 import com.island.simcity.entities.Resident;
@@ -8,15 +12,12 @@ import com.island.simcity.model.CityMap;
 import com.island.simcity.service.BuildingService;
 import com.island.simcity.service.EconomyService;
 import com.island.simcity.service.PopulationService;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 class SimCityCoreLogicTest {
 

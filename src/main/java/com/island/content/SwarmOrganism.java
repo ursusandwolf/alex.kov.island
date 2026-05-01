@@ -1,7 +1,8 @@
 package com.island.content;
 
-import com.island.engine.SimulationNode;
 import static com.island.config.SimulationConstants.SCALE_10K;
+
+import com.island.engine.SimulationNode;
 import lombok.Getter;
 
 @Getter

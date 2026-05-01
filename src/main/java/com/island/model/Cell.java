@@ -1,13 +1,15 @@
 package com.island.model;
 
-import com.island.engine.SimulationNode;
-import com.island.engine.SimulationWorld;
+import static com.island.config.SimulationConstants.SCALE_1M;
+
 import com.island.content.Animal;
 import com.island.content.AnimalType;
 import com.island.content.Biomass;
 import com.island.content.Organism;
 import com.island.content.SizeClass;
 import com.island.content.SpeciesKey;
+import com.island.engine.SimulationNode;
+import com.island.engine.SimulationWorld;
 import com.island.util.RandomProvider;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,10 +20,8 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.RequiredArgsConstructor;
-
-import static com.island.config.SimulationConstants.SCALE_1M;
+import lombok.Setter;
 
 @Getter
 @RequiredArgsConstructor
@@ -116,20 +116,19 @@ public class Cell implements SimulationNode<Organism> {
 
     @Override
     public boolean addEntity(Organism entity) {
-        if (entity instanceof Animal a) {
-            return addAnimal(a);
-        } else if (entity instanceof Biomass b) {
-            return addBiomass(b);
-        }
-        return false;
+        return switch (entity) {
+            case Animal a -> addAnimal(a);
+            case Biomass b -> addBiomass(b);
+            default -> false;
+        };
     }
 
     @Override
     public boolean removeEntity(Organism entity) {
-        if (entity instanceof Animal a) {
-            return removeAnimal(a);
-        }
-        return false;
+        return switch (entity) {
+            case Animal a -> removeAnimal(a);
+            default -> false;
+        };
     }
 
     public boolean addAnimal(Animal animal) {

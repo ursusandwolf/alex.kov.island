@@ -1,15 +1,17 @@
 package com.island.model;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.island.content.AnimalType;
 import com.island.content.GenericAnimal;
-import com.island.content.SpeciesRegistry;
-import com.island.content.SpeciesLoader;
 import com.island.content.SpeciesKey;
+import com.island.content.SpeciesLoader;
+import com.island.content.SpeciesRegistry;
 import com.island.service.StatisticsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class CellTest {
     private Cell cell;

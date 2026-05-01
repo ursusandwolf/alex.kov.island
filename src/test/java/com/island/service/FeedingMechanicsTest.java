@@ -1,22 +1,30 @@
 package com.island.service;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
+
 import com.island.content.Animal;
 import com.island.content.AnimalFactory;
 import com.island.content.AnimalType;
 import com.island.content.Biomass;
 import com.island.content.DefaultHuntingStrategy;
 import com.island.content.HuntingStrategy;
+import com.island.content.NatureWorld;
+import com.island.content.Organism;
 import com.island.content.SpeciesKey;
 import com.island.content.SpeciesLoader;
 import com.island.content.SpeciesRegistry;
-import com.island.content.Organism;
-import com.island.content.NatureWorld;
 import com.island.engine.SimulationNode;
 import com.island.engine.SimulationWorld;
 import com.island.model.Cell;
 import com.island.util.InteractionMatrix;
 import com.island.util.InteractionProvider;
 import com.island.util.RandomProvider;
+import java.util.Collections;
+import java.util.concurrent.Executors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,15 +33,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-
-import java.util.Collections;
-import java.util.concurrent.Executors;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)

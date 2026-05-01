@@ -1,9 +1,9 @@
 package com.island;
 
+import com.island.content.AnimalType;
 import com.island.content.Organism;
 import com.island.content.SimulationBootstrap;
 import com.island.content.SpeciesKey;
-import com.island.content.AnimalType;
 import com.island.engine.GameLoop;
 import com.island.engine.SimulationContext;
 import com.island.model.Island;

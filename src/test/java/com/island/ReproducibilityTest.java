@@ -1,8 +1,11 @@
 package com.island;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.island.content.AnimalFactory;
 import com.island.content.DefaultHuntingStrategy;
 import com.island.content.HuntingStrategy;
+import com.island.content.SpeciesKey;
 import com.island.content.SpeciesLoader;
 import com.island.content.SpeciesRegistry;
 import com.island.model.Island;
@@ -14,11 +17,8 @@ import com.island.util.DefaultRandomProvider;
 import com.island.util.InteractionMatrix;
 import com.island.util.RandomProvider;
 import com.island.util.RandomUtils;
-import org.junit.jupiter.api.Test;
-
 import java.util.concurrent.Executors;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
 
 class ReproducibilityTest {
 
@@ -61,8 +61,8 @@ class ReproducibilityTest {
 
         // 1. Manually trigger world initialization
         // We'll just add some animals manually to be faster and more controlled
-        island.getCell(0, 0).addAnimal(factory.createAnimal(com.island.content.SpeciesKey.WOLF).orElseThrow());
-        island.getCell(1, 1).addAnimal(factory.createAnimal(com.island.content.SpeciesKey.RABBIT).orElseThrow());
+        island.getCell(0, 0).addAnimal(factory.createAnimal(SpeciesKey.WOLF).orElseThrow());
+        island.getCell(1, 1).addAnimal(factory.createAnimal(SpeciesKey.RABBIT).orElseThrow());
 
         // 2. Run one tick of services
         new LifecycleService(island, executor, fixedProvider).tick(1);

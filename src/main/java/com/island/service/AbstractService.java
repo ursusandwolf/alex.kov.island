@@ -4,12 +4,14 @@ import com.island.content.Animal;
 import com.island.content.AnimalType;
 import com.island.content.NatureWorld;
 import com.island.content.Organism;
-import com.island.content.SpeciesKey;
 import com.island.content.Season;
+import com.island.content.SpeciesKey;
 import com.island.engine.CellService;
 import com.island.engine.SimulationNode;
 import com.island.model.Cell;
 import com.island.util.RandomProvider;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -32,14 +34,14 @@ public abstract class AbstractService implements CellService<Organism, Cell> {
     public void beforeTick(int tickCount) {
         // Shared logic: update protection map once per tick per service
         Map<SpeciesKey, Integer> map = world.getProtectionMap();
-        this.protectionMap = (map != null) ? map : java.util.Collections.emptyMap();
+        this.protectionMap = (map != null) ? map : Collections.emptyMap();
     }
 
     @Override
     public void tick(int tickCount) {
         beforeTick(tickCount);
         // Fallback for direct service usage (e.g. in tests)
-        for (java.util.Collection<? extends SimulationNode<Organism>> unit : world.getParallelWorkUnits()) {
+        for (Collection<? extends SimulationNode<Organism>> unit : world.getParallelWorkUnits()) {
             for (SimulationNode<Organism> node : unit) {
                 if (node instanceof Cell cell) {
                     processCell(cell, tickCount);
