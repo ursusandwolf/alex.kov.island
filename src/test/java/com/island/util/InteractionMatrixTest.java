@@ -2,9 +2,9 @@ package com.island.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.island.content.SpeciesKey;
-import com.island.content.SpeciesLoader;
-import com.island.content.SpeciesRegistry;
+import com.island.nature.entities.SpeciesKey;
+import com.island.nature.entities.SpeciesLoader;
+import com.island.nature.entities.SpeciesRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

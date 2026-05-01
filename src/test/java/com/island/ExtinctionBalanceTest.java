@@ -1,13 +1,13 @@
 package com.island;
 
-import com.island.content.DeathCause;
-import com.island.content.NatureWorld;
-import com.island.content.Organism;
-import com.island.content.SimulationBootstrap;
-import com.island.content.SpeciesKey;
+import com.island.nature.entities.DeathCause;
+import com.island.nature.entities.NatureWorld;
+import com.island.nature.entities.Organism;
+import com.island.nature.entities.SimulationBootstrap;
+import com.island.nature.entities.SpeciesKey;
 import com.island.engine.GameLoop;
 import com.island.engine.SimulationContext;
-import com.island.model.Island;
+import com.island.nature.model.Island;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;

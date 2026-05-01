@@ -1,15 +1,15 @@
 package com.island;
 
-import static com.island.config.SimulationConstants.SCALE_1M;
+import static com.island.nature.config.SimulationConstants.SCALE_1M;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.island.content.AnimalType;
-import com.island.content.Organism;
-import com.island.content.SimulationBootstrap;
-import com.island.content.SpeciesKey;
-import com.island.content.SpeciesRegistry;
+import com.island.nature.entities.AnimalType;
+import com.island.nature.entities.Organism;
+import com.island.nature.entities.SimulationBootstrap;
+import com.island.nature.entities.SpeciesKey;
+import com.island.nature.entities.SpeciesRegistry;
 import com.island.engine.SimulationContext;
-import com.island.model.Island;
+import com.island.nature.model.Island;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 

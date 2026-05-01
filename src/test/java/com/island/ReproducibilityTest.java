@@ -2,17 +2,17 @@ package com.island;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.island.content.AnimalFactory;
-import com.island.content.DefaultHuntingStrategy;
-import com.island.content.HuntingStrategy;
-import com.island.content.SpeciesKey;
-import com.island.content.SpeciesLoader;
-import com.island.content.SpeciesRegistry;
-import com.island.model.Island;
-import com.island.service.FeedingService;
-import com.island.service.LifecycleService;
-import com.island.service.MovementService;
-import com.island.service.StatisticsService;
+import com.island.nature.entities.AnimalFactory;
+import com.island.nature.entities.DefaultHuntingStrategy;
+import com.island.nature.entities.HuntingStrategy;
+import com.island.nature.entities.SpeciesKey;
+import com.island.nature.entities.SpeciesLoader;
+import com.island.nature.entities.SpeciesRegistry;
+import com.island.nature.model.Island;
+import com.island.nature.service.FeedingService;
+import com.island.nature.service.LifecycleService;
+import com.island.nature.service.MovementService;
+import com.island.nature.service.StatisticsService;
 import com.island.util.DefaultRandomProvider;
 import com.island.util.InteractionMatrix;
 import com.island.util.RandomProvider;

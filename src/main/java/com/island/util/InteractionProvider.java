@@ -1,6 +1,6 @@
 package com.island.util;
 
-import com.island.content.SpeciesKey;
+import com.island.nature.entities.SpeciesKey;
 
 /**
  * Strategy/Provider for predator-prey interaction probabilities.

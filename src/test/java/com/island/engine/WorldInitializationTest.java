@@ -2,12 +2,12 @@ package com.island.engine;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.island.content.AnimalFactory;
-import com.island.content.SpeciesLoader;
-import com.island.content.SpeciesRegistry;
-import com.island.content.WorldInitializer;
-import com.island.model.Island;
-import com.island.service.StatisticsService;
+import com.island.nature.entities.AnimalFactory;
+import com.island.nature.entities.SpeciesLoader;
+import com.island.nature.entities.SpeciesRegistry;
+import com.island.nature.entities.WorldInitializer;
+import com.island.nature.model.Island;
+import com.island.nature.service.StatisticsService;
 import com.island.util.DefaultRandomProvider;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

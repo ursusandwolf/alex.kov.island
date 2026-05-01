@@ -1,0 +1,11 @@
+package com.island.nature.entities;
+
+import com.island.engine.SimulationWorld;
+
+/**
+ * Domain-specific extension of SimulationWorld for nature/island simulation.
+ * Aggregates specialized interfaces for modular usage.
+ */
+public interface NatureWorld extends SimulationWorld<Organism>, 
+        NatureRegistry, NatureStatistics, NatureEnvironment, BiomassManager {
+}

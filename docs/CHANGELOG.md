@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.0] - 2026-05-01
+### Added
+- **ISP-driven Interfaces**: Created `NatureRegistry`, `NatureStatistics`, `NatureEnvironment`, and `BiomassManager` to decompose the `NatureWorld` God Object.
+
+### Changed
+- **Nature Plugin Reorganization**: Relocated all Nature-related classes to a unified `com.island.nature.*` package structure (entities, model, service, view, config), aligning it with the `simcity` plugin architecture.
+- **Service Refactoring**: Updated `LifecycleService`, `MovementService`, and `FeedingService` to use narrow interfaces, reducing coupling and improving modularity.
+- **Renamed Nature Launcher**: Moved and renamed `MainNature.java` to `com.island.nature.NatureLauncher.java`.
+
+### Improved
+- **Architectural Clarity**: Improved project structure by separating core engine logic from domain-specific plugin implementations.
+
 ## [1.1.0] - 2026-05-01
 ### Added
 - **SimCity MVP**: Implemented a functional city simulation prototype.

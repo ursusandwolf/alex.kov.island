@@ -1,7 +1,7 @@
 package com.island.engine;
 
 import com.island.util.RandomProvider;
-import com.island.view.SimulationView;
+import com.island.nature.view.SimulationView;
 
 /**
  * Context that holds all major components of a running simulation.
