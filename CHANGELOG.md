@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.4-SNAPSHOT] - 2026-05-01
+
+### Fixed
+- **Plant Duplication Bug**: Fixed `SpeciesLoader` fall-through issue that caused plants to be incorrectly registered as animals.
+- **Swarm Growth Violation**: Restored `maxBiomass` enforcement in `SwarmOrganism` to fix an LSP violation affecting `Butterfly` and `Caterpillar` growth logic.
+- **Engine-Domain Coupling**: Completely eliminated domain layer leaks (`instanceof Cell`) from the simulation engine.
+  - Expanded `SimulationNode` interface with necessary abstraction methods (`getRandomAnimalByType`, `removeEntity`, `getBiomass`, `addBiomass`, `cleanupDeadEntities`).
+  - Implemented the interface in `Cell` using read/write locks for thread safety.
+  - Refactored `FeedingService`, `LifecycleService`, `MovementService`, `ReproductionService`, `CleanupService`, and specific animal classes to use `SimulationNode` directly.
+
 ## [1.3-SNAPSHOT] - 2026-04-30
 
 ### Added

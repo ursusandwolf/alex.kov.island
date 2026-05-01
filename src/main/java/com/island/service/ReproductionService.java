@@ -9,7 +9,6 @@ import com.island.content.Animal;
 import com.island.content.AnimalFactory;
 import com.island.content.AnimalType;
 import com.island.content.SpeciesRegistry;
-import com.island.model.Cell;
 import com.island.util.RandomProvider;
 import java.util.ArrayList;
 import java.util.List;

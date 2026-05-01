@@ -50,14 +50,12 @@ public class Butterfly extends SwarmOrganism {
             long offspringBiomass = (biomass * reproductionRateBP) / SCALE_10K;
             consumeBiomass(offspringBiomass, node);
 
-            if (node instanceof Cell cell) {
-                Caterpillar c = (Caterpillar) cell.getBiomass(SpeciesKey.CATERPILLAR);
-                if (c == null) {
-                    c = new Caterpillar(0, 0);
-                    cell.addBiomass(c);
-                }
-                c.spawn(offspringBiomass);
+            Caterpillar c = (Caterpillar) node.getBiomass(SpeciesKey.CATERPILLAR);
+            if (c == null) {
+                c = new Caterpillar(0, 0);
+                node.addBiomass(c);
             }
+            c.spawn(offspringBiomass);
         }
     }
 }

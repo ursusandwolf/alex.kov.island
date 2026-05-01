@@ -96,4 +96,24 @@ public interface SimulationNode {
      * Removes an entity from this node.
      */
     boolean removeEntity(Mortal entity);
+
+    /**
+     * Gets a random animal of a specific type from this node.
+     */
+    com.island.content.Animal getRandomAnimalByType(com.island.content.AnimalType type, com.island.util.RandomProvider random);
+
+    /**
+     * Cleans up dead entities in this node and calls the provided action for each removed animal.
+     */
+    void cleanupDeadEntities(java.util.function.Consumer<com.island.content.Animal> onAnimalRemoved);
+
+    /**
+     * Gets the biomass container for the specified species key.
+     */
+    com.island.content.Biomass getBiomass(com.island.content.SpeciesKey key);
+
+    /**
+     * Adds a biomass container to the node.
+     */
+    boolean addBiomass(com.island.content.Biomass b);
 }

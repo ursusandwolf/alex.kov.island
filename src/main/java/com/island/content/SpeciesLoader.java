@@ -113,6 +113,7 @@ public class SpeciesLoader {
         
         if (isPlant || isBiomass) {
             biomassTypes.put(key, type);
+            return;
         } else {
             animalTypes.put(key, type);
         }

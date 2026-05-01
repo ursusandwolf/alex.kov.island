@@ -424,4 +424,14 @@ public class Cell implements SimulationNode {
             rwLock.readLock().unlock();
         }
     }
+
+    @Override
+    public void cleanupDeadEntities(Consumer<Animal> onAnimalRemoved) {
+        rwLock.writeLock().lock();
+        try {
+            container.removeDeadAnimals(onAnimalRemoved);
+        } finally {
+            rwLock.writeLock().unlock();
+        }
+    }
 }

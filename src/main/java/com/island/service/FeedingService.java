@@ -116,7 +116,7 @@ public class FeedingService extends AbstractService<SimulationNode> {
             attempts++;
             Organism preyCandidate = huntingStrategy.selectPackPrey(pack, packPreyProvider);
             if (preyCandidate instanceof Animal aCandidate) {
-                Animal a = findActualPrey(node, aCandidate.getSpeciesKey());
+                Animal a = findActualPrey(node, aCandidate.getSpeciesKey(), pack.get(0));
                 if (a != null && a.isAlive() && !isProtected(a)) {
                     int baseChance = interactionMatrix.getChance(pack.get(0).getSpeciesKey(), a.getSpeciesKey());
                     int packChanceBP = huntingStrategy.calculatePackSuccessRate(pack, a, baseChance);
@@ -172,7 +172,7 @@ public class FeedingService extends AbstractService<SimulationNode> {
             strikeAttempted = true;
             if (preyCandidate instanceof Animal aCandidate) {
                 // Pick a random alive animal of this species from the cell to avoid collision with other predators
-                Animal a = findActualPrey(node, aCandidate.getSpeciesKey());
+                Animal a = findActualPrey(node, aCandidate.getSpeciesKey(), consumer);
                 if (a != null && a.isAlive() && !isProtected(a)) {
                     int chance = interactionMatrix.getChance(consumer.getSpeciesKey(), a.getSpeciesKey());
                     int preyCount = node.getOrganismCount(a.getSpeciesKey());
@@ -205,14 +205,22 @@ public class FeedingService extends AbstractService<SimulationNode> {
         }
     }
 
-    private Animal findActualPrey(SimulationNode node, SpeciesKey speciesKey) {
-        if (node instanceof Cell cell) {
-            AnimalType type = speciesRegistry.getAnimalType(speciesKey).orElse(null);
-            if (type == null) {
+    private Animal findActualPrey(SimulationNode node, SpeciesKey speciesKey, Animal consumer) {
+        AnimalType type = speciesRegistry.getAnimalType(speciesKey).orElse(null);
+        if (type == null) {
+            return null;
+        }
+        Animal candidate = node.getRandomAnimalByType(type, getRandom());
+        if (candidate == consumer) {
+            // Try to find another one if possible. A simple fallback is to iterate, but for performance
+            // we'll just check if it's the only one.
+            if (node.getOrganismCount(speciesKey) <= 1) {
                 return null;
             }
-            return cell.getRandomAnimalByType(type, getRandom());
+            // For simplicity in this engine, if it picked itself, we just abort this attempt.
+            // A more robust solution would be to pick from a list excluding the consumer.
+            return null;
         }
-        return null;
+        return candidate;
     }
 }

@@ -68,9 +68,15 @@ public abstract class SwarmOrganism extends Biomass {
     @Override
     public void addBiomass(long amount, SimulationNode node) {
         if (amount > 0) {
-            ageBuckets[0] += amount;
-            updateTotalBiomass();
-            reportChange(node, amount);
+            long newTotal = getBiomass() + amount;
+            if (maxBiomass > 0 && newTotal > maxBiomass) {
+                amount = maxBiomass - getBiomass();
+            }
+            if (amount > 0) {
+                ageBuckets[0] += amount;
+                updateTotalBiomass();
+                reportChange(node, amount);
+            }
         }
     }
 

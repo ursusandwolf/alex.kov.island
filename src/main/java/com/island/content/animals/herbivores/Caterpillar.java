@@ -51,14 +51,12 @@ public class Caterpillar extends SwarmOrganism {
             ageBuckets[ageBuckets.length - 1] = 0;
             updateTotalBiomass();
 
-            if (node instanceof Cell cell) {
-                Butterfly b = (Butterfly) cell.getBiomass(SpeciesKey.BUTTERFLY);
-                if (b == null) {
-                    b = new Butterfly(0, 0);
-                    cell.addBiomass(b);
-                }
-                b.spawn(readyToTransform);
+            Butterfly b = (Butterfly) node.getBiomass(SpeciesKey.BUTTERFLY);
+            if (b == null) {
+                b = new Butterfly(0, 0);
+                node.addBiomass(b);
             }
+            b.spawn(readyToTransform);
         }
     }
 }

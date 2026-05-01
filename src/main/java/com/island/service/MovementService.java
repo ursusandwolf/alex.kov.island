@@ -11,7 +11,6 @@ import com.island.content.Animal;
 import com.island.content.Biomass;
 import com.island.content.DeathCause;
 import com.island.content.SpeciesRegistry;
-import com.island.model.Cell;
 import com.island.util.RandomProvider;
 import java.util.List;
 import java.util.concurrent.ExecutorService;

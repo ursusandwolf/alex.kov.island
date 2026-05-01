@@ -66,6 +66,8 @@ class LifecycleServiceTest {
         given(animal.getAnimalType()).willReturn(wolfType);
         given(animal.getMaxPerCell()).willReturn(wolfType.getMaxPerCell());
         given(animal.getSpeciesKey()).willReturn(SpeciesKey.WOLF);
+        
+        given(world.getCurrentSeason()).willReturn(com.island.engine.Season.SUMMER);
     }
 
     @Test
