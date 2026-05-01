@@ -28,7 +28,7 @@ public abstract class AbstractService<N extends SimulationNode> implements CellS
     @Override
     public void beforeTick(int tickCount) {
         // Shared logic: update protection map once per tick per service
-        Map<SpeciesKey, Integer> map = world.getProtectionMap(null);
+        Map<SpeciesKey, Integer> map = world.getProtectionMap();
         this.protectionMap = (map != null) ? map : java.util.Collections.emptyMap();
     }
 

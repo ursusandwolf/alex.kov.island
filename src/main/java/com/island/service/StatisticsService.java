@@ -46,7 +46,7 @@ public class StatisticsService {
     public void registerRemoval(SpeciesKey speciesKey) {
         AtomicInteger count = speciesCounts.get(speciesKey);
         if (count != null) {
-            count.decrementAndGet();
+            count.updateAndGet(v -> Math.max(0, v - 1));
         }
     }
 

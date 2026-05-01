@@ -68,7 +68,7 @@ public class Island implements SimulationWorld {
     }
 
     @Override
-    public Map<SpeciesKey, Integer> getProtectionMap(SpeciesRegistry passedRegistry) {
+    public Map<SpeciesKey, Integer> getProtectionMap() {
         if (!redBookProtectionEnabled) {
             return Collections.emptyMap();
         }

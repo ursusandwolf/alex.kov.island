@@ -20,6 +20,7 @@ public class GameLoop {
     private volatile boolean running = false;
     private int tickCount = 0;
     private SimulationWorld world;
+    private Thread loopThread;
 
     public GameLoop(long tickDurationMs, int threadCount) {
         this.tickDurationMs = tickDurationMs;
@@ -43,7 +44,8 @@ public class GameLoop {
             return;
         }
         running = true;
-        new Thread(this::run).start();
+        loopThread = new Thread(this::run);
+        loopThread.start();
     }
 
     public void stop() {
@@ -51,7 +53,15 @@ public class GameLoop {
             return;
         }
         running = false;
-        taskExecutor.shutdown();
+        if (loopThread != null) {
+            loopThread.interrupt();
+            try {
+                loopThread.join(2000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        taskExecutor.shutdownNow();
     }
 
     public boolean isRunning() {

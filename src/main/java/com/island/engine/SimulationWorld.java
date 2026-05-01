@@ -76,7 +76,7 @@ public interface SimulationWorld extends Tickable {
      * Gets a map of species-specific protection chances (0-100 percent).
      * Delegated to ProtectionService.
      */
-    default Map<SpeciesKey, Integer> getProtectionMap(SpeciesRegistry registry) {
+    default Map<SpeciesKey, Integer> getProtectionMap() {
         return getProtectionService().getProtectionModifiers();
     }
 
