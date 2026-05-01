@@ -142,13 +142,7 @@ public class EntityContainer {
         allBiomass.add(b);
     }
 
-    public boolean removeBiomass(Biomass b) {
-        if (biomassBySpecies.remove(b.getSpeciesKey()) != null) {
-            allBiomass.remove(b);
-            return true;
-        }
-        return false;
-    }
+
 
     public Biomass getBiomass(SpeciesKey key) {
         return biomassBySpecies.get(key);

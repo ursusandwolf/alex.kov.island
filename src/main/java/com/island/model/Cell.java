@@ -121,8 +121,6 @@ public class Cell implements SimulationNode {
     public boolean removeEntity(Mortal entity) {
         if (entity instanceof Animal a) {
             return removeAnimal(a);
-        } else if (entity instanceof Biomass b) {
-            return removeBiomass(b);
         }
         return false;
     }
@@ -364,14 +362,7 @@ public class Cell implements SimulationNode {
         }
     }
 
-    public boolean removeBiomass(Biomass b) {
-        rwLock.writeLock().lock();
-        try {
-            return container.removeBiomass(b);
-        } finally {
-            rwLock.writeLock().unlock();
-        }
-    }
+
 
     public List<Biomass> getBiomassContainers() {
         rwLock.readLock().lock();
