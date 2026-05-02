@@ -4,7 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.island.nature.model.Cell;
+import com.island.nature.model.DefaultBiomassManager;
 import com.island.nature.model.Island;
+import com.island.nature.service.DefaultProtectionService;
 import com.island.nature.service.FeedingService;
 import com.island.nature.service.StatisticsService;
 import com.island.nature.config.Configuration;
@@ -24,12 +26,26 @@ class TrophicFeedingTest {
 
     @BeforeEach
     void setUp() {
-        island = new Island(config, 1, 1, registry, new StatisticsService(config));
-        cell = island.getCell(0, 0);
+        StatisticsService statisticsService = new StatisticsService(config);
         matrix = new InteractionMatrix(registry);
+        DefaultRandomProvider randomProvider = new DefaultRandomProvider();
+        AnimalFactory animalFactory = new AnimalFactory(registry, randomProvider);
+
+        NatureDomainContext context = NatureDomainContext.builder()
+                .config(config)
+                .speciesRegistry(registry)
+                .interactionProvider(matrix)
+                .animalFactory(animalFactory)
+                .statisticsService(statisticsService)
+                .protectionService(new DefaultProtectionService(config, registry, statisticsService, 1))
+                .biomassManager(new DefaultBiomassManager())
+                .randomProvider(randomProvider)
+                .build();
+
+        island = new Island(context, 1, 1);
+        cell = island.getCell(0, 0);
         HuntingStrategy huntingStrategy = new DefaultHuntingStrategy(config, matrix);
-        AnimalFactory animalFactory = new AnimalFactory(registry, new DefaultRandomProvider());
-        feedingService = new FeedingService(island, animalFactory, matrix, registry, huntingStrategy, Executors.newSingleThreadExecutor(), new DefaultRandomProvider());
+        feedingService = new FeedingService(island, animalFactory, matrix, registry, huntingStrategy, Executors.newSingleThreadExecutor(), randomProvider);
     }
 
     @Test

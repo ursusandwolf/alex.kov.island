@@ -5,6 +5,7 @@ import com.island.nature.entities.Animal;
 import com.island.nature.entities.AnimalType;
 import com.island.nature.entities.Biomass;
 import com.island.nature.entities.DeathCause;
+import com.island.nature.entities.NatureDomainContext;
 import com.island.nature.entities.NatureWorld;
 import com.island.nature.entities.Organism;
 import com.island.nature.entities.Season;
@@ -14,7 +15,6 @@ import com.island.engine.SimulationNode;
 import com.island.engine.SimulationWorld;
 import com.island.engine.WorldListener;
 import com.island.engine.WorldSnapshot;
-import com.island.nature.service.DefaultProtectionService;
 import com.island.nature.service.ProtectionService;
 import com.island.nature.service.StatisticsService;
 import java.util.ArrayList;
@@ -42,13 +42,13 @@ public class Island implements NatureWorld, WorldListener {
     @Setter private boolean redBookProtectionEnabled = true;
     private Season currentSeason = Season.SPRING;
 
-    public Island(Configuration config, int width, int height, SpeciesRegistry registry, StatisticsService statisticsService) {
-        this.config = config;
+    public Island(NatureDomainContext domainContext, int width, int height) {
+        this.config = domainContext.getConfig();
         this.width = width;
         this.height = height;
-        this.registry = registry;
-        this.statisticsService = statisticsService;
-        this.protectionService = new DefaultProtectionService(config, registry, statisticsService, width * height);
+        this.registry = domainContext.getSpeciesRegistry();
+        this.statisticsService = domainContext.getStatisticsService();
+        this.protectionService = domainContext.getProtectionService();
         this.grid = new Cell[width][height];
         initializeGrid();
         partitionIntoChunks();

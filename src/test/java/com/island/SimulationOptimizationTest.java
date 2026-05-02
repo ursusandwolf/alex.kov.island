@@ -7,13 +7,16 @@ import com.island.nature.config.SimulationConstants;
 import com.island.nature.entities.Animal;
 import com.island.nature.entities.AnimalFactory;
 import com.island.nature.entities.DefaultHuntingStrategy;
+import com.island.nature.entities.NatureDomainContext;
 import com.island.nature.entities.SpeciesKey;
 import com.island.nature.entities.SpeciesLoader;
 import com.island.nature.entities.SpeciesRegistry;
 import com.island.nature.entities.herbivores.Caterpillar;
 import com.island.nature.config.Configuration;
 import com.island.nature.model.Cell;
+import com.island.nature.model.DefaultBiomassManager;
 import com.island.nature.model.Island;
+import com.island.nature.service.DefaultProtectionService;
 import com.island.nature.service.FeedingService;
 import com.island.nature.service.StatisticsService;
 import com.island.util.DefaultRandomProvider;
@@ -33,11 +36,25 @@ public class SimulationOptimizationTest {
     @BeforeEach
     void setUp() {
         registry = new SpeciesLoader(config).load();
-        island = new Island(config, 1, 1, registry, new StatisticsService(config));
+        StatisticsService statisticsService = new StatisticsService(config);
         InteractionMatrix matrix = InteractionMatrix.buildFrom(registry);
-        animalFactory = new AnimalFactory(registry, new DefaultRandomProvider());
+        DefaultRandomProvider randomProvider = new DefaultRandomProvider();
+        animalFactory = new AnimalFactory(registry, randomProvider);
+
+        NatureDomainContext context = NatureDomainContext.builder()
+                .config(config)
+                .speciesRegistry(registry)
+                .interactionProvider(matrix)
+                .animalFactory(animalFactory)
+                .statisticsService(statisticsService)
+                .protectionService(new DefaultProtectionService(config, registry, statisticsService, 1))
+                .biomassManager(new DefaultBiomassManager())
+                .randomProvider(randomProvider)
+                .build();
+
+        island = new Island(context, 1, 1);
         feedingService = new FeedingService(island, animalFactory, matrix, registry, 
-                new DefaultHuntingStrategy(config, matrix), Executors.newSingleThreadExecutor(), new DefaultRandomProvider());
+                new DefaultHuntingStrategy(config, matrix), Executors.newSingleThreadExecutor(), randomProvider);
     }
 
     @Test

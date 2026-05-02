@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Orchestrates the simulation ticks.
@@ -18,6 +19,7 @@ import java.util.concurrent.RejectedExecutionException;
  *
  * @param <T> The base type of entities in the simulation world.
  */
+@Slf4j
 public class GameLoop<T extends Mortal> {
     private final List<ScheduledTask> recurringTasks = new ArrayList<>();
     private final java.util.Queue<ScheduledTask> pendingTasks = new ConcurrentLinkedQueue<>();
@@ -115,8 +117,7 @@ public class GameLoop<T extends Mortal> {
             try {
                 world.tick(tickCount);
             } catch (Exception e) {
-                System.err.println("Error during world tick: " + e.getMessage());
-                e.printStackTrace();
+                log.error("Error during world tick: {}", e.getMessage(), e);
             }
         }
 
@@ -152,8 +153,7 @@ public class GameLoop<T extends Mortal> {
                     try {
                         task.tick(tickCount);
                     } catch (Exception e) {
-                        System.err.println("Error during simulation tick: " + e.getMessage());
-                        e.printStackTrace();
+                        log.error("Error during simulation tick: {}", e.getMessage(), e);
                     }
                 }
             }
@@ -194,8 +194,7 @@ public class GameLoop<T extends Mortal> {
                 try {
                     future.get();
                 } catch (java.util.concurrent.ExecutionException e) {
-                    System.err.println("Error in parallel cell service execution: " + e.getCause().getMessage());
-                    e.getCause().printStackTrace();
+                    log.error("Error in parallel cell service execution: {}", e.getCause().getMessage(), e.getCause());
                 }
             }
         } catch (InterruptedException e) {
@@ -215,8 +214,7 @@ public class GameLoop<T extends Mortal> {
             try {
                 runTick();
             } catch (Throwable t) {
-                System.err.println("CRITICAL ERROR: Simulation loop crashed: " + t.getMessage());
-                t.printStackTrace();
+                log.error("CRITICAL ERROR: Simulation loop crashed: {}", t.getMessage(), t);
                 // We might want to stop the simulation if a critical error occurs repeatedly
                 // but for now, we just log and continue to next tick if possible.
             }

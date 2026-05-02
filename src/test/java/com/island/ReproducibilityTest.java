@@ -5,11 +5,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.island.nature.entities.AnimalFactory;
 import com.island.nature.entities.DefaultHuntingStrategy;
 import com.island.nature.entities.HuntingStrategy;
+import com.island.nature.entities.NatureDomainContext;
 import com.island.nature.entities.SpeciesKey;
 import com.island.nature.entities.SpeciesLoader;
 import com.island.nature.entities.SpeciesRegistry;
 import com.island.nature.config.Configuration;
+import com.island.nature.model.DefaultBiomassManager;
 import com.island.nature.model.Island;
+import com.island.nature.service.DefaultProtectionService;
 import com.island.nature.service.FeedingService;
 import com.island.nature.service.LifecycleService;
 import com.island.nature.service.MovementService;
@@ -38,13 +41,13 @@ class ReproducibilityTest {
         Configuration config = new Configuration();
         // Use a fixed "random" provider
         RandomProvider fixedProvider = new RandomProvider() {
-            private int counter = 0;
             @Override public int nextInt(int bound) { return (counter++) % bound; }
             @Override public int nextInt(int origin, int bound) { return origin + (counter++) % (bound - origin); }
             @Override public double nextDouble() { return (double) ((counter++) % 100) / 100.0; }
             @Override public double nextDouble(double bound) { return ((double) ((counter++) % 100) / 100.0) * bound; }
             @Override public long nextLong() { return 0L; }
             @Override public boolean nextBoolean() { return (counter++) % 2 == 0; }
+            private int counter = 0;
         };
         RandomUtils.setProvider(fixedProvider);
 
@@ -56,8 +59,21 @@ class ReproducibilityTest {
         );
         matrix.freeze();
 
-        Island island = new Island(config, 2, 2, registry, new StatisticsService(config));
+        StatisticsService statisticsService = new StatisticsService(config);
         AnimalFactory factory = new AnimalFactory(registry, fixedProvider);
+
+        NatureDomainContext context = NatureDomainContext.builder()
+                .config(config)
+                .speciesRegistry(registry)
+                .interactionProvider(matrix)
+                .animalFactory(factory)
+                .statisticsService(statisticsService)
+                .protectionService(new DefaultProtectionService(config, registry, statisticsService, 4))
+                .biomassManager(new DefaultBiomassManager())
+                .randomProvider(fixedProvider)
+                .build();
+
+        Island island = new Island(context, 2, 2);
         HuntingStrategy strategy = new DefaultHuntingStrategy(config, matrix);
         var executor = Executors.newSingleThreadExecutor();
 

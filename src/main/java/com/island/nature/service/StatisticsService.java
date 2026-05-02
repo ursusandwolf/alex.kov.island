@@ -76,13 +76,17 @@ public class StatisticsService {
     }
 
     public int getSpeciesCount(SpeciesKey key) {
+        return getAnimalCount(key) + getBiomassCount(key);
+    }
+
+    private int getAnimalCount(SpeciesKey key) {
         AtomicInteger count = speciesCounts.get(key);
-        int animalCount = (count != null) ? Math.max(0, count.get()) : 0;
-        
+        return (count != null) ? Math.max(0, count.get()) : 0;
+    }
+
+    private int getBiomassCount(SpeciesKey key) {
         LongAdder biomass = biomassMass.get(key);
-        int mass = (biomass != null) ? (int) Math.max(0, biomass.sum() / config.getScale1M()) : 0;
-        
-        return animalCount + mass;
+        return (biomass != null) ? (int) Math.max(0, biomass.sum() / config.getScale1M()) : 0;
     }
 
     public double calculateGlobalSatiety(SimulationWorld<Organism> world) {
@@ -94,25 +98,34 @@ public class StatisticsService {
     }
 
     public int getTotalPopulation() {
-        int animals = speciesCounts.values().stream().mapToInt(AtomicInteger::get).map(c -> Math.max(0, c)).sum();
-        int biomass = (int) (biomassMass.values().stream().mapToLong(LongAdder::sum).map(l -> Math.max(0, l)).sum() / config.getScale1M());
-        return animals + biomass;
+        return getSpeciesCountsMap().values().stream()
+                .mapToInt(Integer::intValue)
+                .sum();
     }
 
     public Map<SpeciesKey, Integer> getSpeciesCountsMap() {
         Map<SpeciesKey, Integer> counts = new HashMap<>();
+        addAnimalCounts(counts);
+        addBiomassCounts(counts);
+        return counts;
+    }
+
+    private void addAnimalCounts(Map<SpeciesKey, Integer> counts) {
         speciesCounts.forEach((k, v) -> {
-            if (v.get() > 0) {
-                counts.put(k, v.get());
+            int count = v.get();
+            if (count > 0) {
+                counts.put(k, count);
             }
         });
+    }
+
+    private void addBiomassCounts(Map<SpeciesKey, Integer> counts) {
         biomassMass.forEach((k, v) -> {
             int mass = (int) (v.sum() / config.getScale1M());
             if (mass > 0) {
                 counts.merge(k, mass, Integer::sum);
             }
         });
-        return counts;
     }
 
     public Map<SpeciesKey, Integer> getTickDeaths(DeathCause cause) {

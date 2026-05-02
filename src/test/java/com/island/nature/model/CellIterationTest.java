@@ -6,12 +6,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.island.nature.entities.Animal;
 import com.island.nature.entities.AnimalFactory;
+import com.island.nature.entities.NatureDomainContext;
 import com.island.nature.entities.SpeciesKey;
 import com.island.nature.entities.SpeciesLoader;
 import com.island.nature.entities.SpeciesRegistry;
+import com.island.nature.service.DefaultProtectionService;
 import com.island.nature.service.StatisticsService;
 import com.island.nature.config.Configuration;
 import com.island.util.DefaultRandomProvider;
+import com.island.util.InteractionMatrix;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -28,9 +31,23 @@ class CellIterationTest {
     void setUp() {
         Configuration config = new Configuration();
         registry = new SpeciesLoader(config).load();
-        Island island = new Island(config, 1, 1, registry, new StatisticsService(config));
+        StatisticsService statisticsService = new StatisticsService(config);
+        DefaultRandomProvider randomProvider = new DefaultRandomProvider();
+        factory = new AnimalFactory(registry, randomProvider);
+
+        NatureDomainContext context = NatureDomainContext.builder()
+                .config(config)
+                .speciesRegistry(registry)
+                .interactionProvider(InteractionMatrix.buildFrom(registry))
+                .animalFactory(factory)
+                .statisticsService(statisticsService)
+                .protectionService(new DefaultProtectionService(config, registry, statisticsService, 1))
+                .biomassManager(new DefaultBiomassManager())
+                .randomProvider(randomProvider)
+                .build();
+
+        Island island = new Island(context, 1, 1);
         cell = new Cell(0, 0, island);
-        factory = new AnimalFactory(registry, new DefaultRandomProvider());
     }
 
     @Test

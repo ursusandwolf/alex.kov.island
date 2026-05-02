@@ -7,10 +7,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.island.nature.config.Configuration;
 import com.island.nature.entities.AnimalType;
 import com.island.nature.entities.GenericAnimal;
+import com.island.nature.entities.NatureDomainContext;
 import com.island.nature.entities.SpeciesKey;
 import com.island.nature.entities.SpeciesLoader;
 import com.island.nature.entities.SpeciesRegistry;
+import com.island.nature.service.DefaultProtectionService;
 import com.island.nature.service.StatisticsService;
+import com.island.util.DefaultRandomProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -21,7 +24,16 @@ class CellTest {
 
     @BeforeEach
     void setUp() {
-        Island island = new Island(config, 1, 1, registry, new StatisticsService(config));
+        StatisticsService statisticsService = new StatisticsService(config);
+        NatureDomainContext context = NatureDomainContext.builder()
+                .config(config)
+                .speciesRegistry(registry)
+                .statisticsService(statisticsService)
+                .protectionService(new DefaultProtectionService(config, registry, statisticsService, 1))
+                .biomassManager(new DefaultBiomassManager())
+                .randomProvider(new DefaultRandomProvider())
+                .build();
+        Island island = new Island(context, 1, 1);
         cell = new Cell(0, 0, island);
     }
 

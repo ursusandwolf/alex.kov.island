@@ -7,12 +7,16 @@ import com.island.nature.config.Configuration;
 import com.island.nature.entities.Animal;
 import com.island.nature.entities.AnimalFactory;
 import com.island.nature.entities.GenericAnimal;
+import com.island.nature.entities.NatureDomainContext;
 import com.island.nature.entities.SpeciesKey;
 import com.island.nature.entities.SpeciesLoader;
 import com.island.nature.entities.SpeciesRegistry;
 import com.island.nature.model.Cell;
+import com.island.nature.model.DefaultBiomassManager;
 import com.island.nature.model.Island;
+import com.island.nature.service.DefaultProtectionService;
 import com.island.util.DefaultRandomProvider;
+import com.island.util.InteractionMatrix;
 import com.island.util.RandomProvider;
 import org.junit.jupiter.api.Test;
 
@@ -23,7 +27,21 @@ class ReproductionServiceTest {
 
     @Test
     void testReproductionWithMaxEnergy() {
-        Island island = new Island(config, 1, 1, registry, new StatisticsService(config));
+        StatisticsService statisticsService = new StatisticsService(config);
+        DefaultRandomProvider randomProvider = new DefaultRandomProvider();
+        
+        NatureDomainContext context = NatureDomainContext.builder()
+                .config(config)
+                .speciesRegistry(registry)
+                .interactionProvider(InteractionMatrix.buildFrom(registry))
+                .animalFactory(factory)
+                .statisticsService(statisticsService)
+                .protectionService(new DefaultProtectionService(config, registry, statisticsService, 1))
+                .biomassManager(new DefaultBiomassManager())
+                .randomProvider(randomProvider)
+                .build();
+
+        Island island = new Island(context, 1, 1);
         island.setRedBookProtectionEnabled(false);
         Cell cell = island.getCell(0, 0);
         
@@ -50,10 +68,7 @@ class ReproductionServiceTest {
 
     @Test
     void testNoEnergyConsumedWhenNoOffspring() {
-        Island island = new Island(config, 1, 1, registry, new StatisticsService(config));
-        island.setRedBookProtectionEnabled(false);
-        Cell cell = island.getCell(0, 0);
-
+        StatisticsService statisticsService = new StatisticsService(config);
         // Controlled random that always returns 0 for nextInt (meaning 0 offspring)
         RandomProvider zeroRandom = new RandomProvider() {
             @Override public int nextInt(int bound) { return 0; }
@@ -63,6 +78,21 @@ class ReproductionServiceTest {
             @Override public double nextDouble(double bound) { return 0; }
             @Override public boolean nextBoolean() { return false; }
         };
+
+        NatureDomainContext context = NatureDomainContext.builder()
+                .config(config)
+                .speciesRegistry(registry)
+                .interactionProvider(InteractionMatrix.buildFrom(registry))
+                .animalFactory(factory)
+                .statisticsService(statisticsService)
+                .protectionService(new DefaultProtectionService(config, registry, statisticsService, 1))
+                .biomassManager(new DefaultBiomassManager())
+                .randomProvider(zeroRandom)
+                .build();
+
+        Island island = new Island(context, 1, 1);
+        island.setRedBookProtectionEnabled(false);
+        Cell cell = island.getCell(0, 0);
 
         Animal r1 = new GenericAnimal(registry.getAnimalType(SpeciesKey.RABBIT).orElseThrow());
         Animal r2 = new GenericAnimal(registry.getAnimalType(SpeciesKey.RABBIT).orElseThrow());

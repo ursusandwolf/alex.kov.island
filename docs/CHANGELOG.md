@@ -1,6 +1,23 @@
 # Changelog
 
-## [1.5.0] - 2026-05-02
+## [1.6.0] - 2026-05-02
+### Added
+- **Context Injection**: Introduced `NatureDomainContext` to encapsulate domain-specific components (registries, factories, services). This enables better testability and multi-instance support by using constructor injection throughout the `nature` domain.
+- **Structured Logging**: Integrated SLF4J and Logback. Replaced all `System.out` and `System.err` calls in `NatureLauncher`, `SimulationEngine`, and `GameLoop` with SLF4J Loggers (via Lombok's `@Slf4j`).
+- **Statistics Service Tests**: Added `StatisticsServiceTest.java` to verify population aggregation and ensure no double counting of entities.
+
+### Changed
+- **Enhanced Monitoring**: Refactored `NatureLauncher` to use `ScheduledExecutorService` for non-blocking monitoring of extinction and duration, replacing blocking `Thread.sleep` calls.
+- **Statistics Service Refinement**: Refactored `StatisticsService` by splitting large methods and improving data aggregation logic. derive `getTotalPopulation` from merged species counts to ensure consistency.
+- **Biomass Logic Optimization**: Extracted biomass management and movement logic from `Island.java` into a dedicated `DefaultBiomassManager` class, adhering to SRP.
+
+### Improved
+- **Javadoc Audit**: Completed a documentation audit for all new specialized interfaces and core components (`NatureStatistics`, `NatureDomainContext`, etc.).
+- **Build Configuration**: Updated `pom.xml` with dependencies for SLF4J API and Logback Classic.
+
+### Fixed
+- **Double Counting Fix**: Resolved a potential bug in `StatisticsService` where the total population could be inconsistent with individual species counts by deriving total from merged counts.
+- **Test Stability**: Fixed multiple compilation errors and redundant variables in the test suite caused by architectural changes.
 ### Added
 - **Plugin Architecture**: Introduced `SimulationPlugin` and `SimulationEngine` for a formal domain decoupling. Launching simulations now follows a standard plugin-based lifecycle.
 - **Centralized Sampling**: Extracted redundant stride-sampling logic into `SamplingUtils` to ensure consistent and efficient population sampling across all services.

@@ -3,7 +3,9 @@ package com.island.nature.entities;
 import com.island.nature.config.Configuration;
 import com.island.nature.entities.predators.Bear;
 import com.island.nature.model.Cell;
+import com.island.nature.model.DefaultBiomassManager;
 import com.island.nature.model.Island;
+import com.island.nature.service.DefaultProtectionService;
 import com.island.nature.service.FeedingService;
 import com.island.nature.service.StatisticsService;
 import com.island.util.DefaultRandomProvider;
@@ -38,10 +40,25 @@ class WolfPackBalanceTest {
 
     private long runSimulation(SpeciesRegistry registry, boolean usePack, int iterations, Configuration config) {
         config.setWolfPackMinSize(usePack ? 3 : 1000);
-        Island island = new Island(config, 1, 1, registry, new StatisticsService(config));
+        StatisticsService statisticsService = new StatisticsService(config);
+        DefaultRandomProvider randomProvider = new DefaultRandomProvider();
+        AnimalFactory animalFactory = new AnimalFactory(registry, randomProvider);
+        InteractionMatrix matrix = InteractionMatrix.buildFrom(registry);
+
+        NatureDomainContext context = NatureDomainContext.builder()
+                .config(config)
+                .speciesRegistry(registry)
+                .interactionProvider(matrix)
+                .animalFactory(animalFactory)
+                .statisticsService(statisticsService)
+                .protectionService(new DefaultProtectionService(config, registry, statisticsService, 1))
+                .biomassManager(new DefaultBiomassManager())
+                .randomProvider(randomProvider)
+                .build();
+
+        Island island = new Island(context, 1, 1);
         island.setRedBookProtectionEnabled(false);
         Cell cell = island.getCell(0, 0);
-        InteractionMatrix matrix = InteractionMatrix.buildFrom(registry);
         
         List<GenericAnimal> wolves = new ArrayList<>();
         for (int i = 0; i < 20; i++) {
@@ -58,7 +75,6 @@ class WolfPackBalanceTest {
         }
 
         HuntingStrategy huntingStrategy = new DefaultHuntingStrategy(config, matrix);
-        AnimalFactory animalFactory = new AnimalFactory(registry, new DefaultRandomProvider());
         FeedingService service = new FeedingService(island, animalFactory, matrix, registry, huntingStrategy, 
                                             Executors.newSingleThreadExecutor(), new DefaultRandomProvider());
 

@@ -3,13 +3,18 @@ package com.island.nature.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.island.nature.config.Configuration;
+import com.island.nature.entities.AnimalFactory;
 import com.island.nature.entities.GenericAnimal;
+import com.island.nature.entities.NatureDomainContext;
 import com.island.nature.entities.SpeciesKey;
 import com.island.nature.entities.SpeciesLoader;
 import com.island.nature.entities.SpeciesRegistry;
 import com.island.nature.model.Cell;
+import com.island.nature.model.DefaultBiomassManager;
 import com.island.nature.model.Island;
+import com.island.nature.service.DefaultProtectionService;
 import com.island.util.DefaultRandomProvider;
+import com.island.util.InteractionMatrix;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -22,7 +27,22 @@ class MovementServiceTest {
 
     @Test
     void testConcurrentMovement() throws InterruptedException {
-        Island island = new Island(config, 2, 1, registry, new StatisticsService(config));
+        StatisticsService statisticsService = new StatisticsService(config);
+        DefaultRandomProvider randomProvider = new DefaultRandomProvider();
+        AnimalFactory animalFactory = new AnimalFactory(registry, randomProvider);
+
+        NatureDomainContext context = NatureDomainContext.builder()
+                .config(config)
+                .speciesRegistry(registry)
+                .interactionProvider(InteractionMatrix.buildFrom(registry))
+                .animalFactory(animalFactory)
+                .statisticsService(statisticsService)
+                .protectionService(new DefaultProtectionService(config, registry, statisticsService, 2))
+                .biomassManager(new DefaultBiomassManager())
+                .randomProvider(randomProvider)
+                .build();
+
+        Island island = new Island(context, 2, 1);
         Cell cell0 = island.getCell(0, 0);
         
         GenericAnimal wolf = new GenericAnimal(registry.getAnimalType(SpeciesKey.WOLF).orElseThrow());
