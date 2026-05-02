@@ -108,8 +108,25 @@ public class CityMap implements SimulationWorld<SimEntity> {
 
     @Override
     public boolean moveEntity(SimEntity entity, SimulationNode<SimEntity> from, SimulationNode<SimEntity> to) {
-        if (to.canAccept(entity) && from.removeEntity(entity)) {
-            return to.addEntity(entity);
+        if (from instanceof CityTile f && to instanceof CityTile t) {
+            if (f == t) {
+                return true;
+            }
+            CityTile first = (f.getX() < t.getX() || (f.getX() == t.getX() && f.getY() < t.getY())) ? f : t;
+            CityTile second = (first == f) ? t : f;
+            first.getLock().lock();
+            try {
+                second.getLock().lock();
+                try {
+                    if (t.canAccept(entity) && f.removeEntity(entity)) {
+                        return t.addEntity(entity);
+                    }
+                } finally {
+                    second.getLock().unlock();
+                }
+            } finally {
+                first.getLock().unlock();
+            }
         }
         return false;
     }

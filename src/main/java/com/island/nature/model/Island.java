@@ -195,9 +195,23 @@ public class Island implements NatureWorld, WorldListener {
             if (entity instanceof Animal a) {
                 return moveOrganism(a, f, t);
             } else if (entity instanceof Biomass b) {
-                // Moving partial biomass is specific to nature logic, but full movement is possible
-                if (t.addEntity(b)) {
-                    return f.removeEntity(b);
+                if (f == t) {
+                    return true;
+                }
+                Cell first = (f.getX() < t.getX() || (f.getX() == t.getX() && f.getY() < t.getY())) ? f : t;
+                Cell second = (first == f) ? t : f;
+                first.getLock().lock();
+                try {
+                    second.getLock().lock();
+                    try {
+                        if (t.addEntity(b)) {
+                            return f.removeEntity(b);
+                        }
+                    } finally {
+                        second.getLock().unlock();
+                    }
+                } finally {
+                    first.getLock().unlock();
                 }
             }
         }

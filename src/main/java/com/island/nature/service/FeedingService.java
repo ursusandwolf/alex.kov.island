@@ -198,13 +198,17 @@ public class FeedingService extends AbstractService {
         if (type == null) {
             return null;
         }
-        Animal candidate = node.getRandomAnimalByType(type, getRandom());
-        if (candidate == consumer) {
-            if (node.getOrganismCount(speciesKey) <= 1) {
-                return null;
+        
+        // Try up to 3 times to find a candidate that isn't the consumer itself
+        for (int i = 0; i < 3; i++) {
+            Animal candidate = node.getRandomAnimalByType(type, getRandom());
+            if (candidate != null && candidate != consumer) {
+                return candidate;
             }
-            return null;
+            if (candidate == null) {
+                break;
+            }
         }
-        return candidate;
+        return null;
     }
 }

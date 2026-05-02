@@ -11,7 +11,6 @@ import lombok.experimental.NonFinal;
 
 @Getter
 public abstract class Organism implements Poolable, Mortal {
-    private final String id = UUID.randomUUID().toString();
     protected final Configuration config;
     @NonFinal private volatile long currentEnergy; 
     @NonFinal private long maxEnergy; 

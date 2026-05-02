@@ -64,7 +64,10 @@ public final class AnimalFactory {
         animal.init(type, energyPercent);
         
         for (int i = 0; i < initialAge; i++) {
-            animal.checkAgeDeath(); 
+            if (animal.checkAgeDeath()) {
+                releaseAnimal(animal);
+                return Optional.empty();
+            }
         }
         return Optional.of(animal);
     }

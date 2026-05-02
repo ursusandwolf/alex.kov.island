@@ -16,8 +16,8 @@ public class DefaultProtectionService implements ProtectionService {
     private final StatisticsService statisticsService;
     private final int worldArea;
 
-    private Map<SpeciesKey, Integer> cachedProtectionMap = Collections.emptyMap();
-    private int lastUpdateTick = -1;
+    private volatile Map<SpeciesKey, Integer> cachedProtectionMap = Collections.emptyMap();
+    private volatile int lastUpdateTick = -1;
 
     @Override
     public Map<SpeciesKey, Integer> getProtectionModifiers() {

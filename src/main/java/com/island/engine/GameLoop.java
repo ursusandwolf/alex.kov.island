@@ -7,6 +7,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
@@ -19,6 +20,7 @@ import java.util.concurrent.RejectedExecutionException;
  */
 public class GameLoop<T extends Mortal> {
     private final List<ScheduledTask> recurringTasks = new ArrayList<>();
+    private final java.util.Queue<ScheduledTask> pendingTasks = new ConcurrentLinkedQueue<>();
     private final long tickDurationMs;
     private final ExecutorService taskExecutor;
     private volatile boolean running = false;
@@ -37,9 +39,9 @@ public class GameLoop<T extends Mortal> {
 
     public void addRecurringTask(Tickable task) {
         if (task instanceof ScheduledTask st) {
-            recurringTasks.add(st);
+            pendingTasks.add(st);
         } else {
-            recurringTasks.add(new ScheduledTask() {
+            pendingTasks.add(new ScheduledTask() {
                 @Override
                 public Phase phase() {
                     return Phase.SIMULATION;
@@ -103,6 +105,12 @@ public class GameLoop<T extends Mortal> {
     public void runTick() {
         tickCount++;
         
+        // Drain pending tasks into the main list
+        ScheduledTask pending;
+        while ((pending = pendingTasks.poll()) != null) {
+            recurringTasks.add(pending);
+        }
+
         if (world != null) {
             try {
                 world.tick(tickCount);
@@ -204,7 +212,14 @@ public class GameLoop<T extends Mortal> {
     private void run() {
         while (running) {
             long startTime = System.currentTimeMillis();
-            runTick();
+            try {
+                runTick();
+            } catch (Throwable t) {
+                System.err.println("CRITICAL ERROR: Simulation loop crashed: " + t.getMessage());
+                t.printStackTrace();
+                // We might want to stop the simulation if a critical error occurs repeatedly
+                // but for now, we just log and continue to next tick if possible.
+            }
             long elapsed = System.currentTimeMillis() - startTime;
             long sleepTime = tickDurationMs - elapsed;
             if (sleepTime > 0) {

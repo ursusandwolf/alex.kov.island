@@ -71,10 +71,6 @@ public record SpeciesKey(String code, boolean predator) implements Comparable<Sp
         return Collections.unmodifiableCollection(REGISTRY.values());
     }
 
-    public int ordinal() {
-        return code.hashCode(); 
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
