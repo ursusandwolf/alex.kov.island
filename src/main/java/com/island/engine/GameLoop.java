@@ -32,7 +32,9 @@ public class GameLoop<T extends Mortal> {
 
     public GameLoop(long tickDurationMs, int threadCount) {
         this.tickDurationMs = tickDurationMs;
-        this.taskExecutor = java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor();
+        this.taskExecutor = (threadCount > 0)
+                ? java.util.concurrent.Executors.newFixedThreadPool(threadCount)
+                : java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor();
     }
 
     public void setWorld(SimulationWorld<T> world) {

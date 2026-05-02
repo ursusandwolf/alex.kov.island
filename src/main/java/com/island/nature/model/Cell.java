@@ -74,10 +74,9 @@ public class Cell implements SimulationNode<Organism> {
     public List<Organism> getEntities() {
         rwLock.readLock().lock();
         try {
-            List<Organism> all = new ArrayList<>();
-            all.addAll(container.getAllAnimals());
-            all.addAll(container.getAllBiomass());
-            return List.copyOf(all);
+            List<Organism> all = new ArrayList<>(getEntityCount());
+            container.forEachEntity(all::add);
+            return Collections.unmodifiableList(all);
         } finally {
             rwLock.readLock().unlock();
         }
@@ -85,16 +84,12 @@ public class Cell implements SimulationNode<Organism> {
 
     @Override
     public void forEachEntity(Consumer<Organism> action) {
-        List<Organism> all;
         rwLock.readLock().lock();
         try {
-            all = new ArrayList<>();
-            all.addAll(container.getAllAnimals());
-            all.addAll(container.getAllBiomass());
+            container.forEachEntity(action);
         } finally {
             rwLock.readLock().unlock();
         }
-        all.forEach(action);
     }
 
     @Override

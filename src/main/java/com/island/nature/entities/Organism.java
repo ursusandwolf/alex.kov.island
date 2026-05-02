@@ -12,11 +12,11 @@ import lombok.experimental.NonFinal;
 @Getter
 public abstract class Organism implements Poolable, Mortal {
     protected final Configuration config;
-    @NonFinal private volatile long currentEnergy; 
-    @NonFinal private long maxEnergy; 
-    @NonFinal private int age; 
-    @NonFinal private int maxLifespan; 
-    @NonFinal private volatile boolean isAlive;
+    @NonFinal private long currentEnergy;
+    @NonFinal private long maxEnergy;
+    @NonFinal private int age;
+    @NonFinal private int maxLifespan;
+    @NonFinal private boolean isAlive;
     private final ReentrantLock energyLock = new ReentrantLock();
 
     protected Organism(Configuration config, long maxEnergy, int maxLifespan) {

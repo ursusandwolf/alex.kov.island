@@ -11,5 +11,5 @@
 
 ## Low Priority: Cleanup & Consistency
 - [x] **Javadoc Audit**: Add missing Javadocs to the new specialized interfaces (`NatureRegistry`, `NatureStatistics`, etc.).
-- [ ] **SimCity Consistency**: Ensure that any architectural wins from the Nature refactoring (like narrow interfaces) are applied to SimCity where applicable.
+- [x] **SimCity Consistency**: Ensure that any architectural wins from the Nature refactoring (like narrow interfaces) are applied to SimCity where applicable.
 - [x] **Logging Modernization**: Move from `System.out.println` to a structured logging framework (e.g., SLF4J/Logback).

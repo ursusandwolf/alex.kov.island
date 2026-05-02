@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.7.0] - 2026-05-02
+### Added
+- **GameLoop Thread Selection**: Enhanced `GameLoop` to respect the `threadCount` parameter. It now dynamically selects between a fixed thread pool (for controlled concurrency) and Java 21 Virtual Threads (for maximum throughput) based on configuration.
+
+### Improved
+- **GC Performance & Allocation Optimization**: 
+    - Refactored `Cell` and `EntityContainer` to support zero-allocation iteration over entities using the internal `forEach` pattern.
+    - Eliminated redundant intermediate list creations in "hot" simulation paths, significantly reducing GC pressure.
+- **Concurrency & State Management**:
+    - Cleaned up `Organism` state by removing redundant `volatile` markers on fields already protected by explicit locks, improving cache locality and performance.
+    - Consolidated simulation constants into the `Configuration` system, eliminating data duplication and ensuring a single source of truth for multi-instance simulations.
+- **Architectural Consistency**: Verified that `SimCity` services correctly implement the `CellService` interface, ensuring they benefit from the engine's parallel execution and priority scheduling.
+
 ## [1.6.0] - 2026-05-02
 ### Added
 - **Context Injection**: Introduced `NatureDomainContext` to encapsulate domain-specific components (registries, factories, services). This enables better testability and multi-instance support by using constructor injection throughout the `nature` domain.

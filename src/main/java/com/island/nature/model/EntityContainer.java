@@ -109,6 +109,19 @@ public class EntityContainer {
         return count;
     }
 
+    public void forEachAnimal(Consumer<Animal> action) {
+        allAnimals.forEach(action);
+    }
+
+    public void forEachBiomass(Consumer<Biomass> action) {
+        allBiomass.forEach(action);
+    }
+
+    public void forEachEntity(Consumer<com.island.nature.entities.Organism> action) {
+        allAnimals.forEach(action);
+        allBiomass.forEach(action);
+    }
+
     public void removeDeadAnimals(Consumer<Animal> onRemoved) {
         Iterator<Animal> it = allAnimals.iterator();
         while (it.hasNext()) {
