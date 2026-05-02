@@ -42,18 +42,6 @@ public class FeedingService extends AbstractService {
         this.statistics = world;
     }
 
-    public FeedingService(NatureStatistics statistics, AnimalFactory animalFactory, 
-                          InteractionProvider interactionMatrix, 
-                          SpeciesRegistry speciesRegistry, HuntingStrategy huntingStrategy, 
-                          ExecutorService executor, RandomProvider random) {
-        super((NatureEnvironment) statistics, executor, random);
-        this.animalFactory = animalFactory;
-        this.interactionMatrix = interactionMatrix;
-        this.speciesRegistry = speciesRegistry;
-        this.huntingStrategy = huntingStrategy;
-        this.statistics = statistics;
-    }
-
     @Override
     public void processCell(Cell cell, int tickCount) {
         processPredators(cell, tickCount);

@@ -36,7 +36,6 @@ public class TaskRegistry {
 
     public void registerAll() {
         HuntingStrategy huntingStrategy = new DefaultHuntingStrategy(world.getConfiguration(), matrix);
-        gameLoop.addRecurringTask(world);
         // Food
         gameLoop.addRecurringTask(new FeedingService(world, animalFactory, matrix, speciesRegistry, huntingStrategy, gameLoop.getTaskExecutor(), random));
         // Move

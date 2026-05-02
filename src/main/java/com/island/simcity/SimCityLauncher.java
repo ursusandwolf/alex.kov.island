@@ -1,51 +1,27 @@
 package com.island.simcity;
 
-import com.island.engine.GameLoop;
+import com.island.engine.SimulationContext;
+import com.island.engine.SimulationEngine;
 import com.island.simcity.entities.Building;
 import com.island.simcity.entities.Resident;
 import com.island.simcity.entities.SimEntity;
 import com.island.simcity.model.CityMap;
 import com.island.simcity.service.BuildingService;
-import com.island.simcity.service.CityAnalyticsService;
-import com.island.simcity.service.ConnectivityService;
-import com.island.simcity.service.EconomyService;
-import com.island.simcity.service.PopulationService;
 import com.island.simcity.view.CityConsoleView;
 
 public class SimCityLauncher {
     public static void main(String[] args) {
         System.out.println("Starting SimCity Simulation...");
 
-        // 1. Initialize World
-        CityMap map = new CityMap(10, 10);
-        map.initialize();
-
-        // 2. Initialize Tasks
-        ConnectivityService connService = new ConnectivityService(map);
-        CityAnalyticsService analyticsService = new CityAnalyticsService(map);
-        PopulationService popService = new PopulationService(map);
-        EconomyService economyService = new EconomyService(map);
+        SimCityPlugin plugin = new SimCityPlugin(10, 10);
+        SimulationEngine<SimEntity> engine = new SimulationEngine<>();
+        
+        // Start engine (which calls initialize and registerTasks)
+        SimulationContext<SimEntity> context = engine.start(plugin, 100, 4, null);
+        CityMap map = (CityMap) context.getWorld();
         BuildingService buildingService = new BuildingService(map);
         CityConsoleView view = new CityConsoleView();
 
-        // 3. Register with GameLoop
-        GameLoop<SimEntity> gameLoop = new GameLoop<>(100, 4);
-        gameLoop.setWorld(map);
-        gameLoop.addRecurringTask(connService); // 1. Connectivity
-        gameLoop.addRecurringTask(analyticsService); // 2. Analytics (Demand/Pop/Jobs)
-        gameLoop.addRecurringTask(popService); // 3. Growth/Migration
-        gameLoop.addRecurringTask(economyService); // 4. Taxes/Maintenance
-
-        // Cleanup task
-        gameLoop.addRecurringTask(t -> {
-            for (int x = 0; x < map.getWidth(); x++) {
-                for (int y = 0; y < map.getHeight(); y++) {
-                    map.getGrid()[x][y].cleanupDeadEntities(e -> { });
-                }
-            }
-        });
-
-        // 4. Create a road network and zones using BuildingService
         // Road from (0,0) to (5,0)
         for (int x = 0; x <= 5; x++) {
             buildingService.build(x, 0, Building.Type.ROAD);
@@ -82,7 +58,7 @@ public class SimCityLauncher {
                 buildingService.build(5, 1, Building.Type.RESIDENTIAL);
             }
 
-            gameLoop.runTick();
+            context.getGameLoop().runTick();
             view.render(map, i + 1);
             printHappiness(map);
         }

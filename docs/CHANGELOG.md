@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.5.0] - 2026-05-02
+### Added
+- **Plugin Architecture**: Introduced `SimulationPlugin` and `SimulationEngine` for a formal domain decoupling. Launching simulations now follows a standard plugin-based lifecycle.
+- **Centralized Sampling**: Extracted redundant stride-sampling logic into `SamplingUtils` to ensure consistent and efficient population sampling across all services.
+
+### Changed
+- **Optimized City Simulation**: Refactored `CityMap` to cache parallel work units and replaced `CopyOnWriteArrayList` in `CityTile` with a standard `ArrayList` protected by a `ReentrantLock`.
+- **Dynamic Configuration**: Updated `Configuration.load()` to use reflection, ensuring all fields from `species.properties` are correctly populated without manual mapping.
+- **Thread Safety & Deadlock Fix**: Refactored `Cell.java` to process entities outside of read locks, resolving a critical deadlock caused by illegal lock upgrades during animal interactions.
+- **Renderer Management**: Updated `NatureLauncher` to properly pass a managed `ConsoleView` instance to the engine, fixing a silent map rendering issue.
+
+### Fixed
+- **NPE Robustness**: Removed constructors allowing `null` world references in simulation services. Fixed `NullPointerException` risks in `ExtinctionBalanceTest` and `StressStabilityTest` related to view management.
+- **Task Integrity**: Cleaned up `TaskRegistry` to remove redundant task registrations and ensure cleaner task lifecycles.
+
 ## [1.4.0] - 2026-05-02
 ### Changed
 - **Decoupled Engine from Domain**: Removed the hardcoded `SimulationView` from `SimulationContext` and introduced a domain-agnostic `SimulationRenderer`.

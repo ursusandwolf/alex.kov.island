@@ -33,6 +33,7 @@ public class CityMap implements SimulationWorld<SimEntity> {
     private static final int BANKRUPTCY_THRESHOLD = 5;
     private final List<String> alerts = new CopyOnWriteArrayList<>();
     private final List<com.island.engine.WorldListener> listeners = new ArrayList<>();
+    private List<List<CityTile>> cachedChunks;
 
     public CityMap(int width, int height) {
         this.width = width;
@@ -66,6 +67,16 @@ public class CityMap implements SimulationWorld<SimEntity> {
 
     @Override
     public Collection<? extends Collection<? extends SimulationNode<SimEntity>>> getParallelWorkUnits() {
+        if (cachedChunks == null) {
+            initializeChunks();
+        }
+        return cachedChunks;
+    }
+
+    private synchronized void initializeChunks() {
+        if (cachedChunks != null) {
+            return;
+        }
         List<List<CityTile>> chunks = new ArrayList<>();
         List<CityTile> currentChunk = new ArrayList<>();
         for (int x = 0; x < width; x++) {
@@ -80,7 +91,7 @@ public class CityMap implements SimulationWorld<SimEntity> {
         if (!currentChunk.isEmpty()) {
             chunks.add(currentChunk);
         }
-        return chunks;
+        this.cachedChunks = chunks;
     }
 
     @Override
@@ -110,6 +121,7 @@ public class CityMap implements SimulationWorld<SimEntity> {
 
     @Override
     public void initialize() {
+        initializeChunks();
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 CityTile tile = grid[x][y];

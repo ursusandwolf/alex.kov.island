@@ -28,7 +28,7 @@ public class GameLoop<T extends Mortal> {
 
     public GameLoop(long tickDurationMs, int threadCount) {
         this.tickDurationMs = tickDurationMs;
-        this.taskExecutor = Executors.newVirtualThreadPerTaskExecutor();
+        this.taskExecutor = java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor();
     }
 
     public void setWorld(SimulationWorld<T> world) {
@@ -104,7 +104,12 @@ public class GameLoop<T extends Mortal> {
         tickCount++;
         
         if (world != null) {
-            world.tick(tickCount);
+            try {
+                world.tick(tickCount);
+            } catch (Exception e) {
+                System.err.println("Error during world tick: " + e.getMessage());
+                e.printStackTrace();
+            }
         }
 
         Map<Phase, List<ScheduledTask>> phasedTasks = new EnumMap<>(Phase.class);

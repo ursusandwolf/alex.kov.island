@@ -85,13 +85,16 @@ public class Cell implements SimulationNode<Organism> {
 
     @Override
     public void forEachEntity(Consumer<Organism> action) {
+        List<Organism> all;
         rwLock.readLock().lock();
         try {
-            container.getAllAnimals().forEach(action);
-            container.getAllBiomass().forEach(action);
+            all = new ArrayList<>();
+            all.addAll(container.getAllAnimals());
+            all.addAll(container.getAllBiomass());
         } finally {
             rwLock.readLock().unlock();
         }
+        all.forEach(action);
     }
 
     @Override
@@ -144,8 +147,8 @@ public class Cell implements SimulationNode<Organism> {
                 return false;
             }
             container.addAnimal(animal);
-            if (world instanceof Island island) {
-                island.onOrganismAdded(animal.getSpeciesKey());
+            for (com.island.engine.WorldListener l : world.getListeners()) {
+                l.onEntityAdded(animal.getSpeciesKey());
             }
             return true;
         } finally {
@@ -196,35 +199,21 @@ public class Cell implements SimulationNode<Organism> {
     }
 
     public void forEachAnimal(Consumer<Animal> action) {
+        List<Animal> copy;
         rwLock.readLock().lock();
         try {
-            container.getAllAnimals().forEach(action);
+            copy = new ArrayList<>(container.getAllAnimals());
         } finally {
             rwLock.readLock().unlock();
         }
+        copy.forEach(action);
     }
 
     public void forEachAnimalSampled(int limit, RandomProvider random, Consumer<Animal> action) {
         List<Animal> sampled = new ArrayList<>();
         rwLock.readLock().lock();
         try {
-            Set<Animal> set = container.getAllAnimals();
-            int size = set.size();
-            if (size == 0) {
-                return;
-            }
-            int step = (size > limit) ? (size / limit + 1) : 1;
-            int startOffset = (size > limit) ? random.nextInt(step) : 0;
-            int i = 0;
-            for (Animal a : set) {
-                if (i >= startOffset && (i - startOffset) % step == 0) {
-                    sampled.add(a);
-                    if (sampled.size() >= limit) {
-                        break;
-                    }
-                }
-                i++;
-            }
+            com.island.util.SamplingUtils.forEachSampled(container.getAllAnimals(), limit, random, sampled::add);
         } finally {
             rwLock.readLock().unlock();
         }
@@ -232,35 +221,21 @@ public class Cell implements SimulationNode<Organism> {
     }
 
     public void forEachPredator(Consumer<Animal> action) {
+        List<Animal> copy;
         rwLock.readLock().lock();
         try {
-            container.getPredators().forEach(action);
+            copy = new ArrayList<>(container.getPredators());
         } finally {
             rwLock.readLock().unlock();
         }
+        copy.forEach(action);
     }
 
     public void forEachHerbivoreSampled(int limit, RandomProvider random, Consumer<Animal> action) {
         List<Animal> sampled = new ArrayList<>();
         rwLock.readLock().lock();
         try {
-            Set<Animal> set = container.getHerbivores();
-            int size = set.size();
-            if (size == 0) {
-                return;
-            }
-            int step = (size > limit) ? (size / limit + 1) : 1;
-            int startOffset = (size > limit) ? random.nextInt(step) : 0;
-            int i = 0;
-            for (Animal a : set) {
-                if (i >= startOffset && (i - startOffset) % step == 0) {
-                    sampled.add(a);
-                    if (sampled.size() >= limit) {
-                        break;
-                    }
-                }
-                i++;
-            }
+            com.island.util.SamplingUtils.forEachSampled(container.getHerbivores(), limit, random, sampled::add);
         } finally {
             rwLock.readLock().unlock();
         }

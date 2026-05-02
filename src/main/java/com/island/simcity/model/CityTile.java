@@ -3,9 +3,9 @@ package com.island.simcity.model;
 import com.island.engine.SimulationNode;
 import com.island.engine.SimulationWorld;
 import com.island.simcity.entities.SimEntity;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
@@ -19,7 +19,7 @@ public class CityTile implements SimulationNode<SimEntity> {
     private final int x;
     private final int y;
     private final SimulationWorld<SimEntity> world;
-    private final List<SimEntity> entities = new CopyOnWriteArrayList<>();
+    private final List<SimEntity> entities = new ArrayList<>();
     private final Lock lock = new ReentrantLock();
     @Setter
     private List<SimulationNode<SimEntity>> neighbors = Collections.emptyList();
@@ -33,12 +33,22 @@ public class CityTile implements SimulationNode<SimEntity> {
 
     @Override
     public void forEachEntity(Consumer<SimEntity> action) {
-        entities.forEach(action);
+        lock.lock();
+        try {
+            entities.forEach(action);
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
     public int getEntityCount() {
-        return entities.size();
+        lock.lock();
+        try {
+            return entities.size();
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
@@ -48,22 +58,37 @@ public class CityTile implements SimulationNode<SimEntity> {
 
     @Override
     public boolean addEntity(SimEntity entity) {
-        return entities.add(entity);
+        lock.lock();
+        try {
+            return entities.add(entity);
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
     public boolean removeEntity(SimEntity entity) {
-        return entities.remove(entity);
+        lock.lock();
+        try {
+            return entities.remove(entity);
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
     public void cleanupDeadEntities(Consumer<SimEntity> onEntityRemoved) {
-        entities.removeIf(e -> {
-            if (!e.isAlive()) {
-                onEntityRemoved.accept(e);
-                return true;
-            }
-            return false;
-        });
+        lock.lock();
+        try {
+            entities.removeIf(e -> {
+                if (!e.isAlive()) {
+                    onEntityRemoved.accept(e);
+                    return true;
+                }
+                return false;
+            });
+        } finally {
+            lock.unlock();
+        }
     }
 }

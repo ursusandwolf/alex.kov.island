@@ -97,24 +97,28 @@ public class Configuration {
             // Keep defaults
         }
 
-        config.islandWidth = getIntProperty(props, "island.width", config.islandWidth);
-        config.islandHeight = getIntProperty(props, "island.height", config.islandHeight);
-        config.tickDurationMs = getIntProperty(props, "island.tickDurationMs", config.tickDurationMs);
+        // Use reflection to load all fields that have a matching property
+        for (java.lang.reflect.Field field : Configuration.class.getDeclaredFields()) {
+            String propertyKey = "island." + field.getName();
+            String value = System.getProperty(propertyKey);
+            if (value == null) {
+                value = props.getProperty(propertyKey);
+            }
 
-        // Load other properties if needed...
+            if (value != null) {
+                try {
+                    field.setAccessible(true);
+                    if (field.getType() == int.class) {
+                        field.setInt(config, Integer.parseInt(value));
+                    } else if (field.getType() == long.class) {
+                        field.setLong(config, Long.parseLong(value));
+                    }
+                } catch (Exception e) {
+                    // Ignore errors for individual fields, fallback to default
+                }
+            }
+        }
         
         return config;
-    }
-
-    private static int getIntProperty(Properties props, String key, int defaultValue) {
-        String sysValue = System.getProperty(key);
-        if (sysValue != null) {
-            return Integer.parseInt(sysValue);
-        }
-        String propValue = props.getProperty(key);
-        if (propValue != null) {
-            return Integer.parseInt(propValue);
-        }
-        return defaultValue;
     }
 }

@@ -32,14 +32,6 @@ public class MovementService extends AbstractService {
         this.biomassManager = world;
     }
 
-    public MovementService(NatureRegistry registry, NatureStatistics statistics, BiomassManager biomassManager, 
-                           ExecutorService executor, RandomProvider random) {
-        super((com.island.nature.entities.NatureEnvironment) statistics, executor, random);
-        this.registry = registry;
-        this.statistics = statistics;
-        this.biomassManager = biomassManager;
-    }
-
     @Override
     public void processCell(Cell cell, int tickCount) {
         processAnimals(cell, tickCount);

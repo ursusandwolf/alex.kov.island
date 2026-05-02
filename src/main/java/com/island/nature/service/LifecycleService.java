@@ -26,13 +26,6 @@ public class LifecycleService extends AbstractService {
         this.environment = world;
     }
 
-    public LifecycleService(NatureStatistics statistics, NatureEnvironment environment, 
-                            ExecutorService executor, RandomProvider random) {
-        super(environment, executor, random); 
-        this.statistics = statistics;
-        this.environment = environment;
-    }
-
     @Override
     public void processCell(Cell cell, int tickCount) {
         processAging(cell);

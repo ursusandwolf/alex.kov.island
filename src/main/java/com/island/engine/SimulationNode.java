@@ -71,4 +71,14 @@ public interface SimulationNode<T extends Mortal> {
      * Cleans up dead entities in this node and calls the provided action for each removed entity.
      */
     void cleanupDeadEntities(Consumer<T> onEntityRemoved);
+
+    /**
+     * Called when an entity is successfully added to this node.
+     */
+    default void onEntityAdded(T entity) { }
+
+    /**
+     * Called when an entity is successfully removed from this node.
+     */
+    default void onEntityRemoved(T entity) { }
 }

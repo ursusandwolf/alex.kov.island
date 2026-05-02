@@ -1,11 +1,12 @@
 package com.island.nature;
 
+import com.island.engine.GameLoop;
+import com.island.engine.SimulationEngine;
+import com.island.engine.SimulationContext;
+import com.island.nature.config.Configuration;
 import com.island.nature.entities.AnimalType;
 import com.island.nature.entities.Organism;
-import com.island.nature.entities.SimulationBootstrap;
 import com.island.nature.entities.SpeciesKey;
-import com.island.engine.GameLoop;
-import com.island.engine.SimulationContext;
 import com.island.nature.model.Island;
 import java.util.Map;
 
@@ -14,15 +15,16 @@ import java.util.Map;
  */
 public class NatureLauncher {
     public static void main(String[] args) {
-        SimulationBootstrap bootstrap = new SimulationBootstrap();
-        SimulationContext<Organism> context = bootstrap.setup();
+        Configuration config = Configuration.load();
         
-        GameLoop<Organism> gameLoop = context.getGameLoop();
+        com.island.nature.view.ConsoleView view = new com.island.nature.view.ConsoleView();
+        NaturePlugin plugin = new NaturePlugin(config, view);
+        SimulationEngine<Organism> engine = new SimulationEngine<>();
         
         System.out.println("Запуск симуляции острова...");
         System.out.println("Лимит времени: 5 минут. Условие остановки: вымирание любого вида.");
         
-        gameLoop.start();
+        SimulationContext<Organism> context = engine.start(plugin, config.getTickDurationMs(), 4, view);
 
         // Monitoring extinction and duration
         monitor(context);

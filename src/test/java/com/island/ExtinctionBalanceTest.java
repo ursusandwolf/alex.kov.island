@@ -31,7 +31,9 @@ public class ExtinctionBalanceTest {
         for (int i = 0; i < ITERATIONS; i++) {
             SimulationBootstrap bootstrap = new SimulationBootstrap();
             SimulationContext<Organism> context = bootstrap.setup();
-            context.getView().setSilent(true);
+            if (context.getView() != null) {
+                context.getView().setSilent(true);
+            }
             GameLoop<Organism> gameLoop = context.getGameLoop();
 
             Set<SpeciesKey> initiallyPresent = ((NatureWorld) context.getWorld()).getRegistry().getAllAnimalKeys();

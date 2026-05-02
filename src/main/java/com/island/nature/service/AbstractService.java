@@ -40,14 +40,6 @@ public abstract class AbstractService implements CellService<Organism, Cell> {
         this.random = random;
     }
 
-    protected AbstractService(NatureEnvironment environment, ExecutorService executor, RandomProvider random) {
-        this.world = (environment instanceof NatureWorld nw) ? nw : null;
-        this.environment = environment;
-        this.config = environment.getConfiguration();
-        this.executor = executor;
-        this.random = random;
-    }
-
     @Override
     public void beforeTick(int tickCount) {
         // Shared logic: update protection map once per tick per service
@@ -76,15 +68,7 @@ public abstract class AbstractService implements CellService<Organism, Cell> {
     public abstract void processCell(Cell node, int tickCount);
 
     protected <T> void forEachSampled(List<T> list, int limit, Consumer<T> action) {
-        int size = list.size();
-        if (size == 0) {
-            return;
-        }
-        int step = (size > limit) ? (size / limit + 1) : 1;
-        int startOffset = (size > limit) ? random.nextInt(step) : 0;
-        for (int i = startOffset; i < size; i += step) {
-            action.accept(list.get(i));
-        }
+        com.island.util.SamplingUtils.forEachSampled(list, limit, random, action);
     }
 
     protected boolean shouldAct(Animal animal, AnimalType.Action action, int tickCount) {
