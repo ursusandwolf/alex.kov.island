@@ -60,6 +60,7 @@ class FeedingMechanicsTest {
         animalFactory = new AnimalFactory(registry, random);
         HuntingStrategy strategy = new DefaultHuntingStrategy(config, matrix);
         
+        given(world.getConfiguration()).willReturn(config);
         feedingService = new FeedingService(world, animalFactory, matrix, registry, strategy, Executors.newSingleThreadExecutor(), random);
         cell = new Cell(0, 0, world);
         

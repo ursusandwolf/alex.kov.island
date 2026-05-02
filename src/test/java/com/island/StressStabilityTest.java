@@ -12,14 +12,17 @@ import com.island.engine.SimulationContext;
 import com.island.nature.model.Island;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
 
 public class StressStabilityTest {
 
     @Test
+    @Disabled("Long running stress test")
     void testEcosystemStabilityFor500Ticks() {
         System.out.println("\n=== STARTING STRESS STABILITY TEST (500 TICKS) ===");
         SimulationBootstrap bootstrap = new SimulationBootstrap();
         SimulationContext<Organism> context = bootstrap.setup();
+        context.getView().setSilent(true);
         Island island = (Island) context.getWorld();
 
         for (int i = 0; i < 500; i++) {

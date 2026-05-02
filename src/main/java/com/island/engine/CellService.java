@@ -6,7 +6,22 @@ package com.island.engine;
  * @param <T> The base type of entities in the nodes processed by this service.
  * @param <N> The type of simulation node processed by this service.
  */
-public interface CellService<T extends Mortal, N extends SimulationNode<T>> extends Tickable {
+public interface CellService<T extends Mortal, N extends SimulationNode<T>> extends ScheduledTask {
+    @Override
+    default Phase phase() {
+        return Phase.SIMULATION;
+    }
+
+    @Override
+    default int priority() {
+        return 50;
+    }
+
+    @Override
+    default boolean isParallelizable() {
+        return true;
+    }
+
     /**
      * Optional setup phase called once per tick before parallel processing starts.
      */

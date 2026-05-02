@@ -2,7 +2,10 @@ package com.island.engine;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -15,7 +18,7 @@ import java.util.concurrent.RejectedExecutionException;
  * @param <T> The base type of entities in the simulation world.
  */
 public class GameLoop<T extends Mortal> {
-    private final List<Tickable> recurringTasks = new ArrayList<>();
+    private final List<ScheduledTask> recurringTasks = new ArrayList<>();
     private final long tickDurationMs;
     private final ExecutorService taskExecutor;
     private volatile boolean running = false;
@@ -25,7 +28,7 @@ public class GameLoop<T extends Mortal> {
 
     public GameLoop(long tickDurationMs, int threadCount) {
         this.tickDurationMs = tickDurationMs;
-        this.taskExecutor = Executors.newFixedThreadPool(threadCount);
+        this.taskExecutor = Executors.newVirtualThreadPerTaskExecutor();
     }
 
     public void setWorld(SimulationWorld<T> world) {
@@ -33,11 +36,35 @@ public class GameLoop<T extends Mortal> {
     }
 
     public void addRecurringTask(Tickable task) {
-        recurringTasks.add(task);
+        if (task instanceof ScheduledTask st) {
+            recurringTasks.add(st);
+        } else {
+            recurringTasks.add(new ScheduledTask() {
+                @Override
+                public Phase phase() {
+                    return Phase.SIMULATION;
+                }
+
+                @Override
+                public int priority() {
+                    return 50;
+                }
+
+                @Override
+                public boolean isParallelizable() {
+                    return false;
+                }
+
+                @Override
+                public void tick(int tickCount) {
+                    task.tick(tickCount);
+                }
+            });
+        }
     }
 
     public void addRecurringTask(Runnable runnable) {
-        recurringTasks.add(t -> runnable.run());
+        addRecurringTask((Tickable) tc -> runnable.run());
     }
 
     public void start() {
@@ -79,44 +106,57 @@ public class GameLoop<T extends Mortal> {
         if (world != null) {
             world.tick(tickCount);
         }
-        
-        List<Tickable> currentGroup = new ArrayList<>();
-        boolean inCellServiceGroup = false;
 
-        for (Tickable task : recurringTasks) {
-            boolean isCellService = task instanceof CellService;
-            
-            if (isCellService != inCellServiceGroup && !currentGroup.isEmpty()) {
-                executeGroup(currentGroup, inCellServiceGroup);
-                currentGroup.clear();
+        Map<Phase, List<ScheduledTask>> phasedTasks = new EnumMap<>(Phase.class);
+        for (Phase phase : Phase.values()) {
+            phasedTasks.put(phase, new ArrayList<>());
+        }
+
+        for (ScheduledTask task : recurringTasks) {
+            phasedTasks.get(task.phase()).add(task);
+        }
+
+        for (Phase phase : Phase.values()) {
+            List<ScheduledTask> tasks = phasedTasks.get(phase);
+            if (tasks.isEmpty()) {
+                continue;
+            }
+
+            // Sort descending by priority (higher priority executes first)
+            tasks.sort(Comparator.comparingInt(ScheduledTask::priority).reversed());
+
+            List<CellService<T, SimulationNode<T>>> parallelGroup = new ArrayList<>();
+            for (ScheduledTask task : tasks) {
+                if (task.isParallelizable() && task instanceof CellService) {
+                    @SuppressWarnings("unchecked")
+                    CellService<T, SimulationNode<T>> cellService = (CellService<T, SimulationNode<T>>) task;
+                    parallelGroup.add(cellService);
+                } else {
+                    if (!parallelGroup.isEmpty()) {
+                        runCellServicesParallel(parallelGroup);
+                        parallelGroup.clear();
+                    }
+                    try {
+                        task.tick(tickCount);
+                    } catch (Exception e) {
+                        System.err.println("Error during simulation tick: " + e.getMessage());
+                        e.printStackTrace();
+                    }
+                }
             }
             
-            inCellServiceGroup = isCellService;
-            currentGroup.add(task);
-        }
-        
-        if (!currentGroup.isEmpty()) {
-            executeGroup(currentGroup, inCellServiceGroup);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private void executeGroup(List<Tickable> group, boolean isCellServiceGroup) {
-        if (isCellServiceGroup && world != null && !taskExecutor.isShutdown()) {
-            runCellServicesParallel(group.stream().map(t -> (CellService<T, SimulationNode<T>>) t).toList());
-        } else {
-            for (Tickable task : group) {
-                try {
-                    task.tick(tickCount);
-                } catch (Exception e) {
-                    System.err.println("Error during simulation tick: " + e.getMessage());
-                    e.printStackTrace();
-                }
+            if (!parallelGroup.isEmpty()) {
+                runCellServicesParallel(parallelGroup);
+                parallelGroup.clear();
             }
         }
     }
 
     private void runCellServicesParallel(List<CellService<T, SimulationNode<T>>> services) {
+        if (world == null || taskExecutor.isShutdown()) {
+            return;
+        }
+
         for (CellService<T, SimulationNode<T>> service : services) {
             service.beforeTick(tickCount);
         }
@@ -136,7 +176,15 @@ public class GameLoop<T extends Mortal> {
         }
 
         try {
-            taskExecutor.invokeAll(tasks);
+            List<java.util.concurrent.Future<Void>> futures = taskExecutor.invokeAll(tasks);
+            for (java.util.concurrent.Future<Void> future : futures) {
+                try {
+                    future.get();
+                } catch (java.util.concurrent.ExecutionException e) {
+                    System.err.println("Error in parallel cell service execution: " + e.getCause().getMessage());
+                    e.getCause().printStackTrace();
+                }
+            }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } catch (RejectedExecutionException e) {

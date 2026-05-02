@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.4.0] - 2026-05-02
+### Changed
+- **Decoupled Engine from Domain**: Removed the hardcoded `SimulationView` from `SimulationContext` and introduced a domain-agnostic `SimulationRenderer`.
+- **Phase-based Scheduling**: Replaced the rigid `instanceof CellService` checking in `GameLoop` with a `Phase`-based system (`ScheduledTask`) that supports execution priorities.
+- **Concurrency & Virtual Threads**: Updated `GameLoop` to utilize Java 21's `VirtualThreadPerTaskExecutor` instead of a fixed thread pool.
+- **Data Integrity**: Modified getters in `Cell` (e.g., `getAnimals()`, `getEntities()`) to return immutable copies to protect internal state.
+- **Event Listeners**: Replaced hard-cast calls to `Island` inside `Cell` with a `WorldListener` mechanism for domain-agnostic event handling.
+
+### Fixed
+- **Future Handling**: Added error handling for `Future` objects returned by `invokeAll` in `GameLoop` to log execution exceptions properly.
+- **Test Configuration**: Fixed failing tests (`LifecycleServiceTest`, `FeedingMechanicsTest`) by correctly wiring mock `Configuration` objects. Disabled or silenced long-running stress tests to ensure faster CI cycles.
+
 ## [1.3.0] - 2026-05-01
 ### Added
 - **Configuration Injection**: Introduced `Configuration` object injection across all Nature entities and services, enabling multi-instance simulations and thread-safe parameter management.

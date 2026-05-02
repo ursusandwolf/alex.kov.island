@@ -28,9 +28,7 @@ public class LifecycleService extends AbstractService {
 
     public LifecycleService(NatureStatistics statistics, NatureEnvironment environment, 
                             ExecutorService executor, RandomProvider random) {
-        // Fallback for when we don't have a full NatureWorld, but AbstractService needs it for tick()
-        // We'll address AbstractService later. For now, keep it compatible.
-        super(null, executor, random); 
+        super(environment, executor, random); 
         this.statistics = statistics;
         this.environment = environment;
     }

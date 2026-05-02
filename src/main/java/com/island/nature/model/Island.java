@@ -12,6 +12,7 @@ import com.island.nature.entities.SpeciesKey;
 import com.island.nature.entities.SpeciesRegistry;
 import com.island.engine.SimulationNode;
 import com.island.engine.SimulationWorld;
+import com.island.engine.WorldListener;
 import com.island.engine.WorldSnapshot;
 import com.island.nature.service.DefaultProtectionService;
 import com.island.nature.service.ProtectionService;
@@ -27,7 +28,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter
-public class Island implements NatureWorld {
+public class Island implements NatureWorld, WorldListener {
     private final Configuration config;
     private final int width;
     private final int height;
@@ -36,6 +37,7 @@ public class Island implements NatureWorld {
     private final SpeciesRegistry registry;
     private final StatisticsService statisticsService;
     private final ProtectionService protectionService;
+    private final List<WorldListener> listeners = new ArrayList<>();
     private int tickCount = 0;
     @Setter private boolean redBookProtectionEnabled = true;
     private Season currentSeason = Season.SPRING;
@@ -50,6 +52,31 @@ public class Island implements NatureWorld {
         this.grid = new Cell[width][height];
         initializeGrid();
         partitionIntoChunks();
+        this.addListener(this);
+    }
+
+    @Override
+    public void addListener(WorldListener listener) {
+        this.listeners.add(listener);
+    }
+
+    @Override
+    public List<WorldListener> getListeners() {
+        return this.listeners;
+    }
+
+    @Override
+    public void onEntityAdded(Object key) {
+        if (key instanceof SpeciesKey sk) {
+            onOrganismAdded(sk);
+        }
+    }
+
+    @Override
+    public void onEntityRemoved(Object key) {
+        if (key instanceof SpeciesKey sk) {
+            onOrganismRemoved(sk);
+        }
     }
 
     public void init() {

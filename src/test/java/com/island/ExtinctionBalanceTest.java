@@ -31,6 +31,7 @@ public class ExtinctionBalanceTest {
         for (int i = 0; i < ITERATIONS; i++) {
             SimulationBootstrap bootstrap = new SimulationBootstrap();
             SimulationContext<Organism> context = bootstrap.setup();
+            context.getView().setSilent(true);
             GameLoop<Organism> gameLoop = context.getGameLoop();
 
             Set<SpeciesKey> initiallyPresent = ((NatureWorld) context.getWorld()).getRegistry().getAllAnimalKeys();
@@ -45,6 +46,7 @@ public class ExtinctionBalanceTest {
                     extinctionStats.computeIfAbsent(key, k -> new AtomicInteger(0)).incrementAndGet();
                 }
             }
+            gameLoop.stop();
         }
 
         System.out.println("\n=== EXTINCTION STATS (after " + ITERATIONS + " runs) ===");

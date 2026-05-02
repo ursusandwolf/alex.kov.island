@@ -77,7 +77,7 @@ public class Cell implements SimulationNode<Organism> {
             List<Organism> all = new ArrayList<>();
             all.addAll(container.getAllAnimals());
             all.addAll(container.getAllBiomass());
-            return all;
+            return List.copyOf(all);
         } finally {
             rwLock.readLock().unlock();
         }
@@ -157,8 +157,8 @@ public class Cell implements SimulationNode<Organism> {
         rwLock.writeLock().lock();
         try { 
             if (container.removeAnimal(animal)) {
-                if (world instanceof Island island) {
-                    island.onOrganismRemoved(animal.getSpeciesKey());
+                for (com.island.engine.WorldListener l : world.getListeners()) {
+                    l.onEntityRemoved(animal.getSpeciesKey());
                 }
                 return true;
             }

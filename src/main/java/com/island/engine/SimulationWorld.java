@@ -1,6 +1,7 @@
 package com.island.engine;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -51,4 +52,14 @@ public interface SimulationWorld<T extends Mortal> extends Tickable {
      * Performs initialization of the world (e.g., topology setup).
      */
     default void initialize() { }
+
+    /**
+     * Adds a listener to the world.
+     */
+    void addListener(WorldListener listener);
+
+    /**
+     * Gets all registered listeners.
+     */
+    List<WorldListener> getListeners();
 }

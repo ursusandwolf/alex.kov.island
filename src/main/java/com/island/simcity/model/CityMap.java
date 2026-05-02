@@ -32,6 +32,7 @@ public class CityMap implements SimulationWorld<SimEntity> {
     private volatile int bankruptcyTicks = 0;
     private static final int BANKRUPTCY_THRESHOLD = 5;
     private final List<String> alerts = new CopyOnWriteArrayList<>();
+    private final List<com.island.engine.WorldListener> listeners = new ArrayList<>();
 
     public CityMap(int width, int height) {
         this.width = width;
@@ -47,6 +48,16 @@ public class CityMap implements SimulationWorld<SimEntity> {
     @Override
     public Object getConfiguration() {
         return null; // SimCity doesn't use Configuration yet
+    }
+
+    @Override
+    public void addListener(com.island.engine.WorldListener listener) {
+        this.listeners.add(listener);
+    }
+
+    @Override
+    public List<com.island.engine.WorldListener> getListeners() {
+        return this.listeners;
     }
 
     public synchronized void addMoney(long amount) {

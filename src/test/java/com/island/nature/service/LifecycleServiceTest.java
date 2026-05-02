@@ -56,6 +56,7 @@ class LifecycleServiceTest {
     @BeforeEach
     void setUp() {
         registry = new SpeciesLoader(config).load();
+        given(world.getConfiguration()).willReturn(config);
         lifecycleService = new LifecycleService(world, Executors.newSingleThreadExecutor(), random);
         cell = new Cell(0, 0, world);
         
