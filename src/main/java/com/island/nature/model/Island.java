@@ -28,7 +28,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter
-public class Island implements NatureWorld, WorldListener {
+public class Island implements NatureWorld, WorldListener<Organism> {
     private final Configuration config;
     private final int width;
     private final int height;
@@ -37,7 +37,7 @@ public class Island implements NatureWorld, WorldListener {
     private final SpeciesRegistry registry;
     private final StatisticsService statisticsService;
     private final ProtectionService protectionService;
-    private final List<WorldListener> listeners = new ArrayList<>();
+    private final List<WorldListener<Organism>> listeners = new ArrayList<>();
     private int tickCount = 0;
     @Setter private boolean redBookProtectionEnabled = true;
     private Season currentSeason = Season.SPRING;
@@ -56,26 +56,26 @@ public class Island implements NatureWorld, WorldListener {
     }
 
     @Override
-    public void addListener(WorldListener listener) {
+    public void addListener(WorldListener<Organism> listener) {
         this.listeners.add(listener);
     }
 
     @Override
-    public List<WorldListener> getListeners() {
+    public List<WorldListener<Organism>> getListeners() {
         return this.listeners;
     }
 
     @Override
-    public void onEntityAdded(Object key) {
-        if (key instanceof SpeciesKey sk) {
-            onOrganismAdded(sk);
+    public void onEntityAdded(Organism entity) {
+        if (entity instanceof Animal a) {
+            onOrganismAdded(a.getSpeciesKey());
         }
     }
 
     @Override
-    public void onEntityRemoved(Object key) {
-        if (key instanceof SpeciesKey sk) {
-            onOrganismRemoved(sk);
+    public void onEntityRemoved(Organism entity) {
+        if (entity instanceof Animal a) {
+            onOrganismRemoved(a.getSpeciesKey());
         }
     }
 
@@ -255,7 +255,7 @@ public class Island implements NatureWorld, WorldListener {
     }
 
     private void updateSeason() {
-        int seasonDuration = 50;
+        int seasonDuration = config.getSeasonDuration();
         int seasonIndex = (tickCount / seasonDuration) % 4;
         this.currentSeason = Season.values()[seasonIndex];
     }

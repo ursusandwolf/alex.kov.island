@@ -22,12 +22,19 @@ public class CleanupService extends AbstractService {
     }
 
     @Override
-    public void processCell(Cell cell, int tickCount) {
-        cell.cleanupDeadEntities(e -> {
-            if (e instanceof Animal a) {
-                getWorld().onOrganismRemoved(a.getSpeciesKey());
-                animalFactory.releaseAnimal(a);
-            }
-        });
+    public int priority() {
+        return 10;
+    }
+
+    @Override
+    public void processCell(SimulationNode<Organism> node, int tickCount) {
+        if (node instanceof Cell cell) {
+            cell.cleanupDeadEntities(e -> {
+                if (e instanceof Animal a) {
+                    getWorld().onOrganismRemoved(a.getSpeciesKey());
+                    animalFactory.releaseAnimal(a);
+                }
+            });
+        }
     }
 }

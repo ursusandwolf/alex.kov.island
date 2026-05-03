@@ -1,5 +1,6 @@
 package com.island.nature.service;
 
+import com.island.engine.SimulationNode;
 import com.island.nature.entities.Animal;
 import com.island.nature.entities.Biomass;
 import com.island.nature.entities.DeathCause;
@@ -27,9 +28,16 @@ public class LifecycleService extends AbstractService {
     }
 
     @Override
-    public void processCell(Cell cell, int tickCount) {
-        processAging(cell);
-        processBiomassGrowth(cell);
+    public int priority() {
+        return 90;
+    }
+
+    @Override
+    public void processCell(SimulationNode<Organism> node, int tickCount) {
+        if (node instanceof Cell cell) {
+            processAging(cell);
+            processBiomassGrowth(cell);
+        }
     }
 
     private void processAging(Cell node) {

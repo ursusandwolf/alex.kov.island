@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
  * Represents simulation seasons.
  */
 @Getter
-@RequiredArgsConstructor
 public enum Season {
     SPRING(1.0, 1.2),
     SUMMER(1.2, 1.0),
@@ -16,4 +15,9 @@ public enum Season {
 
     private final double growthModifier;
     private final double metabolismModifier;
+
+    Season(double growthModifier, double metabolismModifier) {
+        this.growthModifier = growthModifier;
+        this.metabolismModifier = metabolismModifier;
+    }
 }

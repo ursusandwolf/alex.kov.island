@@ -1,7 +1,10 @@
 package com.island.engine;
 
-public interface WorldListener {
-    void onEntityAdded(Object key);
+/**
+ * Listener for world events, parametrized by the entity type T.
+ */
+public interface WorldListener<T> {
+    void onEntityAdded(T entity);
 
-    void onEntityRemoved(Object key);
+    void onEntityRemoved(T entity);
 }

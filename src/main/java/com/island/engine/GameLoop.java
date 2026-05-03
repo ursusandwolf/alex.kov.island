@@ -6,12 +6,17 @@ import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Orchestrates the simulation ticks.
@@ -19,25 +24,26 @@ import lombok.extern.slf4j.Slf4j;
  *
  * @param <T> The base type of entities in the simulation world.
  */
-@Slf4j
 public class GameLoop<T extends Mortal> {
+    private static final Logger log = LoggerFactory.getLogger(GameLoop.class);
+    
     private final List<ScheduledTask> recurringTasks = new ArrayList<>();
-    private final java.util.Queue<ScheduledTask> pendingTasks = new ConcurrentLinkedQueue<>();
+    private final Queue<ScheduledTask> pendingTasks = new ConcurrentLinkedQueue<>();
     private final long tickDurationMs;
     private final ExecutorService taskExecutor;
     private volatile boolean running = false;
     private int tickCount = 0;
-    private SimulationWorld<T> world;
+    private SimulationWorld<T, ?> world;
     private Thread loopThread;
 
     public GameLoop(long tickDurationMs, int threadCount) {
         this.tickDurationMs = tickDurationMs;
         this.taskExecutor = (threadCount > 0)
-                ? java.util.concurrent.Executors.newFixedThreadPool(threadCount)
-                : java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor();
+                ? Executors.newFixedThreadPool(threadCount)
+                : Executors.newVirtualThreadPerTaskExecutor();
     }
 
-    public void setWorld(SimulationWorld<T> world) {
+    public void setWorld(SimulationWorld<T, ?> world) {
         this.world = world;
     }
 
@@ -191,11 +197,11 @@ public class GameLoop<T extends Mortal> {
         }
 
         try {
-            List<java.util.concurrent.Future<Void>> futures = taskExecutor.invokeAll(tasks);
-            for (java.util.concurrent.Future<Void> future : futures) {
+            List<Future<Void>> futures = taskExecutor.invokeAll(tasks);
+            for (Future<Void> future : futures) {
                 try {
                     future.get();
-                } catch (java.util.concurrent.ExecutionException e) {
+                } catch (ExecutionException e) {
                     log.error("Error in parallel cell service execution: {}", e.getCause().getMessage(), e.getCause());
                 }
             }

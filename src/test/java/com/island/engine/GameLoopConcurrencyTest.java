@@ -5,7 +5,45 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 public class GameLoopConcurrencyTest {
+    @Test
+    void shouldExecuteTasksInPriorityOrder() {
+        GameLoop<Mortal> gameLoop = new GameLoop<>(100, 1);
+        List<Integer> executionOrder = new CopyOnWriteArrayList<>();
+
+        // Low priority task (50)
+        gameLoop.addRecurringTask(new ScheduledTask() {
+            @Override public Phase phase() { return Phase.SIMULATION; }
+            @Override public int priority() { return 50; }
+            @Override public boolean isParallelizable() { return false; }
+            @Override public void tick(int tickCount) { executionOrder.add(50); }
+        });
+
+        // High priority task (100)
+        gameLoop.addRecurringTask(new ScheduledTask() {
+            @Override public Phase phase() { return Phase.SIMULATION; }
+            @Override public int priority() { return 100; }
+            @Override public boolean isParallelizable() { return false; }
+            @Override public void tick(int tickCount) { executionOrder.add(100); }
+        });
+
+        // Very low priority task (10)
+        gameLoop.addRecurringTask(new ScheduledTask() {
+            @Override public Phase phase() { return Phase.SIMULATION; }
+            @Override public int priority() { return 10; }
+            @Override public boolean isParallelizable() { return false; }
+            @Override public void tick(int tickCount) { executionOrder.add(10); }
+        });
+
+        gameLoop.runTick();
+
+        assertEquals(List.of(100, 50, 10), executionOrder, "Tasks should execute in descending priority order");
+    }
+
     @Test
     void shouldNotThrowExceptionWhenAddingTaskFromAnotherThread() throws InterruptedException {
         GameLoop<Mortal> gameLoop = new GameLoop<>(1, 2); // Very fast ticks

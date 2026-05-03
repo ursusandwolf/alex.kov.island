@@ -27,7 +27,7 @@ public class SimulationEngine<T extends Mortal> {
      * Builds a simulation context using the provided plugin but DOES NOT start the loop.
      */
     public SimulationContext<T> build(SimulationPlugin<T> plugin, int tickDurationMs, int threads, SimulationRenderer renderer) {
-        SimulationWorld<T> world = plugin.createWorld();
+        SimulationWorld<T, ?> world = plugin.createWorld();
         world.initialize();
 
         GameLoop<T> gameLoop = new GameLoop<>(tickDurationMs, threads);

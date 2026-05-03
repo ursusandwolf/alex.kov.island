@@ -18,13 +18,28 @@ import lombok.Setter;
 public class CityTile implements SimulationNode<SimEntity> {
     private final int x;
     private final int y;
-    private final SimulationWorld<SimEntity> world;
+    private final SimulationWorld<SimEntity, ?> world;
     private final List<SimEntity> entities = new ArrayList<>();
     private final Lock lock = new ReentrantLock();
     @Setter
     private List<SimulationNode<SimEntity>> neighbors = Collections.emptyList();
     @Setter
     private boolean connected = false;
+
+    @Override
+    public List<SimEntity> getEntities() {
+        lock.lock();
+        try {
+            return new ArrayList<>(entities);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public SimulationWorld<SimEntity, ?> getWorld() {
+        return world;
+    }
 
     @Override
     public String getCoordinates() {

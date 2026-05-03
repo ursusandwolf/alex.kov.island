@@ -17,6 +17,7 @@ public class Configuration {
     private int islandWidth = 8;
     private int islandHeight = 8;
     private int tickDurationMs = 100;
+    private int seasonDuration = 50;
 
     // Scaling factors
     private long scale1M = 1_000_000L;

@@ -8,6 +8,7 @@ import com.island.nature.entities.AnimalType;
 import com.island.nature.entities.Organism;
 import com.island.nature.entities.SpeciesKey;
 import com.island.nature.model.Island;
+import com.island.nature.view.ConsoleView;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
@@ -23,7 +24,7 @@ public class NatureLauncher {
     public static void main(String[] args) {
         Configuration config = Configuration.load();
         
-        com.island.nature.view.ConsoleView view = new com.island.nature.view.ConsoleView();
+        ConsoleView view = new ConsoleView();
         NaturePlugin plugin = new NaturePlugin(config, view);
         SimulationEngine<Organism> engine = new SimulationEngine<>();
         

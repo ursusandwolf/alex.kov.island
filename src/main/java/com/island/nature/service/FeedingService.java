@@ -1,5 +1,6 @@
 package com.island.nature.service;
 
+import com.island.engine.SimulationNode;
 import com.island.nature.entities.Animal;
 import com.island.nature.entities.AnimalFactory;
 import com.island.nature.entities.AnimalType;
@@ -43,9 +44,16 @@ public class FeedingService extends AbstractService {
     }
 
     @Override
-    public void processCell(Cell cell, int tickCount) {
-        processPredators(cell, tickCount);
-        processHerbivores(cell, tickCount);
+    public int priority() {
+        return 80;
+    }
+
+    @Override
+    public void processCell(SimulationNode<Organism> node, int tickCount) {
+        if (node instanceof Cell cell) {
+            processPredators(cell, tickCount);
+            processHerbivores(cell, tickCount);
+        }
     }
 
     private void processPredators(Cell node, int tickCount) {

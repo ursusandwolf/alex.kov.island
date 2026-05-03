@@ -1,11 +1,9 @@
 package com.island;
 
-import static com.island.nature.config.SimulationConstants.SCALE_1M;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.island.nature.entities.AnimalType;
 import com.island.nature.entities.Organism;
-import com.island.nature.entities.SimulationBootstrap;
 import com.island.nature.entities.SpeciesKey;
 import com.island.nature.entities.SpeciesRegistry;
 import com.island.engine.SimulationContext;
@@ -20,11 +18,11 @@ public class StressStabilityTest {
     @Disabled("Long running stress test")
     void testEcosystemStabilityFor500Ticks() {
         System.out.println("\n=== STARTING STRESS STABILITY TEST (500 TICKS) ===");
-        SimulationBootstrap bootstrap = new SimulationBootstrap();
-        SimulationContext<Organism> context = bootstrap.setup();
-        if (context.getView() != null) {
-            context.getView().setSilent(true);
-        }
+        com.island.nature.config.Configuration config = com.island.nature.config.Configuration.load();
+        com.island.nature.NaturePlugin plugin = new com.island.nature.NaturePlugin(config);
+        com.island.engine.SimulationEngine<Organism> engine = new com.island.engine.SimulationEngine<>();
+        SimulationContext<Organism> context = engine.build(plugin, config.getTickDurationMs(), 4, null);
+        
         Island island = (Island) context.getWorld();
 
         for (int i = 0; i < 500; i++) {

@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.8.0] - 2026-05-03
+### Added
+- **Detailed Documentation**: Created `docs/DOCUMENTATION.md` providing a comprehensive overview of the system architecture, including UML pseudo-graphics for core design patterns (Plugin, Task Scheduling, Observer, Strategy, etc.).
+
+### Improved
+- **Architectural Abstraction**: Refactored `AbstractService` and its specialized subclasses (`FeedingService`, `MovementService`, etc.) to use the `SimulationNode<Organism>` interface instead of the concrete `Cell` class in the `processCell` signature. This improves domain isolation and testability.
+- **Configuration Management**: Eliminated the magic number for season duration in `Island.java` by moving it to the `Configuration` system.
+- **Code Integrity**: Removed redundant `instanceof` checks and dead code branches in the `AbstractService` hierarchy.
+
 ## [1.7.0] - 2026-05-02
 ### Added
 - **GameLoop Thread Selection**: Enhanced `GameLoop` to respect the `threadCount` parameter. It now dynamically selects between a fixed thread pool (for controlled concurrency) and Java 21 Virtual Threads (for maximum throughput) based on configuration.

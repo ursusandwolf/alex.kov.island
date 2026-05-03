@@ -4,6 +4,7 @@ import com.island.nature.config.Configuration;
 import com.island.nature.entities.Animal;
 import com.island.nature.entities.AnimalType;
 import com.island.nature.entities.Biomass;
+import com.island.nature.entities.Organism;
 import com.island.nature.entities.SizeClass;
 import com.island.nature.entities.SpeciesKey;
 import java.util.ArrayList;
@@ -117,7 +118,7 @@ public class EntityContainer {
         allBiomass.forEach(action);
     }
 
-    public void forEachEntity(Consumer<com.island.nature.entities.Organism> action) {
+    public void forEachEntity(Consumer<Organism> action) {
         allAnimals.forEach(action);
         allBiomass.forEach(action);
     }
@@ -159,8 +160,6 @@ public class EntityContainer {
         biomassBySpecies.put(b.getSpeciesKey(), b);
         allBiomass.add(b);
     }
-
-
 
     public Biomass getBiomass(SpeciesKey key) {
         return biomassBySpecies.get(key);
