@@ -205,7 +205,11 @@ public class Island implements NatureWorld, WorldListener<Organism> {
                     second.getLock().lock();
                     try {
                         if (t.addEntity(b)) {
-                            return f.removeEntity(b);
+                            if (f.removeEntity(b)) {
+                                return true;
+                            }
+                            // Note: Biomass.addEntity in Cell might merge biomass, 
+                            // so rollback is tricky. But we should try to be as atomic as possible.
                         }
                     } finally {
                         second.getLock().unlock();

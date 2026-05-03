@@ -5,5 +5,7 @@ public interface ScheduledTask extends Tickable {
 
     int priority();
 
-    boolean isParallelizable();
+    default ExecutionMode executionMode() {
+        return ExecutionMode.SEQUENTIAL;
+    }
 }

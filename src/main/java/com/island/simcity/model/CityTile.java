@@ -13,16 +13,21 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-@Getter
 @RequiredArgsConstructor
 public class CityTile implements SimulationNode<SimEntity> {
+    @Getter
     private final int x;
+    @Getter
     private final int y;
+    @Getter
     private final SimulationWorld<SimEntity, ?> world;
     private final List<SimEntity> entities = new ArrayList<>();
+    @Getter
     private final Lock lock = new ReentrantLock();
+    @Getter
     @Setter
     private List<SimulationNode<SimEntity>> neighbors = Collections.emptyList();
+    @Getter
     @Setter
     private boolean connected = false;
 

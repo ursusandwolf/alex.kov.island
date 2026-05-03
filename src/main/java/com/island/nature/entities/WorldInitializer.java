@@ -2,8 +2,8 @@ package com.island.nature.entities;
 
 import com.island.nature.entities.herbivores.Butterfly;
 import com.island.nature.entities.herbivores.Caterpillar;
-import com.island.nature.entities.plants.Cabbage;
 import com.island.nature.entities.plants.Grass;
+import com.island.nature.entities.plants.Mushroom;
 import com.island.engine.SimulationNode;
 import com.island.nature.model.Cell;
 import com.island.nature.model.Chunk;
@@ -66,8 +66,8 @@ public class WorldInitializer {
                     b = new Caterpillar(island.getConfiguration(), type.getMaxEnergy() * type.getMaxPerCell(), type.getSpeed());
                 } else if (biomassKey == SpeciesKey.GRASS) {
                     b = new Grass(island.getConfiguration(), type.getMaxEnergy() * type.getMaxPerCell(), type.getSpeed());
-                } else if (biomassKey == SpeciesKey.CABBAGE) {
-                    b = new Cabbage(island.getConfiguration(), type.getMaxEnergy() * type.getMaxPerCell(), type.getSpeed());
+                } else if (biomassKey == SpeciesKey.MUSHROOM) {
+                    b = new Mushroom(island.getConfiguration(), type.getMaxEnergy() * type.getMaxPerCell(), type.getSpeed());
                 } else {
                     b = new GenericBiomass(type);
                 }

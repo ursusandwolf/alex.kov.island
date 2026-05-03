@@ -17,8 +17,8 @@ public class SimulationEngine<T extends Mortal> {
      * @param renderer       Optional renderer for the simulation.
      * @return The created simulation context.
      */
-    public SimulationContext<T> start(SimulationPlugin<T> plugin, int tickDurationMs, int threads, SimulationRenderer renderer) {
-        SimulationContext<T> context = build(plugin, tickDurationMs, threads, renderer);
+    public SimulationContext<T> start(SimulationPlugin<T> plugin, int tickDurationMs, int threads) {
+        SimulationContext<T> context = build(plugin, tickDurationMs, threads);
         context.getGameLoop().start();
         return context;
     }
@@ -26,7 +26,7 @@ public class SimulationEngine<T extends Mortal> {
     /**
      * Builds a simulation context using the provided plugin but DOES NOT start the loop.
      */
-    public SimulationContext<T> build(SimulationPlugin<T> plugin, int tickDurationMs, int threads, SimulationRenderer renderer) {
+    public SimulationContext<T> build(SimulationPlugin<T> plugin, int tickDurationMs, int threads) {
         SimulationWorld<T, ?> world = plugin.createWorld();
         world.initialize();
 
@@ -36,7 +36,7 @@ public class SimulationEngine<T extends Mortal> {
         plugin.registerTasks(gameLoop, world);
 
         RandomProvider random = new DefaultRandomProvider();
-        SimulationContext<T> context = new SimulationContext<>(world, gameLoop, renderer, random);
+        SimulationContext<T> context = new SimulationContext<>(world, gameLoop, random);
 
         plugin.onSimulationStarted(context);
         return context;

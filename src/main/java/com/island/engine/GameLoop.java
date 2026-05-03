@@ -63,8 +63,8 @@ public class GameLoop<T extends Mortal> {
                 }
 
                 @Override
-                public boolean isParallelizable() {
-                    return false;
+                public ExecutionMode executionMode() {
+                    return ExecutionMode.SEQUENTIAL;
                 }
 
                 @Override
@@ -129,6 +129,7 @@ public class GameLoop<T extends Mortal> {
             }
         }
 
+        // Reuse a fixed structure for phases to reduce allocations
         Map<Phase, List<ScheduledTask>> phasedTasks = new EnumMap<>(Phase.class);
         for (Phase phase : Phase.values()) {
             phasedTasks.put(phase, new ArrayList<>());
@@ -149,7 +150,7 @@ public class GameLoop<T extends Mortal> {
 
             List<CellService<T, SimulationNode<T>>> parallelGroup = new ArrayList<>();
             for (ScheduledTask task : tasks) {
-                if (task.isParallelizable() && task instanceof CellService) {
+                if (task.executionMode() == ExecutionMode.PARALLEL && task instanceof CellService) {
                     @SuppressWarnings("unchecked")
                     CellService<T, SimulationNode<T>> cellService = (CellService<T, SimulationNode<T>>) task;
                     parallelGroup.add(cellService);
@@ -161,7 +162,7 @@ public class GameLoop<T extends Mortal> {
                     try {
                         task.tick(tickCount);
                     } catch (Exception e) {
-                        log.error("Error during simulation tick: {}", e.getMessage(), e);
+                        log.error("Error during simulation tick in phase {}: {}", phase, e.getMessage(), e);
                     }
                 }
             }
@@ -179,7 +180,11 @@ public class GameLoop<T extends Mortal> {
         }
 
         for (CellService<T, SimulationNode<T>> service : services) {
-            service.beforeTick(tickCount);
+            try {
+                service.beforeTick(tickCount);
+            } catch (Exception e) {
+                log.error("Error in beforeTick for service {}: {}", service.getClass().getSimpleName(), e.getMessage(), e);
+            }
         }
 
         Collection<? extends Collection<? extends SimulationNode<T>>> workUnits = world.getParallelWorkUnits();
@@ -189,7 +194,12 @@ public class GameLoop<T extends Mortal> {
             tasks.add(() -> {
                 for (SimulationNode<T> node : unit) {
                     for (CellService<T, SimulationNode<T>> service : services) {
-                        service.processCell(node, tickCount);
+                        try {
+                            service.processCell(node, tickCount);
+                        } catch (Exception e) {
+                            log.error("Error processing cell {} in service {}: {}", 
+                                    node.getCoordinates(), service.getClass().getSimpleName(), e.getMessage(), e);
+                        }
                     }
                 }
                 return null;
@@ -202,7 +212,8 @@ public class GameLoop<T extends Mortal> {
                 try {
                     future.get();
                 } catch (ExecutionException e) {
-                    log.error("Error in parallel cell service execution: {}", e.getCause().getMessage(), e.getCause());
+                    log.error("Critical error in parallel cell service execution: {}", e.getCause().getMessage(), e.getCause());
+                    // In a production engine, we might want to trigger a simulation stop or rollback here
                 }
             }
         } catch (InterruptedException e) {
@@ -212,7 +223,11 @@ public class GameLoop<T extends Mortal> {
         }
 
         for (CellService<T, SimulationNode<T>> service : services) {
-            service.afterTick(tickCount);
+            try {
+                service.afterTick(tickCount);
+            } catch (Exception e) {
+                log.error("Error in afterTick for service {}: {}", service.getClass().getSimpleName(), e.getMessage(), e);
+            }
         }
     }
 

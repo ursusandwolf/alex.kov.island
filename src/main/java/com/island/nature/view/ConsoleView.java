@@ -47,8 +47,8 @@ public class ConsoleView implements SimulationView {
         ICONS.put("caterpillar", "🐛");
         ICONS.put("butterfly", "🦋");
         ICONS.put("plant", "🌿");
-        ICONS.put("grass", "☘️");
-        ICONS.put("cabbage", "🥬");
+        ICONS.put("grass", "🌿");
+        ICONS.put("mushroom", "🍄");
     }
 
     private boolean isSilent = false;

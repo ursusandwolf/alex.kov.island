@@ -31,7 +31,7 @@ public class NatureLauncher {
         log.info("Запуск симуляции острова...");
         log.info("Лимит времени: 5 минут. Условие остановки: вымирание любого вида.");
         
-        SimulationContext<Organism> context = engine.start(plugin, config.getTickDurationMs(), 4, view);
+        SimulationContext<Organism> context = engine.start(plugin, config.getTickDurationMs(), 4);
 
         CountDownLatch latch = new CountDownLatch(1);
         ScheduledExecutorService monitorService = Executors.newSingleThreadScheduledExecutor();

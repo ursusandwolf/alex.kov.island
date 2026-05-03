@@ -34,7 +34,7 @@ public class CityMap implements SimulationWorld<SimEntity, Object> {
     private static final int BANKRUPTCY_THRESHOLD = 5;
     private final List<String> alerts = new CopyOnWriteArrayList<>();
     private final List<com.island.engine.WorldListener<SimEntity>> listeners = new ArrayList<>();
-    private List<List<CityTile>> cachedChunks;
+    private volatile List<List<CityTile>> cachedChunks;
 
     public CityMap(int width, int height) {
         this.width = width;
@@ -119,8 +119,15 @@ public class CityMap implements SimulationWorld<SimEntity, Object> {
             try {
                 second.getLock().lock();
                 try {
-                    if (t.canAccept(entity) && f.removeEntity(entity)) {
-                        return t.addEntity(entity);
+                    if (t.canAccept(entity)) {
+                        if (f.removeEntity(entity)) {
+                            if (t.addEntity(entity)) {
+                                return true;
+                            } else {
+                                // Rollback
+                                f.addEntity(entity);
+                            }
+                        }
                     }
                 } finally {
                     second.getLock().unlock();

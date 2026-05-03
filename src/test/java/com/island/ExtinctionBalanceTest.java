@@ -31,7 +31,7 @@ public class ExtinctionBalanceTest {
             com.island.nature.config.Configuration config = com.island.nature.config.Configuration.load();
             com.island.nature.NaturePlugin plugin = new com.island.nature.NaturePlugin(config);
             com.island.engine.SimulationEngine<Organism> engine = new com.island.engine.SimulationEngine<>();
-            SimulationContext<Organism> context = engine.build(plugin, config.getTickDurationMs(), 4, null);
+            SimulationContext<Organism> context = engine.build(plugin, config.getTickDurationMs(), 4);
             
             GameLoop<Organism> gameLoop = context.getGameLoop();
 

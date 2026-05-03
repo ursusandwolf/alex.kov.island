@@ -19,7 +19,7 @@ public class GameLoopConcurrencyTest {
         gameLoop.addRecurringTask(new ScheduledTask() {
             @Override public Phase phase() { return Phase.SIMULATION; }
             @Override public int priority() { return 50; }
-            @Override public boolean isParallelizable() { return false; }
+            @Override public ExecutionMode executionMode() { return ExecutionMode.SEQUENTIAL; }
             @Override public void tick(int tickCount) { executionOrder.add(50); }
         });
 
@@ -27,7 +27,7 @@ public class GameLoopConcurrencyTest {
         gameLoop.addRecurringTask(new ScheduledTask() {
             @Override public Phase phase() { return Phase.SIMULATION; }
             @Override public int priority() { return 100; }
-            @Override public boolean isParallelizable() { return false; }
+            @Override public ExecutionMode executionMode() { return ExecutionMode.SEQUENTIAL; }
             @Override public void tick(int tickCount) { executionOrder.add(100); }
         });
 
@@ -35,7 +35,7 @@ public class GameLoopConcurrencyTest {
         gameLoop.addRecurringTask(new ScheduledTask() {
             @Override public Phase phase() { return Phase.SIMULATION; }
             @Override public int priority() { return 10; }
-            @Override public boolean isParallelizable() { return false; }
+            @Override public ExecutionMode executionMode() { return ExecutionMode.SEQUENTIAL; }
             @Override public void tick(int tickCount) { executionOrder.add(10); }
         });
 

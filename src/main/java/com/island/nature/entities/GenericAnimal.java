@@ -16,7 +16,7 @@ public class GenericAnimal extends Animal implements Herbivore, Predator {
         // If an animal can eat plants, we treat it as a herbivore for metabolic bonuses
         this.isHerbivore = type.canEat(SpeciesKey.PLANT)
                         || type.canEat(SpeciesKey.GRASS)
-                        || type.canEat(SpeciesKey.CABBAGE);
+                        || type.canEat(SpeciesKey.MUSHROOM);
         this.isColdBlooded = type.isColdBlooded();
     }
 

@@ -38,7 +38,7 @@ public record SpeciesKey(String code, boolean predator) implements Comparable<Sp
     
     public static final SpeciesKey PLANT = register("plant", false);
     public static final SpeciesKey GRASS = register("grass", false);
-    public static final SpeciesKey CABBAGE = register("cabbage", false);
+    public static final SpeciesKey MUSHROOM = register("mushroom", false);
 
     private static SpeciesKey register(String code, boolean predator) {
         SpeciesKey key = new SpeciesKey(code.toLowerCase(), predator);

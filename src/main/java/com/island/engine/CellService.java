@@ -18,8 +18,8 @@ public interface CellService<T extends Mortal, N extends SimulationNode<T>> exte
     }
 
     @Override
-    default boolean isParallelizable() {
-        return true;
+    default ExecutionMode executionMode() {
+        return ExecutionMode.PARALLEL;
     }
 
     /**
