@@ -2,6 +2,7 @@ package com.island.util;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -53,7 +54,7 @@ public class SamplingUtils {
      * Alternative sampling for Lists where indexed access might be faster, 
      * but stride-based iteration is used here for consistency and safety with all collection types.
      */
-    public static <T> void forEachSampled(java.util.List<T> list, int limit, RandomProvider random, Consumer<T> action) {
+    public static <T> void forEachSampled(List<T> list, int limit, RandomProvider random, Consumer<T> action) {
         forEachSampled((Collection<T>) list, limit, random, action);
     }
 }

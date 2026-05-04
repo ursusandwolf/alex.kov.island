@@ -11,6 +11,7 @@ import com.island.nature.entities.NatureStatistics;
 import com.island.nature.entities.NatureWorld;
 import com.island.nature.entities.Organism;
 import com.island.nature.entities.SpeciesRegistry;
+import com.island.nature.entities.TaskRegistry;
 import com.island.nature.model.Cell;
 import com.island.util.RandomProvider;
 import java.util.ArrayList;
@@ -33,9 +34,16 @@ public class MovementService extends AbstractService {
     }
 
     @Override
-    public void processCell(Cell cell, int tickCount) {
-        processAnimals(cell, tickCount);
-        processMobileBiomass(cell);
+    public int priority() {
+        return TaskRegistry.PRIORITY_MOVEMENT;
+    }
+
+    @Override
+    public void processCell(SimulationNode<Organism> node, int tickCount) {
+        if (node instanceof Cell cell) {
+            processAnimals(cell, tickCount);
+            processMobileBiomass(cell);
+        }
     }
 
     private void processAnimals(Cell node, int tickCount) {

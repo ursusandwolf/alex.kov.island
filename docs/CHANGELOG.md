@@ -1,5 +1,32 @@
 # Changelog
 
+## [1.9.0] - 2026-05-03
+### Added
+- **ExecutionMode Enum**: Introduced `ExecutionMode` (`SEQUENTIAL`, `PARALLEL`) to the core engine, allowing tasks to explicitly declare their thread-safety and execution preference.
+- **Extended Simulation Phases**: Added `PREPARE` and `POSTPROCESS` phases to `Phase.java` for finer control over the simulation lifecycle.
+
+### Changed
+- **Engine Decoupling**: 
+    - Removed `SimulationRenderer` from `SimulationContext` and `SimulationEngine.start()`, fully isolating the core engine from the UI/visual layer.
+    - Refactored `GameLoop` to use `ExecutionMode` instead of domain-specific `instanceof CellService` checks for parallel execution.
+- **Concurrency & Safety**:
+    - **Atomic Movement**: Improved `moveEntity` in `CityMap` and `Island` with rollback logic to ensure entities are never lost or duplicated during inter-node movement.
+    - **Encapsulation**: Secured `CityTile` by removing direct access to the internal entities list, enforcing the use of thread-safe iteration and modification methods.
+    - **Visibility**: Marked `cachedChunks` in `CityMap` as `volatile` to guarantee safe publication across threads during initialization.
+
+### Improved
+- **Scheduler Efficiency**: Optimized `GameLoop` to reduce allocations in the "hot" tick path by reusing phased task structures and improving error handling in parallel worker groups.
+- **Test Suite Alignment**: Updated `GameLoopConcurrencyTest`, `ExtinctionBalanceTest`, and `StressStabilityTest` to reflect the refactored engine API and verify new execution modes.
+
+## [1.8.0] - 2026-05-03
+### Added
+- **Detailed Documentation**: Created `docs/DOCUMENTATION.md` providing a comprehensive overview of the system architecture, including UML pseudo-graphics for core design patterns (Plugin, Task Scheduling, Observer, Strategy, etc.).
+
+### Improved
+- **Architectural Abstraction**: Refactored `AbstractService` and its specialized subclasses (`FeedingService`, `MovementService`, etc.) to use the `SimulationNode<Organism>` interface instead of the concrete `Cell` class in the `processCell` signature. This improves domain isolation and testability.
+- **Configuration Management**: Eliminated the magic number for season duration in `Island.java` by moving it to the `Configuration` system.
+- **Code Integrity**: Removed redundant `instanceof` checks and dead code branches in the `AbstractService` hierarchy.
+
 ## [1.7.0] - 2026-05-02
 ### Added
 - **GameLoop Thread Selection**: Enhanced `GameLoop` to respect the `threadCount` parameter. It now dynamically selects between a fixed thread pool (for controlled concurrency) and Java 21 Virtual Threads (for maximum throughput) based on configuration.

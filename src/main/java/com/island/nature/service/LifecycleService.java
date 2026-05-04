@@ -1,5 +1,6 @@
 package com.island.nature.service;
 
+import com.island.engine.SimulationNode;
 import com.island.nature.entities.Animal;
 import com.island.nature.entities.Biomass;
 import com.island.nature.entities.DeathCause;
@@ -8,6 +9,7 @@ import com.island.nature.entities.NatureStatistics;
 import com.island.nature.entities.NatureWorld;
 import com.island.nature.entities.Organism;
 import com.island.nature.entities.Season;
+import com.island.nature.entities.TaskRegistry;
 import com.island.nature.model.Cell;
 import com.island.util.RandomProvider;
 import java.util.concurrent.ExecutorService;
@@ -27,9 +29,16 @@ public class LifecycleService extends AbstractService {
     }
 
     @Override
-    public void processCell(Cell cell, int tickCount) {
-        processAging(cell);
-        processBiomassGrowth(cell);
+    public int priority() {
+        return TaskRegistry.PRIORITY_LIFECYCLE;
+    }
+
+    @Override
+    public void processCell(SimulationNode<Organism> node, int tickCount) {
+        if (node instanceof Cell cell) {
+            processAging(cell);
+            processBiomassGrowth(cell);
+        }
     }
 
     private void processAging(Cell node) {

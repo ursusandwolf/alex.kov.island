@@ -34,7 +34,7 @@ public interface SimulationNode<T extends Mortal> {
     /**
      * Gets the world this node belongs to.
      */
-    SimulationWorld<T> getWorld();
+    SimulationWorld<T, ?> getWorld();
 
     /**
      * Gets all living entities in this node.

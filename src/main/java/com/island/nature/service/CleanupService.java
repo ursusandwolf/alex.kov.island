@@ -4,6 +4,7 @@ import com.island.nature.entities.Animal;
 import com.island.nature.entities.AnimalFactory;
 import com.island.nature.entities.NatureWorld;
 import com.island.nature.entities.Organism;
+import com.island.nature.entities.TaskRegistry;
 import com.island.engine.SimulationNode;
 import com.island.nature.model.Cell;
 import com.island.util.RandomProvider;
@@ -22,12 +23,19 @@ public class CleanupService extends AbstractService {
     }
 
     @Override
-    public void processCell(Cell cell, int tickCount) {
-        cell.cleanupDeadEntities(e -> {
-            if (e instanceof Animal a) {
-                getWorld().onOrganismRemoved(a.getSpeciesKey());
-                animalFactory.releaseAnimal(a);
-            }
-        });
+    public int priority() {
+        return TaskRegistry.PRIORITY_CLEANUP;
+    }
+
+    @Override
+    public void processCell(SimulationNode<Organism> node, int tickCount) {
+        if (node instanceof Cell cell) {
+            cell.cleanupDeadEntities(e -> {
+                if (e instanceof Animal a) {
+                    getWorld().onOrganismRemoved(a.getSpeciesKey());
+                    animalFactory.releaseAnimal(a);
+                }
+            });
+        }
     }
 }

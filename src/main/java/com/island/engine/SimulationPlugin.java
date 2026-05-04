@@ -9,7 +9,7 @@ public interface SimulationPlugin<T extends Mortal> {
     /**
      * Creates and initializes the simulation world.
      */
-    SimulationWorld<T> createWorld();
+    SimulationWorld<T, ?> createWorld();
 
     /**
      * Registers recurring tasks (services) to the game loop.
@@ -17,7 +17,7 @@ public interface SimulationPlugin<T extends Mortal> {
      * @param gameLoop the game loop to register tasks to.
      * @param world    the world created by this plugin.
      */
-    void registerTasks(GameLoop<T> gameLoop, SimulationWorld<T> world);
+    void registerTasks(GameLoop<T> gameLoop, SimulationWorld<T, ?> world);
 
     /**
      * Optional hook called after the simulation context is created but before the loop starts.

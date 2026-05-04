@@ -3,7 +3,6 @@ package com.island;
 import com.island.nature.entities.DeathCause;
 import com.island.nature.entities.NatureWorld;
 import com.island.nature.entities.Organism;
-import com.island.nature.entities.SimulationBootstrap;
 import com.island.nature.entities.SpeciesKey;
 import com.island.engine.GameLoop;
 import com.island.engine.SimulationContext;
@@ -29,11 +28,11 @@ public class ExtinctionBalanceTest {
         Map<SpeciesKey, AtomicInteger> extinctionStats = new HashMap<>();
 
         for (int i = 0; i < ITERATIONS; i++) {
-            SimulationBootstrap bootstrap = new SimulationBootstrap();
-            SimulationContext<Organism> context = bootstrap.setup();
-            if (context.getView() != null) {
-                context.getView().setSilent(true);
-            }
+            com.island.nature.config.Configuration config = com.island.nature.config.Configuration.load();
+            com.island.nature.NaturePlugin plugin = new com.island.nature.NaturePlugin(config);
+            com.island.engine.SimulationEngine<Organism> engine = new com.island.engine.SimulationEngine<>();
+            SimulationContext<Organism> context = engine.build(plugin, config.getTickDurationMs(), 4);
+            
             GameLoop<Organism> gameLoop = context.getGameLoop();
 
             Set<SpeciesKey> initiallyPresent = ((NatureWorld) context.getWorld()).getRegistry().getAllAnimalKeys();

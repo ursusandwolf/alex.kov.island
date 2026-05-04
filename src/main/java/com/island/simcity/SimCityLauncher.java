@@ -16,8 +16,8 @@ public class SimCityLauncher {
         SimCityPlugin plugin = new SimCityPlugin(10, 10);
         SimulationEngine<SimEntity> engine = new SimulationEngine<>();
         
-        // Start engine (which calls initialize and registerTasks)
-        SimulationContext<SimEntity> context = engine.start(plugin, 100, 4, null);
+        // Build engine (which calls initialize and registerTasks)
+        SimulationContext<SimEntity> context = engine.build(plugin, 100, 4);
         CityMap map = (CityMap) context.getWorld();
         BuildingService buildingService = new BuildingService(map);
         CityConsoleView view = new CityConsoleView();

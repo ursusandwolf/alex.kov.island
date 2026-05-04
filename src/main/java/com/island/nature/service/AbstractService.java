@@ -12,6 +12,7 @@ import com.island.nature.entities.Season;
 import com.island.nature.entities.SpeciesKey;
 import com.island.nature.model.Cell;
 import com.island.util.RandomProvider;
+import com.island.util.SamplingUtils;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -24,7 +25,7 @@ import lombok.Getter;
  * Base class for all simulation services using integer-based arithmetic.
  */
 @Getter
-public abstract class AbstractService implements CellService<Organism, Cell> {
+public abstract class AbstractService implements CellService<Organism, SimulationNode<Organism>> {
     protected final Configuration config;
     private final NatureWorld world;
     private final NatureEnvironment environment;
@@ -50,25 +51,19 @@ public abstract class AbstractService implements CellService<Organism, Cell> {
     @Override
     public void tick(int tickCount) {
         beforeTick(tickCount);
-        if (world == null) {
-            return;
-        }
         // Fallback for direct service usage (e.g. in tests)
         for (Collection<? extends SimulationNode<Organism>> unit : world.getParallelWorkUnits()) {
             for (SimulationNode<Organism> node : unit) {
-                if (node instanceof Cell cell) {
-                    processCell(cell, tickCount);
-                }
+                processCell(node, tickCount);
             }
         }
-        afterTick(tickCount);
     }
 
     @Override
-    public abstract void processCell(Cell node, int tickCount);
+    public abstract void processCell(SimulationNode<Organism> node, int tickCount);
 
     protected <T> void forEachSampled(List<T> list, int limit, Consumer<T> action) {
-        com.island.util.SamplingUtils.forEachSampled(list, limit, random, action);
+        SamplingUtils.forEachSampled(list, limit, random, action);
     }
 
     protected boolean shouldAct(Animal animal, AnimalType.Action action, int tickCount) {

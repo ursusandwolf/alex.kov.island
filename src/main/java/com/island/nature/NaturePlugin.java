@@ -19,10 +19,13 @@ import com.island.nature.service.DefaultProtectionService;
 import com.island.nature.service.ProtectionService;
 import com.island.nature.service.StatisticsService;
 import com.island.nature.view.ConsoleView;
+import com.island.nature.view.SimulationView;
 import com.island.util.DefaultRandomProvider;
 import com.island.util.InteractionMatrix;
 import com.island.util.InteractionProvider;
 import com.island.util.RandomProvider;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Plugin implementation for the Nature (Island) simulation.
@@ -30,13 +33,13 @@ import com.island.util.RandomProvider;
 public class NaturePlugin implements SimulationPlugin<Organism> {
     private final Configuration config;
     private final NatureDomainContext domainContext;
-    private final com.island.nature.view.SimulationView view;
+    private final SimulationView view;
 
     public NaturePlugin(Configuration config) {
         this(config, new ConsoleView());
     }
 
-    public NaturePlugin(Configuration config, com.island.nature.view.SimulationView view) {
+    public NaturePlugin(Configuration config, SimulationView view) {
         this.config = config;
         this.view = view;
         
@@ -63,19 +66,24 @@ public class NaturePlugin implements SimulationPlugin<Organism> {
     }
 
     @Override
-    public SimulationWorld<Organism> createWorld() {
+    public SimulationWorld<Organism, Configuration> createWorld() {
         Island island = new Island(domainContext, config.getIslandWidth(), config.getIslandHeight());
         
         WorldInitializer initializer = new WorldInitializer();
-        initializer.initialize(island, domainContext.getSpeciesRegistry(), domainContext.getAnimalFactory(), 
-                               java.util.concurrent.Executors.newSingleThreadExecutor(), 
-                               domainContext.getRandomProvider());
+        ExecutorService initExecutor = Executors.newSingleThreadExecutor();
+        try {
+            initializer.initialize(island, domainContext.getSpeciesRegistry(), domainContext.getAnimalFactory(), 
+                                   initExecutor, 
+                                   domainContext.getRandomProvider());
+        } finally {
+            initExecutor.shutdown();
+        }
         island.init();
         return island;
     }
 
     @Override
-    public void registerTasks(GameLoop<Organism> gameLoop, SimulationWorld<Organism> world) {
+    public void registerTasks(GameLoop<Organism> gameLoop, SimulationWorld<Organism, ?> world) {
         NatureWorld natureWorld = (NatureWorld) world;
         
         TaskRegistry taskRegistry = new TaskRegistry(gameLoop, natureWorld, domainContext.getInteractionProvider(), 

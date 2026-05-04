@@ -24,12 +24,12 @@ public class SimCityPlugin implements SimulationPlugin<SimEntity> {
     }
 
     @Override
-    public SimulationWorld<SimEntity> createWorld() {
+    public SimulationWorld<SimEntity, Void> createWorld() {
         return new CityMap(width, height);
     }
 
     @Override
-    public void registerTasks(GameLoop<SimEntity> gameLoop, SimulationWorld<SimEntity> world) {
+    public void registerTasks(GameLoop<SimEntity> gameLoop, SimulationWorld<SimEntity, ?> world) {
         CityMap map = (CityMap) world;
         
         ConnectivityService connService = new ConnectivityService(map);

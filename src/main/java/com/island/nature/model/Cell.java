@@ -9,7 +9,9 @@ import com.island.nature.entities.SizeClass;
 import com.island.nature.entities.SpeciesKey;
 import com.island.engine.SimulationNode;
 import com.island.engine.SimulationWorld;
+import com.island.engine.WorldListener;
 import com.island.util.RandomProvider;
+import com.island.util.SamplingUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -25,19 +27,24 @@ import lombok.Setter;
 public class Cell implements SimulationNode<Organism> {
     private final int x;
     private final int y;
-    private final SimulationWorld<Organism> world;
+    private final SimulationWorld<Organism, ?> world;
     private final Configuration config;
     @Setter private TerrainType terrainType = TerrainType.MEADOW;
     private final EntityContainer container;
     private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
     private List<SimulationNode<Organism>> cachedNeighbors = Collections.emptyList();
 
-    public Cell(int x, int y, SimulationWorld<Organism> world) {
+    public Cell(int x, int y, SimulationWorld<Organism, ?> world) {
         this.x = x;
         this.y = y;
         this.world = world;
         this.config = (Configuration) world.getConfiguration();
         this.container = new EntityContainer(config);
+    }
+
+    @Override
+    public SimulationWorld<Organism, ?> getWorld() {
+        return world;
     }
 
     @Override
@@ -142,8 +149,8 @@ public class Cell implements SimulationNode<Organism> {
                 return false;
             }
             container.addAnimal(animal);
-            for (com.island.engine.WorldListener l : world.getListeners()) {
-                l.onEntityAdded(animal.getSpeciesKey());
+            for (WorldListener<Organism> l : world.getListeners()) {
+                l.onEntityAdded(animal);
             }
             return true;
         } finally {
@@ -155,8 +162,8 @@ public class Cell implements SimulationNode<Organism> {
         rwLock.writeLock().lock();
         try { 
             if (container.removeAnimal(animal)) {
-                for (com.island.engine.WorldListener l : world.getListeners()) {
-                    l.onEntityRemoved(animal.getSpeciesKey());
+                for (WorldListener<Organism> l : world.getListeners()) {
+                    l.onEntityRemoved(animal);
                 }
                 return true;
             }
@@ -208,7 +215,7 @@ public class Cell implements SimulationNode<Organism> {
         List<Animal> sampled = new ArrayList<>();
         rwLock.readLock().lock();
         try {
-            com.island.util.SamplingUtils.forEachSampled(container.getAllAnimals(), limit, random, sampled::add);
+            SamplingUtils.forEachSampled(container.getAllAnimals(), limit, random, sampled::add);
         } finally {
             rwLock.readLock().unlock();
         }
@@ -230,7 +237,7 @@ public class Cell implements SimulationNode<Organism> {
         List<Animal> sampled = new ArrayList<>();
         rwLock.readLock().lock();
         try {
-            com.island.util.SamplingUtils.forEachSampled(container.getHerbivores(), limit, random, sampled::add);
+            SamplingUtils.forEachSampled(container.getHerbivores(), limit, random, sampled::add);
         } finally {
             rwLock.readLock().unlock();
         }
