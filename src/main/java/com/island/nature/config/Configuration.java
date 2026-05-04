@@ -2,8 +2,10 @@ package com.island.nature.config;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.InputStream;
+import java.lang.reflect.Modifier;
 import java.util.Properties;
 
 /**
@@ -12,6 +14,7 @@ import java.util.Properties;
  */
 @Getter
 @Setter
+@Slf4j
 public class Configuration {
     // Island dimensions
     private int islandWidth = 8;
@@ -95,11 +98,15 @@ public class Configuration {
                 props.load(is);
             }
         } catch (Exception e) {
-            // Keep defaults
+            log.error("Failed to load species.properties, using defaults", e);
         }
 
         // Use reflection to load all fields that have a matching property
         for (java.lang.reflect.Field field : Configuration.class.getDeclaredFields()) {
+            if (Modifier.isFinal(field.getModifiers())) {
+                continue;
+            }
+
             String propertyKey = "island." + field.getName();
             String value = System.getProperty(propertyKey);
             if (value == null) {
@@ -113,9 +120,17 @@ public class Configuration {
                         field.setInt(config, Integer.parseInt(value));
                     } else if (field.getType() == long.class) {
                         field.setLong(config, Long.parseLong(value));
+                    } else if (field.getType() == boolean.class) {
+                        field.setBoolean(config, Boolean.parseBoolean(value));
+                    } else if (field.getType() == double.class) {
+                        field.setDouble(config, Double.parseDouble(value));
+                    } else {
+                        log.warn("Unsupported config field type {} for field {}", field.getType(), field.getName());
                     }
+                } catch (NumberFormatException e) {
+                    log.warn("Invalid value '{}' for config property '{}', using default", value, propertyKey);
                 } catch (Exception e) {
-                    // Ignore errors for individual fields, fallback to default
+                    log.error("Failed to set config field '{}' via reflection", field.getName(), e);
                 }
             }
         }

@@ -11,6 +11,7 @@ import com.island.nature.entities.NatureStatistics;
 import com.island.nature.entities.NatureWorld;
 import com.island.nature.entities.Organism;
 import com.island.nature.entities.SpeciesRegistry;
+import com.island.nature.entities.TaskRegistry;
 import com.island.nature.model.Cell;
 import com.island.util.RandomProvider;
 import java.util.ArrayList;
@@ -34,7 +35,7 @@ public class MovementService extends AbstractService {
 
     @Override
     public int priority() {
-        return 70;
+        return TaskRegistry.PRIORITY_MOVEMENT;
     }
 
     @Override

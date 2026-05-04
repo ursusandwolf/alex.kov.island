@@ -14,6 +14,13 @@ import com.island.nature.view.SimulationView;
  * Responsible for registering simulation tasks in the game loop.
  */
 public class TaskRegistry {
+    public static final int PRIORITY_LIFECYCLE = 90;
+    public static final int PRIORITY_FEEDING = 80;
+    public static final int PRIORITY_MOVEMENT = 70;
+    public static final int PRIORITY_REPRODUCTION = 60;
+    public static final int PRIORITY_CLEANUP = 10;
+    public static final int PRIORITY_VIEW = 0;
+
     private final GameLoop<Organism> gameLoop;
     private final NatureWorld world;
     private final InteractionProvider matrix;

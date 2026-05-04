@@ -57,7 +57,6 @@ public abstract class AbstractService implements CellService<Organism, Simulatio
                 processCell(node, tickCount);
             }
         }
-        afterTick(tickCount);
     }
 
     @Override

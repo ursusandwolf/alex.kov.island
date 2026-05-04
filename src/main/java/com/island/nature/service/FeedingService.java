@@ -14,6 +14,7 @@ import com.island.nature.entities.Organism;
 import com.island.nature.entities.PreyProvider;
 import com.island.nature.entities.SpeciesKey;
 import com.island.nature.entities.SpeciesRegistry;
+import com.island.nature.entities.TaskRegistry;
 import com.island.nature.model.Cell;
 import com.island.util.InteractionProvider;
 import com.island.util.RandomProvider;
@@ -45,7 +46,7 @@ public class FeedingService extends AbstractService {
 
     @Override
     public int priority() {
-        return 80;
+        return TaskRegistry.PRIORITY_FEEDING;
     }
 
     @Override

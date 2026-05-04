@@ -9,6 +9,7 @@ import com.island.nature.entities.NatureStatistics;
 import com.island.nature.entities.NatureWorld;
 import com.island.nature.entities.Organism;
 import com.island.nature.entities.Season;
+import com.island.nature.entities.TaskRegistry;
 import com.island.nature.model.Cell;
 import com.island.util.RandomProvider;
 import java.util.concurrent.ExecutorService;
@@ -29,7 +30,7 @@ public class LifecycleService extends AbstractService {
 
     @Override
     public int priority() {
-        return 90;
+        return TaskRegistry.PRIORITY_LIFECYCLE;
     }
 
     @Override

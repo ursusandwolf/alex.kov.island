@@ -3,6 +3,7 @@ package com.island.engine;
 import org.junit.jupiter.api.Test;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -42,6 +43,34 @@ public class GameLoopConcurrencyTest {
         gameLoop.runTick();
 
         assertEquals(List.of(100, 50, 10), executionOrder, "Tasks should execute in descending priority order");
+    }
+
+    @Test
+    void shouldExecutePreparePhaseBeforeSimulation() {
+        GameLoop<Mortal> gameLoop = new GameLoop<>(100, 1);
+        List<String> phases = new CopyOnWriteArrayList<>();
+        gameLoop.addRecurringTask(new ScheduledTask() {
+            @Override public Phase phase() { return Phase.PREPARE; }
+            @Override public int priority() { return 50; }
+            @Override public void tick(int tc) { phases.add("PREPARE"); }
+        });
+        gameLoop.addRecurringTask(new ScheduledTask() {
+            @Override public Phase phase() { return Phase.SIMULATION; }
+            @Override public int priority() { return 50; }
+            @Override public void tick(int tc) { phases.add("SIMULATION"); }
+        });
+        gameLoop.runTick();
+        assertEquals(List.of("PREPARE", "SIMULATION"), phases);
+    }
+
+    @Test
+    void shouldContinueAfterServiceException() {
+        GameLoop<Mortal> gameLoop = new GameLoop<>(100, 1);
+        AtomicBoolean secondRan = new AtomicBoolean(false);
+        gameLoop.addRecurringTask((Tickable) tc -> { throw new RuntimeException("boom"); });
+        gameLoop.addRecurringTask((Tickable) tc -> secondRan.set(true));
+        gameLoop.runTick();
+        assertTrue(secondRan.get(), "Second task should run even if first one failed");
     }
 
     @Test

@@ -15,7 +15,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class CityMap implements SimulationWorld<SimEntity, Object> {
+public class CityMap implements SimulationWorld<SimEntity, Void> {
     private final int width;
     private final int height;
     private final CityTile[][] grid;
@@ -48,7 +48,7 @@ public class CityMap implements SimulationWorld<SimEntity, Object> {
     }
 
     @Override
-    public Object getConfiguration() {
+    public Void getConfiguration() {
         return null; // SimCity doesn't use Configuration yet
     }
 

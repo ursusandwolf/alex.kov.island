@@ -7,6 +7,7 @@ import com.island.nature.entities.AnimalType;
 import com.island.nature.entities.NatureWorld;
 import com.island.nature.entities.Organism;
 import com.island.nature.entities.SpeciesRegistry;
+import com.island.nature.entities.TaskRegistry;
 import com.island.engine.SimulationNode;
 import com.island.nature.model.Cell;
 import com.island.util.RandomProvider;
@@ -33,7 +34,7 @@ public class ReproductionService extends AbstractService {
 
     @Override
     public int priority() {
-        return 60;
+        return TaskRegistry.PRIORITY_REPRODUCTION;
     }
 
     @Override

@@ -24,7 +24,7 @@ public class SimCityPlugin implements SimulationPlugin<SimEntity> {
     }
 
     @Override
-    public SimulationWorld<SimEntity, Object> createWorld() {
+    public SimulationWorld<SimEntity, Void> createWorld() {
         return new CityMap(width, height);
     }
 

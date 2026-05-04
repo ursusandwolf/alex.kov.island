@@ -4,6 +4,7 @@ import com.island.nature.entities.Animal;
 import com.island.nature.entities.AnimalFactory;
 import com.island.nature.entities.NatureWorld;
 import com.island.nature.entities.Organism;
+import com.island.nature.entities.TaskRegistry;
 import com.island.engine.SimulationNode;
 import com.island.nature.model.Cell;
 import com.island.util.RandomProvider;
@@ -23,7 +24,7 @@ public class CleanupService extends AbstractService {
 
     @Override
     public int priority() {
-        return 10;
+        return TaskRegistry.PRIORITY_CLEANUP;
     }
 
     @Override

@@ -14,7 +14,6 @@ public class SimulationEngine<T extends Mortal> {
      * @param plugin         The plugin defining the simulation domain.
      * @param tickDurationMs Target duration for each tick.
      * @param threads        Number of threads for parallel execution.
-     * @param renderer       Optional renderer for the simulation.
      * @return The created simulation context.
      */
     public SimulationContext<T> start(SimulationPlugin<T> plugin, int tickDurationMs, int threads) {
