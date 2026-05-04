@@ -11,6 +11,7 @@ import com.island.nature.entities.TaskRegistry;
 import com.island.engine.SimulationNode;
 import com.island.nature.model.Cell;
 import com.island.util.RandomProvider;
+import com.island.util.SamplingContext;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -44,7 +45,7 @@ public class ReproductionService extends AbstractService {
             int totalAnimalsInCell = cell.getAnimalCount(); 
             int limit = config.getReproductionLodLimit();
             
-            cell.forEachAnimalSampled(limit, getRandom(), a -> {
+            cell.forEachAnimalSampled(new SamplingContext(limit, getRandom()), a -> {
                 if (shouldAct(a, AnimalType.Action.REPRODUCE, tickCount)) {
                     candidates.add(a);
                 }

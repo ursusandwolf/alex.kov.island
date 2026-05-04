@@ -11,6 +11,7 @@ import com.island.engine.SimulationNode;
 import com.island.engine.SimulationWorld;
 import com.island.engine.WorldListener;
 import com.island.util.RandomProvider;
+import com.island.util.SamplingContext;
 import com.island.util.SamplingUtils;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -211,11 +212,11 @@ public class Cell implements SimulationNode<Organism> {
         copy.forEach(action);
     }
 
-    public void forEachAnimalSampled(int limit, RandomProvider random, Consumer<Animal> action) {
+    public void forEachAnimalSampled(SamplingContext context, Consumer<Animal> action) {
         List<Animal> sampled = new ArrayList<>();
         rwLock.readLock().lock();
         try {
-            SamplingUtils.forEachSampled(container.getAllAnimals(), limit, random, sampled::add);
+            SamplingUtils.forEachSampled(container.getAllAnimals(), context, sampled::add);
         } finally {
             rwLock.readLock().unlock();
         }
@@ -366,7 +367,12 @@ public class Cell implements SimulationNode<Organism> {
     public void cleanupDeadEntities(Consumer<Organism> onOrganismRemoved) {
         rwLock.writeLock().lock();
         try {
-            container.removeDeadAnimals(a -> onOrganismRemoved.accept((Organism) a));
+            container.removeDeadAnimals(a -> {
+                for (WorldListener<Organism> l : world.getListeners()) {
+                    l.onEntityRemoved(a);
+                }
+                onOrganismRemoved.accept((Organism) a);
+            });
         } finally {
             rwLock.writeLock().unlock();
         }

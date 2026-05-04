@@ -5,6 +5,7 @@ import com.island.engine.SimulationWorld;
 import com.island.engine.WorldListener;
 import com.island.engine.WorldSnapshot;
 import com.island.simcity.entities.SimEntity;
+import com.island.util.GridUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -100,7 +101,7 @@ public class CityMap implements SimulationWorld<SimEntity, Void> {
         if (current instanceof CityTile tile) {
             int tx = tile.getX() + dx;
             int ty = tile.getY() + dy;
-            if (tx >= 0 && tx < width && ty >= 0 && ty < height) {
+            if (GridUtils.isValid(tx, ty, width, height)) {
                 return Optional.of(grid[tx][ty]);
             }
         }
@@ -113,28 +114,20 @@ public class CityMap implements SimulationWorld<SimEntity, Void> {
             if (f == t) {
                 return true;
             }
-            CityTile first = (f.getX() < t.getX() || (f.getX() == t.getX() && f.getY() < t.getY())) ? f : t;
-            CityTile second = (first == f) ? t : f;
-            first.getLock().lock();
-            try {
-                second.getLock().lock();
-                try {
-                    if (t.canAccept(entity)) {
-                        if (f.removeEntity(entity)) {
-                            if (t.addEntity(entity)) {
-                                return true;
-                            } else {
-                                // Rollback
-                                f.addEntity(entity);
-                            }
+            final boolean[] result = {false};
+            GridUtils.executeWithDoubleLock(f, t, f.getX(), f.getY(), t.getX(), t.getY(), () -> {
+                if (t.canAccept(entity)) {
+                    if (f.removeEntity(entity)) {
+                        if (t.addEntity(entity)) {
+                            result[0] = true;
+                        } else {
+                            // Rollback
+                            f.addEntity(entity);
                         }
                     }
-                } finally {
-                    second.getLock().unlock();
                 }
-            } finally {
-                first.getLock().unlock();
-            }
+            });
+            return result[0];
         }
         return false;
     }
@@ -150,16 +143,7 @@ public class CityMap implements SimulationWorld<SimEntity, Void> {
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 CityTile tile = grid[x][y];
-                List<SimulationNode<SimEntity>> neighbors = new ArrayList<>();
-                for (int dx = -1; dx <= 1; dx++) {
-                    for (int dy = -1; dy <= 1; dy++) {
-                        if (dx == 0 && dy == 0) {
-                            continue;
-                        }
-                        getNode(tile, dx, dy).ifPresent(neighbors::add);
-                    }
-                }
-                tile.setNeighbors(neighbors);
+                tile.setNeighbors(GridUtils.getNeighbors(this, tile, width, height));
             }
         }
     }

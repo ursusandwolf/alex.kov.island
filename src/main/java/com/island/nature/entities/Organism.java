@@ -7,6 +7,7 @@ import com.island.util.Poolable;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.NonFinal;
 
 @Getter
@@ -17,6 +18,7 @@ public abstract class Organism implements Poolable, Mortal {
     @NonFinal private int age;
     @NonFinal private int maxLifespan;
     @NonFinal private boolean isAlive;
+    @Setter private DeathCause lastDeathCause;
     private final ReentrantLock energyLock = new ReentrantLock();
 
     protected Organism(Configuration config, long maxEnergy, int maxLifespan) {
@@ -47,10 +49,16 @@ public abstract class Organism implements Poolable, Mortal {
         this.currentEnergy = (maxEnergy * initialEnergyPercent) / 100;
         this.isAlive = true;
         this.age = 0;
+        this.lastDeathCause = null;
     }
 
     public void die() {
+        die(null);
+    }
+
+    public void die(DeathCause cause) {
         this.isAlive = false;
+        this.lastDeathCause = cause;
     }
 
     public abstract String getTypeName();
@@ -68,7 +76,7 @@ public abstract class Organism implements Poolable, Mortal {
         try {
             currentEnergy = Math.max(0, currentEnergy - amount);
             if (currentEnergy == 0 && isAlive) {
-                isAlive = false;
+                die(DeathCause.HUNGER);
             }
             return isAlive;
         } finally {
@@ -104,7 +112,7 @@ public abstract class Organism implements Poolable, Mortal {
     public boolean checkAgeDeath() {
         age++;
         if (maxLifespan > 0 && age >= maxLifespan && isAlive) {
-            isAlive = false;
+            die(DeathCause.AGE);
             return true;
         }
         return false;

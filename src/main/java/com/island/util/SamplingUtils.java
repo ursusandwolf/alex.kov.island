@@ -21,7 +21,23 @@ public class SamplingUtils {
      * @param <T>        The type of elements.
      */
     public static <T> void forEachSampled(Collection<T> collection, int limit, RandomProvider random, Consumer<T> action) {
+        forEachSampled(collection, new SamplingContext(limit, random), action);
+    }
+
+    /**
+     * Iterates over a sample of the collection using stride-based sampling with a random start offset.
+     * This avoids full iteration of large collections when a limit is reached.
+     *
+     * @param collection The collection to sample.
+     * @param context    The sampling context (limit and random).
+     * @param action     The action to perform on each sampled item.
+     * @param <T>        The type of elements.
+     */
+    public static <T> void forEachSampled(Collection<T> collection, SamplingContext context, Consumer<T> action) {
         int size = collection.size();
+        int limit = context.getLimit();
+        RandomProvider random = context.getRandom();
+
         if (size == 0 || limit <= 0) {
             return;
         }

@@ -120,8 +120,8 @@ public class FeedingService extends AbstractService {
                     
                     int roll = getRandom().nextInt(0, config.getScale10K());
                     if (roll < packChanceBP) {
+                        a.die(DeathCause.EATEN);
                         if (node.removeEntity(a)) {
-                            a.die();
                             long gainPerWolf = a.getWeight() / pack.size();
                             for (Animal wolf : pack) {
                                 if (wolf.isAlive()) {
@@ -129,7 +129,6 @@ public class FeedingService extends AbstractService {
                                 }
                             }
                             packPreyProvider.markAsEaten(a);
-                            statistics.reportDeath(a.getSpeciesKey(), DeathCause.EATEN);
                             animalFactory.releaseAnimal(a);
                             kills++;
                         }
@@ -177,13 +176,14 @@ public class FeedingService extends AbstractService {
                         chance += config.getOverpopulationHuntBonusPercent(); 
                     }
 
-                    if (getRandom().nextInt(0, 100) < chance && node.removeEntity(a)) {
-                        a.die();
-                        consumer.addEnergy(a.getWeight());
-                        preyProvider.markAsEaten(a);
-                        statistics.reportDeath(a.getSpeciesKey(), DeathCause.EATEN);
-                        animalFactory.releaseAnimal(a);
-                        success = true;
+                    if (getRandom().nextInt(0, 100) < chance) {
+                        a.die(DeathCause.EATEN);
+                        if (node.removeEntity(a)) {
+                            consumer.addEnergy(a.getWeight());
+                            preyProvider.markAsEaten(a);
+                            animalFactory.releaseAnimal(a);
+                            success = true;
+                        }
                     }
                 }
             } else if (preyCandidate instanceof Biomass b && b.getBiomass() > 0 && !isPlantProtected(b.getSpeciesKey())) {

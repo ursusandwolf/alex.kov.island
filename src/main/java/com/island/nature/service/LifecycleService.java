@@ -63,13 +63,11 @@ public class LifecycleService extends AbstractService {
                     metabolism = (metabolism * (config.getScale10K() - 5000)) / config.getScale10K();
                 }
 
-                if (!a.tryConsumeEnergy(metabolism)) {
-                    statistics.reportDeath(a.getSpeciesKey(), DeathCause.HUNGER);
-                }
+                a.tryConsumeEnergy(metabolism);
                 
                 // 2. Age increment and death check
-                if (a.isAlive() && a.checkAgeDeath()) {
-                    statistics.reportDeath(a.getSpeciesKey(), DeathCause.AGE);
+                if (a.isAlive()) {
+                    a.checkAgeDeath();
                 }
             }
         });

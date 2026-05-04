@@ -14,6 +14,7 @@ import com.island.nature.service.DefaultProtectionService;
 import com.island.nature.service.StatisticsService;
 import com.island.nature.config.Configuration;
 import com.island.util.DefaultRandomProvider;
+import com.island.util.SamplingContext;
 import com.island.util.InteractionMatrix;
 import java.util.ArrayList;
 import java.util.List;
@@ -73,10 +74,10 @@ class CellIterationTest {
         // Limit 10, step should be 100/10 + 1 = 11. Actually size/limit + 1. 100/10 + 1 = 11.
         // Wait, 100 animals, limit 10. step = 100/10 + 1 = 11.
         // i=0, 11, 22, 33, 44, 55, 66, 77, 88, 99. Total 10.
-        cell.forEachAnimalSampled(10, new DefaultRandomProvider() {
+        cell.forEachAnimalSampled(new SamplingContext(10, new DefaultRandomProvider() {
             @Override
             public int nextInt(int bound) { return 0; }
-        }, a -> count.incrementAndGet());
+        }), a -> count.incrementAndGet());
         
         assertEquals(10, count.get());
     }

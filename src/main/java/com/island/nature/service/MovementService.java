@@ -14,6 +14,7 @@ import com.island.nature.entities.SpeciesRegistry;
 import com.island.nature.entities.TaskRegistry;
 import com.island.nature.model.Cell;
 import com.island.util.RandomProvider;
+import com.island.util.SamplingContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -47,7 +48,7 @@ public class MovementService extends AbstractService {
     }
 
     private void processAnimals(Cell node, int tickCount) {
-        node.forEachAnimalSampled(config.getMovementLodLimit(), getRandom(), animal -> {
+        node.forEachAnimalSampled(new SamplingContext(config.getMovementLodLimit(), getRandom()), animal -> {
             if (animal.isAlive()) {
                 if (shouldAct(animal, AnimalType.Action.MOVE, tickCount)) {
                     int speed = animal.getSpeed();
@@ -62,7 +63,7 @@ public class MovementService extends AbstractService {
                                 long moveCost = (animal.getMaxEnergy() * (1 + animal.getSpeed()) * config.getSpeedMoveCostStepBP()) / config.getScale10K();
                                 animal.consumeEnergy(moveCost);
                                 if (!animal.isAlive()) {
-                                    statistics.reportDeath(animal.getSpeciesKey(), DeathCause.MOVEMENT_EXHAUSTION);
+                                    animal.setLastDeathCause(DeathCause.MOVEMENT_EXHAUSTION);
                                 }
                             }
                         }

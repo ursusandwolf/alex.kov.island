@@ -17,6 +17,7 @@ import com.island.engine.WorldListener;
 import com.island.engine.WorldSnapshot;
 import com.island.nature.service.ProtectionService;
 import com.island.nature.service.StatisticsService;
+import com.island.util.GridUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -68,14 +69,19 @@ public class Island implements NatureWorld, WorldListener<Organism> {
     @Override
     public void onEntityAdded(Organism entity) {
         if (entity instanceof Animal a) {
-            onOrganismAdded(a.getSpeciesKey());
+            statisticsService.registerBirth(a.getSpeciesKey());
         }
     }
 
     @Override
     public void onEntityRemoved(Organism entity) {
         if (entity instanceof Animal a) {
-            onOrganismRemoved(a.getSpeciesKey());
+            DeathCause cause = a.getLastDeathCause();
+            if (cause != null) {
+                statisticsService.registerDeath(a.getSpeciesKey(), cause);
+            } else {
+                statisticsService.registerRemoval(a.getSpeciesKey());
+            }
         }
     }
 
@@ -87,16 +93,7 @@ public class Island implements NatureWorld, WorldListener<Organism> {
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 Cell cell = grid[x][y];
-                List<SimulationNode<Organism>> neighbors = new ArrayList<>();
-                for (int dx = -1; dx <= 1; dx++) {
-                    for (int dy = -1; dy <= 1; dy++) {
-                        if (dx == 0 && dy == 0) {
-                            continue;
-                        }
-                        getNode(cell, dx, dy).ifPresent(neighbors::add);
-                    }
-                }
-                cell.setNeighbors(neighbors);
+                cell.setNeighbors(GridUtils.getNeighbors(this, cell, width, height));
             }
         }
     }
@@ -115,18 +112,6 @@ public class Island implements NatureWorld, WorldListener<Organism> {
 
     public SpeciesRegistry getRegistry() {
         return registry;
-    }
-
-    public void reportDeath(SpeciesKey speciesKey, DeathCause cause) {
-        statisticsService.registerDeath(speciesKey, cause);
-    }
-
-    public void onOrganismAdded(SpeciesKey key) {
-        statisticsService.registerBirth(key);
-    }
-
-    public void onOrganismRemoved(SpeciesKey key) {
-        statisticsService.registerRemoval(key);
     }
 
     public int getSpeciesCount(SpeciesKey key) {
@@ -175,7 +160,7 @@ public class Island implements NatureWorld, WorldListener<Organism> {
         if (current instanceof Cell cell) {
             int tx = cell.getX() + dx;
             int ty = cell.getY() + dy;
-            if (tx >= 0 && tx < width && ty >= 0 && ty < height) {
+            if (GridUtils.isValid(tx, ty, width, height)) {
                 return Optional.of(grid[tx][ty]);
             }
         }
@@ -195,28 +180,15 @@ public class Island implements NatureWorld, WorldListener<Organism> {
             if (entity instanceof Animal a) {
                 return moveOrganism(a, f, t);
             } else if (entity instanceof Biomass b) {
-                if (f == t) {
-                    return true;
-                }
-                Cell first = (f.getX() < t.getX() || (f.getX() == t.getX() && f.getY() < t.getY())) ? f : t;
-                Cell second = (first == f) ? t : f;
-                first.getLock().lock();
-                try {
-                    second.getLock().lock();
-                    try {
-                        if (t.addEntity(b)) {
-                            if (f.removeEntity(b)) {
-                                return true;
-                            }
-                            // Note: Biomass.addEntity in Cell might merge biomass, 
-                            // so rollback is tricky. But we should try to be as atomic as possible.
+                final boolean[] result = {false};
+                GridUtils.executeWithDoubleLock(f, t, f.getX(), f.getY(), t.getX(), t.getY(), () -> {
+                    if (t.addEntity(b)) {
+                        if (f.removeEntity(b)) {
+                            result[0] = true;
                         }
-                    } finally {
-                        second.getLock().unlock();
                     }
-                } finally {
-                    first.getLock().unlock();
-                }
+                });
+                return result[0];
             }
         }
         return false;
@@ -232,22 +204,12 @@ public class Island implements NatureWorld, WorldListener<Organism> {
         if (from == to || amount <= 0 || b.getBiomass() <= 0) {
             return;
         }
-        Cell first = (from.getX() < to.getX() || (from.getX() == to.getX() && from.getY() < to.getY())) ? from : to;
-        Cell second = (first == from) ? to : from;
-        first.getLock().lock();
-        try {
-            second.getLock().lock();
-            try {
-                long actualToMove = Math.min(b.getBiomass(), amount);
-                if (to.addBiomass(b.getSpeciesKey(), actualToMove)) {
-                    b.consumeBiomass(actualToMove, from);
-                }
-            } finally {
-                second.getLock().unlock();
+        GridUtils.executeWithDoubleLock(from, to, from.getX(), from.getY(), to.getX(), to.getY(), () -> {
+            long actualToMove = Math.min(b.getBiomass(), amount);
+            if (to.addBiomass(b.getSpeciesKey(), actualToMove)) {
+                b.consumeBiomass(actualToMove, from);
             }
-        } finally {
-            first.getLock().unlock();
-        }
+        });
     }
 
     @Override
@@ -310,27 +272,18 @@ public class Island implements NatureWorld, WorldListener<Organism> {
         if (from == to) {
             return true;
         }
-        Cell first = (from.getX() < to.getX() || (from.getX() == to.getX() && from.getY() < to.getY())) ? from : to;
-        Cell second = (first == from) ? to : from;
-        first.getLock().lock();
-        try {
-            second.getLock().lock();
-            try {
-                if (to.canAccept(animal)) {
-                    if (from.removeAnimal(animal)) {
-                        if (to.addAnimal(animal)) {
-                            return true;
-                        } else {
-                            from.addAnimal(animal);
-                        }
+        final boolean[] result = {false};
+        GridUtils.executeWithDoubleLock(from, to, from.getX(), from.getY(), to.getX(), to.getY(), () -> {
+            if (to.canAccept(animal)) {
+                if (from.removeAnimal(animal)) {
+                    if (to.addAnimal(animal)) {
+                        result[0] = true;
+                    } else {
+                        from.addAnimal(animal);
                     }
                 }
-                return false;
-            } finally {
-                second.getLock().unlock();
             }
-        } finally {
-            first.getLock().unlock();
-        }
+        });
+        return result[0];
     }
 }

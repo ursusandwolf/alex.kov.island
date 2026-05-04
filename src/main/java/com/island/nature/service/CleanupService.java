@@ -32,7 +32,6 @@ public class CleanupService extends AbstractService {
         if (node instanceof Cell cell) {
             cell.cleanupDeadEntities(e -> {
                 if (e instanceof Animal a) {
-                    getWorld().onOrganismRemoved(a.getSpeciesKey());
                     animalFactory.releaseAnimal(a);
                 }
             });

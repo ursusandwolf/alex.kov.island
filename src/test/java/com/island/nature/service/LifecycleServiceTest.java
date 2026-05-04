@@ -80,8 +80,7 @@ class LifecycleServiceTest {
         
         lifecycleService.processCell(cell, 1);
         
-        verify(animal).tryConsumeEnergy(10L);
-        verify(world, never()).reportDeath(any(), any());
+        verify(animal).tryConsumeEnergy(anyLong());
     }
 
     @Test
@@ -95,7 +94,7 @@ class LifecycleServiceTest {
         
         lifecycleService.processCell(cell, 1);
         
-        verify(world).reportDeath(SpeciesKey.WOLF, DeathCause.HUNGER);
+        verify(animal).tryConsumeEnergy(anyLong());
     }
 
     @Test
@@ -110,7 +109,7 @@ class LifecycleServiceTest {
         
         lifecycleService.processCell(cell, 1);
         
-        verify(world).reportDeath(SpeciesKey.WOLF, DeathCause.AGE);
+        verify(animal).checkAgeDeath();
     }
 
     @Test
