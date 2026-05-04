@@ -79,7 +79,7 @@ public class NatureLauncher {
                     continue;
                 }
                 if (counts.getOrDefault(species, 0) == 0) {
-                    log.error("\n💀 Вид '{}' вымер! Остановка симуляции...", species.getCode());
+                    log.error("\n💀 Вид '{}' вымер! Остановка симуляции для анализа баланса...", species.getCode());
                     gameLoop.stop();
                     latch.countDown();
                     return;

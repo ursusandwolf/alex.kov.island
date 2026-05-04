@@ -27,7 +27,7 @@ public class Configuration {
     private int scale10K = 10_000;
 
     // Movement and Hunting costs (Basis Points)
-    private int speedMoveCostStepBP = 100;
+    private int speedMoveCostStepBP = 50;
     private int preyRelativeSpeedHuntCostStepBP = 500;
     private int baseMetabolismBP = 100;
 

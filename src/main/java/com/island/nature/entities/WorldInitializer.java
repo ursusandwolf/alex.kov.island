@@ -60,16 +60,22 @@ public class WorldInitializer {
         for (SpeciesKey biomassKey : registry.getAllBiomassKeys()) {
             registry.getBiomassType(biomassKey).ifPresent(type -> {
                 Biomass b;
+                long capacity = type.getWeight() * type.getMaxPerCell();
+                long initialAmount = (capacity * type.getPresenceChance()) / 100;
+                
                 if (biomassKey == SpeciesKey.BUTTERFLY) {
-                    b = new Butterfly(island.getConfiguration(), type.getMaxEnergy() * type.getMaxPerCell(), type.getSpeed());
+                    b = new Butterfly(island.getConfiguration(), initialAmount, capacity, type.getSpeed());
                 } else if (biomassKey == SpeciesKey.CATERPILLAR) {
-                    b = new Caterpillar(island.getConfiguration(), type.getMaxEnergy() * type.getMaxPerCell(), type.getSpeed());
+                    b = new Caterpillar(island.getConfiguration(), initialAmount, capacity, type.getSpeed());
                 } else if (biomassKey == SpeciesKey.GRASS) {
-                    b = new Grass(island.getConfiguration(), type.getMaxEnergy() * type.getMaxPerCell(), type.getSpeed());
+                    b = new Grass(island.getConfiguration(), capacity, type.getSpeed());
+                    b.setBiomass(initialAmount);
                 } else if (biomassKey == SpeciesKey.MUSHROOM) {
-                    b = new Mushroom(island.getConfiguration(), type.getMaxEnergy() * type.getMaxPerCell(), type.getSpeed());
+                    b = new Mushroom(island.getConfiguration(), capacity, type.getSpeed());
+                    b.setBiomass(initialAmount);
                 } else {
                     b = new GenericBiomass(type);
+                    b.setBiomass(initialAmount);
                 }
                 cell.addBiomass(b);
                 if (cell.getWorld() instanceof NatureWorld nw) {
@@ -93,7 +99,11 @@ public class WorldInitializer {
                 int settlementPercent = (int) (base + (range > 0 ? random.nextInt(0, (int) range + 1) : 0));
                 
                 int count = (type.getMaxPerCell() * settlementPercent) / 100;                
-                count = Math.max(count, 1);
+                if (type.getMaxPerCell() >= 2) {
+                    count = Math.max(count, 2);
+                } else {
+                    count = Math.max(count, 1);
+                }
                 
                 for (int i = 0; i < count; i++) {
                     animalFactory.createInitialAnimal(species).ifPresent(cell::addAnimal);

@@ -166,7 +166,9 @@ public abstract class Organism implements Poolable, Mortal {
 
     public long getDynamicMetabolismRate() {
         HealthComponent health = getComponent(HealthComponent.class);
-        if (health == null) return 0;
+        if (health == null) {
+            return 0;
+        }
         SizeClass sizeClass = SizeClass.fromWeight((double) getWeight() / config.getScale1M());
         long baseMetabolism = (health.getMaxEnergy() * config.getBaseMetabolismBP()) / config.getScale10K();
         return (baseMetabolism * sizeClass.getMetabolismModifierBP() / config.getScale10K())

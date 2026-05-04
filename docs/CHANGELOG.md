@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.10.0] - 2026-05-04
+### Added
+- **Endangered Species Protection**: Introduced a set of parameters in `species.properties` (threshold, repro bonus, speed bonus, hide chance) to support adaptive survival mechanics for dwindling populations.
+
+### Changed
+- **Ecosystem Balancing & Calibration**:
+    - Reduced movement cost (`speedMoveCostStepBP`) from 100 to 50 Basis Points to increase survival during migration.
+    - Lowered reproduction energy threshold (`REPRODUCTION_MIN`) from 70% to 50% to encourage population growth.
+    - Recalibrated hunting success probabilities in `species.properties`, generally reducing predator efficiency to prevent over-predation.
+    - Increased base reproduction chances and maximum offspring counts across all `SizeClass` categories.
+- **World Initialization**:
+    - Enhanced `WorldInitializer` to ensure at least 2 individuals (a breeding pair) are spawned for species with `maxPerCell >= 2`.
+    - Corrected initial biomass calculation to respect `presenceChance` and `maxPerCell` capacity.
+- **Biomass & Life Cycles**:
+    - Fixed `Butterfly` and `Caterpillar` lifecycle transitions by properly initializing their capacity and avoiding dummy object creation.
+    - Improved `GenericBiomass` calculation to use entity weight instead of energy capacity for initial sizing.
+
+### Improved
+- **Metabolism Modeling**: Added robustness to `Organism.getDynamicMetabolismRate()` with null checks for `HealthComponent`.
+- **Test Infrastructure**:
+    - Enabled `StressStabilityTest` (previously disabled) and tuned it for 200-tick verification on a 5x5 grid.
+    - Increased `ExtinctionBalanceTest` iterations from 3 to 10 to improve reliability of extinction detection.
+    - Updated `SimulationOptimizationTest` to align with the new `SwarmOrganism` constructor requirements.
+
 ## [1.9.0] - 2026-05-03
 ### Added
 - **ExecutionMode Enum**: Introduced `ExecutionMode` (`SEQUENTIAL`, `PARALLEL`) to the core engine, allowing tasks to explicitly declare their thread-safety and execution preference.

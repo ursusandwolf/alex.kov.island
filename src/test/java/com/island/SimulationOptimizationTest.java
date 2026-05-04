@@ -80,7 +80,7 @@ public class SimulationOptimizationTest {
 
         // Tick 3: Should ACT
         // Add a caterpillar (biomass)
-        cell.addBiomass(new Caterpillar(config, 100L * SimulationConstants.SCALE_1M, 0));
+        cell.addBiomass(new Caterpillar(config, 100L * SimulationConstants.SCALE_1M, 1000L * SimulationConstants.SCALE_1M, 0));
         
         feedingService.tick(3);
     }

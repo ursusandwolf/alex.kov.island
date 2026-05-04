@@ -68,22 +68,22 @@ public class SpeciesLoader {
 
         SizeClass sizeClass = SizeClass.fromWeight((double) weight / config.getScale1M());
         int defaultReproChance = switch (sizeClass) {
-            case TINY -> 25;
-            case SMALL -> 18;
-            case NORMAL -> 12;
-            case MEDIUM -> 8;
-            case LARGE -> 4;
-            case HUGE -> 2;
+            case TINY -> 35;
+            case SMALL -> 25;
+            case NORMAL -> 20;
+            case MEDIUM -> 15;
+            case LARGE -> 10;
+            case HUGE -> 8;
         };
         int reproChance = toPercent(props.getProperty(code + ".reproductionChance", null), defaultReproChance);
 
         int defaultMaxOffspring = switch (sizeClass) {
-            case TINY -> 10;
-            case SMALL -> 6;
-            case NORMAL -> 4;
-            case MEDIUM -> 2;
-            case LARGE -> 1;
-            case HUGE -> 1;
+            case TINY -> 12;
+            case SMALL -> 8;
+            case NORMAL -> 6;
+            case MEDIUM -> 4;
+            case LARGE -> 3;
+            case HUGE -> 2;
         };
         int maxOffspring = Integer.parseInt(props.getProperty(code + ".maxOffspring", String.valueOf(defaultMaxOffspring)));
 

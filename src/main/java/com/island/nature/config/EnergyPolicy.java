@@ -6,7 +6,7 @@ package com.island.nature.config;
  */
 public enum EnergyPolicy {
     ACTION_MIN(15),
-    REPRODUCTION_MIN(70),
+    REPRODUCTION_MIN(50),
     BIRTH_INITIAL(50),
     ESCAPE_LOSS_BP(500), // 5%
     REPRODUCTION_COST_BP(1500); // 15%

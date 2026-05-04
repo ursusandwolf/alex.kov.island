@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 public class ExtinctionBalanceTest {
 
     private static final int MAX_TICKS = 50;
-    private static final int ITERATIONS = 3;
+    private static final int ITERATIONS = 10;
 
     @Test
     void findExtinctionProneSpecies() {

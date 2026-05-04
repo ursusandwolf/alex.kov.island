@@ -1,7 +1,9 @@
 package com.island.nature.entities.herbivores;
 
 import com.island.nature.config.Configuration;
+import com.island.nature.entities.AnimalType;
 import com.island.nature.entities.Biomass;
+import com.island.nature.entities.NatureWorld;
 import com.island.nature.entities.Organism;
 import com.island.nature.entities.SpeciesKey;
 import com.island.nature.entities.SwarmOrganism;
@@ -12,8 +14,8 @@ import com.island.nature.model.Cell;
  * Generalized Butterfly using SwarmOrganism (LOD 1) with integer arithmetic.
  */
 public class Butterfly extends SwarmOrganism {
-    public Butterfly(Configuration config, long initialBiomass, int speed) {
-        super(config, "Butterfly", SpeciesKey.BUTTERFLY, 1000L * config.getScale1M(), speed, 30, 
+    public Butterfly(Configuration config, long initialBiomass, long maxBiomass, int speed) {
+        super(config, "Butterfly", SpeciesKey.BUTTERFLY, maxBiomass, speed, 30, 
                 config.getCaterpillarMetabolismRateBP(), config.getButterflyReproductionRateBP());
         spawn(initialBiomass);
     }
@@ -45,7 +47,10 @@ public class Butterfly extends SwarmOrganism {
 
             Caterpillar c = (Caterpillar) cell.getBiomass(SpeciesKey.CATERPILLAR);
             if (c == null) {
-                c = new Caterpillar(config, 0, 0);
+                NatureWorld nw = (NatureWorld) cell.getWorld();
+                AnimalType type = nw.getRegistry().getBiomassType(SpeciesKey.CATERPILLAR).orElseThrow();
+                long capacity = type.getWeight() * type.getMaxPerCell();
+                c = new Caterpillar(config, 0, capacity, type.getSpeed());
                 cell.addEntity(c);
             }
             c.spawn(offspringBiomass);
