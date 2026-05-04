@@ -1,5 +1,12 @@
 package com.island.nature.model;
 
+import com.island.engine.SimulationNode;
+import com.island.engine.SimulationWorld;
+import com.island.engine.WorldListener;
+import com.island.engine.WorldSnapshot;
+import com.island.engine.event.EntityBornEvent;
+import com.island.engine.event.EntityDiedEvent;
+import com.island.engine.event.EventBus;
 import com.island.nature.config.Configuration;
 import com.island.nature.entities.Animal;
 import com.island.nature.entities.AnimalType;
@@ -11,10 +18,6 @@ import com.island.nature.entities.Organism;
 import com.island.nature.entities.Season;
 import com.island.nature.entities.SpeciesKey;
 import com.island.nature.entities.SpeciesRegistry;
-import com.island.engine.SimulationNode;
-import com.island.engine.SimulationWorld;
-import com.island.engine.WorldListener;
-import com.island.engine.WorldSnapshot;
 import com.island.nature.service.ProtectionService;
 import com.island.nature.service.StatisticsService;
 import com.island.util.GridUtils;
@@ -42,6 +45,7 @@ public class Island implements NatureWorld, WorldListener<Organism> {
     private int tickCount = 0;
     @Setter private boolean redBookProtectionEnabled = true;
     private Season currentSeason = Season.SPRING;
+    @Setter private EventBus eventBus;
 
     public Island(NatureDomainContext domainContext, int width, int height) {
         this.config = domainContext.getConfig();
@@ -68,20 +72,16 @@ public class Island implements NatureWorld, WorldListener<Organism> {
 
     @Override
     public void onEntityAdded(Organism entity) {
-        if (entity instanceof Animal a) {
-            statisticsService.registerBirth(a.getSpeciesKey());
+        if (entity instanceof Animal a && eventBus != null) {
+            eventBus.publish(new EntityBornEvent(a));
         }
     }
 
     @Override
     public void onEntityRemoved(Organism entity) {
-        if (entity instanceof Animal a) {
+        if (entity instanceof Animal a && eventBus != null) {
             DeathCause cause = a.getLastDeathCause();
-            if (cause != null) {
-                statisticsService.registerDeath(a.getSpeciesKey(), cause);
-            } else {
-                statisticsService.registerRemoval(a.getSpeciesKey());
-            }
+            eventBus.publish(new EntityDiedEvent(a, (cause != null) ? cause.name() : "REMOVED"));
         }
     }
 
@@ -285,5 +285,10 @@ public class Island implements NatureWorld, WorldListener<Organism> {
             }
         });
         return result[0];
+    }
+
+    @Override
+    public EventBus getEventBus() {
+        return eventBus;
     }
 }

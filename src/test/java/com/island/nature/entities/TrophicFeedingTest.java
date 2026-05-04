@@ -8,6 +8,7 @@ import com.island.nature.model.DefaultBiomassManager;
 import com.island.nature.model.Island;
 import com.island.nature.service.DefaultProtectionService;
 import com.island.nature.service.FeedingService;
+import com.island.engine.event.DefaultEventBus;
 import com.island.nature.service.StatisticsService;
 import com.island.nature.config.Configuration;
 import com.island.util.DefaultRandomProvider;
@@ -45,7 +46,7 @@ class TrophicFeedingTest {
         island = new Island(context, 1, 1);
         cell = island.getCell(0, 0);
         HuntingStrategy huntingStrategy = new DefaultHuntingStrategy(config, matrix);
-        feedingService = new FeedingService(island, animalFactory, matrix, registry, huntingStrategy, Executors.newSingleThreadExecutor(), randomProvider);
+        feedingService = new FeedingService(island, animalFactory, matrix, registry, huntingStrategy, Executors.newSingleThreadExecutor(), randomProvider, new DefaultEventBus());
     }
 
     @Test

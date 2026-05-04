@@ -29,7 +29,7 @@ public class SimCityPlugin implements SimulationPlugin<SimEntity> {
     }
 
     @Override
-    public void registerTasks(GameLoop<SimEntity> gameLoop, SimulationWorld<SimEntity, ?> world) {
+    public void registerTasks(GameLoop<SimEntity> gameLoop, SimulationWorld<SimEntity, ?> world, com.island.engine.event.EventBus eventBus) {
         CityMap map = (CityMap) world;
         
         ConnectivityService connService = new ConnectivityService(map);

@@ -4,6 +4,7 @@ import com.island.engine.SimulationNode;
 import com.island.engine.SimulationWorld;
 import com.island.engine.WorldListener;
 import com.island.engine.WorldSnapshot;
+import com.island.engine.event.EventBus;
 import com.island.simcity.entities.SimEntity;
 import com.island.util.GridUtils;
 import java.util.ArrayList;
@@ -36,6 +37,17 @@ public class CityMap implements SimulationWorld<SimEntity, Void> {
     private final List<String> alerts = new CopyOnWriteArrayList<>();
     private final List<com.island.engine.WorldListener<SimEntity>> listeners = new ArrayList<>();
     private volatile List<List<CityTile>> cachedChunks;
+    private EventBus eventBus;
+
+    @Override
+    public EventBus getEventBus() {
+        return eventBus;
+    }
+
+    @Override
+    public void setEventBus(EventBus eventBus) {
+        this.eventBus = eventBus;
+    }
 
     public CityMap(int width, int height) {
         this.width = width;

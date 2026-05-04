@@ -1,6 +1,8 @@
 package com.island.nature.service;
 
 import com.island.engine.SimulationNode;
+import com.island.engine.event.EntityDiedEvent;
+import com.island.engine.event.EventBus;
 import com.island.nature.entities.Animal;
 import com.island.nature.entities.AnimalFactory;
 import com.island.nature.entities.AnimalType;
@@ -31,17 +33,19 @@ public class FeedingService extends AbstractService {
     private final SpeciesRegistry speciesRegistry;
     private final HuntingStrategy huntingStrategy;
     private final NatureStatistics statistics;
+    private final EventBus eventBus;
 
     public FeedingService(NatureWorld world, AnimalFactory animalFactory, 
                           InteractionProvider interactionMatrix, 
                           SpeciesRegistry speciesRegistry, HuntingStrategy huntingStrategy, 
-                          ExecutorService executor, RandomProvider random) {
+                          ExecutorService executor, RandomProvider random, EventBus eventBus) {
         super(world, executor, random);
         this.animalFactory = animalFactory;
         this.interactionMatrix = interactionMatrix;
         this.speciesRegistry = speciesRegistry;
         this.huntingStrategy = huntingStrategy;
         this.statistics = world;
+        this.eventBus = eventBus;
     }
 
     @Override
@@ -122,6 +126,7 @@ public class FeedingService extends AbstractService {
                     if (roll < packChanceBP) {
                         a.die(DeathCause.EATEN);
                         if (node.removeEntity(a)) {
+                            eventBus.publish(new EntityDiedEvent(a, "EATEN_BY_PACK"));
                             long gainPerWolf = a.getWeight() / pack.size();
                             for (Animal wolf : pack) {
                                 if (wolf.isAlive()) {
@@ -179,6 +184,7 @@ public class FeedingService extends AbstractService {
                     if (getRandom().nextInt(0, 100) < chance) {
                         a.die(DeathCause.EATEN);
                         if (node.removeEntity(a)) {
+                            eventBus.publish(new EntityDiedEvent(a, "EATEN"));
                             consumer.addEnergy(a.getWeight());
                             preyProvider.markAsEaten(a);
                             animalFactory.releaseAnimal(a);

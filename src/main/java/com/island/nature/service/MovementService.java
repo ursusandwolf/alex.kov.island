@@ -12,6 +12,7 @@ import com.island.nature.entities.NatureWorld;
 import com.island.nature.entities.Organism;
 import com.island.nature.entities.SpeciesRegistry;
 import com.island.nature.entities.TaskRegistry;
+import com.island.nature.entities.components.MovementComponent;
 import com.island.nature.model.Cell;
 import com.island.util.RandomProvider;
 import com.island.util.SamplingContext;
@@ -51,7 +52,9 @@ public class MovementService extends AbstractService {
         node.forEachAnimalSampled(new SamplingContext(config.getMovementLodLimit(), getRandom()), animal -> {
             if (animal.isAlive()) {
                 if (shouldAct(animal, AnimalType.Action.MOVE, tickCount)) {
-                    int speed = animal.getSpeed();
+                    MovementComponent move = animal.getComponent(MovementComponent.class);
+                    int speed = (move != null) ? move.getSpeed() : 0;
+                    
                     if (protectionMap != null && protectionMap.containsKey(animal.getSpeciesKey())) {
                         speed += config.getEndangeredSpeedBonus();
                     }
@@ -60,7 +63,7 @@ public class MovementService extends AbstractService {
                         SimulationNode<Organism> target = selectTargetNode(node, speed);
                         if (target != node) {
                             if (getWorld().moveEntity(animal, node, target)) {
-                                long moveCost = (animal.getMaxEnergy() * (1 + animal.getSpeed()) * config.getSpeedMoveCostStepBP()) / config.getScale10K();
+                                long moveCost = (animal.getMaxEnergy() * (1 + speed) * config.getSpeedMoveCostStepBP()) / config.getScale10K();
                                 animal.consumeEnergy(moveCost);
                                 if (!animal.isAlive()) {
                                     animal.setLastDeathCause(DeathCause.MOVEMENT_EXHAUSTION);

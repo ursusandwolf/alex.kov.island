@@ -1,5 +1,7 @@
 package com.island.engine;
 
+import com.island.engine.event.DefaultEventBus;
+import com.island.engine.event.EventBus;
 import com.island.util.DefaultRandomProvider;
 import com.island.util.RandomProvider;
 
@@ -26,16 +28,19 @@ public class SimulationEngine<T extends Mortal> {
      * Builds a simulation context using the provided plugin but DOES NOT start the loop.
      */
     public SimulationContext<T> build(SimulationPlugin<T> plugin, int tickDurationMs, int threads) {
+        RandomProvider random = new DefaultRandomProvider();
+        EventBus eventBus = new DefaultEventBus();
+
         SimulationWorld<T, ?> world = plugin.createWorld();
+        world.setEventBus(eventBus);
         world.initialize();
 
         GameLoop<T> gameLoop = new GameLoop<>(tickDurationMs, threads);
         gameLoop.setWorld(world);
 
-        plugin.registerTasks(gameLoop, world);
+        plugin.registerTasks(gameLoop, world, eventBus);
 
-        RandomProvider random = new DefaultRandomProvider();
-        SimulationContext<T> context = new SimulationContext<>(world, gameLoop, random);
+        SimulationContext<T> context = new SimulationContext<>(world, gameLoop, random, eventBus);
 
         plugin.onSimulationStarted(context);
         return context;

@@ -14,6 +14,7 @@ import com.island.nature.model.DefaultBiomassManager;
 import com.island.nature.model.Island;
 import com.island.nature.service.DefaultProtectionService;
 import com.island.nature.service.FeedingService;
+import com.island.engine.event.DefaultEventBus;
 import com.island.nature.service.LifecycleService;
 import com.island.nature.service.MovementService;
 import com.island.nature.service.StatisticsService;
@@ -83,8 +84,8 @@ class ReproducibilityTest {
         island.getCell(1, 1).addAnimal(factory.createAnimal(SpeciesKey.RABBIT).orElseThrow());
 
         // 2. Run one tick of services
-        new LifecycleService(island, executor, fixedProvider).tick(1);
-        new FeedingService(island, factory, matrix, registry, strategy, executor, fixedProvider).tick(1);
+        new LifecycleService(island, executor, fixedProvider, new DefaultEventBus()).tick(1);
+        new FeedingService(island, factory, matrix, registry, strategy, executor, fixedProvider, new DefaultEventBus()).tick(1);
         new MovementService(island, registry, executor, fixedProvider).tick(1);
 
         String state = island.getSpeciesCounts().toString() + "_" + island.getTotalOrganismCount();

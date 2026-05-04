@@ -19,6 +19,7 @@ import com.island.nature.entities.SpeciesLoader;
 import com.island.nature.entities.SpeciesRegistry;
 import com.island.engine.SimulationNode;
 import com.island.engine.SimulationWorld;
+import com.island.engine.event.DefaultEventBus;
 import com.island.nature.model.Cell;
 import com.island.util.RandomProvider;
 import java.util.Collection;
@@ -57,7 +58,7 @@ class LifecycleServiceTest {
     void setUp() {
         registry = new SpeciesLoader(config).load();
         given(world.getConfiguration()).willReturn(config);
-        lifecycleService = new LifecycleService(world, Executors.newSingleThreadExecutor(), random);
+        lifecycleService = new LifecycleService(world, Executors.newSingleThreadExecutor(), random, new DefaultEventBus());
         cell = new Cell(0, 0, world);
         
         AnimalType wolfType = registry.getAnimalType(SpeciesKey.WOLF).orElseThrow();

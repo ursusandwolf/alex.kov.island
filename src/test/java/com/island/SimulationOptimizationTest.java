@@ -19,6 +19,7 @@ import com.island.nature.model.Island;
 import com.island.nature.service.DefaultProtectionService;
 import com.island.nature.service.FeedingService;
 import com.island.nature.service.StatisticsService;
+import com.island.engine.event.DefaultEventBus;
 import com.island.util.DefaultRandomProvider;
 import com.island.util.InteractionMatrix;
 import java.util.concurrent.Executors;
@@ -54,7 +55,7 @@ public class SimulationOptimizationTest {
 
         island = new Island(context, 1, 1);
         feedingService = new FeedingService(island, animalFactory, matrix, registry, 
-                new DefaultHuntingStrategy(config, matrix), Executors.newSingleThreadExecutor(), randomProvider);
+                new DefaultHuntingStrategy(config, matrix), Executors.newSingleThreadExecutor(), randomProvider, new DefaultEventBus());
     }
 
     @Test

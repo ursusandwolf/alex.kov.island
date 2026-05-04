@@ -1,6 +1,8 @@
 package com.island.nature.service;
 
 import com.island.engine.SimulationNode;
+import com.island.engine.event.EntityDiedEvent;
+import com.island.engine.event.EventBus;
 import com.island.nature.entities.Animal;
 import com.island.nature.entities.Biomass;
 import com.island.nature.entities.DeathCause;
@@ -21,11 +23,13 @@ public class LifecycleService extends AbstractService {
 
     private final NatureStatistics statistics;
     private final NatureEnvironment environment;
+    private final EventBus eventBus;
 
-    public LifecycleService(NatureWorld world, ExecutorService executor, RandomProvider random) {
+    public LifecycleService(NatureWorld world, ExecutorService executor, RandomProvider random, EventBus eventBus) {
         super(world, executor, random);
         this.statistics = world;
         this.environment = world;
+        this.eventBus = eventBus;
     }
 
     @Override
@@ -64,10 +68,15 @@ public class LifecycleService extends AbstractService {
                 }
 
                 a.tryConsumeEnergy(metabolism);
+                if (!a.isAlive()) {
+                    eventBus.publish(new EntityDiedEvent(a, "STARVATION"));
+                }
                 
                 // 2. Age increment and death check
                 if (a.isAlive()) {
-                    a.checkAgeDeath();
+                    if (a.checkAgeDeath()) {
+                        eventBus.publish(new EntityDiedEvent(a, "AGE"));
+                    }
                 }
             }
         });

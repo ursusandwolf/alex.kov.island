@@ -20,6 +20,7 @@ import com.island.nature.entities.SpeciesLoader;
 import com.island.nature.entities.SpeciesRegistry;
 import com.island.engine.SimulationNode;
 import com.island.engine.SimulationWorld;
+import com.island.engine.event.DefaultEventBus;
 import com.island.nature.model.Cell;
 import com.island.util.InteractionMatrix;
 import com.island.util.InteractionProvider;
@@ -61,7 +62,7 @@ class FeedingMechanicsTest {
         HuntingStrategy strategy = new DefaultHuntingStrategy(config, matrix);
         
         given(world.getConfiguration()).willReturn(config);
-        feedingService = new FeedingService(world, animalFactory, matrix, registry, strategy, Executors.newSingleThreadExecutor(), random);
+        feedingService = new FeedingService(world, animalFactory, matrix, registry, strategy, Executors.newSingleThreadExecutor(), random, new DefaultEventBus());
         cell = new Cell(0, 0, world);
         
         given(world.getRegistry()).willReturn(registry);

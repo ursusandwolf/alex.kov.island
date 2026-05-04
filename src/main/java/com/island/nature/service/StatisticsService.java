@@ -1,12 +1,15 @@
 package com.island.nature.service;
 
+import com.island.engine.SimulationWorld;
+import com.island.engine.event.EntityBornEvent;
+import com.island.engine.event.EntityDiedEvent;
+import com.island.engine.event.EventBus;
 import com.island.nature.config.Configuration;
+import com.island.nature.entities.Animal;
 import com.island.nature.entities.DeathCause;
-import com.island.nature.entities.NatureWorld;
 import com.island.nature.entities.Organism;
 import com.island.nature.entities.SimulationMetrics;
 import com.island.nature.entities.SpeciesKey;
-import com.island.engine.SimulationWorld;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,6 +40,24 @@ public class StatisticsService {
             tickDeathStats.put(cause, new ConcurrentHashMap<>());
             totalDeathStats.put(cause, new ConcurrentHashMap<>());
         }
+    }
+
+    public void subscribe(EventBus bus) {
+        bus.subscribe(EntityBornEvent.class, event -> {
+            if (event.getEntity() instanceof Animal a) {
+                registerBirth(a.getSpeciesKey());
+            }
+        });
+        bus.subscribe(EntityDiedEvent.class, event -> {
+            if (event.getEntity() instanceof Animal a) {
+                try {
+                    DeathCause cause = DeathCause.valueOf(event.getCause());
+                    registerDeath(a.getSpeciesKey(), cause);
+                } catch (IllegalArgumentException e) {
+                    registerRemoval(a.getSpeciesKey());
+                }
+            }
+        });
     }
 
     public void updateMetrics(SimulationMetrics metrics) {

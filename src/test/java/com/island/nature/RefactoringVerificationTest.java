@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.island.engine.SimulationNode;
+import com.island.engine.event.DefaultEventBus;
+import com.island.engine.event.EventBus;
 import com.island.nature.config.Configuration;
 import com.island.nature.entities.Animal;
 import com.island.nature.entities.AnimalFactory;
@@ -55,6 +57,9 @@ class RefactoringVerificationTest {
                 .build();
 
         island = new Island(context, 10, 10);
+        EventBus bus = new DefaultEventBus();
+        island.setEventBus(bus);
+        statisticsService.subscribe(bus);
     }
 
     @Test

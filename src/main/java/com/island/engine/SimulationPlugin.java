@@ -16,8 +16,9 @@ public interface SimulationPlugin<T extends Mortal> {
      *
      * @param gameLoop the game loop to register tasks to.
      * @param world    the world created by this plugin.
+     * @param eventBus the event bus for decoupled communication.
      */
-    void registerTasks(GameLoop<T> gameLoop, SimulationWorld<T, ?> world);
+    void registerTasks(GameLoop<T> gameLoop, SimulationWorld<T, ?> world, com.island.engine.event.EventBus eventBus);
 
     /**
      * Optional hook called after the simulation context is created but before the loop starts.

@@ -83,12 +83,17 @@ public class NaturePlugin implements SimulationPlugin<Organism> {
     }
 
     @Override
-    public void registerTasks(GameLoop<Organism> gameLoop, SimulationWorld<Organism, ?> world) {
+    public void registerTasks(GameLoop<Organism> gameLoop, SimulationWorld<Organism, ?> world, com.island.engine.event.EventBus eventBus) {
         NatureWorld natureWorld = (NatureWorld) world;
         
         TaskRegistry taskRegistry = new TaskRegistry(gameLoop, natureWorld, domainContext.getInteractionProvider(), 
                                                      domainContext.getAnimalFactory(), domainContext.getSpeciesRegistry(), 
-                                                     view, domainContext.getRandomProvider());
+                                                     view, domainContext.getRandomProvider(), eventBus);
         taskRegistry.registerAll();
+    }
+
+    @Override
+    public void onSimulationStarted(com.island.engine.SimulationContext<Organism> context) {
+        domainContext.getStatisticsService().subscribe(context.getEventBus());
     }
 }

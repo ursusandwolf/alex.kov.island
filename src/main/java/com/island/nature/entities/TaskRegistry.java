@@ -28,10 +28,11 @@ public class TaskRegistry {
     private final SpeciesRegistry speciesRegistry;
     private final SimulationView view;
     private final RandomProvider random;
+    private final com.island.engine.event.EventBus eventBus;
 
     public TaskRegistry(GameLoop<Organism> gameLoop, NatureWorld world, InteractionProvider matrix, 
                         AnimalFactory animalFactory, SpeciesRegistry speciesRegistry, 
-                        SimulationView view, RandomProvider random) {
+                        SimulationView view, RandomProvider random, com.island.engine.event.EventBus eventBus) {
         this.gameLoop = gameLoop;
         this.world = world;
         this.matrix = matrix;
@@ -39,18 +40,19 @@ public class TaskRegistry {
         this.speciesRegistry = speciesRegistry;
         this.view = view;
         this.random = random;
+        this.eventBus = eventBus;
     }
 
     public void registerAll() {
         HuntingStrategy huntingStrategy = new DefaultHuntingStrategy(world.getConfiguration(), matrix);
         // Food
-        gameLoop.addRecurringTask(new FeedingService(world, animalFactory, matrix, speciesRegistry, huntingStrategy, gameLoop.getTaskExecutor(), random));
+        gameLoop.addRecurringTask(new FeedingService(world, animalFactory, matrix, speciesRegistry, huntingStrategy, gameLoop.getTaskExecutor(), random, eventBus));
         // Move
         gameLoop.addRecurringTask(new MovementService(world, speciesRegistry, gameLoop.getTaskExecutor(), random));
         // Repro
         gameLoop.addRecurringTask(new ReproductionService(world, animalFactory, speciesRegistry, gameLoop.getTaskExecutor(), random));
         // Death (Metabolism, Age)
-        gameLoop.addRecurringTask(new LifecycleService(world, gameLoop.getTaskExecutor(), random));
+        gameLoop.addRecurringTask(new LifecycleService(world, gameLoop.getTaskExecutor(), random, eventBus));
         // Cleanup
         gameLoop.addRecurringTask(new CleanupService(world, animalFactory, gameLoop.getTaskExecutor(), random));
         // View

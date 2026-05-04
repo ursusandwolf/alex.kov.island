@@ -1,6 +1,7 @@
 package com.island.nature.entities;
 
 import com.island.nature.config.EnergyPolicy;
+import com.island.nature.entities.components.MovementComponent;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,6 +15,7 @@ public abstract class Animal extends Organism {
     protected Animal(AnimalType animalType) {
         super(animalType.getConfig(), animalType.getMaxEnergy(), animalType.getMaxLifespan());
         this.animalType = animalType;
+        addComponent(new MovementComponent(animalType.getSpeed()));
     }
 
     @Override
@@ -31,11 +33,19 @@ public abstract class Animal extends Organism {
         this.hiding = false;
         this.weightOverride = 0;
         this.speedOverride = -1;
+        MovementComponent move = getComponent(MovementComponent.class);
+        if (move != null) {
+            move.setSpeed(type.getSpeed());
+        }
     }
 
     public void mutate(double weightFactor, int speedDelta) {
         this.weightOverride = (long) (getWeight() * weightFactor);
         this.speedOverride = Math.max(0, getSpeed() + speedDelta);
+        MovementComponent move = getComponent(MovementComponent.class);
+        if (move != null) {
+            move.setSpeed(speedOverride >= 0 ? speedOverride : animalType.getSpeed());
+        }
     }
 
     public boolean canInitiateReproduction() {
@@ -56,7 +66,8 @@ public abstract class Animal extends Organism {
     }
 
     public int getSpeed() {
-        return speedOverride >= 0 ? speedOverride : animalType.getSpeed();
+        MovementComponent move = getComponent(MovementComponent.class);
+        return (move != null) ? move.getSpeed() : 0;
     }
 
     public long getFoodForSaturation() {
