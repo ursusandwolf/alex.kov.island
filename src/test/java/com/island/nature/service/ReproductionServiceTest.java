@@ -57,7 +57,7 @@ class ReproductionServiceTest {
         cell.addAnimal(r1);
         cell.addAnimal(r2);
         
-        ReproductionService service = new ReproductionService(island, factory, registry, java.util.concurrent.Executors.newSingleThreadExecutor(), new DefaultRandomProvider());
+        ReproductionService service = new ReproductionService(island, factory, registry, java.util.concurrent.Executors.newSingleThreadExecutor(), new DefaultRandomProvider(), new com.island.engine.event.DefaultEventBus());
         for (int i = 0; i < 20; i++) {
             service.tick(1);
         }
@@ -106,7 +106,7 @@ class ReproductionServiceTest {
         cell.addAnimal(r2);
 
         double energyBefore = r1.getCurrentEnergy();
-        ReproductionService service = new ReproductionService(island, factory, registry, java.util.concurrent.Executors.newSingleThreadExecutor(), zeroRandom);
+        ReproductionService service = new ReproductionService(island, factory, registry, java.util.concurrent.Executors.newSingleThreadExecutor(), zeroRandom, new com.island.engine.event.DefaultEventBus());
         service.tick(1);
 
         assertEquals(energyBefore, r1.getCurrentEnergy(), 0.000001, "Energy should not be consumed if 0 offspring were produced");

@@ -60,7 +60,7 @@ public class Configuration {
 
     // Vital signs
     private long deathEnergyThreshold = 1L;
-    private int starvationThresholdPercent = 30;
+    private int hungerThresholdPercent = 30;
     private int reproductionMinEnergyPercent = 50;
 
     // Endangered species protection

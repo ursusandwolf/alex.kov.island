@@ -1,16 +1,31 @@
 # Island Ecosystem Simulator: Roadmap & TODO
 
-## 🚀 Phase 1: Architectural Foundation (Current)
-- [ ] **Vector 1: Event-Driven Architecture**
-    - [ ] Design and implement a lightweight `EventBus` in the engine.
-    - [ ] Refactor `FeedingService` to publish `EntityDiedEvent`.
-    - [ ] Refactor `StatisticsService` to subscribe to events instead of direct monitoring.
+## 🚀 Phase 1: Architectural Foundation (Completed / In Progress)
+- [x] **Vector 1: Event-Driven Architecture**
+    - [x] Design and implement a lightweight `EventBus` in the engine.
+    - [x] Refactor `StatisticsService` to subscribe to events instead of direct monitoring.
+    - [x] Refactor `FeedingService` to publish `EntityDiedEvent`.
+    - [x] Refactor `LifecycleService` to publish `EntityDiedEvent`.
     - [ ] Add `LogService` or `AlertService` that reacts to specific events.
-- [ ] **Vector 2: ECS (Entity-Component-System) Evolution**
-    - [ ] Define `Component` interface and base implementation.
-    - [ ] Refactor `Organism` to use a component-based approach (extract `Position`, `Health`, `Hunger` into components).
+- [x] **Vector 2: ECS (Entity-Component-System) Evolution**
+    - [x] Define `Component` interface and base implementation.
+    - [x] Refactor `Organism` to use a hybrid component-based approach.
+    - [ ] **Technical Debt: Performance Optimization**
+        - [ ] Replace `Map<Class, Component>` with indexed array or fixed fields for hot components (Health, Age).
+        - [ ] Eliminate Map lookup overhead in hot simulation cycles.
     - [ ] Migrate `MovementService` to operate on `PositionComponent`.
     - [ ] Decouple `SimulationWorld` from specific entity classes.
+
+## 🛠 Immediate Technical Debt & Bug Fixes
+- [x] **Bug: Inconsistent Death Reporting**
+    - [x] Unified `STARVATION` + `HUNGER` into a single `HUNGER` death cause.
+- [ ] **Performance: GameLoop Allocations**
+    - [ ] Reuse phase-based collection structures in `GameLoop.runTick()` to reduce GC pressure.
+- [ ] **Engine: EventBus Improvements**
+    - [ ] Implement hierarchical event matching (subscribe to superclasses).
+    - [ ] Add `unsubscribe` mechanism for dynamic component lifecycle.
+- [ ] **Performance: Sampling Strategy**
+    - [ ] Improve `SamplingUtils` to avoid $O(N)$ skip on large `LinkedHashSet` collections.
 
 ## 📈 Phase 2: Optimization & Scalability
 - [ ] **Vector 3: Dynamic Load Balancing**

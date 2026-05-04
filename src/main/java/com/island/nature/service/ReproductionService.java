@@ -4,6 +4,7 @@ import com.island.nature.config.EnergyPolicy;
 import com.island.nature.entities.Animal;
 import com.island.nature.entities.AnimalFactory;
 import com.island.nature.entities.AnimalType;
+import com.island.nature.entities.DeathCause;
 import com.island.nature.entities.NatureWorld;
 import com.island.nature.entities.Organism;
 import com.island.nature.entities.SpeciesRegistry;
@@ -25,12 +26,14 @@ import java.util.concurrent.ExecutorService;
 public class ReproductionService extends AbstractService {
     private final AnimalFactory animalFactory;
     private final SpeciesRegistry speciesRegistry;
+    private final com.island.engine.event.EventBus eventBus;
 
     public ReproductionService(NatureWorld world, AnimalFactory animalFactory, 
-                               SpeciesRegistry speciesRegistry, ExecutorService executor, RandomProvider random) {
+                               SpeciesRegistry speciesRegistry, ExecutorService executor, RandomProvider random, com.island.engine.event.EventBus eventBus) {
         super(world, executor, random);
         this.animalFactory = animalFactory;
         this.speciesRegistry = speciesRegistry;
+        this.eventBus = eventBus;
     }
 
     @Override
@@ -121,7 +124,13 @@ public class ReproductionService extends AbstractService {
         if (success) {
             int costBP = EnergyPolicy.REPRODUCTION_COST_BP.getBasisPoints();
             parent1.consumeEnergy((parent1.getMaxEnergy() * costBP) / config.getScale10K());
+            if (!parent1.isAlive()) {
+                eventBus.publish(new com.island.engine.event.EntityDiedEvent(parent1, DeathCause.REPRODUCTION_EXHAUSTION.name()));
+            }
             parent2.consumeEnergy((parent2.getMaxEnergy() * costBP) / config.getScale10K());
+            if (!parent2.isAlive()) {
+                eventBus.publish(new com.island.engine.event.EntityDiedEvent(parent2, DeathCause.REPRODUCTION_EXHAUSTION.name()));
+            }
         }
         return success;
     }

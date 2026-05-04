@@ -7,7 +7,9 @@ public enum DeathCause {
     HUNGER("Hunger"),
     AGE("Age"),
     EATEN("Eaten"),
-    MOVEMENT_EXHAUSTION("Exhaustion");
+    EATEN_BY_PACK("Eaten by Pack"),
+    MOVEMENT_EXHAUSTION("Exhaustion"),
+    REPRODUCTION_EXHAUSTION("Reproduction Exhaustion");
 
     private final String displayName;
 

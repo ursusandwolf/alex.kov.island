@@ -12,7 +12,7 @@ public class SimulationMetrics {
     long totalCurrentEnergy;
     long totalMaxEnergy;
     int animalCount;
-    int starvingCount;
+    int hungryCount;
 
     public double getGlobalSatiety() {
         return (totalMaxEnergy == 0) ? 100.0 : ((double) totalCurrentEnergy / totalMaxEnergy) * 100.0;
@@ -27,7 +27,7 @@ public class SimulationMetrics {
                 .totalCurrentEnergy(m1.totalCurrentEnergy + m2.totalCurrentEnergy)
                 .totalMaxEnergy(m1.totalMaxEnergy + m2.totalMaxEnergy)
                 .animalCount(m1.animalCount + m2.animalCount)
-                .starvingCount(m1.starvingCount + m2.starvingCount)
+                .hungryCount(m1.hungryCount + m2.hungryCount)
                 .build();
     }
 }

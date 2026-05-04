@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.11.0] - 2026-05-04
+### Added
+- **Event-Driven Architecture (EDA)**:
+    - Implemented a lightweight `EventBus` in the core engine for decoupled communication.
+    - Refactored all Nature services (`FeedingService`, `MovementService`, `ReproductionService`, `LifecycleService`) to publish domain events (`EntityBornEvent`, `EntityDiedEvent`).
+    - Added specialized death causes: `EATEN_BY_PACK` and `REPRODUCTION_EXHAUSTION`.
+- **ECS (Entity-Component-System) Transition**:
+    - Introduced `Component` architecture with initial implementations: `AgeComponent`, `HealthComponent`, `MovementComponent`.
+    - Refactored `Organism` to use a hybrid component-based approach, improving modularity for future engine evolution.
+- **New Test Cases**: Added `SurvivalCalibrationTest.java` to verify long-term ecosystem stability after parameter recalibration.
+
+### Changed
+- **Ecosystem Balance & Terminology**:
+    - Renamed "Starvation" to "Hunger" across the codebase (including `isHungry()`, `hungryCount`, and UI labels) for better domain alignment.
+    - Recalibrated `species.properties`: adjusted base reproduction chances, presence probabilities, and prey success rates to prevent sudden extinctions.
+    - Reduced `REPRODUCTION_MIN` energy threshold in `EnergyPolicy` from 50% to 35% to facilitate population recovery.
+- **UI/UX Improvements**:
+    - Updated `ConsoleView` with detailed death statistics, aggregating causes into categories (Hunger, Old Age, Exhausted, Predation).
+    - Improved satiety visualization with color-coded progress bars.
+
+### Improved
+- **Service Decoupling**: Enhanced `MovementService` and `ReproductionService` to utilize the `EventBus`, removing direct dependencies on statistics aggregation logic.
+- **Configuration Management**: Refactored `SimulationConstants` and `Configuration` to use unified "Hunger" terminology and updated default values.
+
 ## [1.10.0] - 2026-05-04
 ### Added
 - **Endangered Species Protection**: Introduced a set of parameters in `species.properties` (threshold, repro bonus, speed bonus, hide chance) to support adaptive survival mechanics for dwindling populations.

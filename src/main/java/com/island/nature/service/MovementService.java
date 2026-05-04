@@ -27,12 +27,14 @@ public class MovementService extends AbstractService {
     private final NatureRegistry registry;
     private final NatureStatistics statistics;
     private final BiomassManager biomassManager;
+    private final com.island.engine.event.EventBus eventBus;
 
-    public MovementService(NatureWorld world, SpeciesRegistry speciesRegistry, ExecutorService executor, RandomProvider random) {
+    public MovementService(NatureWorld world, SpeciesRegistry speciesRegistry, ExecutorService executor, RandomProvider random, com.island.engine.event.EventBus eventBus) {
         super(world, executor, random);
         this.registry = world;
         this.statistics = world;
         this.biomassManager = world;
+        this.eventBus = eventBus;
     }
 
     @Override
@@ -66,7 +68,7 @@ public class MovementService extends AbstractService {
                                 long moveCost = (animal.getMaxEnergy() * (1 + speed) * config.getSpeedMoveCostStepBP()) / config.getScale10K();
                                 animal.consumeEnergy(moveCost);
                                 if (!animal.isAlive()) {
-                                    animal.setLastDeathCause(DeathCause.MOVEMENT_EXHAUSTION);
+                                    eventBus.publish(new com.island.engine.event.EntityDiedEvent(animal, DeathCause.MOVEMENT_EXHAUSTION.name()));
                                 }
                             }
                         }

@@ -80,18 +80,19 @@ public class ConsoleView implements SimulationView {
         // Hunger Stats
         Map<String, Number> metrics = snapshot.getMetrics();
         double satiety = metrics.getOrDefault("globalSatiety", 0.0).doubleValue();
-        int starving = metrics.getOrDefault("starvingCount", 0).intValue();
-        String satietyColor = satiety > 70 ? GREEN : (satiety > 40 ? YELLOW : "\u001B[31m"); 
-        
+        int hungry = metrics.getOrDefault("hungryCount", 0).intValue();
+        String satietyColor = satiety > 70 ? GREEN : (satiety > 40 ? YELLOW : "\u001B[31m");
+
         sb.append(String.format("Global Satiety: %s%3.1f%%%s [", satietyColor, satiety, RESET));
         int progress = (int) Math.max(0, Math.min(20, satiety / 5));
         sb.append(satietyColor).append("#".repeat(progress)).append(".".repeat(20 - progress)).append(RESET).append("] ");
-        sb.append(String.format("| Starving: %s%d%s", (starving > 0 ? "\u001B[31m" : GREEN), starving, RESET)).append(CLEAR_EOL).append("\n");
-        
+        sb.append(String.format("| Hungry: %s%d%s", (hungry > 0 ? "\u001B[31m" : GREEN), hungry, RESET)).append(CLEAR_EOL).append("\n");        
         int hungerTotal = metrics.getOrDefault("deaths.HUNGER", 0).intValue();
         int ageTotal = metrics.getOrDefault("deaths.AGE", 0).intValue();
-        int eatenTotal = metrics.getOrDefault("deaths.EATEN", 0).intValue();
-        int exhaustTotal = metrics.getOrDefault("deaths.MOVEMENT_EXHAUSTION", 0).intValue();
+        int eatenTotal = metrics.getOrDefault("deaths.EATEN", 0).intValue() + 
+                         metrics.getOrDefault("deaths.EATEN_BY_PACK", 0).intValue();
+        int exhaustTotal = metrics.getOrDefault("deaths.MOVEMENT_EXHAUSTION", 0).intValue() +
+                           metrics.getOrDefault("deaths.REPRODUCTION_EXHAUSTION", 0).intValue();
 
         sb.append(String.format("Total Deaths: Hunger: %s%d%s | Old Age: %s%d%s | Exhausted: %s%d%s", 
                 "\u001B[31m", hungerTotal, RESET, 

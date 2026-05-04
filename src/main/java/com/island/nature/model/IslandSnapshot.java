@@ -42,7 +42,7 @@ public class IslandSnapshot implements WorldSnapshot {
     public Map<String, Number> getMetrics() {
         Map<String, Number> metrics = new HashMap<>();
         metrics.put("globalSatiety", island.getStatisticsService().calculateGlobalSatiety(island));
-        metrics.put("starvingCount", island.getStatisticsService().calculateStarvingCount(island));
+        metrics.put("hungryCount", island.getStatisticsService().calculateHungryCount(island));
         
         // Add species counts as metrics with prefix
         island.getSpeciesCounts().forEach((k, v) -> metrics.put("species." + k.getCode(), v));

@@ -37,10 +37,9 @@ public final class SimulationConstants {
     public static final int REPRODUCTION_LOD_LIMIT = DEFAULT.getReproductionLodLimit();
     public static final int MOVEMENT_LOD_LIMIT = DEFAULT.getMovementLodLimit();
 
-    public static final long DEATH_ENERGY_THRESHOLD = DEFAULT.getDeathEnergyThreshold(); 
-    public static final int STARVATION_THRESHOLD_PERCENT = DEFAULT.getStarvationThresholdPercent();
-    public static final int REPRODUCTION_MIN_ENERGY_PERCENT = DEFAULT.getReproductionMinEnergyPercent(); 
-
+    public static final long DEATH_ENERGY_THRESHOLD = DEFAULT.getDeathEnergyThreshold();
+    public static final int HUNGER_THRESHOLD_PERCENT = DEFAULT.getHungerThresholdPercent();
+    public static final int REPRODUCTION_MIN_ENERGY_PERCENT = DEFAULT.getReproductionMinEnergyPercent();
     public static final int ENDANGERED_POPULATION_THRESHOLD_BP = DEFAULT.getEndangeredPopulationThresholdBP(); 
     public static final int ENDANGERED_REPRO_BONUS_BP = DEFAULT.getEndangeredReproBonusBP(); 
     public static final int ENDANGERED_SPEED_BONUS = DEFAULT.getEndangeredSpeedBonus();

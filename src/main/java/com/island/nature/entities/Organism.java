@@ -156,8 +156,8 @@ public abstract class Organism implements Poolable, Mortal {
         return false;
     }
 
-    public boolean isStarving() {
-        return getEnergyPercentage() < config.getStarvationThresholdPercent();
+    public boolean isHungry() {
+        return getEnergyPercentage() < config.getHungerThresholdPercent();
     }
 
     public long getWeight() {

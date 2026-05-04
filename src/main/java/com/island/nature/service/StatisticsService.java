@@ -114,8 +114,8 @@ public class StatisticsService {
         return latestMetrics.getGlobalSatiety();
     }
 
-    public int calculateStarvingCount(SimulationWorld<Organism, ?> world) {
-        return latestMetrics.getStarvingCount();
+    public int calculateHungryCount(SimulationWorld<Organism, ?> world) {
+        return latestMetrics.getHungryCount();
     }
 
     public int getTotalPopulation() {

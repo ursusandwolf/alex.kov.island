@@ -126,7 +126,7 @@ public class FeedingService extends AbstractService {
                     if (roll < packChanceBP) {
                         a.die(DeathCause.EATEN);
                         if (node.removeEntity(a)) {
-                            eventBus.publish(new EntityDiedEvent(a, "EATEN_BY_PACK"));
+                            eventBus.publish(new EntityDiedEvent(a, DeathCause.EATEN_BY_PACK.name()));
                             long gainPerWolf = a.getWeight() / pack.size();
                             for (Animal wolf : pack) {
                                 if (wolf.isAlive()) {
@@ -184,7 +184,7 @@ public class FeedingService extends AbstractService {
                     if (getRandom().nextInt(0, 100) < chance) {
                         a.die(DeathCause.EATEN);
                         if (node.removeEntity(a)) {
-                            eventBus.publish(new EntityDiedEvent(a, "EATEN"));
+                            eventBus.publish(new EntityDiedEvent(a, DeathCause.EATEN.name()));
                             consumer.addEnergy(a.getWeight());
                             preyProvider.markAsEaten(a);
                             animalFactory.releaseAnimal(a);

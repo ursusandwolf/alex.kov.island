@@ -50,7 +50,7 @@ class MovementServiceTest {
         
         int numThreads = 10;
         ExecutorService executor = Executors.newFixedThreadPool(numThreads);
-        MovementService service = new MovementService(island, registry, executor, new DefaultRandomProvider());
+        MovementService service = new MovementService(island, registry, executor, new DefaultRandomProvider(), new com.island.engine.event.DefaultEventBus());
         
         CountDownLatch latch = new CountDownLatch(1);
         
