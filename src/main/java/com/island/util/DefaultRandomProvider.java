@@ -17,6 +17,11 @@ public class DefaultRandomProvider implements RandomProvider {
     }
 
     @Override
+    public long nextLong() {
+        return ThreadLocalRandom.current().nextLong();
+    }
+
+    @Override
     public double nextDouble() {
         return ThreadLocalRandom.current().nextDouble();
     }
@@ -24,5 +29,10 @@ public class DefaultRandomProvider implements RandomProvider {
     @Override
     public double nextDouble(double bound) {
         return ThreadLocalRandom.current().nextDouble(bound);
+    }
+
+    @Override
+    public boolean nextBoolean() {
+        return ThreadLocalRandom.current().nextBoolean();
     }
 }

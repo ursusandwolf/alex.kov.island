@@ -1,17 +1,23 @@
 package com.island.util;
 
-import com.island.content.SpeciesKey;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import com.island.nature.entities.SpeciesKey;
+import com.island.nature.entities.SpeciesLoader;
+import com.island.nature.entities.SpeciesRegistry;
+import com.island.nature.config.Configuration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 class InteractionMatrixTest {
     private InteractionMatrix matrix;
+    private SpeciesRegistry registry;
 
     @BeforeEach
     void setUp() {
-        matrix = new InteractionMatrix();
+        Configuration config = new Configuration();
+        registry = new SpeciesLoader(config).load();
+        matrix = new InteractionMatrix(registry);
     }
 
     @Test

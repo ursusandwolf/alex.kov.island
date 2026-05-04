@@ -8,9 +8,13 @@ public interface RandomProvider {
 
     int nextInt(int origin, int bound);
 
+    long nextLong();
+
     double nextDouble();
 
     double nextDouble(double bound);
+
+    boolean nextBoolean();
     
     default boolean checkChance(int chance) {
         if (chance <= 0) {
