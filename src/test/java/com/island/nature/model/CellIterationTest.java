@@ -13,6 +13,7 @@ import com.island.nature.entities.SpeciesRegistry;
 import com.island.nature.service.DefaultProtectionService;
 import com.island.nature.service.StatisticsService;
 import com.island.nature.config.Configuration;
+import com.island.engine.event.DefaultEventBus;
 import com.island.util.DefaultRandomProvider;
 import com.island.util.SamplingContext;
 import com.island.util.InteractionMatrix;
@@ -47,7 +48,7 @@ class CellIterationTest {
                 .randomProvider(randomProvider)
                 .build();
 
-        Island island = new Island(context, 1, 1, new com.island.engine.event.DefaultEventBus());
+        Island island = new Island(context, 1, 1, new DefaultEventBus());
         cell = new Cell(0, 0, island);
     }
 

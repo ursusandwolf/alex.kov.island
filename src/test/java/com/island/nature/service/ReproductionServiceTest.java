@@ -15,9 +15,11 @@ import com.island.nature.model.Cell;
 import com.island.nature.model.DefaultBiomassManager;
 import com.island.nature.model.Island;
 import com.island.nature.service.DefaultProtectionService;
+import com.island.engine.event.DefaultEventBus;
 import com.island.util.DefaultRandomProvider;
 import com.island.util.InteractionMatrix;
 import com.island.util.RandomProvider;
+import java.util.concurrent.Executors;
 import org.junit.jupiter.api.Test;
 
 class ReproductionServiceTest {
@@ -41,7 +43,7 @@ class ReproductionServiceTest {
                 .randomProvider(randomProvider)
                 .build();
 
-        Island island = new Island(context, 1, 1, new com.island.engine.event.DefaultEventBus());
+        Island island = new Island(context, 1, 1, new DefaultEventBus());
         island.setRedBookProtectionEnabled(false);
         Cell cell = island.getCell(0, 0);
         
@@ -57,7 +59,7 @@ class ReproductionServiceTest {
         cell.addAnimal(r1);
         cell.addAnimal(r2);
         
-        ReproductionService service = new ReproductionService(island, factory, registry, java.util.concurrent.Executors.newSingleThreadExecutor(), new DefaultRandomProvider(), new com.island.engine.event.DefaultEventBus());
+        ReproductionService service = new ReproductionService(island, factory, registry, Executors.newSingleThreadExecutor(), new DefaultRandomProvider(), new DefaultEventBus());
         for (int i = 0; i < 20; i++) {
             service.tick(1);
         }
@@ -90,7 +92,7 @@ class ReproductionServiceTest {
                 .randomProvider(zeroRandom)
                 .build();
 
-        Island island = new Island(context, 1, 1, new com.island.engine.event.DefaultEventBus());
+        Island island = new Island(context, 1, 1, new DefaultEventBus());
         island.setRedBookProtectionEnabled(false);
         Cell cell = island.getCell(0, 0);
 
@@ -106,7 +108,7 @@ class ReproductionServiceTest {
         cell.addAnimal(r2);
 
         double energyBefore = r1.getCurrentEnergy();
-        ReproductionService service = new ReproductionService(island, factory, registry, java.util.concurrent.Executors.newSingleThreadExecutor(), zeroRandom, new com.island.engine.event.DefaultEventBus());
+        ReproductionService service = new ReproductionService(island, factory, registry, Executors.newSingleThreadExecutor(), zeroRandom, new DefaultEventBus());
         service.tick(1);
 
         assertEquals(energyBefore, r1.getCurrentEnergy(), 0.000001, "Energy should not be consumed if 0 offspring were produced");

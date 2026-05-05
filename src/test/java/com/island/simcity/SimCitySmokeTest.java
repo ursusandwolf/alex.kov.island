@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.island.engine.GameLoop;
+import com.island.engine.event.DefaultEventBus;
 import com.island.simcity.entities.Building;
 import com.island.simcity.entities.SimEntity;
 import com.island.simcity.model.CityMap;
@@ -16,7 +17,7 @@ public class SimCitySmokeTest {
     @Test
     void testCityGrowthAndEconomy() {
         // 1. Setup
-        CityMap map = new CityMap(5, 5, new com.island.engine.event.DefaultEventBus());
+        CityMap map = new CityMap(5, 5, new DefaultEventBus());
         map.initialize();
         map.setResDemand(50); // Ensure demand for growth
         

@@ -31,6 +31,7 @@
     - Improved satiety visualization with color-coded progress bars.
 
 ### Improved
+- **Code Standards**: Refactored test files to remove Fully Qualified Names (FQNs) in code bodies, ensuring adherence to the project's coding standards for explicit imports and clean syntax.
 - **Service Decoupling**: Enhanced `MovementService` and `ReproductionService` to utilize the `EventBus`, removing direct dependencies on statistics aggregation logic.
 - **Configuration Management**: Refactored `SimulationConstants` and `Configuration` to use unified "Hunger" terminology and updated default values.
 

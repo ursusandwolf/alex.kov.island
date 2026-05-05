@@ -13,6 +13,7 @@ import com.island.nature.model.Cell;
 import com.island.nature.model.DefaultBiomassManager;
 import com.island.nature.model.Island;
 import com.island.nature.service.DefaultProtectionService;
+import com.island.engine.event.DefaultEventBus;
 import com.island.util.DefaultRandomProvider;
 import com.island.util.InteractionMatrix;
 import java.util.concurrent.CountDownLatch;
@@ -42,7 +43,7 @@ class MovementServiceTest {
                 .randomProvider(randomProvider)
                 .build();
 
-        Island island = new Island(context, 2, 1, new com.island.engine.event.DefaultEventBus());
+        Island island = new Island(context, 2, 1, new DefaultEventBus());
         Cell cell0 = island.getCell(0, 0);
         
         GenericAnimal wolf = new GenericAnimal(registry.getAnimalType(SpeciesKey.WOLF).orElseThrow());
@@ -50,7 +51,7 @@ class MovementServiceTest {
         
         int numThreads = 10;
         ExecutorService executor = Executors.newFixedThreadPool(numThreads);
-        MovementService service = new MovementService(island, registry, executor, new DefaultRandomProvider(), new com.island.engine.event.DefaultEventBus());
+        MovementService service = new MovementService(island, registry, executor, new DefaultRandomProvider(), new DefaultEventBus());
         
         CountDownLatch latch = new CountDownLatch(1);
         

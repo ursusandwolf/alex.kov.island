@@ -10,7 +10,7 @@
 - Replaced `HashMap` with `ConcurrentHashMap` in `Organism` for thread-safe component storage.
 - Added error isolation to `DefaultEventBus`.
 - Refactored `EventBus` injection to use constructor-based DI and enforce immutability in `SimulationWorld`.
-- Updated all test suites to accommodate constructor changes.
+- Updated all test suites to accommodate constructor changes and removed FQNs from code bodies.
 - Updated documentation (CHANGELOG, DOCUMENTATION, UML).
 
 ## Pending Items

@@ -13,6 +13,7 @@ import com.island.nature.entities.SpeciesLoader;
 import com.island.nature.entities.SpeciesRegistry;
 import com.island.nature.service.DefaultProtectionService;
 import com.island.nature.service.StatisticsService;
+import com.island.engine.event.DefaultEventBus;
 import com.island.util.DefaultRandomProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,7 +34,7 @@ class CellTest {
                 .biomassManager(new DefaultBiomassManager())
                 .randomProvider(new DefaultRandomProvider())
                 .build();
-        Island island = new Island(context, 1, 1, new com.island.engine.event.DefaultEventBus());
+        Island island = new Island(context, 1, 1, new DefaultEventBus());
         cell = new Cell(0, 0, island);
     }
 
