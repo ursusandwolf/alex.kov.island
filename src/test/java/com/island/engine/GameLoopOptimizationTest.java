@@ -1,0 +1,76 @@
+package com.island.engine;
+
+import com.island.engine.Mortal;
+import com.island.engine.SimulationNode;
+import com.island.engine.SimulationWorld;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+class GameLoopOptimizationTest {
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void shouldReuseCellProcessorsAndReduceAllocations() {
+        GameLoop<Mortal> gameLoop = new GameLoop<>(100, 4);
+        SimulationWorld<Mortal, SimulationNode<Mortal>> world = mock(SimulationWorld.class);
+        gameLoop.setWorld(world);
+
+        // Create mock nodes and work units
+        SimulationNode<Mortal> node = mock(SimulationNode.class);
+        Collection<SimulationNode<Mortal>> unit = Collections.singletonList(node);
+        Collection<Collection<SimulationNode<Mortal>>> workUnits = Collections.singletonList(unit);
+        when(world.getParallelWorkUnits()).thenAnswer(inv -> workUnits);
+
+        // Mock a parallel service
+        CellService<Mortal, SimulationNode<Mortal>> service = mock(CellService.class);
+        when(service.executionMode()).thenReturn(ExecutionMode.PARALLEL);
+        when(service.phase()).thenReturn(Phase.SIMULATION);
+        when(service.priority()).thenReturn(50);
+        gameLoop.addRecurringTask(service);
+
+        // Run multiple ticks
+        for (int i = 1; i <= 5; i++) {
+            gameLoop.runTick();
+            // In parallel mode, we might need a small wait or verify with timeout
+            final int tick = i;
+            verify(service, timeout(2000).atLeast(tick)).processCell(any(), anyInt());
+        }
+
+        // Verify GameLoop state - processorPool should have been populated but reused
+        // We can't access private processorPool easily without reflection, but we can verify it works
+        assertTrue(gameLoop.getTickCount() >= 5);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void shouldHandleParallelErrorsGracefully() throws InterruptedException {
+        GameLoop<Mortal> gameLoop = new GameLoop<>(100, 1);
+        SimulationWorld<Mortal, SimulationNode<Mortal>> world = mock(SimulationWorld.class);
+        gameLoop.setWorld(world);
+
+        SimulationNode<Mortal> node = mock(SimulationNode.class);
+        Collection<Collection<SimulationNode<Mortal>>> workUnits = Collections.singletonList(Collections.singletonList(node));
+        when(world.getParallelWorkUnits()).thenAnswer(inv -> workUnits);
+
+        AtomicInteger callCount = new AtomicInteger(0);
+        CellService<Mortal, SimulationNode<Mortal>> service = mock(CellService.class);
+        when(service.executionMode()).thenReturn(ExecutionMode.PARALLEL);
+        when(service.phase()).thenReturn(Phase.SIMULATION);
+        
+        doAnswer(inv -> {
+            callCount.incrementAndGet();
+            throw new RuntimeException("Parallel boom");
+        }).when(service).processCell(any(), anyInt());
+
+        gameLoop.addRecurringTask(service);
+        
+        // This should not throw exception out of runTick
+        assertDoesNotThrow(gameLoop::runTick);
+        assertEquals(1, callCount.get());
+    }
+}

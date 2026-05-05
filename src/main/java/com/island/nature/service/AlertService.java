@@ -2,6 +2,7 @@ package com.island.nature.service;
 
 import com.island.engine.event.EntityDiedEvent;
 import com.island.engine.event.EventBus;
+import com.island.nature.entities.DeathCause;
 import com.island.nature.entities.Organism;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,8 +20,8 @@ public class AlertService {
         if (event.getEntity() instanceof Organism organism) {
             // Log if something important happens, e.g., mass death or specific species dying out
             // For now, just log all deaths at debug level or significant ones at info
-            if ("STARVATION".equals(event.getCause())) {
-                log.debug("Organism {} died of starvation", organism.getTypeName());
+            if (DeathCause.HUNGER.name().equals(event.getCause())) {
+                log.debug("Organism {} died of {}", organism.getTypeName(), DeathCause.HUNGER.getDisplayName());
             }
         }
     }

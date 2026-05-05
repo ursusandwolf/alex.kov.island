@@ -22,7 +22,7 @@ public abstract class Organism implements Poolable, Mortal {
     private HealthComponent healthComponent;
     private AgeComponent ageComponent;
     
-    @Setter private DeathCause lastDeathCause;
+    @Setter private volatile DeathCause lastDeathCause;
     private final ReentrantLock energyLock = new ReentrantLock();
 
     protected Organism(Configuration config, long maxEnergy, int maxLifespan) {

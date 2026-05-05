@@ -11,6 +11,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class AgeComponent implements Component {
-    private int age;
-    private int maxLifespan;
+    private volatile int age;
+    private volatile int maxLifespan;
 }

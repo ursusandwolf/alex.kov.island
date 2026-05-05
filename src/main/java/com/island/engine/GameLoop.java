@@ -7,8 +7,8 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -35,8 +35,10 @@ public class GameLoop<T extends Mortal> {
     private SimulationWorld<T, ?> world;
     private Thread loopThread;
 
-    // Fixed structure for phases to reduce allocations
+    // Fixed structures to reduce allocations
     private final Map<Phase, List<ScheduledTask>> phasedTasks = new EnumMap<>(Phase.class);
+    private final List<CellService<T, SimulationNode<T>>> parallelGroup = new ArrayList<>();
+    private final List<CellProcessor<T>> processorPool = new ArrayList<>();
 
     public GameLoop(long tickDurationMs, int threadCount) {
         this.tickDurationMs = tickDurationMs;
@@ -153,7 +155,7 @@ public class GameLoop<T extends Mortal> {
             // Sort descending by priority (higher priority executes first)
             tasks.sort(Comparator.comparingInt(ScheduledTask::priority).reversed());
 
-            List<CellService<T, SimulationNode<T>>> parallelGroup = new ArrayList<>();
+            parallelGroup.clear();
             for (ScheduledTask task : tasks) {
                 if (task.executionMode() == ExecutionMode.PARALLEL && task instanceof CellService) {
                     @SuppressWarnings("unchecked")
@@ -193,10 +195,71 @@ public class GameLoop<T extends Mortal> {
         }
 
         Collection<? extends Collection<? extends SimulationNode<T>>> workUnits = world.getParallelWorkUnits();
-        List<Callable<Void>> tasks = new ArrayList<>();
+        int unitCount = workUnits.size();
+        
+        if (unitCount > 0) {
+            // Ensure pool capacity
+            while (processorPool.size() < unitCount) {
+                processorPool.add(new CellProcessor<>());
+            }
 
-        for (Collection<? extends SimulationNode<T>> unit : workUnits) {
-            tasks.add(() -> {
+            CountDownLatch latch = new CountDownLatch(unitCount);
+            int i = 0;
+            for (Collection<? extends SimulationNode<T>> unit : workUnits) {
+                CellProcessor<T> processor = processorPool.get(i++);
+                processor.update(unit, services, tickCount, latch);
+                try {
+                    taskExecutor.execute(processor);
+                } catch (RejectedExecutionException e) {
+                    latch.countDown();
+                }
+            }
+
+            try {
+                latch.await();
+                // Check for critical errors
+                for (int j = 0; j < unitCount; j++) {
+                    Throwable error = processorPool.get(j).getError();
+                    if (error != null) {
+                        log.error("Critical error in parallel cell service execution: {}", error.getMessage(), error);
+                    }
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+
+        for (CellService<T, SimulationNode<T>> service : services) {
+            try {
+                service.afterTick(tickCount);
+            } catch (Exception e) {
+                log.error("Error in afterTick for service {}: {}", service.getClass().getSimpleName(), e.getMessage(), e);
+            }
+        }
+    }
+
+    private static class CellProcessor<T extends Mortal> implements Runnable {
+        private Collection<? extends SimulationNode<T>> unit;
+        private List<CellService<T, SimulationNode<T>>> services;
+        private int tickCount;
+        private CountDownLatch latch;
+        private volatile Throwable error;
+
+        void update(Collection<? extends SimulationNode<T>> unit, List<CellService<T, SimulationNode<T>>> services, int tickCount, CountDownLatch latch) {
+            this.unit = unit;
+            this.services = services;
+            this.tickCount = tickCount;
+            this.latch = latch;
+            this.error = null;
+        }
+
+        public Throwable getError() {
+            return error;
+        }
+
+        @Override
+        public void run() {
+            try {
                 for (SimulationNode<T> node : unit) {
                     for (CellService<T, SimulationNode<T>> service : services) {
                         try {
@@ -207,31 +270,10 @@ public class GameLoop<T extends Mortal> {
                         }
                     }
                 }
-                return null;
-            });
-        }
-
-        try {
-            List<Future<Void>> futures = taskExecutor.invokeAll(tasks);
-            for (Future<Void> future : futures) {
-                try {
-                    future.get();
-                } catch (ExecutionException e) {
-                    log.error("Critical error in parallel cell service execution: {}", e.getCause().getMessage(), e.getCause());
-                    // In a production engine, we might want to trigger a simulation stop or rollback here
-                }
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        } catch (RejectedExecutionException e) {
-            // Ignore if shutting down
-        }
-
-        for (CellService<T, SimulationNode<T>> service : services) {
-            try {
-                service.afterTick(tickCount);
-            } catch (Exception e) {
-                log.error("Error in afterTick for service {}: {}", service.getClass().getSimpleName(), e.getMessage(), e);
+            } catch (Throwable t) {
+                this.error = t;
+            } finally {
+                latch.countDown();
             }
         }
     }

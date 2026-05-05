@@ -11,11 +11,12 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class HealthComponent implements Component {
-    private long currentEnergy;
-    private long maxEnergy;
-    private boolean isAlive;
+    private volatile long currentEnergy;
+    private volatile long maxEnergy;
+    private volatile boolean isAlive;
 
     public int getEnergyPercentage() {
-        return (maxEnergy == 0) ? 0 : (int) ((currentEnergy * 100) / maxEnergy);
+        long max = maxEnergy;
+        return (max == 0) ? 0 : (int) ((currentEnergy * 100) / max);
     }
 }
