@@ -44,6 +44,35 @@ To ensure deterministic results and high performance, the engine uses fixed-poin
 - **Thread-Safe ECS**: Organism components use `ConcurrentHashMap` for safe parallel access.
 - **Robust EventBus**: Subscriber exceptions are isolated to prevent cascading failures.
 
-### 4. Boilerplate-Free Domain
+## 4. Visual Architecture (Pseudo-UML)
+
+```text
++-----------------------+          +-------------------------+
+|   SimulationEngine    |          |   SimulationPlugin<T>   |
++-----------------------+          +-------------------------+
+| + build()             |          | + createWorld(Bus)      |
+| - eventBus: EventBus  |<>--------| + registerTasks(...)    |
++-----------+-----------+          +------------+------------+
+            |                                   |
+            |            (Builds)               |
+            +-----------------------------------+
+            |
+            v
++-----------------------+          +-------------------------+
+|   SimulationWorld<T>  |          |         EventBus        |
++-----------------------+          +-------------------------+
+| - eventBus: EventBus  |<>------->| + publish(Object)       |
+| + getEventBus()       |          | + subscribe(Class, Cons)|
++-----------+-----------+          +-------------------------+
+            ^
+            |
+    +-------+-------+
+    |               |
++---+----+      +---+----+
+| Island |      | CityMap|
++--------+      +--------+
+```
+
+### 5. Boilerplate-Free Domain
 - Mandatory use of **Lombok** (`@Getter`, `@Setter`, `@Builder`) to keep domain logic clean.
 - Removal of redundant Javadocs and FQNs; architectural "know-how" is deferred to `README.md`.
