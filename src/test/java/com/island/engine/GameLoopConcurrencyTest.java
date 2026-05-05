@@ -2,6 +2,8 @@ package com.island.engine;
 
 import org.junit.jupiter.api.Test;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -13,7 +15,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class GameLoopConcurrencyTest {
     @Test
     void shouldExecuteTasksInPriorityOrder() {
-        GameLoop<Mortal> gameLoop = new GameLoop<>(100, 1);
+        ExecutorService executor = Executors.newFixedThreadPool(1);
+        ParallelDispatcher<Mortal> dispatcher = new ParallelDispatcher<>(executor);
+        PhaseScheduler<Mortal> scheduler = new PhaseScheduler<>(dispatcher);
+        GameLoop<Mortal> gameLoop = new GameLoop<>(100, executor, scheduler);
         List<Integer> executionOrder = new CopyOnWriteArrayList<>();
 
         // Low priority task (50)
@@ -47,7 +52,10 @@ public class GameLoopConcurrencyTest {
 
     @Test
     void shouldExecutePreparePhaseBeforeSimulation() {
-        GameLoop<Mortal> gameLoop = new GameLoop<>(100, 1);
+        ExecutorService executor = Executors.newFixedThreadPool(1);
+        ParallelDispatcher<Mortal> dispatcher = new ParallelDispatcher<>(executor);
+        PhaseScheduler<Mortal> scheduler = new PhaseScheduler<>(dispatcher);
+        GameLoop<Mortal> gameLoop = new GameLoop<>(100, executor, scheduler);
         List<String> phases = new CopyOnWriteArrayList<>();
         gameLoop.addRecurringTask(new ScheduledTask() {
             @Override public Phase phase() { return Phase.PREPARE; }
@@ -65,7 +73,10 @@ public class GameLoopConcurrencyTest {
 
     @Test
     void shouldContinueAfterServiceException() {
-        GameLoop<Mortal> gameLoop = new GameLoop<>(100, 1);
+        ExecutorService executor = Executors.newFixedThreadPool(1);
+        ParallelDispatcher<Mortal> dispatcher = new ParallelDispatcher<>(executor);
+        PhaseScheduler<Mortal> scheduler = new PhaseScheduler<>(dispatcher);
+        GameLoop<Mortal> gameLoop = new GameLoop<>(100, executor, scheduler);
         AtomicBoolean secondRan = new AtomicBoolean(false);
         gameLoop.addRecurringTask((Tickable) tc -> { throw new RuntimeException("boom"); });
         gameLoop.addRecurringTask((Tickable) tc -> secondRan.set(true));
@@ -75,7 +86,10 @@ public class GameLoopConcurrencyTest {
 
     @Test
     void shouldNotThrowExceptionWhenAddingTaskFromAnotherThread() throws InterruptedException {
-        GameLoop<Mortal> gameLoop = new GameLoop<>(1, 2); // Very fast ticks
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        ParallelDispatcher<Mortal> dispatcher = new ParallelDispatcher<>(executor);
+        PhaseScheduler<Mortal> scheduler = new PhaseScheduler<>(dispatcher);
+        GameLoop<Mortal> gameLoop = new GameLoop<>(1, executor, scheduler); // Very fast ticks
         CountDownLatch startLatch = new CountDownLatch(1);
         
         gameLoop.addRecurringTask(() -> {

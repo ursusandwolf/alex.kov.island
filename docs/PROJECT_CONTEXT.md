@@ -8,14 +8,12 @@
 - Global and project-specific `GEMINI.md` guidelines are being followed.
 
 ## Recent Changes
+- **Lombok & Boilerplate Reduction**: Applied Lombok annotations (`@Slf4j`, `@Getter`, `@RequiredArgsConstructor`) across the core engine (`GameLoop`, `ParallelDispatcher`, `PhaseScheduler`), significantly improving signal-to-noise ratio.
+- **Dependency Injection & DIP**: Refactored `GameLoop` to use constructor injection for its components, decoupling it from specific implementations and improving testability.
+- **High-Precision Timing**: Switched to `System.nanoTime()` in the simulation loop to ensure deterministic tick durations and better performance monitoring.
+- **Robust Parallelism**: Enhanced `ParallelDispatcher` with synchronous fallback to prevent simulation stalls when thread pools are saturated.
 - **GameLoop Decomposition**: Extracted `PhaseScheduler` and `ParallelDispatcher` from `GameLoop` to address the God Class issue.
-- **Abstraction Integrity**: Removed the configuration generic parameter from `SimulationWorld` and fixed abstraction leaks in `NatureLauncher`.
-- **Lifecycle Management**: Implemented proper `stop()` in `SimulationEngine` and added `shouldStop` and `onSimulationStopped` hooks to `SimulationPlugin`.
-- **Event Mechanism Unification**: Removed `WorldListener` interface in favor of direct world notification methods that publish to `EventBus`.
-- **Thread Safety**: Fixed potential data races in `CellProcessor` by marking fields as `volatile`.
-- **Robustness**: Refactored `DefaultEventBus` type resolution to be iterative and protected it from subscriber exceptions.
-- **Configurability**: Moved monitoring magic numbers to `Configuration`.
-- **Log Consistency**: Unified log messages in `NatureLauncher` to English.
+- **Test Alignment**: Mass-updated the test suite to comply with the new engine architecture and constructor contracts.
 
 ## Pending Items
 - Continue simulation development or refactoring as requested.

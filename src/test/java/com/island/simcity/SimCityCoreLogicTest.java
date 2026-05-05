@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.island.engine.GameLoop;
+import com.island.engine.ParallelDispatcher;
+import com.island.engine.PhaseScheduler;
 import com.island.engine.event.DefaultEventBus;
 import com.island.simcity.entities.Building;
 import com.island.simcity.entities.Resident;
@@ -68,7 +70,10 @@ class SimCityCoreLogicTest {
         map.getGrid()[0][0].addEntity(resident);
 
         PopulationService popService = new PopulationService(map);
-        GameLoop<SimEntity> loop = new GameLoop<>(0, 1);
+        ExecutorService executor = Executors.newFixedThreadPool(1);
+        ParallelDispatcher<SimEntity> dispatcher = new ParallelDispatcher<>(executor);
+        PhaseScheduler<SimEntity> scheduler = new PhaseScheduler<>(dispatcher);
+        GameLoop<SimEntity> loop = new GameLoop<>(0, executor, scheduler);
         loop.setWorld(map);
         loop.addRecurringTask(popService);
 

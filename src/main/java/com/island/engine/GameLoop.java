@@ -5,9 +5,11 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.concurrent.TimeUnit;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Orchestrates the simulation ticks.
@@ -15,32 +17,27 @@ import org.slf4j.LoggerFactory;
  *
  * @param <T> The base type of entities in the simulation world.
  */
+@Slf4j
+@RequiredArgsConstructor
 public class GameLoop<T extends Mortal> {
-    private static final Logger log = LoggerFactory.getLogger(GameLoop.class);
     
     private final List<ScheduledTask> recurringTasks = new ArrayList<>();
     private final Queue<ScheduledTask> pendingTasks = new ConcurrentLinkedQueue<>();
+    
     private final long tickDurationMs;
+    @Getter
     private final ExecutorService taskExecutor;
     private final PhaseScheduler<T> scheduler;
-    private volatile boolean running = false;
-    private int tickCount = 0;
+
+    @Getter @Setter
     private SimulationWorld<T> world;
+    
+    @Getter
+    private volatile boolean running = false;
+    @Getter
+    private int tickCount = 0;
+    
     private volatile Thread loopThread;
-
-    public GameLoop(long tickDurationMs, int threadCount) {
-        this.tickDurationMs = tickDurationMs;
-        this.taskExecutor = (threadCount > 0)
-                ? Executors.newFixedThreadPool(threadCount)
-                : Executors.newVirtualThreadPerTaskExecutor();
-        
-        ParallelDispatcher<T> dispatcher = new ParallelDispatcher<>(taskExecutor);
-        this.scheduler = new PhaseScheduler<>(dispatcher);
-    }
-
-    public void setWorld(SimulationWorld<T> world) {
-        this.world = world;
-    }
 
     public void addRecurringTask(Tickable task) {
         if (task instanceof ScheduledTask st) {
@@ -99,14 +96,6 @@ public class GameLoop<T extends Mortal> {
         taskExecutor.shutdownNow();
     }
 
-    public boolean isRunning() {
-        return running;
-    }
-
-    public int getTickCount() {
-        return tickCount;
-    }
-
     public void runTick() {
         tickCount++;
         
@@ -133,25 +122,21 @@ public class GameLoop<T extends Mortal> {
 
     private void run() {
         while (running) {
-            long startTime = System.currentTimeMillis();
+            long startTime = System.nanoTime();
             try {
                 runTick();
             } catch (Throwable t) {
                 log.error("CRITICAL ERROR: Simulation loop crashed: {}", t.getMessage(), t);
             }
-            long elapsed = System.currentTimeMillis() - startTime;
-            long sleepTime = tickDurationMs - elapsed;
-            if (sleepTime > 0) {
+            long elapsed = System.nanoTime() - startTime;
+            long sleepTimeNs = (tickDurationMs * 1_000_000) - elapsed;
+            if (sleepTimeNs > 0) {
                 try {
-                    Thread.sleep(sleepTime);
+                    TimeUnit.NANOSECONDS.sleep(sleepTimeNs);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
             }
         }
-    }
-
-    public ExecutorService getTaskExecutor() {
-        return taskExecutor;
     }
 }

@@ -6,23 +6,20 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Handles parallel execution of CellServices across world work units.
  *
  * @param <T> The base type of entities.
  */
+@Slf4j
+@RequiredArgsConstructor
 public class ParallelDispatcher<T extends Mortal> {
-    private static final Logger log = LoggerFactory.getLogger(ParallelDispatcher.class);
 
     private final List<CellProcessor<T>> processorPool = new ArrayList<>();
     private final ExecutorService taskExecutor;
-
-    public ParallelDispatcher(ExecutorService taskExecutor) {
-        this.taskExecutor = taskExecutor;
-    }
 
     public void dispatch(SimulationWorld<T> world, List<CellService<T, SimulationNode<T>>> services, int tickCount) {
         if (world == null || taskExecutor.isShutdown()) {
@@ -54,7 +51,8 @@ public class ParallelDispatcher<T extends Mortal> {
                 try {
                     taskExecutor.execute(processor);
                 } catch (RejectedExecutionException e) {
-                    latch.countDown();
+                    log.error("Task execution rejected in parallel dispatcher: {}. Executing synchronously.", e.getMessage());
+                    processor.run(); // Fallback to synchronous execution
                 }
             }
 

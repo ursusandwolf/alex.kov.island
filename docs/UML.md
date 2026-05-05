@@ -5,9 +5,9 @@
 ### Engine Layer
 - `SimulationWorld` (Island): Central hub. Manages spatial entities and notifies about lifecycle events.
 - `SimulationNode` (Cell): Spatial unit. Uses fine-grained thread safety.
-- `GameLoop`: Orchestrates the simulation lifecycle. Delegates scheduling to `PhaseScheduler`.
-- `PhaseScheduler`: Groups and sorts tasks by `Phase` and priority. Uses `ParallelDispatcher`.
-- `ParallelDispatcher`: Manages `CellProcessor` pool for high-performance parallel execution.
+- `GameLoop`: Orchestrates the simulation lifecycle. Uses constructor injection for `ExecutorService` and `PhaseScheduler`.
+- `PhaseScheduler`: Groups and sorts tasks by `Phase` and priority. Injected into `GameLoop`.
+- `ParallelDispatcher`: Manages `CellProcessor` pool. Injected into `PhaseScheduler`.
 - `CellService`: Interface for parallel business logic (Feeding, Movement, etc.).
 - `SimulationMetrics`: Thread-safe builder for incremental aggregation of population and energy stats.
 
@@ -64,7 +64,7 @@ Deterministic results using fixed-point arithmetic:
 +-----------------------+          +-------------------------+
 |     GameLoop<T>       |          |    PhaseScheduler<T>    |
 +-----------------------+          +-------------------------+
-| + runTick()           |--------->| + execute(...)          |
+| + runTick()           |<>------->| + execute(...)          |
 | + start() / stop()    |          |          |              |
 +-----------+-----------+          +----------+--------------+
             |                                 |
@@ -73,7 +73,7 @@ Deterministic results using fixed-point arithmetic:
 |   SimulationWorld<T>  |          |  ParallelDispatcher<T>  |
 +-----------------------+          +-------------------------+
 | - eventBus: EventBus  |<---------| + dispatch(...)         |
-| + onEntityAdded(T)    |          |          |              |
+| + onEntityAdded(T)    |          |<>--------|              |
 | + onEntityRemoved(T)  |          +----------+--------------+
 +-----------+-----------+                     |
             ^                                 v

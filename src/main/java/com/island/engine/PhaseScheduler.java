@@ -5,22 +5,22 @@ import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Manages the scheduling and sorting of simulation tasks across phases.
  *
  * @param <T> The base type of entities.
  */
+@Slf4j
+@RequiredArgsConstructor
 public class PhaseScheduler<T extends Mortal> {
-    private static final Logger log = LoggerFactory.getLogger(PhaseScheduler.class);
     private final Map<Phase, List<ScheduledTask>> phasedTasks = new EnumMap<>(Phase.class);
     private final List<CellService<T, SimulationNode<T>>> parallelGroup = new ArrayList<>();
     private final ParallelDispatcher<T> dispatcher;
 
-    public PhaseScheduler(ParallelDispatcher<T> dispatcher) {
-        this.dispatcher = dispatcher;
+    {
         for (Phase phase : Phase.values()) {
             phasedTasks.put(phase, new ArrayList<>());
         }

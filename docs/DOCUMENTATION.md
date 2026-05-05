@@ -38,58 +38,42 @@ The engine uses the Plugin pattern to decouple the simulation loop from domain-s
 ```
 
 ### 2.2 Task Scheduling & Phase Management
-The `GameLoop` manages tasks organized by `Phase` and `priority`. This ensures correct execution order (e.g., aging before feeding, feeding before movement).
+The `GameLoop` delegates task orchestration to `PhaseScheduler` and parallel execution to `ParallelDispatcher`. Tasks are organized by `Phase` and `priority`.
 
 **UML Pseudo-graphics:**
 ```text
-+------------------+       +---------------------------------+
-|     GameLoop     |       |          ScheduledTask          |
-+------------------+       +---------------------------------+
-| - recurringTasks |------>| + phase(): Phase                |
-| - pendingTasks   |       | + priority(): int               |
-| + runTick()      |       | + isParallelizable(): boolean   |
-+------------------+       +---------------------------------+
-                                           ^
-                                           |
-                               +-----------+-----------+
-                               |                       |
-                 +---------------------------+   +-------------+
-                 |      CellService<T, N>    |   | Custom Task |
-                 +---------------------------+   +-------------+
-                 | + processCell(node, tick) |
-                 +---------------------------+
-                               ^
-                               |
-                   +-----------+-----------+
-                   |    AbstractService    |
-                   +-----------------------+
-                   | - world: NatureWorld  |
-                   +-----------------------+
-                               ^
-                               |
-             +-----------------+-----------------+
-             |                 |                 |
-    +----------------+ +----------------+ +----------------+
-    | FeedingService | | MovementService| | LifecycleServ. |
-    +----------------+ +----------------+ +----------------+
++------------------+       +------------------+       +---------------------+
+|     GameLoop     |------>|  PhaseScheduler  |------>|  ParallelDispatcher |
++------------------+       +------------------+       +---------------------+
+| + runTick()      |       | + schedule()     |       | + dispatch()        |
++------------------+       +------------------+       +---------------------+
+                                     |
+                                     v
+                           +---------------------------------+
+                           |          ScheduledTask          |
+                           +---------------------------------+
+                           | + phase(): Phase                |
+                           | + priority(): int               |
+                           | + executionMode(): ExecMode     |
+                           +---------------------------------+
 ```
 
 ### 2.3 Observer Pattern (World Events)
-The `SimulationWorld` acts as an Observable, notifying `WorldListener`s of entity additions or removals. This decouples the spatial grid from statistics or external viewers.
+The `SimulationWorld` publishes events to the `EventBus` when entities are added or removed. This decouples the spatial grid from statistics or external services.
 
 **UML Pseudo-graphics:**
 ```text
 +--------------------------+          +-----------------------+
-|   SimulationWorld<T, C>  |          |   WorldListener<T>    |
+|   SimulationWorld<T>     |          |       EventBus        |
 +--------------------------+          +-----------------------+
-| - listeners: List        |--------->| + onEntityAdded(T)    |
-| + addListener(listener)  |          | + onEntityRemoved(T)  |
+| + onEntityAdded(T)       |--------->| + publish(Object)     |
+| + onEntityRemoved(T)     |          | + subscribe(Class, S) |
 +--------------------------+          +-----------------------+
-             ^                                    ^
-             |                                    |
-      +------+-------+                    +-------+--------+
-      |    Island    |<>------------------| Island (self)  |
-      +--------------+                    +----------------+
+             ^                                    
+             |                                    
+      +------+-------+                    
+      |    Island    |
+      +--------------+
 ```
 
 ### 2.4 Strategy Pattern (Hunting)

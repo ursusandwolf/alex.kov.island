@@ -4,6 +4,8 @@ import com.island.engine.event.DefaultEventBus;
 import com.island.engine.event.EventBus;
 import com.island.util.DefaultRandomProvider;
 import com.island.util.RandomProvider;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Orchestrator that bootstraps a simulation using a plugin.
@@ -33,7 +35,14 @@ public class SimulationEngine<T extends Mortal> {
         SimulationWorld<T> world = plugin.createWorld(eventBus);
         world.initialize();
 
-        GameLoop<T> gameLoop = new GameLoop<>(tickDurationMs, threads);
+        ExecutorService executor = (threads > 0)
+                ? Executors.newFixedThreadPool(threads)
+                : Executors.newVirtualThreadPerTaskExecutor();
+        
+        ParallelDispatcher<T> dispatcher = new ParallelDispatcher<>(executor);
+        PhaseScheduler<T> scheduler = new PhaseScheduler<>(dispatcher);
+
+        GameLoop<T> gameLoop = new GameLoop<>(tickDurationMs, executor, scheduler);
         gameLoop.setWorld(world);
 
         plugin.registerTasks(gameLoop, world, eventBus);

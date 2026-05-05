@@ -6,6 +6,8 @@ import com.island.engine.SimulationWorld;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -16,7 +18,10 @@ class GameLoopOptimizationTest {
     @Test
     @SuppressWarnings("unchecked")
     void shouldReuseCellProcessorsAndReduceAllocations() {
-        GameLoop<Mortal> gameLoop = new GameLoop<>(100, 4);
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+        ParallelDispatcher<Mortal> dispatcher = new ParallelDispatcher<>(executor);
+        PhaseScheduler<Mortal> scheduler = new PhaseScheduler<>(dispatcher);
+        GameLoop<Mortal> gameLoop = new GameLoop<>(100, executor, scheduler);
         SimulationWorld<Mortal> world = mock(SimulationWorld.class);
         gameLoop.setWorld(world);
 
@@ -49,7 +54,10 @@ class GameLoopOptimizationTest {
     @Test
     @SuppressWarnings("unchecked")
     void shouldHandleParallelErrorsGracefully() throws InterruptedException {
-        GameLoop<Mortal> gameLoop = new GameLoop<>(100, 1);
+        ExecutorService executor = Executors.newFixedThreadPool(1);
+        ParallelDispatcher<Mortal> dispatcher = new ParallelDispatcher<>(executor);
+        PhaseScheduler<Mortal> scheduler = new PhaseScheduler<>(dispatcher);
+        GameLoop<Mortal> gameLoop = new GameLoop<>(100, executor, scheduler);
         SimulationWorld<Mortal> world = mock(SimulationWorld.class);
         gameLoop.setWorld(world);
 

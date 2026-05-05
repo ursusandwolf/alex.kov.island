@@ -4,12 +4,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.island.engine.GameLoop;
+import com.island.engine.ParallelDispatcher;
+import com.island.engine.PhaseScheduler;
 import com.island.engine.event.DefaultEventBus;
 import com.island.simcity.entities.Building;
 import com.island.simcity.entities.SimEntity;
 import com.island.simcity.model.CityMap;
 import com.island.simcity.service.EconomyService;
 import com.island.simcity.service.PopulationService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.junit.jupiter.api.Test;
 
 public class SimCitySmokeTest {
@@ -24,7 +28,10 @@ public class SimCitySmokeTest {
         PopulationService popService = new PopulationService(map);
         EconomyService economyService = new EconomyService(map);
 
-        GameLoop<SimEntity> gameLoop = new GameLoop<>(0, 1);
+        ExecutorService executor = Executors.newFixedThreadPool(1);
+        ParallelDispatcher<SimEntity> dispatcher = new ParallelDispatcher<>(executor);
+        PhaseScheduler<SimEntity> scheduler = new PhaseScheduler<>(dispatcher);
+        GameLoop<SimEntity> gameLoop = new GameLoop<>(0, executor, scheduler);
         gameLoop.setWorld(map);
         gameLoop.addRecurringTask(popService);
         gameLoop.addRecurringTask(economyService);
