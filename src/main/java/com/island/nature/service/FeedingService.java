@@ -184,7 +184,6 @@ public class FeedingService extends AbstractService {
                     if (getRandom().nextInt(0, 100) < chance) {
                         a.die(DeathCause.EATEN);
                         if (node.removeEntity(a)) {
-                            eventBus.publish(new EntityDiedEvent(a, DeathCause.EATEN.name()));
                             consumer.addEnergy(a.getWeight());
                             preyProvider.markAsEaten(a);
                             animalFactory.releaseAnimal(a);

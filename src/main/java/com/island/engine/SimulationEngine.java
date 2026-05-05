@@ -30,8 +30,7 @@ public class SimulationEngine<T extends Mortal> {
     public SimulationContext<T> build(SimulationPlugin<T> plugin, int tickDurationMs, int threads) {
         EventBus eventBus = new DefaultEventBus();
 
-        SimulationWorld<T, ?> world = plugin.createWorld();
-        world.setEventBus(eventBus);
+        SimulationWorld<T, ?> world = plugin.createWorld(eventBus);
         world.initialize();
 
         GameLoop<T> gameLoop = new GameLoop<>(tickDurationMs, threads);

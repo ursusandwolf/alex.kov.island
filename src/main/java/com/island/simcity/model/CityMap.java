@@ -16,42 +16,37 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter
-@Setter
 public class CityMap implements SimulationWorld<SimEntity, Void> {
     private final int width;
     private final int height;
     private final CityTile[][] grid;
-    private volatile long money = 10000;
-    private volatile int population = 0;
+    @Setter private volatile long money = 10000;
+    @Setter private volatile int population = 0;
     
-    private volatile int totalJobs = 0;
-    private volatile int resDemand = 50;
-    private volatile int comDemand = 50;
-    private volatile int indDemand = 50;
-    private volatile long lastTickIncome = 0;
-    private volatile long lastTickExpenses = 0;
+    @Setter private volatile int totalJobs = 0;
+    @Setter private volatile int resDemand = 50;
+    @Setter private volatile int comDemand = 50;
+    @Setter private volatile int indDemand = 50;
+    @Setter private volatile long lastTickIncome = 0;
+    @Setter private volatile long lastTickExpenses = 0;
     
-    private volatile int taxRate = 15;
+    @Setter private volatile int taxRate = 15;
     private volatile int bankruptcyTicks = 0;
     private static final int BANKRUPTCY_THRESHOLD = 5;
     private final List<String> alerts = new CopyOnWriteArrayList<>();
     private final List<com.island.engine.WorldListener<SimEntity>> listeners = new ArrayList<>();
     private volatile List<List<CityTile>> cachedChunks;
-    private EventBus eventBus;
+    private final EventBus eventBus;
 
     @Override
     public EventBus getEventBus() {
         return eventBus;
     }
 
-    @Override
-    public void setEventBus(EventBus eventBus) {
-        this.eventBus = eventBus;
-    }
-
-    public CityMap(int width, int height) {
+    public CityMap(int width, int height, EventBus eventBus) {
         this.width = width;
         this.height = height;
+        this.eventBus = eventBus;
         this.grid = new CityTile[width][height];
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {

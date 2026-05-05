@@ -68,15 +68,10 @@ public class LifecycleService extends AbstractService {
                 }
 
                 a.tryConsumeEnergy(metabolism);
-                if (!a.isAlive()) {
-                    eventBus.publish(new EntityDiedEvent(a, DeathCause.HUNGER.name()));
-                }
                 
                 // 2. Age increment and death check
                 if (a.isAlive()) {
-                    if (a.checkAgeDeath()) {
-                        eventBus.publish(new EntityDiedEvent(a, DeathCause.AGE.name()));
-                    }
+                    a.checkAgeDeath();
                 }
             }
         });

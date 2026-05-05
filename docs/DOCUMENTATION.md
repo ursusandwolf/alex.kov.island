@@ -16,17 +16,18 @@ The project is a modular simulation engine designed to support multiple "domains
 
 ### 2.1 Plugin Pattern
 The engine uses the Plugin pattern to decouple the simulation loop from domain-specific logic.
-
 **UML Pseudo-graphics:**
 ```text
-+------------------+          +------------------------------------+
-| SimulationEngine |          |         SimulationPlugin<T>        |
-+------------------+          +------------------------------------+
-| + build()        |<>------->| + createWorld(): SimulationWorld   |
-+------------------+          | + registerTasks(GameLoop, World)   |
-                              +------------------------------------+
++------------------+          +--------------------------------------------+
+| SimulationEngine |          |             SimulationPlugin<T>            |
++------------------+          +--------------------------------------------+
+| + build()        |<>------->| + createWorld(EventBus): SimulationWorld    |
++------------------+          | + registerTasks(GameLoop, World, EventBus) |
+                              +--------------------------------------------+
                                                ^
                                                |
+```
+
                         +----------------------+----------------------+
                         |                                             |
             +-----------------------+                 +-----------------------+

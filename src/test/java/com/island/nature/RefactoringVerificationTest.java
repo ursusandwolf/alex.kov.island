@@ -56,9 +56,8 @@ class RefactoringVerificationTest {
                 .protectionService(protectionService)
                 .build();
 
-        island = new Island(context, 10, 10);
         EventBus bus = new DefaultEventBus();
-        island.setEventBus(bus);
+        island = new Island(context, 10, 10, bus);
         statisticsService.subscribe(bus);
     }
 

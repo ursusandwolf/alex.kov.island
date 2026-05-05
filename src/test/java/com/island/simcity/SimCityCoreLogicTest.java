@@ -25,7 +25,7 @@ class SimCityCoreLogicTest {
     @DisplayName("Should deduct money when building via BuildingService")
     void should_deduct_money_on_build() {
         // Given
-        CityMap map = new CityMap(5, 5);
+        CityMap map = new CityMap(5, 5, new com.island.engine.event.DefaultEventBus());
         BuildingService buildingService = new BuildingService(map);
         long initialMoney = map.getMoney();
 
@@ -41,7 +41,7 @@ class SimCityCoreLogicTest {
     @DisplayName("Should trigger bankruptcy when money is negative for several ticks")
     void should_trigger_bankruptcy_logic() {
         // Given
-        CityMap map = new CityMap(5, 5);
+        CityMap map = new CityMap(5, 5, new com.island.engine.event.DefaultEventBus());
         map.addMoney(-20000); // Force negative balance
 
         // When & Then
@@ -59,7 +59,7 @@ class SimCityCoreLogicTest {
     @DisplayName("Residents should leave when happiness is low due to high taxes")
     void residents_should_leave_on_high_taxes() {
         // Given
-        CityMap map = new CityMap(5, 5);
+        CityMap map = new CityMap(5, 5, new com.island.engine.event.DefaultEventBus());
         map.setTaxRate(50); // Very high tax
         map.getGrid()[0][0].setConnected(true);
         Resident resident = new Resident();
@@ -83,7 +83,7 @@ class SimCityCoreLogicTest {
     @DisplayName("Concurrency test: multiple threads updating money should be safe")
     void money_updates_should_be_thread_safe() throws InterruptedException {
         // Given
-        CityMap map = new CityMap(5, 5);
+        CityMap map = new CityMap(5, 5, new com.island.engine.event.DefaultEventBus());
         int threadCount = 10;
         int incrementsPerThread = 1000;
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);

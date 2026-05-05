@@ -10,6 +10,7 @@ import com.island.nature.entities.SpeciesRegistry;
 import com.island.nature.entities.WorldInitializer;
 import com.island.nature.model.DefaultBiomassManager;
 import com.island.nature.model.Island;
+import com.island.engine.event.DefaultEventBus;
 import com.island.nature.service.DefaultProtectionService;
 import com.island.nature.service.StatisticsService;
 import com.island.util.DefaultRandomProvider;
@@ -39,7 +40,7 @@ public class WorldInitializationTest {
                 .randomProvider(randomProvider)
                 .build();
 
-        Island island = new Island(context, 16, 16);
+        Island island = new Island(context, 16, 16, new DefaultEventBus());
         ExecutorService executor = Executors.newSingleThreadExecutor();
         
         WorldInitializer initializer = new WorldInitializer();

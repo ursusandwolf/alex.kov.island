@@ -47,7 +47,7 @@ class CellIterationTest {
                 .randomProvider(randomProvider)
                 .build();
 
-        Island island = new Island(context, 1, 1);
+        Island island = new Island(context, 1, 1, new com.island.engine.event.DefaultEventBus());
         cell = new Cell(0, 0, island);
     }
 

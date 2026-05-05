@@ -41,7 +41,7 @@ class ReproductionServiceTest {
                 .randomProvider(randomProvider)
                 .build();
 
-        Island island = new Island(context, 1, 1);
+        Island island = new Island(context, 1, 1, new com.island.engine.event.DefaultEventBus());
         island.setRedBookProtectionEnabled(false);
         Cell cell = island.getCell(0, 0);
         
@@ -90,7 +90,7 @@ class ReproductionServiceTest {
                 .randomProvider(zeroRandom)
                 .build();
 
-        Island island = new Island(context, 1, 1);
+        Island island = new Island(context, 1, 1, new com.island.engine.event.DefaultEventBus());
         island.setRedBookProtectionEnabled(false);
         Cell cell = island.getCell(0, 0);
 

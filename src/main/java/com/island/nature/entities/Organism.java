@@ -7,8 +7,8 @@ import com.island.nature.config.EnergyPolicy;
 import com.island.nature.entities.components.AgeComponent;
 import com.island.nature.entities.components.HealthComponent;
 import com.island.util.Poolable;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,7 +16,7 @@ import lombok.Setter;
 @Getter
 public abstract class Organism implements Poolable, Mortal {
     protected final Configuration config;
-    private final Map<Class<? extends Component>, Component> components = new HashMap<>();
+    private final Map<Class<? extends Component>, Component> components = new ConcurrentHashMap<>();
     @Setter private DeathCause lastDeathCause;
     private final ReentrantLock energyLock = new ReentrantLock();
 

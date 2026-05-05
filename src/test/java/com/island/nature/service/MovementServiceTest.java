@@ -42,7 +42,7 @@ class MovementServiceTest {
                 .randomProvider(randomProvider)
                 .build();
 
-        Island island = new Island(context, 2, 1);
+        Island island = new Island(context, 2, 1, new com.island.engine.event.DefaultEventBus());
         Cell cell0 = island.getCell(0, 0);
         
         GenericAnimal wolf = new GenericAnimal(registry.getAnimalType(SpeciesKey.WOLF).orElseThrow());

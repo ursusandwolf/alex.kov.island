@@ -24,8 +24,8 @@ public class SimCityPlugin implements SimulationPlugin<SimEntity> {
     }
 
     @Override
-    public SimulationWorld<SimEntity, Void> createWorld() {
-        return new CityMap(width, height);
+    public SimulationWorld<SimEntity, Void> createWorld(com.island.engine.event.EventBus eventBus) {
+        return new CityMap(width, height, eventBus);
     }
 
     @Override

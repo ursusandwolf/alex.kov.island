@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.12.0] - 2026-05-05
+### Fixed
+- **Double Death Reporting**: Eliminated double accounting of deaths in `StatisticsService`. Services no longer publish `EntityDiedEvent` directly; it is now published exclusively by `Island.onEntityRemoved` via the `WorldListener` interface, ensuring a single source of truth.
+- **ECS Thread Safety**: Replaced `HashMap` with `ConcurrentHashMap` for organism components, preventing race conditions during parallel simulation steps.
+- **EventBus Robustness**: Added error isolation to `DefaultEventBus.publish()`. Exceptions in one subscriber no longer prevent other subscribers from receiving events.
+
+### Changed
+- **EventBus Injection**: Refactored `SimulationWorld` and `SimulationPlugin` to enforce `EventBus` immutability. The `EventBus` is now passed via constructors and `createWorld()` instead of a setter.
+- **CityMap API**: Cleaned up `CityMap` by using field-level Lombok annotations and making `EventBus` final.
+
 ## [1.11.0] - 2026-05-04
 ### Added
 - **Event-Driven Architecture (EDA)**:

@@ -16,7 +16,7 @@ public class SimCitySmokeTest {
     @Test
     void testCityGrowthAndEconomy() {
         // 1. Setup
-        CityMap map = new CityMap(5, 5);
+        CityMap map = new CityMap(5, 5, new com.island.engine.event.DefaultEventBus());
         map.initialize();
         map.setResDemand(50); // Ensure demand for growth
         

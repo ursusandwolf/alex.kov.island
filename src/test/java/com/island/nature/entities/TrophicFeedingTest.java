@@ -43,7 +43,7 @@ class TrophicFeedingTest {
                 .randomProvider(randomProvider)
                 .build();
 
-        island = new Island(context, 1, 1);
+        island = new Island(context, 1, 1, new DefaultEventBus());
         cell = island.getCell(0, 0);
         HuntingStrategy huntingStrategy = new DefaultHuntingStrategy(config, matrix);
         feedingService = new FeedingService(island, animalFactory, matrix, registry, huntingStrategy, Executors.newSingleThreadExecutor(), randomProvider, new DefaultEventBus());

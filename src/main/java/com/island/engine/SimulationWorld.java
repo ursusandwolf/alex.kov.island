@@ -67,9 +67,4 @@ public interface SimulationWorld<T extends Mortal, C> extends Tickable {
      * Gets the event bus associated with this world.
      */
     com.island.engine.event.EventBus getEventBus();
-
-    /**
-     * Sets the event bus for this world.
-     */
-    void setEventBus(com.island.engine.event.EventBus eventBus);
 }

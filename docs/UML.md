@@ -41,6 +41,8 @@ To ensure deterministic results and high performance, the engine uses fixed-poin
 - **Cell-Level Locking**: Services lock only the cells they are working on.
 - **Lock Ordering**: To prevent deadlocks during cross-cell movement, cells are always locked in (X, Y) order.
 - **Incremental Aggregation**: Metrics are collected during the parallel pass, eliminating global state contention.
+- **Thread-Safe ECS**: Organism components use `ConcurrentHashMap` for safe parallel access.
+- **Robust EventBus**: Subscriber exceptions are isolated to prevent cascading failures.
 
 ### 4. Boilerplate-Free Domain
 - Mandatory use of **Lombok** (`@Getter`, `@Setter`, `@Builder`) to keep domain logic clean.

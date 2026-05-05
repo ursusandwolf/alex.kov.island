@@ -45,12 +45,13 @@ public class Island implements NatureWorld, WorldListener<Organism> {
     private int tickCount = 0;
     @Setter private boolean redBookProtectionEnabled = true;
     private Season currentSeason = Season.SPRING;
-    @Setter private EventBus eventBus;
+    private final EventBus eventBus;
 
-    public Island(NatureDomainContext domainContext, int width, int height) {
+    public Island(NatureDomainContext domainContext, int width, int height, EventBus eventBus) {
         this.config = domainContext.getConfig();
         this.width = width;
         this.height = height;
+        this.eventBus = eventBus;
         this.registry = domainContext.getSpeciesRegistry();
         this.statisticsService = domainContext.getStatisticsService();
         this.protectionService = domainContext.getProtectionService();

@@ -8,8 +8,10 @@ package com.island.engine;
 public interface SimulationPlugin<T extends Mortal> {
     /**
      * Creates and initializes the simulation world.
+     *
+     * @param eventBus the event bus for decoupled communication.
      */
-    SimulationWorld<T, ?> createWorld();
+    SimulationWorld<T, ?> createWorld(com.island.engine.event.EventBus eventBus);
 
     /**
      * Registers recurring tasks (services) to the game loop.

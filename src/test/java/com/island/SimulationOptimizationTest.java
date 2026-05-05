@@ -53,7 +53,7 @@ public class SimulationOptimizationTest {
                 .randomProvider(randomProvider)
                 .build();
 
-        island = new Island(context, 1, 1);
+        island = new Island(context, 1, 1, new DefaultEventBus());
         feedingService = new FeedingService(island, animalFactory, matrix, registry, 
                 new DefaultHuntingStrategy(config, matrix), Executors.newSingleThreadExecutor(), randomProvider, new DefaultEventBus());
     }

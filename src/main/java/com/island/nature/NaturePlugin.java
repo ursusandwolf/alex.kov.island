@@ -66,8 +66,8 @@ public class NaturePlugin implements SimulationPlugin<Organism> {
     }
 
     @Override
-    public SimulationWorld<Organism, Configuration> createWorld() {
-        Island island = new Island(domainContext, config.getIslandWidth(), config.getIslandHeight());
+    public SimulationWorld<Organism, Configuration> createWorld(com.island.engine.event.EventBus eventBus) {
+        Island island = new Island(domainContext, config.getIslandWidth(), config.getIslandHeight(), eventBus);
         
         WorldInitializer initializer = new WorldInitializer();
         ExecutorService initExecutor = Executors.newSingleThreadExecutor();

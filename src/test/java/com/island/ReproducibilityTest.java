@@ -74,7 +74,7 @@ class ReproducibilityTest {
                 .randomProvider(fixedProvider)
                 .build();
 
-        Island island = new Island(context, 2, 2);
+        Island island = new Island(context, 2, 2, new DefaultEventBus());
         HuntingStrategy strategy = new DefaultHuntingStrategy(config, matrix);
         var executor = Executors.newSingleThreadExecutor();
 
