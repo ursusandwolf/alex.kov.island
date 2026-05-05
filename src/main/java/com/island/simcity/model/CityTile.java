@@ -19,8 +19,7 @@ public class CityTile implements SimulationNode<SimEntity> {
     private final int x;
     @Getter
     private final int y;
-    @Getter
-    private final SimulationWorld<SimEntity, ?> world;
+    private final SimulationWorld<SimEntity> world;
     private final List<SimEntity> entities = new ArrayList<>();
     @Getter
     private final Lock lock = new ReentrantLock();
@@ -42,7 +41,7 @@ public class CityTile implements SimulationNode<SimEntity> {
     }
 
     @Override
-    public SimulationWorld<SimEntity, ?> getWorld() {
+    public SimulationWorld<SimEntity> getWorld() {
         return world;
     }
 
@@ -80,7 +79,11 @@ public class CityTile implements SimulationNode<SimEntity> {
     public boolean addEntity(SimEntity entity) {
         lock.lock();
         try {
-            return entities.add(entity);
+            if (entities.add(entity)) {
+                world.onEntityAdded(entity);
+                return true;
+            }
+            return false;
         } finally {
             lock.unlock();
         }
@@ -90,7 +93,11 @@ public class CityTile implements SimulationNode<SimEntity> {
     public boolean removeEntity(SimEntity entity) {
         lock.lock();
         try {
-            return entities.remove(entity);
+            if (entities.remove(entity)) {
+                world.onEntityRemoved(entity);
+                return true;
+            }
+            return false;
         } finally {
             lock.unlock();
         }
@@ -102,6 +109,7 @@ public class CityTile implements SimulationNode<SimEntity> {
         try {
             entities.removeIf(e -> {
                 if (!e.isAlive()) {
+                    world.onEntityRemoved(e);
                     onEntityRemoved.accept(e);
                     return true;
                 }

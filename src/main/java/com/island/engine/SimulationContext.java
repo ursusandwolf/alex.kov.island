@@ -11,12 +11,12 @@ import lombok.Getter;
  */
 @Getter
 public class SimulationContext<T extends Mortal> {
-    private final SimulationWorld<T, ?> world;
+    private final SimulationWorld<T> world;
     private final GameLoop<T> gameLoop;
     private final RandomProvider random;
     private final EventBus eventBus;
 
-    public SimulationContext(SimulationWorld<T, ?> world, GameLoop<T> gameLoop, RandomProvider random, EventBus eventBus) {
+    public SimulationContext(SimulationWorld<T> world, GameLoop<T> gameLoop, RandomProvider random, EventBus eventBus) {
         this.world = world;
         this.gameLoop = gameLoop;
         this.random = random;

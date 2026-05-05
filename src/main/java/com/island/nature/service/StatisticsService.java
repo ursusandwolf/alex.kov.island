@@ -110,11 +110,11 @@ public class StatisticsService {
         return (biomass != null) ? (int) Math.max(0, biomass.sum() / config.getScale1M()) : 0;
     }
 
-    public double calculateGlobalSatiety(SimulationWorld<Organism, ?> world) {
+    public double calculateGlobalSatiety(SimulationWorld<Organism> world) {
         return latestMetrics.getGlobalSatiety();
     }
 
-    public int calculateHungryCount(SimulationWorld<Organism, ?> world) {
+    public int calculateHungryCount(SimulationWorld<Organism> world) {
         return latestMetrics.getHungryCount();
     }
 

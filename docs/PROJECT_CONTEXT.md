@@ -2,16 +2,21 @@
 
 ## Current State
 - The project is an Island Ecosystem Simulator.
-- Code Review v4 issues have been addressed (double reporting, thread-safety, EventBus robustness, GC efficiency).
-- Global and project-specific `GEMINI.md` files are configured.
+- Code Review v5 issues have been addressed (GameLoop refactoring, abstraction leaks, lifecycle fixes, event mechanism unification).
+- The engine is now decoupled from domain-specific stop conditions and configurations.
+- Parallel processing is handled by dedicated dispatcher and scheduler.
+- Global and project-specific `GEMINI.md` guidelines are being followed.
 
 ## Recent Changes
-- **GC Pressure Reduction**: Refactored `GameLoop` to use `CellProcessor` pooling and `CountDownLatch`, eliminating object churn (`Callable`, `Future`, lambdas) in the simulation hot path. Reused task collection structures across phases.
-- **Thread Safety**: Optimized component visibility by making core fields `volatile` in `HealthComponent` and `AgeComponent`, ensuring stability in parallel execution modes.
-- **AlertService Refactoring**: Eliminated magic strings in event handling, aligning reporting with `DeathCause` enum constants.
-- **Hierarchical EventBus**: Improved `DefaultEventBus` to support hierarchical event matching and unsubscription. Added comprehensive `EventBusTest`.
-- **ECS Performance**: Optimized `Organism` by replacing Map lookups with direct field references for "hot" components (`HealthComponent`, `AgeComponent`).
-- **Efficient Sampling**: Optimized `SamplingUtils` to use $O(1)$ indexed access for `RandomAccess` collections.
+- **GameLoop Decomposition**: Extracted `PhaseScheduler` and `ParallelDispatcher` from `GameLoop` to address the God Class issue.
+- **Abstraction Integrity**: Removed the configuration generic parameter from `SimulationWorld` and fixed abstraction leaks in `NatureLauncher`.
+- **Lifecycle Management**: Implemented proper `stop()` in `SimulationEngine` and added `shouldStop` and `onSimulationStopped` hooks to `SimulationPlugin`.
+- **Event Mechanism Unification**: Removed `WorldListener` interface in favor of direct world notification methods that publish to `EventBus`.
+- **Thread Safety**: Fixed potential data races in `CellProcessor` by marking fields as `volatile`.
+- **Robustness**: Refactored `DefaultEventBus` type resolution to be iterative and protected it from subscriber exceptions.
+- **Configurability**: Moved monitoring magic numbers to `Configuration`.
+- **Log Consistency**: Unified log messages in `NatureLauncher` to English.
 
 ## Pending Items
 - Continue simulation development or refactoring as requested.
+- Explicitly decide on ECS direction (currently in mixed state for performance).

@@ -10,12 +10,7 @@ import java.util.Optional;
  *
  * @param <T> The base type of entities in this world.
  */
-public interface SimulationWorld<T extends Mortal, C> extends Tickable {
-    /**
-     * Gets the configuration object for this world.
-     */
-    C getConfiguration();
-
+public interface SimulationWorld<T extends Mortal> extends Tickable {
     /**
      * Returns "work units" (e.g. chunks) of nodes for parallel processing.
      */
@@ -54,14 +49,14 @@ public interface SimulationWorld<T extends Mortal, C> extends Tickable {
     default void initialize() { }
 
     /**
-     * Adds a listener to the world.
+     * Notifies the world that an entity has been added to a node.
      */
-    void addListener(WorldListener<T> listener);
+    void onEntityAdded(T entity);
 
     /**
-     * Gets all registered listeners.
+     * Notifies the world that an entity has been removed from a node.
      */
-    List<WorldListener<T>> getListeners();
+    void onEntityRemoved(T entity);
 
     /**
      * Gets the event bus associated with this world.

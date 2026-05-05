@@ -2,7 +2,6 @@ package com.island.nature.model;
 
 import com.island.engine.SimulationNode;
 import com.island.engine.SimulationWorld;
-import com.island.engine.WorldListener;
 import com.island.engine.WorldSnapshot;
 import com.island.engine.event.EntityBornEvent;
 import com.island.engine.event.EntityDiedEvent;
@@ -32,7 +31,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter
-public class Island implements NatureWorld, WorldListener<Organism> {
+public class Island implements NatureWorld {
     private final Configuration config;
     private final int width;
     private final int height;
@@ -41,7 +40,6 @@ public class Island implements NatureWorld, WorldListener<Organism> {
     private final SpeciesRegistry registry;
     private final StatisticsService statisticsService;
     private final ProtectionService protectionService;
-    private final List<WorldListener<Organism>> listeners = new ArrayList<>();
     private int tickCount = 0;
     @Setter private boolean redBookProtectionEnabled = true;
     private Season currentSeason = Season.SPRING;
@@ -58,17 +56,10 @@ public class Island implements NatureWorld, WorldListener<Organism> {
         this.grid = new Cell[width][height];
         initializeGrid();
         partitionIntoChunks();
-        this.addListener(this);
     }
 
-    @Override
-    public void addListener(WorldListener<Organism> listener) {
-        this.listeners.add(listener);
-    }
-
-    @Override
-    public List<WorldListener<Organism>> getListeners() {
-        return this.listeners;
+    public void init() {
+        initNeighbors();
     }
 
     @Override
@@ -84,10 +75,6 @@ public class Island implements NatureWorld, WorldListener<Organism> {
             DeathCause cause = a.getLastDeathCause();
             eventBus.publish(new EntityDiedEvent(a, (cause != null) ? cause.name() : "REMOVED"));
         }
-    }
-
-    public void init() {
-        initNeighbors();
     }
 
     private void initNeighbors() {

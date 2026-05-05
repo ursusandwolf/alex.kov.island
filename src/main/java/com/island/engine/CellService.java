@@ -43,7 +43,6 @@ public interface CellService<T extends Mortal, N extends SimulationNode<T>> exte
      */
     @Override
     default void tick(int tickCount) {
-        // Fallback for non-optimized execution
-        beforeTick(tickCount);
+        throw new UnsupportedOperationException("CellService must be executed via GameLoop's optimized parallel path or provided with a world context for iteration.");
     }
 }

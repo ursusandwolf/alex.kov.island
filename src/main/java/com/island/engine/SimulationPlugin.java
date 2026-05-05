@@ -11,7 +11,7 @@ public interface SimulationPlugin<T extends Mortal> {
      *
      * @param eventBus the event bus for decoupled communication.
      */
-    SimulationWorld<T, ?> createWorld(com.island.engine.event.EventBus eventBus);
+    SimulationWorld<T> createWorld(com.island.engine.event.EventBus eventBus);
 
     /**
      * Registers recurring tasks (services) to the game loop.
@@ -20,7 +20,7 @@ public interface SimulationPlugin<T extends Mortal> {
      * @param world    the world created by this plugin.
      * @param eventBus the event bus for decoupled communication.
      */
-    void registerTasks(GameLoop<T> gameLoop, SimulationWorld<T, ?> world, com.island.engine.event.EventBus eventBus);
+    void registerTasks(GameLoop<T> gameLoop, SimulationWorld<T> world, com.island.engine.event.EventBus eventBus);
 
     /**
      * Optional hook called after the simulation context is created but before the loop starts.
@@ -31,4 +31,11 @@ public interface SimulationPlugin<T extends Mortal> {
      * Optional hook called after the simulation loop stops.
      */
     default void onSimulationStopped(SimulationContext<T> context) { }
+
+    /**
+     * Optional hook to check if the simulation should stop based on its current state.
+     */
+    default boolean shouldStop(SimulationContext<T> context) {
+        return false;
+    }
 }

@@ -4,12 +4,8 @@ import com.island.engine.GameLoop;
 import com.island.engine.SimulationEngine;
 import com.island.engine.SimulationContext;
 import com.island.nature.config.Configuration;
-import com.island.nature.entities.AnimalType;
 import com.island.nature.entities.Organism;
-import com.island.nature.entities.SpeciesKey;
-import com.island.nature.model.Island;
 import com.island.nature.view.ConsoleView;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -28,8 +24,8 @@ public class NatureLauncher {
         NaturePlugin plugin = new NaturePlugin(config, view);
         SimulationEngine<Organism> engine = new SimulationEngine<>();
         
-        log.info("Запуск симуляции острова...");
-        log.info("Лимит времени: 5 минут. Условие остановки: вымирание любого вида.");
+        log.info("Starting Island Simulation...");
+        log.info("Time limit: {} ms. Stop condition: extinction of any species.", config.getMaxSimulationDurationMs());
         
         SimulationContext<Organism> context = engine.start(plugin, config.getTickDurationMs(), 4);
 
@@ -37,26 +33,25 @@ public class NatureLauncher {
         ScheduledExecutorService monitorService = Executors.newSingleThreadScheduledExecutor();
 
         // Monitoring extinction and duration
-        monitor(context, latch, monitorService);
+        monitor(context, latch, monitorService, engine, plugin, config);
 
         try {
             latch.await();
         } catch (InterruptedException e) {
-            log.error("Симуляция прервана", e);
+            log.error("Simulation interrupted", e);
             Thread.currentThread().interrupt();
         } finally {
             monitorService.shutdown();
         }
         
-        log.info("Симуляция завершена.");
+        log.info("Simulation completed.");
     }
 
-    private static void monitor(SimulationContext<Organism> context, CountDownLatch latch, ScheduledExecutorService scheduler) {
+    private static void monitor(SimulationContext<Organism> context, CountDownLatch latch, ScheduledExecutorService scheduler, 
+                                SimulationEngine<Organism> engine, NaturePlugin plugin, Configuration config) {
         GameLoop<Organism> gameLoop = context.getGameLoop();
         long startTime = System.currentTimeMillis();
-        long maxDurationMs = 5 * 60 * 1000;
-        
-        Island island = (Island) context.getWorld();
+        long maxDurationMs = config.getMaxSimulationDurationMs();
 
         scheduler.scheduleAtFixedRate(() -> {
             if (!gameLoop.isRunning()) {
@@ -65,26 +60,17 @@ public class NatureLauncher {
             }
 
             if (System.currentTimeMillis() - startTime > maxDurationMs) {
-                log.warn("\n⏳ Время вышло (5 минут). Остановка симуляции...");
-                gameLoop.stop();
+                log.warn("\n⏳ Time limit reached ({} ms). Stopping simulation...", maxDurationMs);
+                engine.stop(context, plugin);
                 latch.countDown();
                 return;
             }
 
-            Map<SpeciesKey, Integer> counts = island.getSpeciesCounts();
-            for (SpeciesKey species : island.getRegistry().getAllAnimalKeys()) {
-                boolean isBiomass = island.getRegistry().getAnimalType(species)
-                        .map(AnimalType::isBiomass).orElse(false);
-                if (isBiomass) {
-                    continue;
-                }
-                if (counts.getOrDefault(species, 0) == 0) {
-                    log.error("\n💀 Вид '{}' вымер! Остановка симуляции для анализа баланса...", species.getCode());
-                    gameLoop.stop();
-                    latch.countDown();
-                    return;
-                }
+            if (plugin.shouldStop(context)) {
+                log.error("\n💀 Species extinction or critical condition detected! Stopping...");
+                engine.stop(context, plugin);
+                latch.countDown();
             }
-        }, 2, 2, TimeUnit.SECONDS);
+        }, config.getMonitoringIntervalMs(), config.getMonitoringIntervalMs(), TimeUnit.MILLISECONDS);
     }
 }

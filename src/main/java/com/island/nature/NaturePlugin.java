@@ -25,6 +25,9 @@ import com.island.util.DefaultRandomProvider;
 import com.island.util.InteractionMatrix;
 import com.island.util.InteractionProvider;
 import com.island.util.RandomProvider;
+import com.island.nature.entities.SpeciesKey;
+import com.island.nature.entities.AnimalType;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -69,7 +72,7 @@ public class NaturePlugin implements SimulationPlugin<Organism> {
     }
 
     @Override
-    public SimulationWorld<Organism, Configuration> createWorld(com.island.engine.event.EventBus eventBus) {
+    public SimulationWorld<Organism> createWorld(com.island.engine.event.EventBus eventBus) {
         Island island = new Island(domainContext, config.getIslandWidth(), config.getIslandHeight(), eventBus);
         
         WorldInitializer initializer = new WorldInitializer();
@@ -86,7 +89,7 @@ public class NaturePlugin implements SimulationPlugin<Organism> {
     }
 
     @Override
-    public void registerTasks(GameLoop<Organism> gameLoop, SimulationWorld<Organism, ?> world, com.island.engine.event.EventBus eventBus) {
+    public void registerTasks(GameLoop<Organism> gameLoop, SimulationWorld<Organism> world, com.island.engine.event.EventBus eventBus) {
         NatureWorld natureWorld = (NatureWorld) world;
         
         TaskRegistry taskRegistry = new TaskRegistry(gameLoop, natureWorld, domainContext.getInteractionProvider(), 
@@ -99,5 +102,25 @@ public class NaturePlugin implements SimulationPlugin<Organism> {
     public void onSimulationStarted(com.island.engine.SimulationContext<Organism> context) {
         domainContext.getStatisticsService().subscribe(context.getEventBus());
         domainContext.getAlertService().subscribe(context.getEventBus());
+    }
+
+    @Override
+    public boolean shouldStop(com.island.engine.SimulationContext<Organism> context) {
+        if (!(context.getWorld() instanceof Island island)) {
+            return false;
+        }
+
+        Map<SpeciesKey, Integer> counts = island.getSpeciesCounts();
+        for (SpeciesKey species : island.getRegistry().getAllAnimalKeys()) {
+            boolean isBiomass = island.getRegistry().getAnimalType(species)
+                    .map(AnimalType::isBiomass).orElse(false);
+            if (isBiomass) {
+                continue;
+            }
+            if (counts.getOrDefault(species, 0) == 0) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -17,7 +17,7 @@ class GameLoopOptimizationTest {
     @SuppressWarnings("unchecked")
     void shouldReuseCellProcessorsAndReduceAllocations() {
         GameLoop<Mortal> gameLoop = new GameLoop<>(100, 4);
-        SimulationWorld<Mortal, SimulationNode<Mortal>> world = mock(SimulationWorld.class);
+        SimulationWorld<Mortal> world = mock(SimulationWorld.class);
         gameLoop.setWorld(world);
 
         // Create mock nodes and work units
@@ -50,7 +50,7 @@ class GameLoopOptimizationTest {
     @SuppressWarnings("unchecked")
     void shouldHandleParallelErrorsGracefully() throws InterruptedException {
         GameLoop<Mortal> gameLoop = new GameLoop<>(100, 1);
-        SimulationWorld<Mortal, SimulationNode<Mortal>> world = mock(SimulationWorld.class);
+        SimulationWorld<Mortal> world = mock(SimulationWorld.class);
         gameLoop.setWorld(world);
 
         SimulationNode<Mortal> node = mock(SimulationNode.class);

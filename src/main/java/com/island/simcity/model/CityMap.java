@@ -2,7 +2,6 @@ package com.island.simcity.model;
 
 import com.island.engine.SimulationNode;
 import com.island.engine.SimulationWorld;
-import com.island.engine.WorldListener;
 import com.island.engine.WorldSnapshot;
 import com.island.engine.event.EventBus;
 import com.island.simcity.entities.SimEntity;
@@ -16,7 +15,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter
-public class CityMap implements SimulationWorld<SimEntity, Void> {
+public class CityMap implements SimulationWorld<SimEntity> {
     private final int width;
     private final int height;
     private final CityTile[][] grid;
@@ -34,7 +33,6 @@ public class CityMap implements SimulationWorld<SimEntity, Void> {
     private volatile int bankruptcyTicks = 0;
     private static final int BANKRUPTCY_THRESHOLD = 5;
     private final List<String> alerts = new CopyOnWriteArrayList<>();
-    private final List<com.island.engine.WorldListener<SimEntity>> listeners = new ArrayList<>();
     private volatile List<List<CityTile>> cachedChunks;
     private final EventBus eventBus;
 
@@ -56,18 +54,11 @@ public class CityMap implements SimulationWorld<SimEntity, Void> {
     }
 
     @Override
-    public Void getConfiguration() {
-        return null; // SimCity doesn't use Configuration yet
+    public void onEntityAdded(SimEntity entity) {
     }
 
     @Override
-    public void addListener(WorldListener<SimEntity> listener) {
-        this.listeners.add(listener);
-    }
-
-    @Override
-    public List<WorldListener<SimEntity>> getListeners() {
-        return this.listeners;
+    public void onEntityRemoved(SimEntity entity) {
     }
 
     public synchronized void addMoney(long amount) {

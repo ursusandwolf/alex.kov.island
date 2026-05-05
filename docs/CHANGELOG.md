@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.15.0] - 2026-05-05
+### Added
+- `PhaseScheduler` and `ParallelDispatcher` to handle simulation task orchestration.
+- `shouldStop` hook to `SimulationPlugin` for domain-specific termination logic.
+- `onSimulationStopped` lifecycle hook to `SimulationPlugin`.
+- `maxSimulationDurationMs` and `monitoringIntervalMs` to `Configuration`.
+
+### Changed
+- Refactored `GameLoop` to use `PhaseScheduler` and `ParallelDispatcher`, eliminating God Class code smell.
+- Simplified `SimulationWorld` interface by removing unused generic configuration parameter and explicit listener management.
+- Replaced `WorldListener` mechanism with direct world notification methods (`onEntityAdded`, `onEntityRemoved`).
+- Unified `NatureLauncher` logs to English and removed abstraction leaks.
+- Improved `DefaultEventBus` type resolution using an iterative approach.
+
+### Fixed
+- Potential resource leak by calling `onSimulationStopped` in `SimulationEngine.stop()`.
+- Data race in `CellProcessor` by marking shared fields as `volatile`.
+- Silently failing fallback in `CellService.tick()`.
+
 ## [1.14.0] - 2026-05-05
 ### Fixed
 - **Thread Safety**: Made `HealthComponent` and `AgeComponent` fields `volatile` to ensure visibility across threads during parallel simulation ticks.

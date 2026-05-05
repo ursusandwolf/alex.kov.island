@@ -17,7 +17,7 @@ public class GridUtils {
         return x >= 0 && x < width && y >= 0 && y < height;
     }
 
-    public static <T extends Mortal> List<SimulationNode<T>> getNeighbors(SimulationWorld<T, ?> world, SimulationNode<T> node, int width, int height) {
+    public static <T extends Mortal> List<SimulationNode<T>> getNeighbors(SimulationWorld<T> world, SimulationNode<T> node, int width, int height) {
         List<SimulationNode<T>> neighbors = new ArrayList<>();
         for (int dx = -1; dx <= 1; dx++) {
             for (int dy = -1; dy <= 1; dy++) {

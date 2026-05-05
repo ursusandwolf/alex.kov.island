@@ -1,19 +1,23 @@
-# Island Simulator Architecture (v1.4)
+# Island Simulator Architecture (v1.5)
 
 ## Class Diagram Concepts
 
 ### Engine Layer
-- `SimulationWorld` (Island): Central hub. Uses **Dynamic Partitioning** to calculate optimal `chunkSize` based on core count and grid density.
-- `SimulationNode` (Cell): Spatial unit. Uses `ReentrantReadWriteLock` for fine-grained thread safety.
-- `GameLoop`: Orchestrates grouped `CellService` execution across world chunks.
-- `CellService`: Interface for business logic (Feeding, Movement, etc.) optimized for parallel grouping.
+- `SimulationWorld` (Island): Central hub. Manages spatial entities and notifies about lifecycle events.
+- `SimulationNode` (Cell): Spatial unit. Uses fine-grained thread safety.
+- `GameLoop`: Orchestrates the simulation lifecycle. Delegates scheduling to `PhaseScheduler`.
+- `PhaseScheduler`: Groups and sorts tasks by `Phase` and priority. Uses `ParallelDispatcher`.
+- `ParallelDispatcher`: Manages `CellProcessor` pool for high-performance parallel execution.
+- `CellService`: Interface for parallel business logic (Feeding, Movement, etc.).
 - `SimulationMetrics`: Thread-safe builder for incremental aggregation of population and energy stats.
-- `SimulationConstants`: Pure constant registry for `SCALE_1M` and `SCALE_10K` arithmetic.
-...
+
+### Plugin System
+- `SimulationPlugin`: Defines domain-specific world creation, task registration, and stop conditions.
+- `SimulationEngine`: Orchestrates the assembly and lifecycle of the simulation.
+
 ### Domain Layer (Lombok Powered)
 - `Organism`: Base for all life. Standardized on `long` energy (fixed-point).
-- `Animal` (Herbivore/Predator): LOD 0 entities with individual logic and hibernation support.
-- **Special Abilities**: `Fox` (High Agility -60% hunt cost), `Bear` (Hibernation), `Wolf` (Pack Hunting).
+- `Animal` (Herbivore/Predator): LOD 0 entities with individual logic and components.
 - `SwarmOrganism`: LOD 1 entities (Plants, Butterflies) using mass-based aggregation.
 - `EntityContainer`: O(1) management using indexed buckets and `LinkedHashSet`.
 
@@ -21,28 +25,26 @@
 - `MovementService`: Coordinate-ordered cell transitions.
 - `FeedingService`: Optimized hunting/grazing with pre-calculated interaction matrices.
 - `ReproductionService`: Population growth with LOD scaling.
-- `LifecycleService`: Aging, metabolism, and seasonal hibernation mechanics.
+- `LifecycleService`: Aging and metabolism.
 - `CleanupService`: O(1) removal and pool-based recycling of dead entities.
-- `StatisticsService`: Zero-scan reporting using pre-aggregated metrics.
+- `StatisticsService`: Zero-scan reporting using pre-aggregated metrics via `EventBus`.
 
 ## Core Principles
 
 ### 1. Integer-Based Arithmetic
-To ensure deterministic results and high performance, the engine uses fixed-point arithmetic:
+Deterministic results using fixed-point arithmetic:
 - `SCALE_1M` (1,000,000) for mass, energy, and consumption.
-- `SCALE_10K` (basis points) for growth rates, hunting probabilities, and mutation chances.
+- `SCALE_10K` (basis points) for growth rates, hunting probabilities, etc.
 
 ### 2. Level of Detail (LOD)
 - **LOD 0**: Individual processing for complex animals.
-- **LOD 1**: Statistical sampling and swarm aggregation for high-density species (plants, insects).
+- **LOD 1**: Swarm aggregation for high-density species.
 
 ### 3. Concurrency Model
-- **Grouped Parallelism**: Multiple `CellService` tasks are processed per cell in a single parallel pass, minimizing fork-join overhead.
-- **Cell-Level Locking**: Services lock only the cells they are working on.
-- **Lock Ordering**: To prevent deadlocks during cross-cell movement, cells are always locked in (X, Y) order.
-- **Incremental Aggregation**: Metrics are collected during the parallel pass, eliminating global state contention.
-- **Thread-Safe ECS**: Organism components use `ConcurrentHashMap` for safe parallel access.
-- **Robust EventBus**: Subscriber exceptions are isolated to prevent cascading failures.
+- **Grouped Parallelism**: Multiple `CellService` tasks are processed per cell in a single parallel pass.
+- **Lock Ordering**: To prevent deadlocks, cells are always locked in (X, Y) order.
+- **Thread-Safe Components**: Organism components use `volatile` fields and `ConcurrentHashMap`.
+- **Robust EventBus**: Iterative type resolution and subscriber exception isolation.
 
 ## 4. Visual Architecture (Pseudo-UML)
 
@@ -51,7 +53,8 @@ To ensure deterministic results and high performance, the engine uses fixed-poin
 |   SimulationEngine    |          |   SimulationPlugin<T>   |
 +-----------------------+          +-------------------------+
 | + build()             |          | + createWorld(Bus)      |
-| - eventBus: EventBus  |<>--------| + registerTasks(...)    |
+| + stop()              |<>--------| + registerTasks(...)    |
+| - eventBus: EventBus  |          | + shouldStop()          |
 +-----------+-----------+          +------------+------------+
             |                                   |
             |            (Builds)               |
@@ -59,20 +62,28 @@ To ensure deterministic results and high performance, the engine uses fixed-poin
             |
             v
 +-----------------------+          +-------------------------+
-|   SimulationWorld<T>  |          |         EventBus        |
+|     GameLoop<T>       |          |    PhaseScheduler<T>    |
 +-----------------------+          +-------------------------+
-| - eventBus: EventBus  |<>------->| + publish(Object)       |
-| + getEventBus()       |          | + subscribe(Class, Cons)|
+| + runTick()           |--------->| + execute(...)          |
+| + start() / stop()    |          |          |              |
++-----------+-----------+          +----------+--------------+
+            |                                 |
+            |                                 v
 +-----------+-----------+          +-------------------------+
-            ^
-            |
-    +-------+-------+
-    |               |
-+---+----+      +---+----+
-| Island |      | CityMap|
+|   SimulationWorld<T>  |          |  ParallelDispatcher<T>  |
++-----------------------+          +-------------------------+
+| - eventBus: EventBus  |<---------| + dispatch(...)         |
+| + onEntityAdded(T)    |          |          |              |
+| + onEntityRemoved(T)  |          +----------+--------------+
++-----------+-----------+                     |
+            ^                                 v
+            |                      +-------------------------+
+    +-------+-------+              |     CellService<T,N>    |
+    |               |              +-------------------------+
++---+----+      +---+----+         | + processCell(node, t)  |
+| Island |      | CityMap|         +-------------------------+
 +--------+      +--------+
 ```
 
 ### 5. Boilerplate-Free Domain
 - Mandatory use of **Lombok** (`@Getter`, `@Setter`, `@Builder`) to keep domain logic clean.
-- Removal of redundant Javadocs and FQNs; architectural "know-how" is deferred to `README.md`.

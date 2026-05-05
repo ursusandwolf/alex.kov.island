@@ -51,13 +51,23 @@ public class DefaultEventBus implements EventBus {
 
     private Set<Class<?>> getTypeHierarchy(Class<?> type) {
         Set<Class<?>> hierarchy = new HashSet<>();
-        Class<?> current = type;
-        while (current != null) {
-            hierarchy.add(current);
-            for (Class<?> iface : current.getInterfaces()) {
-                hierarchy.addAll(getTypeHierarchy(iface));
+        java.util.Queue<Class<?>> queue = new java.util.LinkedList<>();
+        queue.add(type);
+        
+        while (!queue.isEmpty()) {
+            Class<?> current = queue.poll();
+            if (current == null || !hierarchy.add(current)) {
+                continue;
             }
-            current = current.getSuperclass();
+            
+            Class<?> superclass = current.getSuperclass();
+            if (superclass != null) {
+                queue.add(superclass);
+            }
+            
+            for (Class<?> iface : current.getInterfaces()) {
+                queue.add(iface);
+            }
         }
         return hierarchy;
     }

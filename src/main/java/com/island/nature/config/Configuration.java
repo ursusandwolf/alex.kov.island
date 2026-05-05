@@ -76,10 +76,14 @@ public class Configuration {
     private int plantGrowthRateBP = 8000;
     private int biomassMoveChunkBP = 2500;
 
-    // Specialized species rates
+    // specialized species rates
     private int caterpillarMetabolismRateBP = 500;
     private int caterpillarFeedEfficiencyBP = 10000;
     private int butterflyReproductionRateBP = 1000;
+
+    // Simulation monitoring
+    private long maxSimulationDurationMs = 5 * 60 * 1000;
+    private int monitoringIntervalMs = 2000;
 
     // Cold-blooded intervals
     private int coldBloodedMoveInterval = 2;
