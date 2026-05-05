@@ -6,26 +6,26 @@
     - [x] Refactor `StatisticsService` to subscribe to events instead of direct monitoring.
     - [x] Refactor `FeedingService` to publish `EntityDiedEvent`.
     - [x] Refactor `LifecycleService` to publish `EntityDiedEvent`.
-    - [ ] Add `LogService` or `AlertService` that reacts to specific events.
+    - [x] Add `LogService` or `AlertService` that reacts to specific events.
 - [x] **Vector 2: ECS (Entity-Component-System) Evolution**
     - [x] Define `Component` interface and base implementation.
     - [x] Refactor `Organism` to use a hybrid component-based approach.
-    - [ ] **Technical Debt: Performance Optimization**
-        - [ ] Replace `Map<Class, Component>` with indexed array or fixed fields for hot components (Health, Age).
-        - [ ] Eliminate Map lookup overhead in hot simulation cycles.
+    - [x] **Technical Debt: Performance Optimization**
+        - [x] Replace `Map<Class, Component>` with indexed array or fixed fields for hot components (Health, Age).
+        - [x] Eliminate Map lookup overhead in hot simulation cycles.
     - [ ] Migrate `MovementService` to operate on `PositionComponent`.
     - [ ] Decouple `SimulationWorld` from specific entity classes.
 
 ## 🛠 Immediate Technical Debt & Bug Fixes
 - [x] **Bug: Inconsistent Death Reporting**
     - [x] Unified `STARVATION` + `HUNGER` into a single `HUNGER` death cause.
-- [ ] **Performance: GameLoop Allocations**
-    - [ ] Reuse phase-based collection structures in `GameLoop.runTick()` to reduce GC pressure.
-- [ ] **Engine: EventBus Improvements**
-    - [ ] Implement hierarchical event matching (subscribe to superclasses).
-    - [ ] Add `unsubscribe` mechanism for dynamic component lifecycle.
-- [ ] **Performance: Sampling Strategy**
-    - [ ] Improve `SamplingUtils` to avoid $O(N)$ skip on large `LinkedHashSet` collections.
+- [x] **Performance: GameLoop Allocations**
+    - [x] Reuse phase-based collection structures in `GameLoop.runTick()` to reduce GC pressure.
+- [x] **Engine: EventBus Improvements**
+    - [x] Implement hierarchical event matching (subscribe to superclasses).
+    - [x] Add `unsubscribe` mechanism for dynamic component lifecycle.
+- [x] **Performance: Sampling Strategy**
+    - [x] Improve `SamplingUtils` to avoid $O(N)$ skip on large `LinkedHashSet` collections.
 
 ## 📈 Phase 2: Optimization & Scalability
 - [ ] **Vector 3: Dynamic Load Balancing**

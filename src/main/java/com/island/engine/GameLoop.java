@@ -35,11 +35,18 @@ public class GameLoop<T extends Mortal> {
     private SimulationWorld<T, ?> world;
     private Thread loopThread;
 
+    // Fixed structure for phases to reduce allocations
+    private final Map<Phase, List<ScheduledTask>> phasedTasks = new EnumMap<>(Phase.class);
+
     public GameLoop(long tickDurationMs, int threadCount) {
         this.tickDurationMs = tickDurationMs;
         this.taskExecutor = (threadCount > 0)
                 ? Executors.newFixedThreadPool(threadCount)
                 : Executors.newVirtualThreadPerTaskExecutor();
+        
+        for (Phase phase : Phase.values()) {
+            phasedTasks.put(phase, new ArrayList<>());
+        }
     }
 
     public void setWorld(SimulationWorld<T, ?> world) {
@@ -128,10 +135,9 @@ public class GameLoop<T extends Mortal> {
             }
         }
 
-        // Reuse a fixed structure for phases to reduce allocations
-        Map<Phase, List<ScheduledTask>> phasedTasks = new EnumMap<>(Phase.class);
-        for (Phase phase : Phase.values()) {
-            phasedTasks.put(phase, new ArrayList<>());
+        // Reuse the fixed structure for phases to reduce allocations
+        for (List<ScheduledTask> list : phasedTasks.values()) {
+            list.clear();
         }
 
         for (ScheduledTask task : recurringTasks) {

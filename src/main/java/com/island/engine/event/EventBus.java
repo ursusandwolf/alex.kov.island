@@ -19,4 +19,12 @@ public interface EventBus {
      * @param <E> The event type.
      */
     <E> void subscribe(Class<E> eventType, Consumer<E> subscriber);
+
+    /**
+     * Unregisters a subscriber for a specific event type.
+     * @param eventType The class of the event.
+     * @param subscriber The subscriber to remove.
+     * @param <E> The event type.
+     */
+    <E> void unsubscribe(Class<E> eventType, Consumer<E> subscriber);
 }

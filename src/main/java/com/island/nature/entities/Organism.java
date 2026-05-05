@@ -17,6 +17,11 @@ import lombok.Setter;
 public abstract class Organism implements Poolable, Mortal {
     protected final Configuration config;
     private final Map<Class<? extends Component>, Component> components = new ConcurrentHashMap<>();
+    
+    // Hot components optimization: direct fields to avoid Map lookup overhead
+    private HealthComponent healthComponent;
+    private AgeComponent ageComponent;
+    
     @Setter private DeathCause lastDeathCause;
     private final ReentrantLock energyLock = new ReentrantLock();
 
@@ -32,46 +37,53 @@ public abstract class Organism implements Poolable, Mortal {
     }
 
     public <C extends Component> void addComponent(C component) {
+        if (component instanceof HealthComponent hc) {
+            this.healthComponent = hc;
+        } else if (component instanceof AgeComponent ac) {
+            this.ageComponent = ac;
+        }
         components.put(component.getClass(), component);
     }
 
+    @SuppressWarnings("unchecked")
     public <C extends Component> C getComponent(Class<C> type) {
+        if (type == HealthComponent.class) {
+            return (C) healthComponent;
+        }
+        if (type == AgeComponent.class) {
+            return (C) ageComponent;
+        }
         return type.cast(components.get(type));
     }
 
     @Override
     public void reset() {
-        HealthComponent health = getComponent(HealthComponent.class);
-        AgeComponent ageComp = getComponent(AgeComponent.class);
-        if (health != null) {
-            health.setAlive(false);
-            health.setCurrentEnergy(0);
-            health.setMaxEnergy(0);
+        if (healthComponent != null) {
+            healthComponent.setAlive(false);
+            healthComponent.setCurrentEnergy(0);
+            healthComponent.setMaxEnergy(0);
         }
-        if (ageComp != null) {
-            ageComp.setAge(0);
-            ageComp.setMaxLifespan(0);
+        if (ageComponent != null) {
+            ageComponent.setAge(0);
+            ageComponent.setMaxLifespan(0);
         }
     }
 
     public void init(long maxEnergy, int maxLifespan, int initialEnergyPercent) {
-        HealthComponent health = getComponent(HealthComponent.class);
-        AgeComponent ageComp = getComponent(AgeComponent.class);
-        if (health != null) {
-            health.setMaxEnergy(maxEnergy);
-            health.setCurrentEnergy((maxEnergy * initialEnergyPercent) / 100);
-            health.setAlive(true);
+        if (healthComponent != null) {
+            healthComponent.setMaxEnergy(maxEnergy);
+            healthComponent.setCurrentEnergy((maxEnergy * initialEnergyPercent) / 100);
+            healthComponent.setAlive(true);
         }
-        if (ageComp != null) {
-            ageComp.setAge(0);
-            ageComp.setMaxLifespan(maxLifespan);
+        if (ageComponent != null) {
+            ageComponent.setAge(0);
+            ageComponent.setMaxLifespan(maxLifespan);
         }
         this.lastDeathCause = null;
     }
 
     public boolean isAlive() {
-        HealthComponent health = getComponent(HealthComponent.class);
-        return health != null && health.isAlive();
+        return healthComponent != null && healthComponent.isAlive();
     }
 
     public void die() {
@@ -79,9 +91,8 @@ public abstract class Organism implements Poolable, Mortal {
     }
 
     public void die(DeathCause cause) {
-        HealthComponent health = getComponent(HealthComponent.class);
-        if (health != null) {
-            health.setAlive(false);
+        if (healthComponent != null) {
+            healthComponent.setAlive(false);
         }
         this.lastDeathCause = cause;
     }
@@ -89,8 +100,7 @@ public abstract class Organism implements Poolable, Mortal {
     public abstract String getTypeName();
 
     public int getEnergyPercentage() {
-        HealthComponent health = getComponent(HealthComponent.class);
-        return (health != null) ? health.getEnergyPercentage() : 0;
+        return (healthComponent != null) ? healthComponent.getEnergyPercentage() : 0;
     }
 
     public boolean canPerformAction() {
@@ -100,10 +110,9 @@ public abstract class Organism implements Poolable, Mortal {
     public boolean tryConsumeEnergy(long amount) {
         energyLock.lock();
         try {
-            HealthComponent health = getComponent(HealthComponent.class);
-            if (health != null && health.isAlive()) {
-                health.setCurrentEnergy(Math.max(0, health.getCurrentEnergy() - amount));
-                if (health.getCurrentEnergy() == 0) {
+            if (healthComponent != null && healthComponent.isAlive()) {
+                healthComponent.setCurrentEnergy(Math.max(0, healthComponent.getCurrentEnergy() - amount));
+                if (healthComponent.getCurrentEnergy() == 0) {
                     die(DeathCause.HUNGER);
                 }
             }
@@ -120,11 +129,10 @@ public abstract class Organism implements Poolable, Mortal {
     public void setEnergy(long energy) {
         energyLock.lock();
         try {
-            HealthComponent health = getComponent(HealthComponent.class);
-            if (health != null) {
-                health.setCurrentEnergy(Math.min(energy, health.getMaxEnergy()));
-                if (health.getCurrentEnergy() == 0 && health.isAlive()) {
-                    health.setAlive(false);
+            if (healthComponent != null) {
+                healthComponent.setCurrentEnergy(Math.min(energy, healthComponent.getMaxEnergy()));
+                if (healthComponent.getCurrentEnergy() == 0 && healthComponent.isAlive()) {
+                    healthComponent.setAlive(false);
                 }
             }
         } finally {
@@ -135,9 +143,8 @@ public abstract class Organism implements Poolable, Mortal {
     public void addEnergy(long amount) {
         energyLock.lock();
         try {
-            HealthComponent health = getComponent(HealthComponent.class);
-            if (health != null) {
-                health.setCurrentEnergy(Math.min(health.getMaxEnergy(), health.getCurrentEnergy() + amount));
+            if (healthComponent != null) {
+                healthComponent.setCurrentEnergy(Math.min(healthComponent.getMaxEnergy(), healthComponent.getCurrentEnergy() + amount));
             }
         } finally {
             energyLock.unlock();
@@ -145,10 +152,9 @@ public abstract class Organism implements Poolable, Mortal {
     }
 
     public boolean checkAgeDeath() {
-        AgeComponent ageComp = getComponent(AgeComponent.class);
-        if (ageComp != null) {
-            ageComp.setAge(ageComp.getAge() + 1);
-            if (ageComp.getMaxLifespan() > 0 && ageComp.getAge() >= ageComp.getMaxLifespan() && isAlive()) {
+        if (ageComponent != null) {
+            ageComponent.setAge(ageComponent.getAge() + 1);
+            if (ageComponent.getMaxLifespan() > 0 && ageComponent.getAge() >= ageComponent.getMaxLifespan() && isAlive()) {
                 die(DeathCause.AGE);
                 return true;
             }
@@ -165,12 +171,11 @@ public abstract class Organism implements Poolable, Mortal {
     }
 
     public long getDynamicMetabolismRate() {
-        HealthComponent health = getComponent(HealthComponent.class);
-        if (health == null) {
+        if (healthComponent == null) {
             return 0;
         }
         SizeClass sizeClass = SizeClass.fromWeight((double) getWeight() / config.getScale1M());
-        long baseMetabolism = (health.getMaxEnergy() * config.getBaseMetabolismBP()) / config.getScale10K();
+        long baseMetabolism = (healthComponent.getMaxEnergy() * config.getBaseMetabolismBP()) / config.getScale10K();
         return (baseMetabolism * sizeClass.getMetabolismModifierBP() / config.getScale10K())
                 * getSpecialMetabolismModifierBP() / config.getScale10K();
     }
@@ -186,22 +191,18 @@ public abstract class Organism implements Poolable, Mortal {
     public abstract SpeciesKey getSpeciesKey();
 
     public long getCurrentEnergy() {
-        HealthComponent health = getComponent(HealthComponent.class);
-        return (health != null) ? health.getCurrentEnergy() : 0;
+        return (healthComponent != null) ? healthComponent.getCurrentEnergy() : 0;
     }
 
     public long getMaxEnergy() {
-        HealthComponent health = getComponent(HealthComponent.class);
-        return (health != null) ? health.getMaxEnergy() : 0;
+        return (healthComponent != null) ? healthComponent.getMaxEnergy() : 0;
     }
 
     public int getAge() {
-        AgeComponent ageComp = getComponent(AgeComponent.class);
-        return (ageComp != null) ? ageComp.getAge() : 0;
+        return (ageComponent != null) ? ageComponent.getAge() : 0;
     }
 
     public int getMaxLifespan() {
-        AgeComponent ageComp = getComponent(AgeComponent.class);
-        return (ageComp != null) ? ageComp.getMaxLifespan() : 0;
+        return (ageComponent != null) ? ageComponent.getMaxLifespan() : 0;
     }
 }

@@ -15,6 +15,7 @@ import com.island.nature.entities.WorldInitializer;
 import com.island.nature.model.Island;
 import com.island.nature.model.DefaultBiomassManager;
 import com.island.nature.entities.BiomassManager;
+import com.island.nature.service.AlertService;
 import com.island.nature.service.DefaultProtectionService;
 import com.island.nature.service.ProtectionService;
 import com.island.nature.service.StatisticsService;
@@ -46,6 +47,7 @@ public class NaturePlugin implements SimulationPlugin<Organism> {
         SpeciesRegistry speciesRegistry = new SpeciesLoader(config).load();
         InteractionProvider interactionMatrix = InteractionMatrix.buildFrom(speciesRegistry);
         StatisticsService statisticsService = new StatisticsService(config);
+        AlertService alertService = new AlertService();
         RandomProvider randomProvider = new DefaultRandomProvider();
         AnimalFactory animalFactory = new AnimalFactory(speciesRegistry, randomProvider);
         ProtectionService protectionService = new DefaultProtectionService(config, speciesRegistry, 
@@ -58,6 +60,7 @@ public class NaturePlugin implements SimulationPlugin<Organism> {
                 .speciesRegistry(speciesRegistry)
                 .interactionProvider(interactionMatrix)
                 .statisticsService(statisticsService)
+                .alertService(alertService)
                 .animalFactory(animalFactory)
                 .protectionService(protectionService)
                 .biomassManager(biomassManager)
@@ -95,5 +98,6 @@ public class NaturePlugin implements SimulationPlugin<Organism> {
     @Override
     public void onSimulationStarted(com.island.engine.SimulationContext<Organism> context) {
         domainContext.getStatisticsService().subscribe(context.getEventBus());
+        domainContext.getAlertService().subscribe(context.getEventBus());
     }
 }

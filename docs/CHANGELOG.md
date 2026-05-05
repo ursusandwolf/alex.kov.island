@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.13.0] - 2026-05-05
+### Added
+- **Enhanced EventBus**:
+    - Implemented hierarchical event matching in `DefaultEventBus`, allowing subscribers to listen for superclasses or interfaces of published events.
+    - Added `unsubscribe` mechanism to the `EventBus` interface for dynamic lifecycle management.
+- **AlertService**: Introduced a new service that monitors simulation events and logs significant occurrences (e.g., starvation deaths).
+- **New Tests**: Added `EventBusTest` to verify hierarchical matching and unsubscription.
+
+### Optimized
+- **Organism Component Access**: Replaced `ConcurrentHashMap` lookups with direct field references for "hot" components (`HealthComponent`, `AgeComponent`), significantly reducing overhead in the main simulation loop.
+- **GameLoop Allocations**: Refactored `GameLoop` to reuse phase-based collection structures (`EnumMap` and `ArrayLists`), eliminating thousands of object allocations per tick.
+- **Sampling Strategy**: Optimized `SamplingUtils.forEachSampled` to use $O(1)$ indexed access for `RandomAccess` lists, avoiding the $O(N)$ skip overhead of iterators.
+
+### Fixed
+- Fixed a syntax error in `Organism.java` that caused build failures.
+- Unified hunger-related death causes for more consistent reporting.
+
 ## [1.12.0] - 2026-05-05
 ### Fixed
 - **Double Death Reporting**: Eliminated double accounting of deaths in `StatisticsService`. Services no longer publish `EntityDiedEvent` directly; it is now published exclusively by `Island.onEntityRemoved` via the `WorldListener` interface, ensuring a single source of truth.

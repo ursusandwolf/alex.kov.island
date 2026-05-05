@@ -45,6 +45,15 @@ public class SamplingUtils {
         int step = (size > limit) ? (size / limit + 1) : 1;
         int startOffset = (size > limit) ? random.nextInt(step) : 0;
 
+        if (collection instanceof List<T> list && list instanceof java.util.RandomAccess) {
+            int processedCount = 0;
+            for (int i = startOffset; i < size && processedCount < limit; i += step) {
+                action.accept(list.get(i));
+                processedCount++;
+            }
+            return;
+        }
+
         Iterator<T> it = collection.iterator();
         int currentIndex = 0;
         int processedCount = 0;

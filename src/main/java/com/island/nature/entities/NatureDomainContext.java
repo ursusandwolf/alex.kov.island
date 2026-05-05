@@ -1,6 +1,7 @@
 package com.island.nature.entities;
 
 import com.island.nature.config.Configuration;
+import com.island.nature.service.AlertService;
 import com.island.nature.service.ProtectionService;
 import com.island.nature.service.StatisticsService;
 import com.island.util.InteractionProvider;
@@ -20,6 +21,7 @@ public class NatureDomainContext {
     private final InteractionProvider interactionProvider;
     private final AnimalFactory animalFactory;
     private final StatisticsService statisticsService;
+    private final AlertService alertService;
     private final ProtectionService protectionService;
     private final BiomassManager biomassManager;
     private final RandomProvider randomProvider;
