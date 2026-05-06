@@ -56,7 +56,7 @@ class CellIterationTest {
     @DisplayName("forEachAnimal should iterate over all animals")
     void testForEachAnimal() {
         for (int i = 0; i < 10; i++) {
-            cell.addAnimal(factory.createAnimal(SpeciesKey.WOLF).orElseThrow());
+            cell.addAnimal(factory.createAnimal(new SpeciesKey("wolf", true)).orElseThrow());
         }
 
         AtomicInteger count = new AtomicInteger();
@@ -68,7 +68,7 @@ class CellIterationTest {
     @DisplayName("forEachAnimalSampled should respect limit and be deterministic for 0 random")
     void testForEachAnimalSampled() {
         for (int i = 0; i < 100; i++) {
-            cell.addAnimal(factory.createAnimal(SpeciesKey.MOUSE).orElseThrow());
+            cell.addAnimal(factory.createAnimal(new SpeciesKey("mouse", false)).orElseThrow());
         }
 
         AtomicInteger count = new AtomicInteger();
@@ -87,8 +87,8 @@ class CellIterationTest {
     @DisplayName("forEachHerbivoreSampled should only iterate over herbivores")
     void testForEachHerbivoreSampled() {
         for (int i = 0; i < 5; i++) {
-            cell.addAnimal(factory.createAnimal(SpeciesKey.WOLF).orElseThrow());
-            cell.addAnimal(factory.createAnimal(SpeciesKey.RABBIT).orElseThrow());
+            cell.addAnimal(factory.createAnimal(new SpeciesKey("wolf", true)).orElseThrow());
+            cell.addAnimal(factory.createAnimal(new SpeciesKey("rabbit", false)).orElseThrow());
         }
 
         AtomicInteger count = new AtomicInteger();
@@ -104,8 +104,8 @@ class CellIterationTest {
     @DisplayName("forEachPredator should only iterate over predators")
     void testForEachPredator() {
         for (int i = 0; i < 5; i++) {
-            cell.addAnimal(factory.createAnimal(SpeciesKey.WOLF).orElseThrow());
-            cell.addAnimal(factory.createAnimal(SpeciesKey.RABBIT).orElseThrow());
+            cell.addAnimal(factory.createAnimal(new SpeciesKey("wolf", true)).orElseThrow());
+            cell.addAnimal(factory.createAnimal(new SpeciesKey("rabbit", false)).orElseThrow());
         }
 
         AtomicInteger count = new AtomicInteger();

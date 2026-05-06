@@ -23,8 +23,8 @@ public class SurvivalCalibrationTest {
     private static final int ITERATIONS = 5;
     
     private static final List<SpeciesKey> TARGET_SPECIES = List.of(
-            SpeciesKey.WOLF, SpeciesKey.BEAR, 
-            SpeciesKey.HORSE, SpeciesKey.DEER, SpeciesKey.BUFFALO
+            new SpeciesKey("wolf", true), new SpeciesKey("bear", true), 
+            new SpeciesKey("horse", false), new SpeciesKey("deer", false), new SpeciesKey("buffalo", false)
     );
 
     @Test

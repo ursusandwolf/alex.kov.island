@@ -23,8 +23,9 @@ public final class AnimalFactory {
     public AnimalFactory(SpeciesRegistry speciesRegistry, RandomProvider random) {
         this.speciesRegistry = speciesRegistry;
         this.random = random;
-        creators.put(SpeciesKey.BEAR, Bear::new);
-        creators.put(SpeciesKey.CHAMELEON, type -> new Chameleon(type, random));
+        
+        speciesRegistry.getKey("bear").ifPresent(k -> creators.put(k, Bear::new));
+        speciesRegistry.getKey("chameleon").ifPresent(k -> creators.put(k, type -> new Chameleon(type, random)));
         
         for (SpeciesKey key : speciesRegistry.getAllAnimalKeys()) {
             pools.put(key, new ObjectPool<>(() -> createNewAnimal(key)));

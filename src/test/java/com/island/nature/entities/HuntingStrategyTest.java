@@ -25,19 +25,19 @@ class HuntingStrategyTest {
         strategy = new DefaultHuntingStrategy(config, matrix);
         
         wolf = mock(Animal.class);
-        when(wolf.getSpeciesKey()).thenReturn(SpeciesKey.WOLF);
+        when(wolf.getSpeciesKey()).thenReturn(new SpeciesKey("wolf", true));
         when(wolf.getMaxEnergy()).thenReturn(100L * SCALE_1M);
         when(wolf.getSpeed()).thenReturn(3);
 
         rabbit = mock(Animal.class);
-        when(rabbit.getSpeciesKey()).thenReturn(SpeciesKey.RABBIT);
+        when(rabbit.getSpeciesKey()).thenReturn(new SpeciesKey("rabbit", false));
         when(rabbit.getWeight()).thenReturn(2L * SCALE_1M);
         when(rabbit.getSpeed()).thenReturn(2);
     }
 
     @Test
     void calculateSuccessRate_returnsCorrectValue() {
-        when(matrix.getChance(SpeciesKey.WOLF, SpeciesKey.RABBIT)).thenReturn(60);
+        when(matrix.getChance(new SpeciesKey("wolf", true), new SpeciesKey("rabbit", false))).thenReturn(60);
         int rateBP = strategy.calculateSuccessRate(wolf, rabbit);
         assertEquals(6000, rateBP);
     }

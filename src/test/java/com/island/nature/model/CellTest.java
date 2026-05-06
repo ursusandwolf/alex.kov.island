@@ -40,7 +40,7 @@ class CellTest {
 
     @Test
     void testAddAnimal() {
-        AnimalType wolfType = registry.getAnimalType(SpeciesKey.WOLF).orElseThrow();
+        AnimalType wolfType = registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow();
         GenericAnimal wolf = new GenericAnimal(wolfType);
         boolean added = cell.addAnimal(wolf);
         assertTrue(added);
@@ -50,16 +50,16 @@ class CellTest {
 
     @Test
     void testAddAnimalExceedingLimit() {
-        int max = registry.getAnimalType(SpeciesKey.WOLF).orElseThrow().getMaxPerCell();
+        int max = registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow().getMaxPerCell();
         for (int i = 0; i < max; i++) {
-            assertTrue(cell.addAnimal(new GenericAnimal(registry.getAnimalType(SpeciesKey.WOLF).orElseThrow())), "Should be able to add wolf " + i);
+            assertTrue(cell.addAnimal(new GenericAnimal(registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow())), "Should be able to add wolf " + i);
         }
-        assertFalse(cell.addAnimal(new GenericAnimal(registry.getAnimalType(SpeciesKey.WOLF).orElseThrow())), "Should not be able to add wolf exceeding limit");
+        assertFalse(cell.addAnimal(new GenericAnimal(registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow())), "Should not be able to add wolf exceeding limit");
     }
 
     @Test
     void testRemoveAnimal() {
-        GenericAnimal wolf = new GenericAnimal(registry.getAnimalType(SpeciesKey.WOLF).orElseThrow());
+        GenericAnimal wolf = new GenericAnimal(registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow());
         cell.addAnimal(wolf);
         boolean removed = cell.removeAnimal(wolf);
         assertTrue(removed);
@@ -68,8 +68,8 @@ class CellTest {
 
     @Test
     void testCleanupDeadOrganisms() {
-        GenericAnimal aliveWolf = new GenericAnimal(registry.getAnimalType(SpeciesKey.WOLF).orElseThrow());
-        GenericAnimal deadWolf = new GenericAnimal(registry.getAnimalType(SpeciesKey.WOLF).orElseThrow());
+        GenericAnimal aliveWolf = new GenericAnimal(registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow());
+        GenericAnimal deadWolf = new GenericAnimal(registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow());
         deadWolf.consumeEnergy(deadWolf.getMaxEnergy()); // Kill it
         
         cell.addAnimal(aliveWolf);

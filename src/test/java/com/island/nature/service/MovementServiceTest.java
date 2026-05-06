@@ -46,7 +46,7 @@ class MovementServiceTest {
         Island island = new Island(context, 2, 1, new DefaultEventBus());
         Cell cell0 = island.getCell(0, 0);
         
-        GenericAnimal wolf = new GenericAnimal(registry.getAnimalType(SpeciesKey.WOLF).orElseThrow());
+        GenericAnimal wolf = new GenericAnimal(registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow());
         cell0.addAnimal(wolf);
         
         int numThreads = 10;

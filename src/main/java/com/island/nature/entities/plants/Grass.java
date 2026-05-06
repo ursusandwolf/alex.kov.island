@@ -8,7 +8,7 @@ import com.island.nature.entities.SpeciesKey;
  * Grass implementation.
  */
 public class Grass extends Biomass {
-    public Grass(Configuration config, long maxBiomass, int speed) {
-        super(config, "Grass", SpeciesKey.GRASS, maxBiomass, speed);
+    public Grass(Configuration config, SpeciesKey key, long maxBiomass, int speed) {
+        super(config, "Grass", key, maxBiomass, speed);
     }
 }

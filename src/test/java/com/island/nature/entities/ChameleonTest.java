@@ -13,7 +13,7 @@ public class ChameleonTest {
     @Test
     void testChameleonInvisibilityRate() {
         AnimalType type = AnimalType.builder()
-                .speciesKey(SpeciesKey.CHAMELEON)
+                .speciesKey(new SpeciesKey("chameleon", false))
                 .typeName("chameleon")
                 .weight((long) (0.1 * SCALE_1M))
                 .maxPerCell(300)

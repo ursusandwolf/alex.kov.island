@@ -63,15 +63,16 @@ public class WorldInitializer {
                 long capacity = type.getWeight() * type.getMaxPerCell();
                 long initialAmount = (capacity * type.getPresenceChance()) / 100;
                 
-                if (biomassKey == SpeciesKey.BUTTERFLY) {
-                    b = new Butterfly(island.getConfiguration(), initialAmount, capacity, type.getSpeed());
-                } else if (biomassKey == SpeciesKey.CATERPILLAR) {
-                    b = new Caterpillar(island.getConfiguration(), initialAmount, capacity, type.getSpeed());
-                } else if (biomassKey == SpeciesKey.GRASS) {
-                    b = new Grass(island.getConfiguration(), capacity, type.getSpeed());
+                String code = biomassKey.getCode();
+                if ("butterfly".equals(code)) {
+                    b = new Butterfly(island.getConfiguration(), biomassKey, initialAmount, capacity, type.getSpeed());
+                } else if ("caterpillar".equals(code)) {
+                    b = new Caterpillar(island.getConfiguration(), biomassKey, initialAmount, capacity, type.getSpeed());
+                } else if ("grass".equals(code)) {
+                    b = new Grass(island.getConfiguration(), biomassKey, capacity, type.getSpeed());
                     b.setBiomass(initialAmount);
-                } else if (biomassKey == SpeciesKey.MUSHROOM) {
-                    b = new Mushroom(island.getConfiguration(), capacity, type.getSpeed());
+                } else if ("mushroom".equals(code)) {
+                    b = new Mushroom(island.getConfiguration(), biomassKey, capacity, type.getSpeed());
                     b.setBiomass(initialAmount);
                 } else {
                     b = new GenericBiomass(type);

@@ -49,6 +49,7 @@ public class SimulationEngine<T extends Mortal> {
 
         RandomProvider random = new DefaultRandomProvider();
         SimulationContext<T> context = new SimulationContext<>(world, gameLoop, random, eventBus);
+        gameLoop.setStopCondition(() -> plugin.shouldStop(context));
 
         plugin.onSimulationStarted(context);
         return context;

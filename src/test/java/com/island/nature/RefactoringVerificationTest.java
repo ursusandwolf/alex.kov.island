@@ -75,7 +75,7 @@ class RefactoringVerificationTest {
     void testSamplingContextInCell() {
         Cell cell = island.getCell(0, 0);
         for (int i = 0; i < 20; i++) {
-            cell.addAnimal(animalFactory.createAnimal(SpeciesKey.RABBIT).orElseThrow());
+            cell.addAnimal(animalFactory.createAnimal(new SpeciesKey("rabbit", false)).orElseThrow());
         }
 
         AtomicInteger count = new AtomicInteger();
@@ -90,10 +90,10 @@ class RefactoringVerificationTest {
     @DisplayName("Centralized death reporting should work when animal dies")
     void testCentralizedDeathReporting() {
         Cell cell = island.getCell(1, 1);
-        Animal rabbit = animalFactory.createAnimal(SpeciesKey.RABBIT).orElseThrow();
+        Animal rabbit = animalFactory.createAnimal(new SpeciesKey("rabbit", false)).orElseThrow();
         cell.addAnimal(rabbit);
 
-        int initialCount = statisticsService.getSpeciesCount(SpeciesKey.RABBIT);
+        int initialCount = statisticsService.getSpeciesCount(new SpeciesKey("rabbit", false));
         assertTrue(initialCount > 0);
 
         // Simulate death with cause
@@ -102,10 +102,10 @@ class RefactoringVerificationTest {
         // Remove from cell - this should trigger the listener in Island
         cell.removeEntity(rabbit);
 
-        assertEquals(initialCount - 1, statisticsService.getSpeciesCount(SpeciesKey.RABBIT), "Population should decrease");
+        assertEquals(initialCount - 1, statisticsService.getSpeciesCount(new SpeciesKey("rabbit", false)), "Population should decrease");
         
         // Verify death stats
-        int hungerDeaths = statisticsService.getTotalDeaths(DeathCause.HUNGER).getOrDefault(SpeciesKey.RABBIT, 0);
+        int hungerDeaths = statisticsService.getTotalDeaths(DeathCause.HUNGER).getOrDefault(new SpeciesKey("rabbit", false), 0);
         assertEquals(1, hungerDeaths, "Death should be reported with cause HUNGER");
     }
 

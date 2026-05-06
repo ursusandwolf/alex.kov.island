@@ -32,7 +32,7 @@ class EntityContainerTest {
     @Test
     @DisplayName("Should add and remove animals in O(1)")
     void testAddRemoveAnimal() {
-        AnimalType wolfType = registry.getAnimalType(SpeciesKey.WOLF).orElseThrow();
+        AnimalType wolfType = registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow();
         Animal wolf = new GenericAnimal(wolfType);
 
         container.addAnimal(wolf);
@@ -48,8 +48,8 @@ class EntityContainerTest {
     @Test
     @DisplayName("Should index by predators and herbivores")
     void testRoleIndexing() {
-        AnimalType wolfType = registry.getAnimalType(SpeciesKey.WOLF).orElseThrow();
-        AnimalType rabbitType = registry.getAnimalType(SpeciesKey.RABBIT).orElseThrow();
+        AnimalType wolfType = registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow();
+        AnimalType rabbitType = registry.getAnimalType(new SpeciesKey("rabbit", false)).orElseThrow();
 
         Animal wolf = new GenericAnimal(wolfType);
         Animal rabbit = new GenericAnimal(rabbitType);
@@ -66,7 +66,7 @@ class EntityContainerTest {
     @Test
     @DisplayName("Should index by size class")
     void testSizeIndexing() {
-        AnimalType wolfType = registry.getAnimalType(SpeciesKey.WOLF).orElseThrow();
+        AnimalType wolfType = registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow();
         SizeClass wolfSize = wolfType.getSizeClass();
         Animal wolf = new GenericAnimal(wolfType);
 
@@ -81,7 +81,7 @@ class EntityContainerTest {
     @Test
     @DisplayName("Should maintain deterministic order (LinkedHashSet)")
     void testDeterministicOrder() {
-        AnimalType wolfType = registry.getAnimalType(SpeciesKey.WOLF).orElseThrow();
+        AnimalType wolfType = registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow();
         Animal wolf1 = new GenericAnimal(wolfType);
         Animal wolf2 = new GenericAnimal(wolfType);
         Animal wolf3 = new GenericAnimal(wolfType);

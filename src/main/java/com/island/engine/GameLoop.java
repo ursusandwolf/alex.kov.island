@@ -32,6 +32,9 @@ public class GameLoop<T extends Mortal> {
     @Getter @Setter
     private SimulationWorld<T> world;
     
+    @Getter @Setter
+    private java.util.function.Supplier<Boolean> stopCondition;
+
     @Getter
     private volatile boolean running = false;
     @Getter
@@ -125,6 +128,11 @@ public class GameLoop<T extends Mortal> {
             long startTime = System.nanoTime();
             try {
                 runTick();
+                if (stopCondition != null && stopCondition.get()) {
+                    log.info("Stop condition met. Stopping GameLoop.");
+                    running = false;
+                    break;
+                }
             } catch (Throwable t) {
                 log.error("CRITICAL ERROR: Simulation loop crashed: {}", t.getMessage(), t);
             }

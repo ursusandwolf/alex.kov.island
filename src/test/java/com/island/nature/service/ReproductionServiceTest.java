@@ -47,8 +47,8 @@ class ReproductionServiceTest {
         island.setRedBookProtectionEnabled(false);
         Cell cell = island.getCell(0, 0);
         
-        Animal r1 = new GenericAnimal(registry.getAnimalType(SpeciesKey.RABBIT).orElseThrow());
-        Animal r2 = new GenericAnimal(registry.getAnimalType(SpeciesKey.RABBIT).orElseThrow());
+        Animal r1 = new GenericAnimal(registry.getAnimalType(new SpeciesKey("rabbit", false)).orElseThrow());
+        Animal r2 = new GenericAnimal(registry.getAnimalType(new SpeciesKey("rabbit", false)).orElseThrow());
         
         r1.setEnergy(r1.getMaxEnergy());
         r2.setEnergy(r2.getMaxEnergy());
@@ -96,8 +96,8 @@ class ReproductionServiceTest {
         island.setRedBookProtectionEnabled(false);
         Cell cell = island.getCell(0, 0);
 
-        Animal r1 = new GenericAnimal(registry.getAnimalType(SpeciesKey.RABBIT).orElseThrow());
-        Animal r2 = new GenericAnimal(registry.getAnimalType(SpeciesKey.RABBIT).orElseThrow());
+        Animal r1 = new GenericAnimal(registry.getAnimalType(new SpeciesKey("rabbit", false)).orElseThrow());
+        Animal r2 = new GenericAnimal(registry.getAnimalType(new SpeciesKey("rabbit", false)).orElseThrow());
 
         r1.setEnergy(r1.getMaxEnergy());
         r2.setEnergy(r2.getMaxEnergy());

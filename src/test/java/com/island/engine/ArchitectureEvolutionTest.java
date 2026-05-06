@@ -55,7 +55,7 @@ class ArchitectureEvolutionTest {
             @Override
             public String getTypeName() { return "Test"; }
             @Override
-            public SpeciesKey getSpeciesKey() { return SpeciesKey.RABBIT; }
+            public SpeciesKey getSpeciesKey() { return new SpeciesKey("rabbit", false); }
         };
 
         // Test built-in components
@@ -80,7 +80,7 @@ class ArchitectureEvolutionTest {
     void animalShouldHaveMovementComponent() {
         AnimalType rabbitType = AnimalType.builder()
                 .config(new Configuration())
-                .speciesKey(SpeciesKey.RABBIT)
+                .speciesKey(new SpeciesKey("rabbit", false))
                 .typeName("Rabbit")
                 .speed(2)
                 .maxEnergy(100)

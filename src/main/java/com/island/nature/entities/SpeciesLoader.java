@@ -38,8 +38,8 @@ public class SpeciesLoader {
             }
         }
 
-        // Add default keys if not present
-        registerDefaultKeys(keyRegistry);
+        // Add special 'plant' key if used in prey but not in list
+        keyRegistry.putIfAbsent("plant", new SpeciesKey("plant", false));
 
         for (SpeciesKey key : keyRegistry.values()) {
             if (props.containsKey(key.getCode() + ".weight")) {
@@ -52,31 +52,6 @@ public class SpeciesLoader {
                 Collections.unmodifiableMap(biomassTypes),
                 Collections.unmodifiableMap(keyRegistry)
         );
-    }
-
-    private void registerDefaultKeys(Map<String, SpeciesKey> keyRegistry) {
-        keyRegistry.putIfAbsent(SpeciesKey.WOLF.code(), SpeciesKey.WOLF);
-        keyRegistry.putIfAbsent(SpeciesKey.BOA.code(), SpeciesKey.BOA);
-        keyRegistry.putIfAbsent(SpeciesKey.FOX.code(), SpeciesKey.FOX);
-        keyRegistry.putIfAbsent(SpeciesKey.BEAR.code(), SpeciesKey.BEAR);
-        keyRegistry.putIfAbsent(SpeciesKey.EAGLE.code(), SpeciesKey.EAGLE);
-        keyRegistry.putIfAbsent(SpeciesKey.HORSE.code(), SpeciesKey.HORSE);
-        keyRegistry.putIfAbsent(SpeciesKey.DEER.code(), SpeciesKey.DEER);
-        keyRegistry.putIfAbsent(SpeciesKey.RABBIT.code(), SpeciesKey.RABBIT);
-        keyRegistry.putIfAbsent(SpeciesKey.MOUSE.code(), SpeciesKey.MOUSE);
-        keyRegistry.putIfAbsent(SpeciesKey.HAMSTER.code(), SpeciesKey.HAMSTER);
-        keyRegistry.putIfAbsent(SpeciesKey.GOAT.code(), SpeciesKey.GOAT);
-        keyRegistry.putIfAbsent(SpeciesKey.SHEEP.code(), SpeciesKey.SHEEP);
-        keyRegistry.putIfAbsent(SpeciesKey.BOAR.code(), SpeciesKey.BOAR);
-        keyRegistry.putIfAbsent(SpeciesKey.BUFFALO.code(), SpeciesKey.BUFFALO);
-        keyRegistry.putIfAbsent(SpeciesKey.DUCK.code(), SpeciesKey.DUCK);
-        keyRegistry.putIfAbsent(SpeciesKey.FROG.code(), SpeciesKey.FROG);
-        keyRegistry.putIfAbsent(SpeciesKey.CHAMELEON.code(), SpeciesKey.CHAMELEON);
-        keyRegistry.putIfAbsent(SpeciesKey.CATERPILLAR.code(), SpeciesKey.CATERPILLAR);
-        keyRegistry.putIfAbsent(SpeciesKey.BUTTERFLY.code(), SpeciesKey.BUTTERFLY);
-        keyRegistry.putIfAbsent(SpeciesKey.PLANT.code(), SpeciesKey.PLANT);
-        keyRegistry.putIfAbsent(SpeciesKey.GRASS.code(), SpeciesKey.GRASS);
-        keyRegistry.putIfAbsent(SpeciesKey.MUSHROOM.code(), SpeciesKey.MUSHROOM);
     }
 
     private void loadEntry(SpeciesKey key, Properties props, 

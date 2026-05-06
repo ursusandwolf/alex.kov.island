@@ -63,7 +63,7 @@ public class SimulationOptimizationTest {
     void testColdBloodedSkipTicks() {
         Cell cell = island.getCell(0, 0);
         // Chameleon is cold-blooded. It eats every 3rd tick (tick % 3 == 0).
-        Animal chameleon = animalFactory.createAnimal(SpeciesKey.CHAMELEON).orElseThrow();
+        Animal chameleon = animalFactory.createAnimal(new SpeciesKey("chameleon", false)).orElseThrow();
         chameleon.setEnergy(chameleon.getMaxEnergy() / 2);
         long initialEnergy = chameleon.getCurrentEnergy();
         
@@ -80,7 +80,7 @@ public class SimulationOptimizationTest {
 
         // Tick 3: Should ACT
         // Add a caterpillar (biomass)
-        cell.addBiomass(new Caterpillar(config, 100L * SimulationConstants.SCALE_1M, 1000L * SimulationConstants.SCALE_1M, 0));
+        cell.addBiomass(new Caterpillar(config, new SpeciesKey("caterpillar", false), 100L * SimulationConstants.SCALE_1M, 1000L * SimulationConstants.SCALE_1M, 0));
         
         feedingService.tick(3);
     }
@@ -91,7 +91,7 @@ public class SimulationOptimizationTest {
         Cell cell = island.getCell(0, 0);
         // Add 200 mice
         for (int i = 0; i < 200; i++) {
-            Animal mouse = animalFactory.createAnimal(SpeciesKey.MOUSE).orElseThrow();
+            Animal mouse = animalFactory.createAnimal(new SpeciesKey("mouse", false)).orElseThrow();
             mouse.setEnergy(mouse.getMaxEnergy() / 2);
             cell.addAnimal(mouse);
         }

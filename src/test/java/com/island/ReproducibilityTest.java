@@ -80,8 +80,8 @@ class ReproducibilityTest {
 
         // 1. Manually trigger world initialization
         // We'll just add some animals manually to be faster and more controlled
-        island.getCell(0, 0).addAnimal(factory.createAnimal(SpeciesKey.WOLF).orElseThrow());
-        island.getCell(1, 1).addAnimal(factory.createAnimal(SpeciesKey.RABBIT).orElseThrow());
+        island.getCell(0, 0).addAnimal(factory.createAnimal(new SpeciesKey("wolf", true)).orElseThrow());
+        island.getCell(1, 1).addAnimal(factory.createAnimal(new SpeciesKey("rabbit", false)).orElseThrow());
 
         // 2. Run one tick of services
         new LifecycleService(island, executor, fixedProvider, new DefaultEventBus()).tick(1);

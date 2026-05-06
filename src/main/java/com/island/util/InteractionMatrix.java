@@ -90,13 +90,15 @@ public class InteractionMatrix implements InteractionProvider {
 
     public static InteractionMatrix buildFrom(SpeciesRegistry registry) {
         InteractionMatrix matrix = new InteractionMatrix(registry);
+        SpeciesKey plantKey = registry.getKey("plant").orElse(null);
+        
         for (SpeciesKey predatorKey : registry.getAllSpeciesKeys()) {
             for (SpeciesKey preyKey : registry.getAllSpeciesKeys()) {
                 int chance = registry.getHuntProbability(predatorKey, preyKey);
                 if (chance > 0) {
                     matrix.setChance(predatorKey, preyKey, chance);
                     // If can eat generic PLANT, can eat any specific plant
-                    if (preyKey.equals(SpeciesKey.PLANT)) {
+                    if (plantKey != null && preyKey.equals(plantKey)) {
                         for (SpeciesKey otherKey : registry.getAllBiomassKeys()) {
                             if (registry.getBiomassType(otherKey).map(AnimalType::isPlant).orElse(false)) {
                                 matrix.setChance(predatorKey, otherKey, chance);
@@ -109,8 +111,8 @@ public class InteractionMatrix implements InteractionProvider {
             boolean isPredator = predatorKey.isPredator();
             boolean isBiomass = registry.getAnimalType(predatorKey).map(AnimalType::isBiomass).orElse(false);
             if (!isPredator && !isBiomass) {
-                if (matrix.getChance(predatorKey, SpeciesKey.PLANT) == 0) {
-                    matrix.setChance(predatorKey, SpeciesKey.PLANT, 100);
+                if (plantKey != null && matrix.getChance(predatorKey, plantKey) == 0) {
+                    matrix.setChance(predatorKey, plantKey, 100);
                     for (SpeciesKey otherKey : registry.getAllBiomassKeys()) {
                         if (registry.getBiomassType(otherKey).map(AnimalType::isPlant).orElse(false)) {
                             matrix.setChance(predatorKey, otherKey, 100);

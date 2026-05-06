@@ -63,14 +63,14 @@ class WolfPackBalanceTest {
         
         List<GenericAnimal> wolves = new ArrayList<>();
         for (int i = 0; i < 20; i++) {
-            GenericAnimal wolf = new GenericAnimal(registry.getAnimalType(SpeciesKey.WOLF).orElseThrow());
+            GenericAnimal wolf = new GenericAnimal(registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow());
             wolf.setEnergy((wolf.getMaxEnergy() * 30) / 100);
             cell.addAnimal(wolf);
             wolves.add(wolf);
         }
 
         for (int i = 0; i < 5; i++) {
-            Bear bear = new Bear(registry.getAnimalType(SpeciesKey.BEAR).orElseThrow());
+            Bear bear = new Bear(registry.getAnimalType(new SpeciesKey("bear", true)).orElseThrow());
             for(int a=0; a<60; a++) { bear.checkAgeDeath(); }
             cell.addAnimal(bear);
         }

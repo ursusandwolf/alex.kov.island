@@ -111,16 +111,14 @@ public class NaturePlugin implements SimulationPlugin<Organism> {
         }
 
         Map<SpeciesKey, Integer> counts = island.getSpeciesCounts();
+        int totalAnimals = 0;
         for (SpeciesKey species : island.getRegistry().getAllAnimalKeys()) {
             boolean isBiomass = island.getRegistry().getAnimalType(species)
                     .map(AnimalType::isBiomass).orElse(false);
-            if (isBiomass) {
-                continue;
-            }
-            if (counts.getOrDefault(species, 0) == 0) {
-                return true;
+            if (!isBiomass) {
+                totalAnimals += counts.getOrDefault(species, 0);
             }
         }
-        return false;
+        return totalAnimals == 0;
     }
 }

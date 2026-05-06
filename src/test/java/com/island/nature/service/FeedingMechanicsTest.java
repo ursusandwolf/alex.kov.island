@@ -72,8 +72,8 @@ class FeedingMechanicsTest {
     @Test
     @DisplayName("Predator should hunt successfully based on matrix chance")
     void predator_should_hunt_successfully() {
-        Animal wolf = animalFactory.createInitialAnimal(SpeciesKey.WOLF).orElseThrow();
-        Animal rabbit = animalFactory.createInitialAnimal(SpeciesKey.RABBIT).orElseThrow();
+        Animal wolf = animalFactory.createInitialAnimal(new SpeciesKey("wolf", true)).orElseThrow();
+        Animal rabbit = animalFactory.createInitialAnimal(new SpeciesKey("rabbit", false)).orElseThrow();
         
         cell.addAnimal(wolf);
         cell.addAnimal(rabbit);

@@ -21,7 +21,7 @@ class StatisticsServiceTest {
 
     @Test
     void shouldCorrectlyMergeAnimalAndBiomassCounts() {
-        SpeciesKey key = SpeciesKey.WOLF;
+        SpeciesKey key = new SpeciesKey("wolf", true);
         
         // 5 alive wolves
         for (int i = 0; i < 5; i++) {
@@ -38,7 +38,7 @@ class StatisticsServiceTest {
 
     @Test
     void shouldHandleNegativeBiomassCorrectly() {
-        SpeciesKey key = SpeciesKey.PLANT;
+        SpeciesKey key = new SpeciesKey("plant", false);
         statisticsService.registerBiomassChange(key, 5 * config.getScale1M());
         statisticsService.registerBiomassChange(key, -2 * config.getScale1M());
         

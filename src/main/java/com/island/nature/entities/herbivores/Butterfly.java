@@ -14,8 +14,8 @@ import com.island.nature.model.Cell;
  * Generalized Butterfly using SwarmOrganism (LOD 1) with integer arithmetic.
  */
 public class Butterfly extends SwarmOrganism {
-    public Butterfly(Configuration config, long initialBiomass, long maxBiomass, int speed) {
-        super(config, "Butterfly", SpeciesKey.BUTTERFLY, maxBiomass, speed, 30, 
+    public Butterfly(Configuration config, SpeciesKey key, long initialBiomass, long maxBiomass, int speed) {
+        super(config, "Butterfly", key, maxBiomass, speed, 30, 
                 config.getCaterpillarMetabolismRateBP(), config.getButterflyReproductionRateBP());
         spawn(initialBiomass);
     }
@@ -45,15 +45,18 @@ public class Butterfly extends SwarmOrganism {
             long offspringBiomass = (getBiomass() * reproductionRateBP) / config.getScale10K();
             consumeBiomass(offspringBiomass, node);
 
-            Caterpillar c = (Caterpillar) cell.getBiomass(SpeciesKey.CATERPILLAR);
-            if (c == null) {
-                NatureWorld nw = (NatureWorld) cell.getWorld();
-                AnimalType type = nw.getRegistry().getBiomassType(SpeciesKey.CATERPILLAR).orElseThrow();
-                long capacity = type.getWeight() * type.getMaxPerCell();
-                c = new Caterpillar(config, 0, capacity, type.getSpeed());
-                cell.addEntity(c);
+            NatureWorld nw = (NatureWorld) cell.getWorld();
+            SpeciesKey catKey = nw.getRegistry().getKey("caterpillar").orElse(null);
+            if (catKey != null) {
+                Caterpillar c = (Caterpillar) cell.getBiomass(catKey);
+                if (c == null) {
+                    AnimalType type = nw.getRegistry().getBiomassType(catKey).orElseThrow();
+                    long capacity = type.getWeight() * type.getMaxPerCell();
+                    c = new Caterpillar(config, catKey, 0, capacity, type.getSpeed());
+                    cell.addEntity(c);
+                }
+                c.spawn(offspringBiomass);
             }
-            c.spawn(offspringBiomass);
         }
     }
 }

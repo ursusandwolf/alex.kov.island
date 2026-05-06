@@ -8,7 +8,7 @@ import com.island.nature.entities.SpeciesKey;
  * Mushroom implementation.
  */
 public class Mushroom extends Biomass {
-    public Mushroom(Configuration config, long maxBiomass, int speed) {
-        super(config, "Mushroom", SpeciesKey.MUSHROOM, maxBiomass, speed);
+    public Mushroom(Configuration config, SpeciesKey key, long maxBiomass, int speed) {
+        super(config, "Mushroom", key, maxBiomass, speed);
     }
 }

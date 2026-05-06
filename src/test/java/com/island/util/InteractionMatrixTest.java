@@ -22,22 +22,22 @@ class InteractionMatrixTest {
 
     @Test
     void testSetAndGetChance() {
-        matrix.setChance(SpeciesKey.WOLF, SpeciesKey.RABBIT, 60);
-        assertEquals(60, matrix.getChance(SpeciesKey.WOLF, SpeciesKey.RABBIT));
+        matrix.setChance(new SpeciesKey("wolf", true), new SpeciesKey("rabbit", false), 60);
+        assertEquals(60, matrix.getChance(new SpeciesKey("wolf", true), new SpeciesKey("rabbit", false)));
     }
 
     @Test
     void testGetDefaultZero() {
-        assertEquals(0, matrix.getChance(SpeciesKey.BEAR, SpeciesKey.MOUSE));
+        assertEquals(0, matrix.getChance(new SpeciesKey("bear", true), new SpeciesKey("mouse", false)));
     }
 
     @Test
     void testFreezeAndModify() {
-        matrix.setChance(SpeciesKey.WOLF, SpeciesKey.RABBIT, 60);
+        matrix.setChance(new SpeciesKey("wolf", true), new SpeciesKey("rabbit", false), 60);
         matrix.freeze();
         
         // Modification after freeze should trigger copy and work correctly
-        matrix.setChance(SpeciesKey.WOLF, SpeciesKey.RABBIT, 80);
-        assertEquals(80, matrix.getChance(SpeciesKey.WOLF, SpeciesKey.RABBIT));
+        matrix.setChance(new SpeciesKey("wolf", true), new SpeciesKey("rabbit", false), 80);
+        assertEquals(80, matrix.getChance(new SpeciesKey("wolf", true), new SpeciesKey("rabbit", false)));
     }
 }

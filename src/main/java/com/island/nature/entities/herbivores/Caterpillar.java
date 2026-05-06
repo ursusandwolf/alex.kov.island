@@ -14,8 +14,8 @@ import com.island.nature.model.Cell;
  * Generalized Caterpillar using SwarmOrganism (LOD 1) with integer arithmetic.
  */
 public class Caterpillar extends SwarmOrganism {
-    public Caterpillar(Configuration config, long initialBiomass, long maxBiomass, int speed) {
-        super(config, "Caterpillar", SpeciesKey.CATERPILLAR, maxBiomass, speed, 30,
+    public Caterpillar(Configuration config, SpeciesKey key, long initialBiomass, long maxBiomass, int speed) {
+        super(config, "Caterpillar", key, maxBiomass, speed, 30,
                 config.getCaterpillarMetabolismRateBP(), config.getButterflyReproductionRateBP());
         spawn(initialBiomass);
     }
@@ -47,15 +47,18 @@ public class Caterpillar extends SwarmOrganism {
             ageBuckets[ageBuckets.length - 1] = 0;
             updateTotalBiomass();
 
-            Butterfly b = (Butterfly) cell.getBiomass(SpeciesKey.BUTTERFLY);
-            if (b == null) {
-                NatureWorld nw = (NatureWorld) cell.getWorld();
-                AnimalType type = nw.getRegistry().getBiomassType(SpeciesKey.BUTTERFLY).orElseThrow();
-                long capacity = type.getWeight() * type.getMaxPerCell();
-                b = new Butterfly(config, 0, capacity, type.getSpeed());
-                cell.addEntity(b);
+            NatureWorld nw = (NatureWorld) cell.getWorld();
+            SpeciesKey flyKey = nw.getRegistry().getKey("butterfly").orElse(null);
+            if (flyKey != null) {
+                Butterfly b = (Butterfly) cell.getBiomass(flyKey);
+                if (b == null) {
+                    AnimalType type = nw.getRegistry().getBiomassType(flyKey).orElseThrow();
+                    long capacity = type.getWeight() * type.getMaxPerCell();
+                    b = new Butterfly(config, flyKey, 0, capacity, type.getSpeed());
+                    cell.addEntity(b);
+                }
+                b.spawn(readyToTransform);
             }
-            b.spawn(readyToTransform);
         }
     }
 }

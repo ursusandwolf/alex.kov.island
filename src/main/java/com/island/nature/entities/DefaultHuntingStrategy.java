@@ -28,7 +28,7 @@ public class DefaultHuntingStrategy implements HuntingStrategy {
             bonusBP = Math.max(bonusBP, packBonusBP);
             
             // Special rule for Bear (Apex Predator) - solo chance is 0%, but pack can kill it
-            if (prey.getSpeciesKey().equals(SpeciesKey.BEAR)) {
+            if ("bear".equals(prey.getSpeciesKey().getCode())) {
                 int bearChanceBP = Math.min(config.getWolfPackBearHuntMaxChancePercent(), pack.size()) * 100;
                 return Math.max(baseChancePercent * 100, bearChanceBP);
             }
@@ -53,7 +53,7 @@ public class DefaultHuntingStrategy implements HuntingStrategy {
         long totalCost = strikeCost + chaseCost;
         
         // Fox Special Ability: High Agility (60% energy discount on hunting)
-        if (predator.getSpeciesKey().equals(SpeciesKey.FOX)) {
+        if ("fox".equals(predator.getSpeciesKey().getCode())) {
             totalCost = (totalCost * 4000) / config.getScale10K();
         }
         

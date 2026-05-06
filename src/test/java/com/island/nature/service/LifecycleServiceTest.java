@@ -61,10 +61,10 @@ class LifecycleServiceTest {
         lifecycleService = new LifecycleService(world, Executors.newSingleThreadExecutor(), random, new DefaultEventBus());
         cell = new Cell(0, 0, world);
         
-        AnimalType wolfType = registry.getAnimalType(SpeciesKey.WOLF).orElseThrow();
+        AnimalType wolfType = registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow();
         given(animal.getAnimalType()).willReturn(wolfType);
         given(animal.getMaxPerCell()).willReturn(wolfType.getMaxPerCell());
-        given(animal.getSpeciesKey()).willReturn(SpeciesKey.WOLF);
+        given(animal.getSpeciesKey()).willReturn(new SpeciesKey("wolf", true));
         
         given(world.getCurrentSeason()).willReturn(Season.SUMMER);
     }
@@ -118,9 +118,9 @@ class LifecycleServiceTest {
     void hibernation_should_reduce_metabolism() {
         given(world.getCurrentSeason()).willReturn(Season.WINTER);
         
-        AnimalType boaType = registry.getAnimalType(SpeciesKey.BOA).orElseThrow();
+        AnimalType boaType = registry.getAnimalType(new SpeciesKey("boa", true)).orElseThrow();
         given(animal.getAnimalType()).willReturn(boaType);
-        given(animal.getSpeciesKey()).willReturn(SpeciesKey.BOA);
+        given(animal.getSpeciesKey()).willReturn(new SpeciesKey("boa", true));
         given(animal.isAlive()).willReturn(true);
         given(animal.getDynamicMetabolismRate()).willReturn(1000L);
         given(animal.tryConsumeEnergy(anyLong())).willReturn(true);

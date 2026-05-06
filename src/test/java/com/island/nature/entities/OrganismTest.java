@@ -24,7 +24,7 @@ class OrganismTest {
 
         @Override
         public SpeciesKey getSpeciesKey() {
-            return SpeciesKey.WOLF; // Dummy
+            return new SpeciesKey("wolf", true); // Dummy
         }
     }
 
