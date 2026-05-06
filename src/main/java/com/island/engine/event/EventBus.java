@@ -14,6 +14,10 @@ public interface EventBus {
 
     /**
      * Registers a subscriber for a specific event type.
+     * Supports type hierarchy: subscribing to a parent class/interface will
+     * receive events of all subtypes. For example, subscribing to {@code Object.class}
+     * acts as a wildcard and will receive ALL events.
+     *
      * @param eventType The class of the event to listen for.
      * @param subscriber The callback to execute when the event is published.
      * @param <E> The event type.

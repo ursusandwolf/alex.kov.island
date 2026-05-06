@@ -1,193 +1,417 @@
-## Code Review: Island Ecosystem Simulator — PR #21
+# Code Review v5: alex.kov.island (branch: dev)
 
-### Общая оценка
-
-Проект демонстрирует высокий уровень архитектурного мышления: plugin-система, фазовый планировщик, EDA через EventBus, LOD-модель, GC-оптимизации — всё это грамотные решения. Changelog v1.6–v1.14 показывает осознанную эволюцию. Главные риски сейчас — `GameLoop` превращается в God Class, `ECS` завис в половинчатом состоянии, и в нескольких местах абстракция engine пробивается конкретными доменными типами. Если это не закрыть сейчас, следующие 5–10 фич будут всё дороже.
-
----
-
-### 🔴 Критично — нарушает архитектурные границы
+**Reviewer:** Tech Lead / Staff Engineer  
+**Date:** 2026-05-05  
+**База:** v4 (dev после merge PR20)  
+**Дельта:** 40 изменённых файлов, +6 новых, -1 удалён (`WorldListener.java`)  
+**Ключевые изменения:** `PhaseScheduler`, `ParallelDispatcher`, `CellProcessor`-пул, immutable `EventBus` в `SimulationWorld`, volatile ECS-компоненты, type hierarchy в `EventBus`, виртуальные потоки
 
 ---
 
-**1. `NatureLauncher` прокалывает engine-абстракцию прямым кастом**
+## Сводная таблица: прогресс относительно v4
+
+| Проблема из v4 | Статус | Детали |
+|---|---|---|
+| `setEventBus()` — изменяемое состояние в `SimulationWorld` | ✅ **ИСПРАВЛЕНО** | `createWorld(EventBus)` — immutable с рождения |
+| `Organism.components` — `HashMap` не thread-safe | ✅ **ИСПРАВЛЕНО** | `ConcurrentHashMap` |
+| `DefaultEventBus.publish()` — исключение рушит цепочку | ✅ **ИСПРАВЛЕНО** | `try/catch` на каждого подписчика + `log.error` |
+| `SimulationWorld<T,C>` — `getConfiguration()` в движке | ✅ **ИСПРАВЛЕНО** | Параметр `C` убран, метод перешёл в `NatureWorld` |
+| `CityMap.getConfiguration()` — костыльный `Object`/`Void` | ✅ **ИСПРАВЛЕНО** | `SimulationWorld<T>` без `C` → CityMap чистый |
+| `HealthComponent`/`AgeComponent` — не volatile | ✅ **ИСПРАВЛЕНО** | Все поля `volatile` |
+| `GameLoop` — God Class (scheduling + dispatching + threading) | ✅ **ИСПРАВЛЕНО** | Выделены `PhaseScheduler` и `ParallelDispatcher` |
+| `EventBus` — нет `unsubscribe` | ✅ **ИСПРАВЛЕНО** | Добавлен `unsubscribe()` |
+| Нет теста на exception isolation в `EventBus` | ✅ **ИСПРАВЛЕНО** | `EventBusTest.shouldHandleSubscribersThrowingExceptions` |
+| Нет теста thread-safety компонентов | ✅ **ИСПРАВЛЕНО** | `ComponentThreadSafetyTest` |
+| `LifecycleService` — двойной publish `EntityDiedEvent` | ✅ **ИСПРАВЛЕНО** | Publish удалён |
+| Двойная отчётность смертей — `FeedingService` (EATEN_BY_PACK) | ❌ **НЕ ИСПРАВЛЕНО** | Два события на одну смерть |
+| Двойная отчётность — `MovementService` (MOVEMENT_EXHAUSTION) | ❌ **НЕ ИСПРАВЛЕНО** | Два события на одну смерть |
+| Двойная отчётность — `ReproductionService` (REPRODUCTION_EXHAUSTION) | ❌ **НЕ ИСПРАВЛЕНО** | Два события на одну смерть |
+| `SpeciesKey` — глобальный синглтон | ❌ **НЕ ИСПРАВЛЕНО** | Остался с v1 |
+
+**Итог: 11 из 14 активных проблем v4 закрыты.**
+
+---
+
+## ✅ Детальный разбор значимых улучшений
+
+### 1. PhaseScheduler + ParallelDispatcher — правильное разделение ответственностей
+
+`GameLoop` в v4 был God Class: управлял потоком выполнения, группировал задачи по фазам, диспетчеризировал параллельные чанки. В v5 ответственности разделены:
+
+```
+GameLoop          — координатор: тикает мир, дренирует очередь задач, делегирует выполнение
+PhaseScheduler    — группирует задачи по Phase, сортирует по priority, формирует parallelGroup
+ParallelDispatcher — параллельное выполнение одной группы CellService через ExecutorService
+```
+
+`PhaseScheduler.execute()` — чистый алгоритм без состояния между тиками (кроме `phasedTasks`/`parallelGroup`, которые очищаются в начале каждого execute). `ParallelDispatcher.dispatch()` — изолированная единица параллелизма с `CountDownLatch`.
+
+**Нюанс:** `PhaseScheduler.parallelGroup` — это `List`, объявленный как поле класса и очищаемый в `execute()`. При текущей однопоточной `runTick()` это корректно. Но если в будущем `execute()` будет вызываться из нескольких потоков — `parallelGroup.clear()` + последующий `add()` создадут race condition. Рекомендуется держать `parallelGroup` как локальную переменную внутри `execute()`.
+
+---
+
+### 2. CellProcessor пул — устранение GC-давления
 
 ```java
-// NatureLauncher.java
-Island island = (Island) context.getWorld();
-Map<SpeciesKey, Integer> counts = island.getSpeciesCounts();
+// ParallelDispatcher — пул объектов вместо new Callable<>() на каждый тик
+private final List<CellProcessor<T>> processorPool = new ArrayList<>();
+
+// Каждый тик: переиспользуем существующие процессоры
+CellProcessor<T> processor = processorPool.get(i++);
+processor.update(unit, services, tickCount, latch); // обновляем состояние
+taskExecutor.execute(processor);                    // отправляем в пул
 ```
 
-`SimulationEngine` возвращает `SimulationContext<Organism>` с `SimulationWorld<T, C>`. Launcher сразу кастует к конкретному `Island`. Любое переименование или замена реализации сломает это место без предупреждения компилятора. Логика мониторинга («стоп при вымирании вида») — доменная. Её место в `NaturePlugin`, а не в лаунчере.
+В v4 `GameLoop` создавал `new Callable<>()` для каждого чанка на каждом тике — при 100 тиках в секунду и 20 чанках это 2000 объектов/сек в GC. Пул устраняет эти аллокации.
 
-Как исправить — добавить hook в `SimulationPlugin`:
+**Анализ корректности `volatile` полей в `CellProcessor`:**
+
 ```java
-// SimulationPlugin.java — добавить метод:
-default boolean shouldStop(SimulationContext<T> context) {
-    return false;
-}
-
-// NaturePlugin.java:
-@Override
-public boolean shouldStop(SimulationContext<Organism> context) {
-    Island island = (Island) context.getWorld(); // каст здесь — в домене, не в engine
-    return island.getSpeciesCounts().entrySet().stream()
-        .anyMatch(e -> !isPlant(e.getKey()) && e.getValue() == 0);
-}
+private volatile Collection<? extends SimulationNode<T>> unit;
+private volatile List<CellService<T, SimulationNode<T>>> services;
+private volatile int tickCount;
+private volatile CountDownLatch latch;
+private volatile Throwable error;
 ```
 
-Тогда `NatureLauncher` работает только с `SimulationEngine` + `SimulationPlugin` без знания домена.
+`update()` устанавливает 5 полей последовательно — не атомарно как группа. Это могло бы быть проблемой при конкурентном вызове `update()` + `run()`, но жизненный цикл корректен: `dispatch()` вызывает `update()`, затем `execute()`, затем ждёт `latch.await()` — следующий `update()` происходит только после завершения `latch`. Видимость обеспечивается `volatile`. Корректно.
+
+**Замечание:** `volatile` на `List<CellService>` обеспечивает видимость ссылки на список, но не его содержимого. Если `services` список мутируется между тиками — нужна дополнительная синхронизация. Сейчас список не мутируется после передачи в `CellProcessor`, поэтому это не проблема. Но это неочевидный инвариант — стоит задокументировать.
 
 ---
 
-**2. `onSimulationStopped` никогда не вызывается — утечка lifecycle**
+### 3. EventBus с type hierarchy — неожиданно мощная функция
 
 ```java
-// SimulationPlugin.java
-default void onSimulationStopped(SimulationContext<T> context) { } // мёртвый код
-
-// SimulationEngine.java — вызов отсутствует полностью
-```
-
-Lifecycle `start → stop` задекларирован в интерфейсе, но `SimulationEngine` вызывает только `onSimulationStarted`. Если плагин зарегистрировал ресурсы (потоки, соединения, подписки EventBus) в `onSimulationStarted`, нет места где их корректно освободить. Это потенциальная утечка ресурсов.
-
-Как исправить:
-```java
-// SimulationEngine.java
-public void stop(SimulationContext<T> context, SimulationPlugin<T> plugin) {
-    context.getGameLoop().stop();
-    plugin.onSimulationStopped(context);
-}
-```
-
----
-
-**3. `CellService.tick()` — fallback сломан по контракту**
-
-```java
-// CellService.java
-@Override
-default void tick(int tickCount) {
-    // Fallback for non-optimized execution
-    beforeTick(tickCount); // ← только beforeTick, processCell никогда не вызывается!
-}
-```
-
-Если `CellService` когда-либо попадёт в non-optimized путь (например, в тесте, или если ExecutionMode изменится), он выполнит `beforeTick` и молча ничего больше не сделает. Симуляция продолжится без кормления, движения или размножения. Ошибка не бросится — просто неправильные результаты.
-
-Это либо должно бросать `UnsupportedOperationException` («я не умею работать без world»), либо быть реализовано корректно. Текущий вариант — худший из возможных: работает, но неправильно.
-
----
-
-### 🟡 Стоит улучшить — архитектурный долг
-
----
-
-**4. `GameLoop` растёт в God Class (270 строк, 4 ответственности)**
-
-Текущий `GameLoop` делает:
-- управление временем тика (sleep loop)
-- фазовую сортировку и группировку задач
-- параллельное исполнение через `CellProcessor`-пул
-- управление жизненным циклом потоков
-
-Уже сейчас это ~270 строк и `CellProcessor` как вложенный класс. С каждой новой фичей сложность будет расти нелинейно.
-
-Рекомендуемое разделение:
-```
-GameLoop          — только тик-цикл + lifecycle (start/stop/runTick)
-PhaseScheduler    — сортировка задач по Phase + priority
-ParallelDispatcher — управление CellProcessor-пулом + CountDownLatch
-```
-
-Это не срочно сейчас, но хороший момент сделать `PhaseScheduler` — он уже логически изолирован в `runTick()`.
-
----
-
-**5. `CellProcessor` — потенциальный data race на mutable-полях**
-
-```java
-// CellProcessor — поля без volatile:
-private Collection<? extends SimulationNode<T>> unit;
-private List<CellService<T, SimulationNode<T>>> services;
-private int tickCount;
-
-void update(...) { this.unit = unit; this.services = services; ... } // главный поток
-public void run() { for (node : unit) { ... } }                      // рабочий поток
-```
-
-Только `error` помечен `volatile`. Поля `unit`, `services`, `tickCount` обновляются главным потоком, читаются рабочими. `CountDownLatch.await()` гарантирует порядок завершения, но не publication до старта следующего тика. Формально это data race.
-
-Решение — либо объявить поля `volatile`, либо использовать `final` fields + создавать новый `CellProcessor` (но тогда теряется смысл пула), либо добавить `happens-before` через `volatile boolean ready`.
-
----
-
-**6. ECS застрял между двумя парадигмами**
-
-```java
-// engine/ecs/Component.java — просто пустой маркер
-public interface Component { }
-
-// Changelog: "Organism: replaced ConcurrentHashMap lookups with direct field references"
-```
-
-Два тика происходит одновременно: в changelog написано "ECS Transition" и добавлены `AgeComponent`, `HealthComponent`, а следующая версия оптимизирует это обратно к прямым полям. ECS как концепция требует решения на уровне engine: `Entity` = ID, компоненты в Arrays of Structs, Systems без объектов-сущностей. Текущий `Organism` с прямыми полями — это OOP. Держать оба подхода одновременно — Divergent Change в чистом виде.
-
-Рекомендация: принять архитектурное решение явно. Если производительность важнее расширяемости — оставить OOP `Organism` и убрать `Component`. Если нужна модульность — идти в настоящий ECS (entity = long ID, компоненты в typed arrays). Половина пути дороже любого из вариантов.
-
----
-
-**7. `SimulationWorld<T, C>` — параметр C утекает в engine**
-
-```java
-public interface SimulationWorld<T extends Mortal, C> extends Tickable {
-    C getConfiguration();
-    ...
+// DefaultEventBus — subscribe(Object.class) получает ВСЕ события
+private Set<Class<?>> getTypeHierarchy(Class<?> type) {
+    // BFS по суперклассам и интерфейсам
+    // EntityDiedEvent → [EntityDiedEvent, Object]
+    // String → [String, CharSequence, Comparable, Serializable, Object]
 }
 ```
 
-Engine не использует `C` ни в одном месте — ни `GameLoop`, ни `SimulationEngine`, ни `SimulationContext`. Зато вынужденный wildcard `SimulationWorld<T, ?>` разбросан везде. Это domain-specific деталь (`Configuration`) в generic-сигнатуре core engine. Метод `getConfiguration()` можно перенести в `NatureWorld` (доменный интерфейс), убрав `C` из engine-контракта.
+Подписка на `Object.class` теперь работает как wildcard-подписчик — получает все события. `AlertService` использует именно такой паттерн (подписывается на конкретный тип). Функция полезна для будущих `MetricsCollector`, `AuditLog` и т.д.
+
+**Риск:** Каждый `publish()` итерирует по иерархии типов события. Для `EntityDiedEvent` иерархия невелика (~2 типа). Но если кто-то опубликует `ArrayList` или другой сложный тип — иерархия будет большой. Кеш `typeHierarchyCache` решает это для повторных вызовов. ✅
+
+**Тест `shouldPublishToHierarchicalSubscribers` проверяет эту функцию** — хорошо. ✅
 
 ---
 
-**8. Два параллельных механизма событий — `WorldListener` vs `EventBus`**
+### 4. Virtual Thread поддержка
 
 ```java
-// SimulationWorld.java
-void addListener(WorldListener<T> listener);
-List<WorldListener<T>> getListeners();
-com.island.engine.event.EventBus getEventBus();
+// SimulationEngine.build()
+ExecutorService executor = (threads > 0)
+    ? Executors.newFixedThreadPool(threads)
+    : Executors.newVirtualThreadPerTaskExecutor(); // Java 21+
 ```
 
-У world есть и `WorldListener` (Observer через список), и `EventBus`. По changelog v1.12 `Island.onEntityRemoved` публикует `EntityDiedEvent` через `WorldListener`, а EventBus используется для `StatisticsService` и `AlertService`. Два разных канала для одних и тех же событий — Shotgun Surgery при добавлении нового типа события (нужно добавлять и в listener, и в bus).
-
-Решение: `WorldListener` — внутренний механизм (protected/package-private), внешние подписчики работают только через `EventBus`. Тогда `World` — producer, все остальные — consumers через шину.
+Для CPU-bound задач симуляции виртуальные потоки не дают преимущества (нет I/O-блокировок). Но для тестов и future use (сетевые симуляции, плагины с внешними вызовами) — правильный extension point. ✅
 
 ---
 
-### 🟢 Мелочи
+### 5. SimulationWorld<T> без параметра C — упрощение интерфейса
 
-- `fix_fqns.py`, `fix_imports.py`, `fix_imports_v2.py` в корне репозитория — это dev-утилиты, им место в `.gitignore` или `scripts/` с явным README
-- `NatureLauncher.monitor()` — magic numbers `5 * 60 * 1000` и `2` секунды: вынести в `Configuration` (там уже есть паттерн для этого)
-- `GameLoop.loopThread` читается из `stop()` без `volatile` — не критично при текущем использовании, но стоит пометить
-- `DefaultEventBus.getTypeHierarchy()` рекурсивный — для глубоких иерархий может быть проблемой, итеративный вариант через stack надёжнее
-- Логи на русском в `NatureLauncher` (`"Запуск симуляции острова..."`) при английском коде в остальных местах — нестабильная конвенция
-- `addRecurringTask(Tickable)` оборачивает в анонимный `ScheduledTask` с захардкоженными Phase.SIMULATION и priority=50 — молчаливые дефолты, лучше требовать `ScheduledTask` напрямую
+В v3 `SimulationWorld<T, C>` был введён для типобезопасного `getConfiguration()`. В v5 параметр `C` убран — `getConfiguration()` перенесён в `NatureWorld` как доменный метод. `SimulationWorld` больше не знает о конфигурации.
+
+Это **правильное упрощение**: движку не нужна конфигурация плагина. `CityMap` больше не обязан реализовывать `getConfiguration()` с заглушкой. ✅
 
 ---
 
-### Итоговые рекомендации по приоритетам
+## 🔴 Остающийся критический баг: двойная отчётность смертей (3 случая)
 
-**Сделать сейчас (до следующей крупной фичи):**
-1. Вызвать `onSimulationStopped` в `SimulationEngine` — это дыра в lifecycle, которую легко закрыть
-2. Починить `CellService.tick()` fallback — бросить `UnsupportedOperationException` или убрать дефолт
-3. Перенести логику мониторинга вымирания из `NatureLauncher` в `NaturePlugin.shouldStop()`
+Из v4 исправлен только `LifecycleService`. Три сервиса продолжают публиковать `EntityDiedEvent` напрямую, при этом `Island.onEntityRemoved()` тоже публикует событие при удалении из ячейки.
 
-**Запланировать на рефакторинг:**
-4. Убрать `C` из `SimulationWorld<T, C>` — простое изменение с большим эффектом
-5. Унифицировать event-механизм: `WorldListener` → только internal, наружу только `EventBus`
-6. Принять решение по ECS и зафиксировать его в `DOCUMENTATION.md`
+### Случай 1: FeedingService — EATEN vs EATEN_BY_PACK
 
-**Архитектурный backlog:**
-7. Разделить `GameLoop` → `GameLoop` + `PhaseScheduler` + `ParallelDispatcher`
-8. `data race` в `CellProcessor` — добавить `volatile` на shared поля
+```java
+// FeedingService.java:128-129
+a.die(DeathCause.EATEN);                    // lastDeathCause = EATEN
+if (node.removeEntity(a)) {
+    // → Cell.removeAnimal() → Island.onEntityRemoved()
+    // → publish(EntityDiedEvent(a, "EATEN"))          ← СОБЫТИЕ 1
+    
+    eventBus.publish(EntityDiedEvent(a, "EATEN_BY_PACK")); // ← СОБЫТИЕ 2
+}
+```
+
+`StatisticsService` регистрирует: +1 к смертям EATEN, +1 к смертям EATEN_BY_PACK. Одна смерть — две записи.
+
+### Случай 2: MovementService — MOVEMENT_EXHAUSTION vs HUNGER
+
+```java
+// MovementService.java:71
+animal.consumeEnergy(moveCost); // внутри: die(DeathCause.HUNGER) если energy=0
+if (!animal.isAlive()) {
+    eventBus.publish(EntityDiedEvent(animal, "MOVEMENT_EXHAUSTION")); // ← СОБЫТИЕ 1
+    // animal ещё В ячейке — CleanupService следующего тика:
+    // cell.cleanupDeadEntities() → removeEntity() → Island.onEntityRemoved()
+    // → publish(EntityDiedEvent(animal, "HUNGER"))                   ← СОБЫТИЕ 2
+}
+```
+
+Одна смерть → MOVEMENT_EXHAUSTION + HUNGER. Разные причины, но один организм.
+
+### Случай 3: ReproductionService — REPRODUCTION_EXHAUSTION vs HUNGER
+
+Аналогичен MovementService: `consumeEnergy()` устанавливает `lastDeathCause = HUNGER`, сервис публикует `REPRODUCTION_EXHAUSTION`, CleanupService позже публикует `HUNGER`.
+
+**Итог:** Все счётчики смертей по причинам (`StatisticsService.getTotalDeaths()`) содержат дубли. `SurvivalCalibrationTest` работает с некорректными данными.
+
+**Единственное правильное решение** — один источник истины:
+
+```java
+// Шаг 1: убрать прямые publish() из всех сервисов для смертей
+// (оставить только в Island.onEntityRemoved)
+
+// Шаг 2: для смертей без немедленного removeEntity (MovementService, ReproductionService)
+// установить правильную DeathCause перед consume:
+animal.die(DeathCause.MOVEMENT_EXHAUSTION); // явно, не через tryConsumeEnergy
+
+// Шаг 3: CleanupService при удалении тригернёт onEntityRemoved → единственный publish
+```
+
+---
+
+## 🟡 Новые замечания в v5
+
+### 1. [MEDIUM] EventBus.publish() — wildcard через Object.class не задокументирован
+
+```java
+// Недокументированная ловушка: подписка на Object.class
+bus.subscribe(Object.class, e -> log.info("any event: {}", e)); // получает ВСЕ события
+```
+
+Это мощная функция, но её отсутствие в Javadoc к `EventBus` означает, что разработчик может обнаружить это случайно. Добавить в `EventBus.subscribe()`:
+
+```java
+/**
+ * Registers a subscriber for a specific event type.
+ * Supports type hierarchy: subscribing to a parent class/interface will
+ * receive events of all subtypes. E.g., subscribe(Object.class, ...) 
+ * receives ALL events.
+ */
+```
+
+---
+
+### 2. [MEDIUM] `PhaseScheduler.parallelGroup` — поле класса вместо локальной переменной
+
+```java
+// PhaseScheduler — parallelGroup как instance field
+private final List<CellService<T, SimulationNode<T>>> parallelGroup = new ArrayList<>();
+
+// execute() очищает в начале каждой фазы:
+parallelGroup.clear();
+```
+
+Нет проблемы при текущей однопоточной `runTick()`. Но `parallelGroup` — это рабочий буфер для одного вызова `execute()`, а не долгоживущее состояние `PhaseScheduler`. Семантически правильнее — локальная переменная. Это также устранит скрытую зависимость от порядка вызовов:
+
+```java
+// Рекомендуется: локальная переменная
+public void execute(SimulationWorld<T> world, List<ScheduledTask> tasks, int tickCount) {
+    // ...
+    List<CellService<T, SimulationNode<T>>> parallelGroup = new ArrayList<>();
+    // ...
+}
+```
+
+---
+
+### 3. [LOW] `WorldListener` удалён — но `SimulationNode` получил `default void onEntityAdded/Removed`
+
+```java
+// SimulationNode.java — новые default-методы
+default void onEntityAdded(T entity) { }
+default void onEntityRemoved(T entity) { }
+```
+
+`WorldListener` был отдельным интерфейсом (паттерн Observer). Теперь колбэки переехали в `SimulationWorld` как `onEntityAdded/onEntityRemoved` и в `SimulationNode` как `default`-методы. Это концептуально другой паттерн — не Observer, а Template Method.
+
+Последствие: `SimulationWorld<T>` теперь обязан реализовывать `onEntityAdded/onEntityRemoved`. `CityMap` также обязан. Сейчас `CityMap` не реализует эти методы — они наследуют пустые дефолты. Это корректно для текущего состояния SimCity, но разработчик может добавить статистику в будущем и не заметить, что нужно переопределить методы в `CityMap`.
+
+---
+
+### 4. [LOW] `CellProcessor` пул никогда не сжимается
+
+```java
+// ParallelDispatcher — пул растёт, но не уменьшается
+while (processorPool.size() < unitCount) {
+    processorPool.add(new CellProcessor<>());
+}
+```
+
+При смене размера мира (или если `getParallelWorkUnits()` когда-либо вернёт меньше чанков) — избыточные `CellProcessor` останутся в пуле до конца жизни `ParallelDispatcher`. Для текущих фиксированных размеров мира — не проблема. При динамических мирах — утечка памяти.
+
+---
+
+### 5. [LOW] `GameLoopOptimizationTest` — слабое утверждение для пула
+
+```java
+// GameLoopOptimizationTest
+assertTrue(gameLoop.getTickCount() >= 5); // не проверяет реюз процессоров
+```
+
+Тест называется `shouldReuseCellProcessorsAndReduceAllocations`, но не проверяет ни реюз (`processorPool` приватный), ни аллокации. Фактически тест только проверяет, что `runTick()` работает 5 раз без исключений. Переименовать или добавить настоящую проверку через рефлексию или счётчик конструктора `CellProcessor`.
+
+---
+
+## 📊 Комплексная оценка прогресса проекта (v1 → v5)
+
+### Динамика по версиям
+
+| Критерий | v1 | v2 | v3 (PR20) | v4 | v5 | Всего Δ |
+|---|---|---|---|---|---|---|
+| **Архитектура** | 6.5 | 7.5 | 8.0 | 8.0 | **8.5** | +2.0 |
+| **Код** | 7.0 | 7.5 | 8.0 | 7.5 | **8.0** | +1.0 |
+| **Переиспользуемость** | 6.0 | 7.0 | 7.5 | 8.0 | **8.5** | +2.5 |
+| **Тестируемость** | 5.0 | 6.0 | 7.0 | 7.5 | **8.0** | +3.0 |
+| **Общая** | 6.5 | 7.5 | 8.0 | 7.5 | **8.5** | +2.0 |
+
+### Что изменилось за 5 версий — архитектурная карта
+
+#### Engine пакет: был монолит → стал framework
+
+```
+v1:  GameLoop (всё в одном)
+v5:  GameLoop (координатор)
+      ├── PhaseScheduler (порядок фаз и приоритетов)
+      └── ParallelDispatcher (параллельное выполнение чанков)
+           └── CellProcessor[] (пул переиспользуемых воркеров)
+
+v1:  SimulationContext (импортировал nature.view!)
+v5:  SimulationContext (zero domain imports, несёт EventBus)
+
+v1:  нет plugin mechanism
+v5:  SimulationPlugin<T> — createWorld(EventBus), registerTasks(), lifecycle hooks
+
+v1:  нет event system
+v5:  EventBus с type hierarchy, unsubscribe, exception isolation
+```
+
+#### Domain isolation: был нарушен → стал чистым
+
+```
+v1:  engine → imports nature.view              ❌
+v5:  engine → zero domain imports              ✅
+
+v1:  Cell instanceof Island                    ❌
+v5:  world.onEntityAdded/onEntityRemoved()     ✅
+
+v1:  AbstractService → NatureWorld (конкретный тип)
+v5:  AbstractService → NatureWorld (domain interface, не engine)  ✅
+
+v1:  SimulationWorld<T,C> → getConfiguration() в движке  ❌
+v5:  getConfiguration() только в NatureWorld             ✅
+```
+
+#### Параллелизм: был хрупким → стал надёжным
+
+```
+v1:  Thread.sleep + ArrayList для задач (race condition)
+v5:  ScheduledExecutorService + ConcurrentLinkedQueue   ✅
+
+v2:  все сервисы priority=50 → один параллельный проход (семантическая регрессия)
+v5:  PRIORITY_LIFECYCLE=90 → PRIORITY_CLEANUP=10 → волновой порядок  ✅
+
+v4:  Organism.components — HashMap (not thread-safe)
+v5:  ConcurrentHashMap + volatile component fields      ✅
+
+v4:  GameLoop создавал new Callable<>() per chunk per tick
+v5:  CellProcessor пул — zero allocation per tick      ✅
+```
+
+#### Тестируемость: была почти нулевой → стала приемлемой
+
+```
+v1:  только интеграционные тесты через полный Island
+v5:  + ArchitectureEvolutionTest (ECS, EventBus)
+     + ConfigurationReflectionTest (config loading)
+     + EventBusTest (exception isolation, unsubscribe, hierarchy)
+     + ComponentThreadSafetyTest (volatile visibility)
+     + GameLoopOptimizationTest (parallel error handling)
+     + RefactoringVerificationTest (GridUtils, SamplingContext, double-lock)
+     + SurvivalCalibrationTest (balance instrument)
+```
+
+### Что НЕ изменилось за 5 версий
+
+| Проблема | Версия появления | Статус |
+|---|---|---|
+| `SpeciesKey` — глобальный статический реестр | v1 | ❌ Не исправлен |
+| Двойная отчётность смертей (3 сервиса) | v4 | ❌ Частично исправлен |
+| `AbstractService.processCell` — `instanceof Cell` | v2 | ⚠️ Принят как domain fact |
+| Нет System-слоя в ECS (Component без System) | v4 | ⚠️ Первый шаг сделан |
+
+---
+
+## 💡 Приоритеты для следующей итерации
+
+### [HIGH] Закрыть двойную отчётность смертей (3 сервиса)
+
+Один паттерн на все три случая:
+
+```java
+// MovementService — вместо: consumeEnergy() + publish(MOVEMENT_EXHAUSTION)
+if (!animal.isAlive()) {
+    // Переопределить причину смерти на доменно-корректную
+    animal.setLastDeathCause(DeathCause.MOVEMENT_EXHAUSTION);
+    // Не публиковать — CleanupService уберёт тело → onEntityRemoved → единственный publish
+}
+
+// ReproductionService — аналогично
+animal.setLastDeathCause(DeathCause.REPRODUCTION_EXHAUSTION); // без publish
+
+// FeedingService — для EATEN_BY_PACK: убрать прямой publish
+// a.die(EATEN_BY_PACK) вместо die(EATEN) + publish(EATEN_BY_PACK)
+// Тогда Island.onEntityRemoved опубликует правильную причину
+```
+
+Изменение в 3 файлах, ~6 строк. Устраняет всю двойную статистику.
+
+### [MEDIUM] Задокументировать type hierarchy в EventBus
+
+```java
+/**
+ * Subscribes to events of the given type AND all its subtypes.
+ * Subscribing to {@code Object.class} acts as a wildcard for all events.
+ */
+<E> void subscribe(Class<E> eventType, Consumer<E> subscriber);
+```
+
+### [MEDIUM] Перевести `PhaseScheduler.parallelGroup` в локальную переменную
+
+```java
+public void execute(...) {
+    List<CellService<T, SimulationNode<T>>> parallelGroup = new ArrayList<>();
+    // ...
+}
+```
+
+### [LOW] Решить судьбу `SpeciesKey`-синглтона
+
+Технический долг существует с v1. Для запуска нескольких изолированных симуляций в одной JVM (например, параллельных тестов) — блокирует. Решение: `SpeciesRegistry` как объект, создаваемый `SpeciesLoader`, без статического реестра в `SpeciesKey`.
+
+### [LOW] Улучшить `GameLoopOptimizationTest`
+
+Переименовать в `shouldHandleParallelExecutionCorrectly` или добавить реальную проверку пула через рефлексию.
+
+---
+
+## Вердикт
+
+**Проект готов к роли универсального симуляционного движка на ~85%.**
+
+За 5 итераций проект прошёл путь от «учебной симуляции острова» до **архитектурно обоснованного game engine** с:
+- Чистым `engine`-пакетом без доменных зависимостей
+- Рабочей plugin-системой (два независимых домена: `nature` и `simcity`)
+- Безопасным параллелизмом (`PhaseScheduler` + `ParallelDispatcher` + `CellProcessor` пул)
+- Типизированным event-driven взаимодействием
+- ECS-задатками (`Component`, `ConcurrentHashMap`-хранилище, `volatile`-поля)
+- Приемлемым тестовым покрытием движка
+
+**Одно блокирующее для следующего PR:** двойная отчётность смертей в 3 сервисах — это 6 строк кода, но делает `StatisticsService` и `SurvivalCalibrationTest` недостоверными.
+
+**После этого фикса** проект можно считать production-ready foundation для симуляторов уровня «Весёлая Ферма» / упрощённый SimCity. До уровня полноценного SimCity остаётся: `SpeciesKey`-синглтон, полноценный ECS `System`-слой, и пространственный индекс для >10K сущностей.

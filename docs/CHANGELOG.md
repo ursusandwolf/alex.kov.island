@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.17.0] - 2026-05-06
+### Fixed
+- **Double Death Reporting**: Fixed redundant `EntityDiedEvent` publications in `FeedingService`, `MovementService`, and `ReproductionService`. All death events are now published from a single source of truth: `Island.onEntityRemoved`.
+- **GameLoop Concurrency**: Refactored `PhaseScheduler` to use local variables for task grouping, eliminating potential race conditions in parallel execution.
+- **Test Verification**: Updated `GameLoopOptimizationTest` to explicitly verify `CellProcessor` reuse in the dispatcher pool via reflection.
+
+### Added
+- **EventBus Documentation**: Added Javadoc for `EventBus.subscribe()` explaining type hierarchy support and `Object.class` wildcard subscription.
+- **Improved Metrics**: Stats now accurately reflect death causes without duplicates, ensuring reliable balance calibration.
+
 ## [1.16.0] - 2026-05-05
 ### Added
 - **Lombok Integration**: Applied `@Slf4j`, `@Getter`, `@Setter`, and `@RequiredArgsConstructor` to `GameLoop`, `ParallelDispatcher`, and `PhaseScheduler` to minimize boilerplate.

@@ -17,7 +17,7 @@ class GameLoopOptimizationTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void shouldReuseCellProcessorsAndReduceAllocations() {
+    void shouldHandleParallelExecutionCorrectly() throws Exception {
         ExecutorService executor = Executors.newFixedThreadPool(4);
         ParallelDispatcher<Mortal> dispatcher = new ParallelDispatcher<>(executor);
         PhaseScheduler<Mortal> scheduler = new PhaseScheduler<>(dispatcher);
@@ -41,13 +41,16 @@ class GameLoopOptimizationTest {
         // Run multiple ticks
         for (int i = 1; i <= 5; i++) {
             gameLoop.runTick();
-            // In parallel mode, we might need a small wait or verify with timeout
             final int tick = i;
             verify(service, timeout(2000).atLeast(tick)).processCell(any(), anyInt());
         }
 
-        // Verify GameLoop state - processorPool should have been populated but reused
-        // We can't access private processorPool easily without reflection, but we can verify it works
+        // Verify that processorPool contains exactly 1 processor (since we have 1 work unit)
+        java.lang.reflect.Field poolField = ParallelDispatcher.class.getDeclaredField("processorPool");
+        poolField.setAccessible(true);
+        List<?> pool = (List<?>) poolField.get(dispatcher);
+        
+        assertEquals(1, pool.size(), "Processor pool should contain exactly one reused processor");
         assertTrue(gameLoop.getTickCount() >= 5);
     }
 

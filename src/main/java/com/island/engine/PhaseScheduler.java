@@ -17,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class PhaseScheduler<T extends Mortal> {
     private final Map<Phase, List<ScheduledTask>> phasedTasks = new EnumMap<>(Phase.class);
-    private final List<CellService<T, SimulationNode<T>>> parallelGroup = new ArrayList<>();
     private final ParallelDispatcher<T> dispatcher;
 
     {
@@ -36,6 +35,8 @@ public class PhaseScheduler<T extends Mortal> {
         for (ScheduledTask task : tasks) {
             phasedTasks.get(task.phase()).add(task);
         }
+
+        List<CellService<T, SimulationNode<T>>> parallelGroup = new ArrayList<>();
 
         // Execute phases in order
         for (Phase phase : Phase.values()) {
