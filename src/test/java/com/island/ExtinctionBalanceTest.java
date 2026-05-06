@@ -33,15 +33,15 @@ public class ExtinctionBalanceTest {
             com.island.engine.SimulationEngine<Organism> engine = new com.island.engine.SimulationEngine<>();
             SimulationContext<Organism> context = engine.build(plugin, config.getTickDurationMs(), 4);
             
-            GameLoop<Organism> gameLoop = context.getGameLoop();
+            GameLoop<Organism> gameLoop = context.gameLoop();
 
-            Set<SpeciesKey> initiallyPresent = ((NatureWorld) context.getWorld()).getRegistry().getAllAnimalKeys();
+            Set<SpeciesKey> initiallyPresent = ((NatureWorld) context.world()).getRegistry().getAllAnimalKeys();
 
             for (int t = 0; t < MAX_TICKS; t++) {
                 gameLoop.runTick();
             }
 
-            Map<SpeciesKey, Integer> counts = ((Island) context.getWorld()).getSpeciesCounts();
+            Map<SpeciesKey, Integer> counts = ((Island) context.world()).getSpeciesCounts();
             for (SpeciesKey key : initiallyPresent) {
                 if (counts.getOrDefault(key, 0) == 0) {
                     extinctionStats.computeIfAbsent(key, k -> new AtomicInteger(0)).incrementAndGet();

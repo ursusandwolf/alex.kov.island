@@ -13,38 +13,30 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public record SpeciesKey(String code, boolean predator) implements Comparable<SpeciesKey> {
     
-    private static final Map<String, SpeciesKey> REGISTRY = new ConcurrentHashMap<>();
-
-    public static final SpeciesKey WOLF = register("wolf", true);
-    public static final SpeciesKey BOA = register("boa", true);
-    public static final SpeciesKey FOX = register("fox", true);
-    public static final SpeciesKey BEAR = register("bear", true);
-    public static final SpeciesKey EAGLE = register("eagle", true);
+    public static final SpeciesKey WOLF = new SpeciesKey("wolf", true);
+    public static final SpeciesKey BOA = new SpeciesKey("boa", true);
+    public static final SpeciesKey FOX = new SpeciesKey("fox", true);
+    public static final SpeciesKey BEAR = new SpeciesKey("bear", true);
+    public static final SpeciesKey EAGLE = new SpeciesKey("eagle", true);
     
-    public static final SpeciesKey HORSE = register("horse", false);
-    public static final SpeciesKey DEER = register("deer", false);
-    public static final SpeciesKey RABBIT = register("rabbit", false);
-    public static final SpeciesKey MOUSE = register("mouse", false);
-    public static final SpeciesKey HAMSTER = register("hamster", false);
-    public static final SpeciesKey GOAT = register("goat", false);
-    public static final SpeciesKey SHEEP = register("sheep", false);
-    public static final SpeciesKey BOAR = register("boar", false);
-    public static final SpeciesKey BUFFALO = register("buffalo", false);
-    public static final SpeciesKey DUCK = register("duck", false);
-    public static final SpeciesKey FROG = register("frog", false);
-    public static final SpeciesKey CHAMELEON = register("chameleon", false);
-    public static final SpeciesKey CATERPILLAR = register("caterpillar", false);
-    public static final SpeciesKey BUTTERFLY = register("butterfly", false);
+    public static final SpeciesKey HORSE = new SpeciesKey("horse", false);
+    public static final SpeciesKey DEER = new SpeciesKey("deer", false);
+    public static final SpeciesKey RABBIT = new SpeciesKey("rabbit", false);
+    public static final SpeciesKey MOUSE = new SpeciesKey("mouse", false);
+    public static final SpeciesKey HAMSTER = new SpeciesKey("hamster", false);
+    public static final SpeciesKey GOAT = new SpeciesKey("goat", false);
+    public static final SpeciesKey SHEEP = new SpeciesKey("sheep", false);
+    public static final SpeciesKey BOAR = new SpeciesKey("boar", false);
+    public static final SpeciesKey BUFFALO = new SpeciesKey("buffalo", false);
+    public static final SpeciesKey DUCK = new SpeciesKey("duck", false);
+    public static final SpeciesKey FROG = new SpeciesKey("frog", false);
+    public static final SpeciesKey CHAMELEON = new SpeciesKey("chameleon", false);
+    public static final SpeciesKey CATERPILLAR = new SpeciesKey("caterpillar", false);
+    public static final SpeciesKey BUTTERFLY = new SpeciesKey("butterfly", false);
     
-    public static final SpeciesKey PLANT = register("plant", false);
-    public static final SpeciesKey GRASS = register("grass", false);
-    public static final SpeciesKey MUSHROOM = register("mushroom", false);
-
-    private static SpeciesKey register(String code, boolean predator) {
-        SpeciesKey key = new SpeciesKey(code.toLowerCase(), predator);
-        REGISTRY.put(code.toLowerCase(), key);
-        return key;
-    }
+    public static final SpeciesKey PLANT = new SpeciesKey("plant", false);
+    public static final SpeciesKey GRASS = new SpeciesKey("grass", false);
+    public static final SpeciesKey MUSHROOM = new SpeciesKey("mushroom", false);
 
     public String getCode() {
         return code;
@@ -52,23 +44,6 @@ public record SpeciesKey(String code, boolean predator) implements Comparable<Sp
 
     public boolean isPredator() {
         return predator;
-    }
-
-    public static SpeciesKey fromCode(String code) {
-        return fromCode(code, false);
-    }
-
-    public static SpeciesKey fromCode(String code, boolean predator) {
-        String lower = code.toLowerCase();
-        SpeciesKey key = REGISTRY.get(lower);
-        if (key == null) {
-            return register(lower, predator);
-        }
-        return key;
-    }
-
-    public static Collection<SpeciesKey> values() {
-        return Collections.unmodifiableCollection(REGISTRY.values());
     }
 
     @Override

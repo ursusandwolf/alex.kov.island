@@ -16,19 +16,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor
 public class PhaseScheduler<T extends Mortal> {
-    private final Map<Phase, List<ScheduledTask>> phasedTasks = new EnumMap<>(Phase.class);
     private final ParallelDispatcher<T> dispatcher;
 
-    {
+    public void execute(SimulationWorld<T> world, List<ScheduledTask> tasks, int tickCount) {
+        Map<Phase, List<ScheduledTask>> phasedTasks = new EnumMap<>(Phase.class);
         for (Phase phase : Phase.values()) {
             phasedTasks.put(phase, new ArrayList<>());
-        }
-    }
-
-    public void execute(SimulationWorld<T> world, List<ScheduledTask> tasks, int tickCount) {
-        // Clear structures to reduce allocations
-        for (List<ScheduledTask> list : phasedTasks.values()) {
-            list.clear();
         }
 
         // Group tasks by phase

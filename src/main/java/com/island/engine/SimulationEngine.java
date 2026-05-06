@@ -22,7 +22,7 @@ public class SimulationEngine<T extends Mortal> {
      */
     public SimulationContext<T> start(SimulationPlugin<T> plugin, int tickDurationMs, int threads) {
         SimulationContext<T> context = build(plugin, tickDurationMs, threads);
-        context.getGameLoop().start();
+        context.gameLoop().start();
         return context;
     }
 
@@ -61,7 +61,7 @@ public class SimulationEngine<T extends Mortal> {
      * @param plugin  The plugin that defined the simulation.
      */
     public void stop(SimulationContext<T> context, SimulationPlugin<T> plugin) {
-        context.getGameLoop().stop();
+        context.gameLoop().stop();
         plugin.onSimulationStopped(context);
     }
 }

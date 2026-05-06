@@ -100,13 +100,13 @@ public class NaturePlugin implements SimulationPlugin<Organism> {
 
     @Override
     public void onSimulationStarted(com.island.engine.SimulationContext<Organism> context) {
-        domainContext.getStatisticsService().subscribe(context.getEventBus());
-        domainContext.getAlertService().subscribe(context.getEventBus());
+        domainContext.getStatisticsService().subscribe(context.eventBus());
+        domainContext.getAlertService().subscribe(context.eventBus());
     }
 
     @Override
     public boolean shouldStop(com.island.engine.SimulationContext<Organism> context) {
-        if (!(context.getWorld() instanceof Island island)) {
+        if (!(context.world() instanceof Island island)) {
             return false;
         }
 

@@ -23,7 +23,7 @@ public class InteractionMatrix implements InteractionProvider {
         this.registry = registry;
         this.indexMap = new HashMap<>();
         int i = 0;
-        for (SpeciesKey key : SpeciesKey.values()) {
+        for (SpeciesKey key : registry.getAllSpeciesKeys()) {
             indexMap.put(key, i++);
         }
         this.size = i;
@@ -67,7 +67,7 @@ public class InteractionMatrix implements InteractionProvider {
     }
 
     public boolean hasAnimalPrey(SpeciesKey predator) {
-        for (SpeciesKey prey : SpeciesKey.values()) {
+        for (SpeciesKey prey : registry.getAllSpeciesKeys()) {
             boolean isBiomass = registry.getAnimalType(prey).map(AnimalType::isBiomass).orElse(false);
             if (!isBiomass && getChance(predator, prey) > 0) {
                 return true;
@@ -90,8 +90,8 @@ public class InteractionMatrix implements InteractionProvider {
 
     public static InteractionMatrix buildFrom(SpeciesRegistry registry) {
         InteractionMatrix matrix = new InteractionMatrix(registry);
-        for (SpeciesKey predatorKey : SpeciesKey.values()) {
-            for (SpeciesKey preyKey : SpeciesKey.values()) {
+        for (SpeciesKey predatorKey : registry.getAllSpeciesKeys()) {
+            for (SpeciesKey preyKey : registry.getAllSpeciesKeys()) {
                 int chance = registry.getHuntProbability(predatorKey, preyKey);
                 if (chance > 0) {
                     matrix.setChance(predatorKey, preyKey, chance);

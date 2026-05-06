@@ -26,10 +26,10 @@ public class StressStabilityTest {
         com.island.engine.SimulationEngine<Organism> engine = new com.island.engine.SimulationEngine<>();
         SimulationContext<Organism> context = engine.build(plugin, config.getTickDurationMs(), 4);
         
-        Island island = (Island) context.getWorld();
+        Island island = (Island) context.world();
 
         for (int i = 0; i < 200; i++) {
-            context.getGameLoop().runTick();
+            context.gameLoop().runTick();
             
             if (i % 50 == 0) {
                 System.out.println("Tick " + i + ": Population=" + island.getTotalOrganismCount());

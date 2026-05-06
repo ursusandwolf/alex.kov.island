@@ -42,8 +42,8 @@ public class SurvivalCalibrationTest {
             com.island.engine.SimulationEngine<Organism> engine = new com.island.engine.SimulationEngine<>();
             SimulationContext<Organism> context = engine.build(plugin, config.getTickDurationMs(), 4);
             
-            Island island = (Island) context.getWorld();
-            GameLoop<Organism> gameLoop = context.getGameLoop();
+            Island island = (Island) context.world();
+            GameLoop<Organism> gameLoop = context.gameLoop();
 
             for (int t = 0; t < MAX_TICKS; t++) {
                 gameLoop.runTick();

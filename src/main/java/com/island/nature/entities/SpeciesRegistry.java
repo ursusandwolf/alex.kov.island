@@ -1,5 +1,6 @@
 package com.island.nature.entities;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,10 +17,22 @@ import lombok.RequiredArgsConstructor;
 public class SpeciesRegistry {
     private final Map<SpeciesKey, AnimalType> animalTypes;
     private final Map<SpeciesKey, AnimalType> biomassTypes;
+    private final Map<String, SpeciesKey> keyRegistry;
 
-    public SpeciesRegistry(Map<SpeciesKey, AnimalType> animalTypes, Map<SpeciesKey, AnimalType> biomassTypes) {
+    public SpeciesRegistry(Map<SpeciesKey, AnimalType> animalTypes, 
+                           Map<SpeciesKey, AnimalType> biomassTypes,
+                           Map<String, SpeciesKey> keyRegistry) {
         this.animalTypes = Collections.unmodifiableMap(new HashMap<>(animalTypes));
         this.biomassTypes = Collections.unmodifiableMap(new HashMap<>(biomassTypes));
+        this.keyRegistry = Collections.unmodifiableMap(new HashMap<>(keyRegistry));
+    }
+
+    public Optional<SpeciesKey> getKey(String code) {
+        return Optional.ofNullable(keyRegistry.get(code.toLowerCase()));
+    }
+
+    public Collection<SpeciesKey> getAllSpeciesKeys() {
+        return keyRegistry.values();
     }
 
     public Optional<AnimalType> getAnimalType(SpeciesKey key) {

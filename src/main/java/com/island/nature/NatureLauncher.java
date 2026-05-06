@@ -49,7 +49,7 @@ public class NatureLauncher {
 
     private static void monitor(SimulationContext<Organism> context, CountDownLatch latch, ScheduledExecutorService scheduler, 
                                 SimulationEngine<Organism> engine, NaturePlugin plugin, Configuration config) {
-        GameLoop<Organism> gameLoop = context.getGameLoop();
+        GameLoop<Organism> gameLoop = context.gameLoop();
         long startTime = System.currentTimeMillis();
         long maxDurationMs = config.getMaxSimulationDurationMs();
 

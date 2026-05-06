@@ -38,11 +38,9 @@ public final class AnimalFactory {
     }
 
     public Animal createAnimal(String key) {
-        try {
-            return createAnimal(SpeciesKey.fromCode(key), 50, 0).orElse(null);
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+        return speciesRegistry.getKey(key)
+                .flatMap(this::createAnimal)
+                .orElse(null);
     }
 
     public Optional<Animal> createAnimal(SpeciesKey key) {

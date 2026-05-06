@@ -27,31 +27,62 @@ public class SpeciesLoader {
 
         Map<SpeciesKey, AnimalType> animalTypes = new HashMap<>();
         Map<SpeciesKey, AnimalType> biomassTypes = new HashMap<>();
+        Map<String, SpeciesKey> keyRegistry = new HashMap<>();
 
         String listStr = props.getProperty("species.list", "");
         if (!listStr.isEmpty()) {
             for (String code : listStr.split(",")) {
-                String trimmed = code.trim();
+                String trimmed = code.trim().toLowerCase();
                 boolean isPred = Boolean.parseBoolean(props.getProperty(trimmed + ".isPredator", "false"));
-                SpeciesKey.fromCode(trimmed, isPred);
+                keyRegistry.put(trimmed, new SpeciesKey(trimmed, isPred));
             }
         }
 
-        for (SpeciesKey key : SpeciesKey.values()) {
+        // Add default keys if not present
+        registerDefaultKeys(keyRegistry);
+
+        for (SpeciesKey key : keyRegistry.values()) {
             if (props.containsKey(key.getCode() + ".weight")) {
-                loadEntry(key, props, animalTypes, biomassTypes);
+                loadEntry(key, props, animalTypes, biomassTypes, keyRegistry);
             }
         }
 
         return new SpeciesRegistry(
                 Collections.unmodifiableMap(animalTypes),
-                Collections.unmodifiableMap(biomassTypes)
+                Collections.unmodifiableMap(biomassTypes),
+                Collections.unmodifiableMap(keyRegistry)
         );
+    }
+
+    private void registerDefaultKeys(Map<String, SpeciesKey> keyRegistry) {
+        keyRegistry.putIfAbsent(SpeciesKey.WOLF.code(), SpeciesKey.WOLF);
+        keyRegistry.putIfAbsent(SpeciesKey.BOA.code(), SpeciesKey.BOA);
+        keyRegistry.putIfAbsent(SpeciesKey.FOX.code(), SpeciesKey.FOX);
+        keyRegistry.putIfAbsent(SpeciesKey.BEAR.code(), SpeciesKey.BEAR);
+        keyRegistry.putIfAbsent(SpeciesKey.EAGLE.code(), SpeciesKey.EAGLE);
+        keyRegistry.putIfAbsent(SpeciesKey.HORSE.code(), SpeciesKey.HORSE);
+        keyRegistry.putIfAbsent(SpeciesKey.DEER.code(), SpeciesKey.DEER);
+        keyRegistry.putIfAbsent(SpeciesKey.RABBIT.code(), SpeciesKey.RABBIT);
+        keyRegistry.putIfAbsent(SpeciesKey.MOUSE.code(), SpeciesKey.MOUSE);
+        keyRegistry.putIfAbsent(SpeciesKey.HAMSTER.code(), SpeciesKey.HAMSTER);
+        keyRegistry.putIfAbsent(SpeciesKey.GOAT.code(), SpeciesKey.GOAT);
+        keyRegistry.putIfAbsent(SpeciesKey.SHEEP.code(), SpeciesKey.SHEEP);
+        keyRegistry.putIfAbsent(SpeciesKey.BOAR.code(), SpeciesKey.BOAR);
+        keyRegistry.putIfAbsent(SpeciesKey.BUFFALO.code(), SpeciesKey.BUFFALO);
+        keyRegistry.putIfAbsent(SpeciesKey.DUCK.code(), SpeciesKey.DUCK);
+        keyRegistry.putIfAbsent(SpeciesKey.FROG.code(), SpeciesKey.FROG);
+        keyRegistry.putIfAbsent(SpeciesKey.CHAMELEON.code(), SpeciesKey.CHAMELEON);
+        keyRegistry.putIfAbsent(SpeciesKey.CATERPILLAR.code(), SpeciesKey.CATERPILLAR);
+        keyRegistry.putIfAbsent(SpeciesKey.BUTTERFLY.code(), SpeciesKey.BUTTERFLY);
+        keyRegistry.putIfAbsent(SpeciesKey.PLANT.code(), SpeciesKey.PLANT);
+        keyRegistry.putIfAbsent(SpeciesKey.GRASS.code(), SpeciesKey.GRASS);
+        keyRegistry.putIfAbsent(SpeciesKey.MUSHROOM.code(), SpeciesKey.MUSHROOM);
     }
 
     private void loadEntry(SpeciesKey key, Properties props, 
                            Map<SpeciesKey, AnimalType> animalTypes,
-                           Map<SpeciesKey, AnimalType> biomassTypes) {
+                           Map<SpeciesKey, AnimalType> biomassTypes,
+                           Map<String, SpeciesKey> keyRegistry) {
         String code = key.getCode();
         long weight = toScaledLong(props.getProperty(code + ".weight", "1"));
         int maxCount = Math.max(0, Integer.parseInt(props.getProperty(code + ".maxPerCell", "1")));
@@ -100,7 +131,10 @@ public class SpeciesLoader {
             for (String part : preyStr.split(",")) {
                 String[] sub = part.split(":");
                 if (sub.length == 2) {
-                    preyMap.put(SpeciesKey.fromCode(sub[0]), Integer.parseInt(sub[1]));
+                    String preyCode = sub[0].toLowerCase();
+                    SpeciesKey preyKey = keyRegistry.computeIfAbsent(preyCode,
+                            k -> new SpeciesKey(k, false)); // Default to non-predator if not defined
+                    preyMap.put(preyKey, Integer.parseInt(sub[1]));
                 }
             }
         }

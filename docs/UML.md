@@ -6,11 +6,12 @@
 - `SimulationWorld` (Island): Central hub. Manages spatial entities and acts as the **single source of truth** for lifecycle events (`onEntityAdded`, `onEntityRemoved`).
 - `SimulationNode` (Cell): Spatial unit. Uses fine-grained thread safety and template methods for lifecycle hooks.
 - `GameLoop`: Orchestrates the simulation lifecycle. Uses constructor injection for `ExecutorService` and `PhaseScheduler`.
-- `PhaseScheduler`: Groups and sorts tasks by `Phase` and priority. Uses stateless execution to ensure thread-safety.
-- `ParallelDispatcher`: Manages `CellProcessor` pool with synchronous fallback and error isolation.
+- `PhaseScheduler`: Groups and sorts tasks by `Phase` and priority. Uses purely local state within its execution method to ensure thread-safety.
+- `ParallelDispatcher`: Manages `CellProcessor` pool with dynamic resizing, synchronous fallback, and error isolation.
 - `CellService`: Interface for parallel business logic (Feeding, Movement, etc.).
 
 ### Domain Layer (Lombok Powered)
+- `SpeciesRegistry`: Centralized, non-static registry for species metadata and unique `SpeciesKey` interning.
 - `Organism`: Base for all life. Standardized on `long` energy (fixed-point). Features thread-safe `energyLock` and volatile ECS components.
 - `Animal` (Herbivore/Predator): LOD 0 entities with individual logic and components.
 - `SwarmOrganism`: LOD 1 entities (Plants, Butterflies) using mass-based aggregation.

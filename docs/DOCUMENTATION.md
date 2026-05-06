@@ -132,5 +132,5 @@ The `Configuration` class uses reflection to load parameters from `species.prope
 
 ## 5. Domain Specific Patterns (Nature)
 - **AnimalFactory**: Uses the Factory pattern to create organisms based on `SpeciesKey`.
-- **SpeciesRegistry**: A registry of all available species and their metadata (`AnimalType`).
+- **SpeciesRegistry**: A centralized, non-static registry of all available species, their metadata (`AnimalType`), and unique `SpeciesKey` instances.
 - **NatureDomainContext**: Uses the **Builder** pattern to aggregate all domain services (statistics, registry, etc.) for easier dependency injection into the `Island`.

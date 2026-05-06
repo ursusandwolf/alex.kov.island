@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.18.0] - 2026-05-06
+### Fixed
+- **SpeciesKey Singleton Debt**: Refactored `SpeciesKey` to a pure value object and moved the interning registry to `SpeciesRegistry`. This eliminates global state and allows for multiple isolated simulation instances.
+- **PhaseScheduler Race Condition**: Moved internal task grouping and parallel group lists to local variables within the `execute` method, ensuring thread-safety for concurrent scheduler usage.
+- **ParallelDispatcher Leak**: Implemented pool shrinking logic in `ParallelDispatcher` to reclaim memory if the number of simulation work units decreases.
+
+### Changed
+- **Modern Java Refactoring**: Converted `SimulationContext` from a class to a Java `record`, reducing boilerplate and aligning with current Java standards.
+- **API Cleanup**: Updated `SpeciesRegistry` and `InteractionMatrix` to provide centralized access to species keys, removing dependencies on static `SpeciesKey` factory methods.
+
 ## [1.17.0] - 2026-05-06
 ### Fixed
 - **Double Death Reporting**: Fixed redundant `EntityDiedEvent` publications in `FeedingService`, `MovementService`, and `ReproductionService`. All death events are now published from a single source of truth: `Island.onEntityRemoved`.

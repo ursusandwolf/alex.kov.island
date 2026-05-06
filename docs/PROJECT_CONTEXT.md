@@ -2,19 +2,19 @@
 
 ## Current State
 - The project is an Island Ecosystem Simulator.
-- Code Review v5 issues have been addressed (GameLoop refactoring, abstraction leaks, lifecycle fixes, event mechanism unification).
-- The engine is now decoupled from domain-specific stop conditions and configurations.
-- Parallel processing is handled by dedicated dispatcher and scheduler.
-- Global and project-specific `GEMINI.md` guidelines are being followed.
+- Critical technical debt from v5/v6 has been resolved:
+    - `SpeciesKey` singleton replaced with registry-based management.
+    - `PhaseScheduler` and `ParallelDispatcher` thread-safety and resource management improved.
+    - `SimulationContext` modernized as a Java Record.
+- Double-counting of entity deaths remains resolved via centralized event publication.
+- Engine is fully decoupled from domain-specific logic.
 
 ## Recent Changes
-- **Single Source of Truth for Deaths**: Resolved double-counting of entity deaths by centralizing `EntityDiedEvent` publication in `Island.onEntityRemoved`. Redundant publications in `FeedingService`, `MovementService`, and `ReproductionService` were removed.
-- **Race Condition Prevention**: Refactored `PhaseScheduler` to move shared state into local variables within the execution method, ensuring thread-safe scheduling even if called from multiple threads.
-- **Improved Observability**: Added Javadoc for `EventBus` to expose the type hierarchy subscription feature.
-- **Dispatcher Optimization**: Verified `CellProcessor` pooling in `ParallelDispatcher` through enhanced unit tests using reflection.
-- **Lombok & Boilerplate Reduction**: Applied Lombok annotations (`@Slf4j`, `@Getter`, `@RequiredArgsConstructor`) across the core engine.
+- **SpeciesKey Refactoring**: Eliminated global state by moving the key registry from `SpeciesKey` to `SpeciesRegistry`.
+- **Scheduler Thread-Safety**: Ensured `PhaseScheduler` is safe for concurrent use by eliminating instance-level state during execution.
+- **Pool Management**: Added dynamic shrinking to the `ParallelDispatcher` processor pool.
+- **Boilerplate Reduction**: Refactored `SimulationContext` to a record.
 
 ## Pending Items
-- Address `SpeciesKey` singleton technical debt (move to registry object).
 - Enhance ECS system layer for more complex logic.
 - Decide on further simulation development or refactoring as requested.

@@ -38,9 +38,15 @@ public class ParallelDispatcher<T extends Mortal> {
         int unitCount = workUnits.size();
         
         if (unitCount > 0) {
-            // Ensure pool capacity
-            while (processorPool.size() < unitCount) {
-                processorPool.add(new CellProcessor<>());
+            // Ensure pool capacity and shrink if necessary
+            if (processorPool.size() < unitCount) {
+                while (processorPool.size() < unitCount) {
+                    processorPool.add(new CellProcessor<>());
+                }
+            } else if (processorPool.size() > unitCount) {
+                while (processorPool.size() > unitCount) {
+                    processorPool.remove(processorPool.size() - 1);
+                }
             }
 
             CountDownLatch latch = new CountDownLatch(unitCount);

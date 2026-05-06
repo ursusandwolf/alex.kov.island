@@ -18,7 +18,7 @@ public class SimCityLauncher {
         
         // Build engine (which calls initialize and registerTasks)
         SimulationContext<SimEntity> context = engine.build(plugin, 100, 4);
-        CityMap map = (CityMap) context.getWorld();
+        CityMap map = (CityMap) context.world();
         BuildingService buildingService = new BuildingService(map);
         CityConsoleView view = new CityConsoleView();
 
@@ -58,7 +58,7 @@ public class SimCityLauncher {
                 buildingService.build(5, 1, Building.Type.RESIDENTIAL);
             }
 
-            context.getGameLoop().runTick();
+            context.gameLoop().runTick();
             view.render(map, i + 1);
             printHappiness(map);
         }
