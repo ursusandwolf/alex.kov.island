@@ -25,7 +25,7 @@ import lombok.Getter;
  * Base class for all simulation services using integer-based arithmetic.
  */
 @Getter
-public abstract class AbstractService implements CellService<Organism, SimulationNode<Organism>> {
+public abstract class AbstractService implements CellService<Organism> {
     protected final Configuration config;
     private final NatureWorld world;
     private final NatureEnvironment environment;

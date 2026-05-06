@@ -11,6 +11,9 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Handles parallel execution of CellServices across world work units.
+ * <p>
+ * NOTE: This class is NOT thread-safe for concurrent calls to {@link #dispatch}.
+ * The internal processor pool is optimized for single-threaded management from the GameLoop.
  *
  * @param <T> The base type of entities.
  */
@@ -21,12 +24,12 @@ public class ParallelDispatcher<T extends Mortal> {
     private final List<CellProcessor<T>> processorPool = new ArrayList<>();
     private final ExecutorService taskExecutor;
 
-    public void dispatch(SimulationWorld<T> world, List<CellService<T, SimulationNode<T>>> services, int tickCount) {
+    public void dispatch(SimulationWorld<T> world, List<ParallelTask<T>> services, int tickCount) {
         if (world == null || taskExecutor.isShutdown()) {
             return;
         }
 
-        for (CellService<T, SimulationNode<T>> service : services) {
+        for (ParallelTask<T> service : services) {
             try {
                 service.beforeTick(tickCount);
             } catch (Exception e) {
@@ -76,7 +79,7 @@ public class ParallelDispatcher<T extends Mortal> {
             }
         }
 
-        for (CellService<T, SimulationNode<T>> service : services) {
+        for (ParallelTask<T> service : services) {
             try {
                 service.afterTick(tickCount);
             } catch (Exception e) {
@@ -87,12 +90,12 @@ public class ParallelDispatcher<T extends Mortal> {
 
     private static class CellProcessor<T extends Mortal> implements Runnable {
         private volatile Collection<? extends SimulationNode<T>> unit;
-        private volatile List<CellService<T, SimulationNode<T>>> services;
+        private volatile List<ParallelTask<T>> services;
         private volatile int tickCount;
         private volatile CountDownLatch latch;
         private volatile Throwable error;
 
-        void update(Collection<? extends SimulationNode<T>> unit, List<CellService<T, SimulationNode<T>>> services, int tickCount, CountDownLatch latch) {
+        void update(Collection<? extends SimulationNode<T>> unit, List<ParallelTask<T>> services, int tickCount, CountDownLatch latch) {
             this.unit = unit;
             this.services = services;
             this.tickCount = tickCount;
@@ -108,7 +111,7 @@ public class ParallelDispatcher<T extends Mortal> {
         public void run() {
             try {
                 for (SimulationNode<T> node : unit) {
-                    for (CellService<T, SimulationNode<T>> service : services) {
+                    for (ParallelTask<T> service : services) {
                         try {
                             service.processCell(node, tickCount);
                         } catch (Exception e) {

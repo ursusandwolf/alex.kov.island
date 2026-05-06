@@ -1,6 +1,7 @@
 package com.island.simcity.service;
 
 import com.island.engine.CellService;
+import com.island.engine.SimulationNode;
 import com.island.simcity.entities.Building;
 import com.island.simcity.entities.Resident;
 import com.island.simcity.entities.SimEntity;
@@ -10,7 +11,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class EconomyService implements CellService<SimEntity, CityTile> {
+public class EconomyService implements CellService<SimEntity> {
     private final CityMap map;
     private final AtomicLong tickIncome = new AtomicLong();
     private final AtomicLong tickExpenses = new AtomicLong();
@@ -22,7 +23,8 @@ public class EconomyService implements CellService<SimEntity, CityTile> {
     }
 
     @Override
-    public void processCell(CityTile tile, int tickCount) {
+    public void processCell(SimulationNode<SimEntity> node, int tickCount) {
+        CityTile tile = (CityTile) node;
         long cellIncome = 0;
         long cellExpenses = 0;
         for (SimEntity entity : tile.getEntities()) {

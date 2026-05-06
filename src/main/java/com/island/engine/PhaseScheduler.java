@@ -29,7 +29,7 @@ public class PhaseScheduler<T extends Mortal> {
             phasedTasks.get(task.phase()).add(task);
         }
 
-        List<CellService<T, SimulationNode<T>>> parallelGroup = new ArrayList<>();
+        List<ParallelTask<T>> parallelGroup = new ArrayList<>();
 
         // Execute phases in order
         for (Phase phase : Phase.values()) {
@@ -43,10 +43,9 @@ public class PhaseScheduler<T extends Mortal> {
 
             parallelGroup.clear();
             for (ScheduledTask task : phaseTasks) {
-                if (task.executionMode() == ExecutionMode.PARALLEL && task instanceof CellService) {
-                    @SuppressWarnings("unchecked")
-                    CellService<T, SimulationNode<T>> cellService = (CellService<T, SimulationNode<T>>) task;
-                    parallelGroup.add(cellService);
+                ParallelTask<T> parallelTask = task.asParallelTask();
+                if (parallelTask != null) {
+                    parallelGroup.add(parallelTask);
                 } else {
                     // Dispatch any accumulated parallel services before sequential task
                     if (!parallelGroup.isEmpty()) {

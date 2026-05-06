@@ -1,6 +1,7 @@
 package com.island.simcity.service;
 
 import com.island.engine.CellService;
+import com.island.engine.SimulationNode;
 import com.island.simcity.entities.Building;
 import com.island.simcity.entities.SimEntity;
 import com.island.simcity.model.CityMap;
@@ -12,7 +13,7 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class ConnectivityService implements CellService<SimEntity, CityTile> {
+public class ConnectivityService implements CellService<SimEntity> {
     private final CityMap map;
 
     @Override
@@ -59,6 +60,6 @@ public class ConnectivityService implements CellService<SimEntity, CityTile> {
     }
 
     @Override
-    public void processCell(CityTile node, int tickCount) {
+    public void processCell(SimulationNode<SimEntity> node, int tickCount) {
     }
 }

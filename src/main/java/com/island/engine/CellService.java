@@ -4,9 +4,8 @@ package com.island.engine;
  * A simulation task that processes individual nodes in parallel.
  *
  * @param <T> The base type of entities in the nodes processed by this service.
- * @param <N> The type of simulation node processed by this service.
  */
-public interface CellService<T extends Mortal, N extends SimulationNode<T>> extends ScheduledTask {
+public interface CellService<T extends Mortal> extends ParallelTask<T> {
     @Override
     default Phase phase() {
         return Phase.SIMULATION;
@@ -22,19 +21,28 @@ public interface CellService<T extends Mortal, N extends SimulationNode<T>> exte
         return ExecutionMode.PARALLEL;
     }
 
+    @Override
+    @SuppressWarnings("unchecked")
+    default <M extends Mortal> ParallelTask<M> asParallelTask() {
+        return (ParallelTask<M>) this;
+    }
+
     /**
      * Optional setup phase called once per tick before parallel processing starts.
      */
+    @Override
     default void beforeTick(int tickCount) { }
 
     /**
      * Processes a single simulation node.
      */
-    void processCell(N node, int tickCount);
+    @Override
+    void processCell(SimulationNode<T> node, int tickCount);
 
     /**
      * Optional cleanup phase called once per tick after parallel processing finishes.
      */
+    @Override
     default void afterTick(int tickCount) { }
 
     /**

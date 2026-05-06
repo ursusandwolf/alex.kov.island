@@ -18,13 +18,19 @@ public class SpeciesRegistry {
     private final Map<SpeciesKey, AnimalType> animalTypes;
     private final Map<SpeciesKey, AnimalType> biomassTypes;
     private final Map<String, SpeciesKey> keyRegistry;
+    private final Set<String> allSpeciesCodes;
 
     public SpeciesRegistry(Map<SpeciesKey, AnimalType> animalTypes, 
                            Map<SpeciesKey, AnimalType> biomassTypes,
                            Map<String, SpeciesKey> keyRegistry) {
-        this.animalTypes = Collections.unmodifiableMap(new HashMap<>(animalTypes));
-        this.biomassTypes = Collections.unmodifiableMap(new HashMap<>(biomassTypes));
-        this.keyRegistry = Collections.unmodifiableMap(new HashMap<>(keyRegistry));
+        this.animalTypes = Map.copyOf(animalTypes);
+        this.biomassTypes = Map.copyOf(biomassTypes);
+        this.keyRegistry = Map.copyOf(keyRegistry);
+        
+        Set<String> codes = new HashSet<>();
+        this.animalTypes.keySet().forEach(k -> codes.add(k.getCode()));
+        this.biomassTypes.keySet().forEach(k -> codes.add(k.getCode()));
+        this.allSpeciesCodes = Set.copyOf(codes);
     }
 
     public Optional<SpeciesKey> getKey(String code) {
@@ -66,13 +72,6 @@ public class SpeciesRegistry {
 
     public Set<SpeciesKey> getAllBiomassKeys() {
         return biomassTypes.keySet();
-    }
-
-    public Set<String> getAllSpeciesCodes() {
-        Set<String> allCodes = new HashSet<>();
-        animalTypes.keySet().forEach(k -> allCodes.add(k.getCode()));
-        biomassTypes.keySet().forEach(k -> allCodes.add(k.getCode()));
-        return allCodes;
     }
 
     public int getHuntProbability(SpeciesKey predator, SpeciesKey prey) {

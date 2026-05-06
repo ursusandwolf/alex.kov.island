@@ -10,11 +10,12 @@
 - Engine is fully decoupled from domain-specific logic.
 
 ## Recent Changes
-- **SpeciesKey Refactoring**: Eliminated global state by moving the key registry from `SpeciesKey` to `SpeciesRegistry`.
-- **Scheduler Thread-Safety**: Ensured `PhaseScheduler` is safe for concurrent use by eliminating instance-level state during execution.
-- **Pool Management**: Added dynamic shrinking to the `ParallelDispatcher` processor pool.
-- **Boilerplate Reduction**: Refactored `SimulationContext` to a record.
+- **ParallelTask Abstraction**: Decoupled engine scheduling from domain-specific `CellService` using a new `ParallelTask` interface and `asParallelTask()` visitor-like method.
+- **SpeciesRegistry Modernization**: Optimized registry with `Map.copyOf` and cached species codes for O(1) code set retrieval.
+- **API Simplification**: Resolved type erasure clashes by removing the unnecessary `N` generic parameter from `CellService`.
+- **Documentation Update**: Explicitly marked `ParallelDispatcher` as not thread-safe for management calls.
 
 ## Pending Items
 - Enhance ECS system layer for more complex logic.
-- Decide on further simulation development or refactoring as requested.
+- Consider adding a `System` layer to handle domain logic outside of `CellService`.
+- Implement more complex behaviors in SimCity plugin to test the new parallel abstraction.

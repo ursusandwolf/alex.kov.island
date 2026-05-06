@@ -6,9 +6,10 @@
 - `SimulationWorld` (Island): Central hub. Manages spatial entities and acts as the **single source of truth** for lifecycle events (`onEntityAdded`, `onEntityRemoved`).
 - `SimulationNode` (Cell): Spatial unit. Uses fine-grained thread safety and template methods for lifecycle hooks.
 - `GameLoop`: Orchestrates the simulation lifecycle. Uses constructor injection for `ExecutorService` and `PhaseScheduler`.
-- `PhaseScheduler`: Groups and sorts tasks by `Phase` and priority. Uses purely local state within its execution method to ensure thread-safety.
-- `ParallelDispatcher`: Manages `CellProcessor` pool with dynamic resizing, synchronous fallback, and error isolation.
-- `CellService`: Interface for parallel business logic (Feeding, Movement, etc.).
+- `PhaseScheduler`: Groups and sorts tasks by `Phase` and priority. Uses an abstract `ParallelTask` visitor-like dispatching to avoid domain leaks.
+- `ParallelDispatcher`: Manages `CellProcessor` pool for parallel execution of `ParallelTask` groups.
+- `ParallelTask`: Abstract interface for per-cell parallel execution.
+- `CellService`: Simplified domain interface for simulation logic.
 
 ### Domain Layer (Lombok Powered)
 - `SpeciesRegistry`: Centralized, non-static registry for species metadata and unique `SpeciesKey` interning.
@@ -74,11 +75,14 @@ Deterministic results using fixed-point arithmetic:
 +-----------+-----------+                     |
             ^                                 v
             |                      +-------------------------+
-    +-------+-------+              |     CellService<T,N>    |
+    +-------+-------+              |     ParallelTask<T>     |
     |               |              +-------------------------+
 +---+----+      +---+----+         | + processCell(node, t)  |
-| Island |      | CityMap|         +-------------------------+
-+--------+      +--------+
+| Island |      | CityMap|         +------------^------------+
++--------+      +--------+                      |
+                                   +------------+------------+
+                                   |      CellService<T>     |
+                                   +-------------------------+
 ```
 
 ### 5. Boilerplate-Free Domain

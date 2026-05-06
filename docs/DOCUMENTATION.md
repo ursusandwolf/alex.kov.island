@@ -47,14 +47,29 @@ The `GameLoop` delegates task orchestration to `PhaseScheduler` and parallel exe
 +------------------+       +------------------+       +---------------------+
 | + runTick()      |       | + schedule()     |       | + dispatch()        |
 +------------------+       +------------------+       +---------------------+
+                                     |                           |
+                                     v                           |
+                           +---------------------------------+   |
+                           |          ScheduledTask          |   |
+                           +---------------------------------+   |
+                           | + phase(): Phase                |   |
+                           | + priority(): int               |   |
+                           | + executionMode(): ExecMode     |   |
+                           | + asParallelTask(): ParallelTask|   |
+                           +---------------------------------+   |
+                                     ^                           |
+                                     |                           |
+                           +---------------------------------+   |
+                           |       ParallelTask<T>           |<--+
+                           +---------------------------------+
+                           | + beforeTick(tick)              |
+                           | + processCell(node, tick)       |
+                           | + afterTick(tick)               |
+                           +---------------------------------+
+                                     ^
                                      |
-                                     v
                            +---------------------------------+
-                           |          ScheduledTask          |
-                           +---------------------------------+
-                           | + phase(): Phase                |
-                           | + priority(): int               |
-                           | + executionMode(): ExecMode     |
+                           |         CellService<T>          |
                            +---------------------------------+
 ```
 

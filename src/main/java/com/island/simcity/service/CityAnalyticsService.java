@@ -1,6 +1,7 @@
 package com.island.simcity.service;
 
 import com.island.engine.CellService;
+import com.island.engine.SimulationNode;
 import com.island.simcity.entities.Building;
 import com.island.simcity.entities.Resident;
 import com.island.simcity.entities.SimEntity;
@@ -10,7 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class CityAnalyticsService implements CellService<SimEntity, CityTile> {
+public class CityAnalyticsService implements CellService<SimEntity> {
     private final CityMap map;
     private final AtomicInteger pop = new AtomicInteger();
     private final AtomicInteger jobs = new AtomicInteger();
@@ -22,8 +23,9 @@ public class CityAnalyticsService implements CellService<SimEntity, CityTile> {
     }
 
     @Override
-    public void processCell(CityTile node, int tickCount) {
-        for (SimEntity entity : node.getEntities()) {
+    public void processCell(SimulationNode<SimEntity> node, int tickCount) {
+        CityTile tile = (CityTile) node;
+        for (SimEntity entity : tile.getEntities()) {
             if (entity instanceof Resident) {
                 pop.incrementAndGet();
             } else if (entity instanceof Building b) {

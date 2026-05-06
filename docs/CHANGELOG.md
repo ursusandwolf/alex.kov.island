@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.19.0] - 2026-05-06
+### Added
+- **ParallelTask Abstraction**: Introduced `ParallelTask` interface to decouple `PhaseScheduler` and `ParallelDispatcher` from domain-specific `CellService`.
+- **Abstract Task Dispatching**: Implemented `asParallelTask()` in `ScheduledTask`, enabling the scheduler to identify and group parallelizable tasks without `instanceof` checks.
+
+### Changed
+- **API Simplification**: Removed the `N` generic parameter from `CellService`, resolving critical type erasure clashes and improving compatibility with the abstract `ParallelTask` hierarchy.
+- **SpeciesRegistry Optimization**: Modernized `SpeciesRegistry` to use `Map.copyOf` for better immutability and cached `allSpeciesCodes` to eliminate redundant allocations in statistics collection.
+- **Thread-Safety Documentation**: Explicitly marked `ParallelDispatcher` as `@NotThreadSafe` for concurrent `dispatch` calls to avoid synchronization overhead while maintaining single-threaded management safety.
+
+### Fixed
+- **Lombok Processing Conflicts**: Resolved a build-breaking erasure clash in `CellService` that was preventing proper annotation processing across the codebase.
+
 ## [1.18.0] - 2026-05-06
 ### Fixed
 - **SpeciesKey Singleton Debt**: Refactored `SpeciesKey` to a pure value object and moved the interning registry to `SpeciesRegistry`. This eliminates global state and allows for multiple isolated simulation instances.

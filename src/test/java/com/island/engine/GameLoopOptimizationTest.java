@@ -32,10 +32,11 @@ class GameLoopOptimizationTest {
         when(world.getParallelWorkUnits()).thenAnswer(inv -> workUnits);
 
         // Mock a parallel service
-        CellService<Mortal, SimulationNode<Mortal>> service = mock(CellService.class);
+        CellService<Mortal> service = mock(CellService.class);
         when(service.executionMode()).thenReturn(ExecutionMode.PARALLEL);
         when(service.phase()).thenReturn(Phase.SIMULATION);
         when(service.priority()).thenReturn(50);
+        when(service.asParallelTask()).thenReturn(service);
         gameLoop.addRecurringTask(service);
 
         // Run multiple ticks
@@ -69,9 +70,10 @@ class GameLoopOptimizationTest {
         when(world.getParallelWorkUnits()).thenAnswer(inv -> workUnits);
 
         AtomicInteger callCount = new AtomicInteger(0);
-        CellService<Mortal, SimulationNode<Mortal>> service = mock(CellService.class);
+        CellService<Mortal> service = mock(CellService.class);
         when(service.executionMode()).thenReturn(ExecutionMode.PARALLEL);
         when(service.phase()).thenReturn(Phase.SIMULATION);
+        when(service.asParallelTask()).thenReturn(service);
         
         doAnswer(inv -> {
             callCount.incrementAndGet();
