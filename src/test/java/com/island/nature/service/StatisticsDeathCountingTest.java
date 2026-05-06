@@ -16,8 +16,9 @@ import com.island.nature.model.Island;
 import com.island.util.DefaultRandomProvider;
 import com.island.util.InteractionMatrix;
 import com.island.util.RandomProvider;
-import java.util.Collections;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -26,18 +27,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class StatisticsDeathCountingTest {
     private Island island;
     private StatisticsService statisticsService;
-    private FeedingService feedingService;
-    private MovementService movementService;
-    private ReproductionService reproductionService;
-    private CleanupService cleanupService;
     private EventBus eventBus;
     private AnimalFactory animalFactory;
     private SpeciesRegistry registry;
     private Configuration config;
     private RandomProvider random;
+    private ExecutorService executor;
 
     @BeforeEach
     void setUp() {
+        executor = Executors.newCachedThreadPool();
         config = new Configuration();
         random = new DefaultRandomProvider();
         registry = new SpeciesLoader(config).load();
@@ -64,10 +63,15 @@ class StatisticsDeathCountingTest {
         
         DefaultHuntingStrategy huntingStrategy = new DefaultHuntingStrategy(config, matrix);
         
-        feedingService = new FeedingService(island, animalFactory, matrix, registry, huntingStrategy, Executors.newSingleThreadExecutor(), random, eventBus);
-        movementService = new MovementService(island, registry, Executors.newSingleThreadExecutor(), random, eventBus);
-        reproductionService = new ReproductionService(island, animalFactory, registry, Executors.newSingleThreadExecutor(), random, eventBus);
-        cleanupService = new CleanupService(island, animalFactory, Executors.newSingleThreadExecutor(), random);
+        new FeedingService(island, animalFactory, matrix, registry, huntingStrategy, executor, random, eventBus);
+        new MovementService(island, registry, executor, random, eventBus);
+        new ReproductionService(island, animalFactory, registry, executor, random, eventBus);
+        new CleanupService(island, animalFactory, executor, random);
+    }
+
+    @AfterEach
+    void tearDown() {
+        executor.shutdownNow();
     }
 
     @Test
@@ -79,10 +83,8 @@ class StatisticsDeathCountingTest {
         cell.addAnimal(wolf);
         cell.addAnimal(rabbit);
         
-        // Initial state: 2 births recorded
         assertEquals(2, statisticsService.getTotalPopulation());
         
-        // Wolf eats rabbit
         rabbit.die(DeathCause.EATEN);
         cell.removeAnimal(rabbit);
         
@@ -114,10 +116,45 @@ class StatisticsDeathCountingTest {
         Animal rabbit = animalFactory.createInitialAnimal(new SpeciesKey("rabbit", false)).orElseThrow();
         cell.addAnimal(rabbit);
         
-        // Die from exhaustion
         rabbit.die(DeathCause.MOVEMENT_EXHAUSTION);
         cell.removeAnimal(rabbit);
         
+        assertEquals(0, statisticsService.getTotalPopulation());
+        assertEquals(1, statisticsService.getTotalDeaths(DeathCause.MOVEMENT_EXHAUSTION).getOrDefault(new SpeciesKey("rabbit", false), 0));
+    }
+
+    @Test
+    void reproductionExhaustionShouldBeReportedOnce() {
+        Cell cell = island.getCell(0, 0);
+        Animal r1 = animalFactory.createInitialAnimal(new SpeciesKey("rabbit", false)).orElseThrow();
+        Animal r2 = animalFactory.createInitialAnimal(new SpeciesKey("rabbit", false)).orElseThrow();
+        cell.addAnimal(r1);
+        cell.addAnimal(r2);
+
+        r1.die(DeathCause.REPRODUCTION_EXHAUSTION);
+        cell.removeAnimal(r1);
+
+        assertEquals(1, statisticsService.getTotalPopulation());
+        assertEquals(1, statisticsService.getTotalDeaths(DeathCause.REPRODUCTION_EXHAUSTION).getOrDefault(new SpeciesKey("rabbit", false), 0));
+    }
+
+    @Test
+    void movementServiceShouldNotDoubleReportDeath() {
+        Cell cell = island.getCell(0, 0);
+        Animal rabbit = animalFactory.createInitialAnimal(new SpeciesKey("rabbit", false)).orElseThrow();
+        cell.addAnimal(rabbit);
+
+        // Manually kill it with MOVEMENT_EXHAUSTION cause
+        rabbit.die(DeathCause.MOVEMENT_EXHAUSTION);
+        
+        assertEquals(true, !rabbit.isAlive());
+        assertEquals(DeathCause.MOVEMENT_EXHAUSTION, rabbit.getLastDeathCause());
+
+        CleanupService cleanupService = new CleanupService(island, animalFactory, executor, random);
+        
+        // Cleanup should remove it and trigger the event exactly once
+        cleanupService.processCell(cell, 0);
+
         assertEquals(0, statisticsService.getTotalPopulation());
         assertEquals(1, statisticsService.getTotalDeaths(DeathCause.MOVEMENT_EXHAUSTION).getOrDefault(new SpeciesKey("rabbit", false), 0));
     }

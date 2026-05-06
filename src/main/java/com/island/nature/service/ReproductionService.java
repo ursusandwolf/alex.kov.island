@@ -125,11 +125,11 @@ public class ReproductionService extends AbstractService {
             int costBP = EnergyPolicy.REPRODUCTION_COST_BP.getBasisPoints();
             parent1.consumeEnergy((parent1.getMaxEnergy() * costBP) / config.getScale10K());
             if (!parent1.isAlive()) {
-                parent1.setLastDeathCause(DeathCause.REPRODUCTION_EXHAUSTION);
+                parent1.die(DeathCause.REPRODUCTION_EXHAUSTION);
             }
             parent2.consumeEnergy((parent2.getMaxEnergy() * costBP) / config.getScale10K());
             if (!parent2.isAlive()) {
-                parent2.setLastDeathCause(DeathCause.REPRODUCTION_EXHAUSTION);
+                parent2.die(DeathCause.REPRODUCTION_EXHAUSTION);
             }
         }
         return success;

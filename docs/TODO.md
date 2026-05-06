@@ -8,16 +8,17 @@
 
 ## 🔴 HOTFIX — Блокирующие баги (до следующего релиза)
 
-### HF-1: Устранить двойную отчётность смертей
+### HF-1: Устранить двойную отчётность смертей [COMPLETED]
 **Файлы:** `FeedingService.java`, `MovementService.java`, `ReproductionService.java`
 
-Три сервиса публикуют `EntityDiedEvent` напрямую, тогда как `Island.onEntityRemoved()`
-публикует второй раз при удалении из ячейки. Все счётчики смертей завышены в 2 раза.
+Три сервиса публиковали `EntityDiedEvent` напрямую, тогда как `Island.onEntityRemoved()`
+публиковал второй раз при удалении из ячейки. Все счётчики смертей были завышены в 2 раза.
 
-- [ ] `FeedingService`: заменить `a.die(EATEN) + publish(EATEN_BY_PACK)` на `a.die(EATEN_BY_PACK)` — убрать прямой `publish()`
-- [ ] `MovementService`: после `consumeEnergy()` установить `animal.die(MOVEMENT_EXHAUSTION)` вместо прямого `publish()`, CleanupService сам тригернёт `onEntityRemoved`
-- [ ] `ReproductionService`: аналогично — `parent.die(REPRODUCTION_EXHAUSTION)` без прямого `publish()`
-- [ ] Добавить тест `StatisticsDeathCountingTest`: убедиться, что одна смерть = ровно одно событие в `StatisticsService` для каждого из трёх сценариев
+- [x] `FeedingService`: заменено на `a.die(EATEN_BY_PACK)` — прямой `publish()` удалён
+- [x] `MovementService`: заменено на `animal.die(MOVEMENT_EXHAUSTION)` — прямой `publish()` удалён
+- [x] `ReproductionService`: заменено на `parent.die(REPRODUCTION_EXHAUSTION)` — прямой `publish()` удалён
+- [x] Добавлен тест `StatisticsDeathCountingTest`: убедились, что одна смерть = ровно одно событие в `StatisticsService`
+
 
 ---
 

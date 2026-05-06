@@ -1,6 +1,16 @@
 # Changelog
 
-## [1.19.0] - 2026-05-06
+## [1.20.0] - 2026-05-06
+### Fixed
+- **HF-1: Centralized Death Reporting**: Standardized `MovementService` and `ReproductionService` to use `die(cause)` for explicit state management. Verified that all services have shifted from direct `EventBus` publication to centralized reporting via `Island.onEntityRemoved`, eliminating double-counting of deaths.
+- **Species Registry Cleanup**: Removed redundant `SpeciesKey` and optimized `SpeciesLoader` for better maintainability and performance.
+- **Herbivore Lifecycle**: Modernized `Butterfly` and `Caterpillar` lifecycle management with improved trait and state handling.
+- **Test Coverage**: Integrated `SimulationStopConditionTest` and `StatisticsDeathCountingTest` to improve simulation verification.
+
+### Changed
+- **InteractionMatrix**: Simplified matrix handling to reduce complexity and potential bugs.
+- **Refactoring**: Applied general refactoring and cleanup across `NaturePlugin` and entity factories to align with project standards.
+
 ### Added
 - **ParallelTask Abstraction**: Introduced `ParallelTask` interface to decouple `PhaseScheduler` and `ParallelDispatcher` from domain-specific `CellService`.
 - **Abstract Task Dispatching**: Implemented `asParallelTask()` in `ScheduledTask`, enabling the scheduler to identify and group parallelizable tasks without `instanceof` checks.

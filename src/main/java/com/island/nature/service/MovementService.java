@@ -68,7 +68,7 @@ public class MovementService extends AbstractService {
                                 long moveCost = (animal.getMaxEnergy() * (1 + speed) * config.getSpeedMoveCostStepBP()) / config.getScale10K();
                                 animal.consumeEnergy(moveCost);
                                 if (!animal.isAlive()) {
-                                    animal.setLastDeathCause(DeathCause.MOVEMENT_EXHAUSTION);
+                                    animal.die(DeathCause.MOVEMENT_EXHAUSTION);
                                 }
                             }
                         }
