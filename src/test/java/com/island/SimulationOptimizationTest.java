@@ -1,31 +1,30 @@
 package com.island;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import com.island.nature.config.SimulationConstants;
-import com.island.nature.entities.Animal;
-import com.island.nature.entities.AnimalFactory;
-import com.island.nature.entities.DefaultHuntingStrategy;
-import com.island.nature.entities.NatureDomainContext;
-import com.island.nature.entities.SpeciesKey;
-import com.island.nature.entities.SpeciesLoader;
-import com.island.nature.entities.SpeciesRegistry;
-import com.island.nature.entities.herbivores.Caterpillar;
+import com.island.engine.event.DefaultEventBus;
 import com.island.nature.config.Configuration;
+import com.island.nature.config.SimulationConstants;
+import com.island.nature.entities.herbivores.Caterpillar;
 import com.island.nature.model.Cell;
 import com.island.nature.model.DefaultBiomassManager;
 import com.island.nature.model.Island;
 import com.island.nature.service.DefaultProtectionService;
 import com.island.nature.service.FeedingService;
 import com.island.nature.service.StatisticsService;
-import com.island.engine.event.DefaultEventBus;
-import com.island.util.DefaultRandomProvider;
-import com.island.util.InteractionMatrix;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import com.island.nature.entities.core.Animal;
+import com.island.nature.entities.core.SpeciesKey;
+import com.island.nature.entities.domain.NatureDomainContext;
+import com.island.nature.entities.registry.AnimalFactory;
+import com.island.nature.entities.registry.SpeciesLoader;
+import com.island.nature.entities.registry.SpeciesRegistry;
+import com.island.nature.entities.strategy.DefaultHuntingStrategy;
+import com.island.util.common.DefaultRandomProvider;
+import com.island.util.interaction.InteractionMatrix;
 
 public class SimulationOptimizationTest {
     private Island island;
@@ -55,7 +54,7 @@ public class SimulationOptimizationTest {
 
         island = new Island(context, 1, 1, new DefaultEventBus());
         feedingService = new FeedingService(island, animalFactory, matrix, registry, 
-                new DefaultHuntingStrategy(config, matrix), Executors.newSingleThreadExecutor(), randomProvider, new DefaultEventBus());
+                new DefaultHuntingStrategy(config, matrix), Executors.newSingleThreadExecutor(), randomProvider);
     }
 
     @Test

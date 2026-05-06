@@ -1,14 +1,14 @@
 package com.island.nature.entities.herbivores;
 
 import com.island.nature.config.Configuration;
-import com.island.nature.entities.AnimalType;
-import com.island.nature.entities.Biomass;
-import com.island.nature.entities.NatureWorld;
-import com.island.nature.entities.Organism;
-import com.island.nature.entities.SpeciesKey;
-import com.island.nature.entities.SwarmOrganism;
-import com.island.engine.SimulationNode;
 import com.island.nature.model.Cell;
+import com.island.engine.core.SimulationNode;
+import com.island.nature.entities.core.AnimalType;
+import com.island.nature.entities.core.Biomass;
+import com.island.nature.entities.core.Organism;
+import com.island.nature.entities.core.SpeciesKey;
+import com.island.nature.entities.core.SwarmOrganism;
+import com.island.nature.entities.domain.NatureWorld;
 
 /**
  * Generalized Caterpillar using SwarmOrganism (LOD 1) with integer arithmetic.

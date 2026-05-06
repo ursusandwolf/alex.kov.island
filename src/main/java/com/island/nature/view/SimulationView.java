@@ -1,6 +1,7 @@
 package com.island.nature.view;
 
-import com.island.engine.WorldSnapshot;
+import com.island.engine.model.WorldSnapshot;
+
 
 /**
  * Interface for simulation visualization.

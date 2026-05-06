@@ -1,18 +1,6 @@
 package com.island.nature.model;
 
 import com.island.nature.config.Configuration;
-import com.island.nature.entities.Animal;
-import com.island.nature.entities.AnimalType;
-import com.island.nature.entities.Biomass;
-import com.island.nature.entities.NatureWorld;
-import com.island.nature.entities.Organism;
-import com.island.nature.entities.SizeClass;
-import com.island.nature.entities.SpeciesKey;
-import com.island.engine.SimulationNode;
-import com.island.engine.SimulationWorld;
-import com.island.util.RandomProvider;
-import com.island.util.SamplingContext;
-import com.island.util.SamplingUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -23,6 +11,18 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
 import lombok.Getter;
 import lombok.Setter;
+import com.island.engine.core.SimulationNode;
+import com.island.engine.core.SimulationWorld;
+import com.island.nature.entities.core.Animal;
+import com.island.nature.entities.core.AnimalType;
+import com.island.nature.entities.core.Biomass;
+import com.island.nature.entities.core.Organism;
+import com.island.nature.entities.core.SizeClass;
+import com.island.nature.entities.core.SpeciesKey;
+import com.island.nature.entities.domain.NatureWorld;
+import com.island.util.common.RandomProvider;
+import com.island.util.sampling.SamplingContext;
+import com.island.util.sampling.SamplingUtils;
 
 @Getter
 public class Cell implements SimulationNode<Organism> {

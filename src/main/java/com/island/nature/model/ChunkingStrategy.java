@@ -1,9 +1,9 @@
 package com.island.nature.model;
 
-import com.island.nature.entities.Organism;
-import com.island.engine.SimulationNode;
 import java.util.ArrayList;
 import java.util.List;
+import com.island.engine.core.SimulationNode;
+import com.island.nature.entities.core.Organism;
 
 /**
  * Strategy for partitioning the island into chunks for parallel processing.

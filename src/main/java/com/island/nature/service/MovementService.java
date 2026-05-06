@@ -1,24 +1,24 @@
 package com.island.nature.service;
 
-import com.island.engine.SimulationNode;
-import com.island.nature.entities.Animal;
-import com.island.nature.entities.AnimalType;
-import com.island.nature.entities.Biomass;
-import com.island.nature.entities.BiomassManager;
-import com.island.nature.entities.DeathCause;
-import com.island.nature.entities.NatureRegistry;
-import com.island.nature.entities.NatureStatistics;
-import com.island.nature.entities.NatureWorld;
-import com.island.nature.entities.Organism;
-import com.island.nature.entities.SpeciesRegistry;
-import com.island.nature.entities.TaskRegistry;
 import com.island.nature.entities.components.MovementComponent;
 import com.island.nature.model.Cell;
-import com.island.util.RandomProvider;
-import com.island.util.SamplingContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import com.island.engine.core.SimulationNode;
+import com.island.nature.entities.core.Animal;
+import com.island.nature.entities.core.AnimalType;
+import com.island.nature.entities.core.Biomass;
+import com.island.nature.entities.core.DeathCause;
+import com.island.nature.entities.core.Organism;
+import com.island.nature.entities.domain.NatureStatistics;
+import com.island.nature.entities.domain.NatureWorld;
+import com.island.nature.entities.domain.TaskRegistry;
+import com.island.nature.entities.registry.BiomassManager;
+import com.island.nature.entities.registry.NatureRegistry;
+import com.island.nature.entities.registry.SpeciesRegistry;
+import com.island.util.common.RandomProvider;
+import com.island.util.sampling.SamplingContext;
 
 /**
  * Service responsible for animal and mobile biomass movement using integer arithmetic.
@@ -27,14 +27,12 @@ public class MovementService extends AbstractService {
     private final NatureRegistry registry;
     private final NatureStatistics statistics;
     private final BiomassManager biomassManager;
-    private final com.island.engine.event.EventBus eventBus;
 
-    public MovementService(NatureWorld world, SpeciesRegistry speciesRegistry, ExecutorService executor, RandomProvider random, com.island.engine.event.EventBus eventBus) {
+    public MovementService(NatureWorld world, SpeciesRegistry speciesRegistry, ExecutorService executor, RandomProvider random) {
         super(world, executor, random);
         this.registry = world;
         this.statistics = world;
         this.biomassManager = world;
-        this.eventBus = eventBus;
     }
 
     @Override
@@ -43,11 +41,9 @@ public class MovementService extends AbstractService {
     }
 
     @Override
-    public void processCell(SimulationNode<Organism> node, int tickCount) {
-        if (node instanceof Cell cell) {
-            processAnimals(cell, tickCount);
-            processMobileBiomass(cell);
-        }
+    protected void doProcessCell(Cell cell, int tickCount) {
+        processAnimals(cell, tickCount);
+        processMobileBiomass(cell);
     }
 
     private void processAnimals(Cell node, int tickCount) {

@@ -1,35 +1,37 @@
 package com.island.nature;
 
-import com.island.engine.GameLoop;
-import com.island.engine.SimulationPlugin;
-import com.island.engine.SimulationWorld;
+import com.island.engine.event.EventBus;
 import com.island.nature.config.Configuration;
-import com.island.nature.entities.AnimalFactory;
-import com.island.nature.entities.NatureDomainContext;
-import com.island.nature.entities.NatureWorld;
-import com.island.nature.entities.Organism;
-import com.island.nature.entities.SpeciesLoader;
-import com.island.nature.entities.SpeciesRegistry;
-import com.island.nature.entities.TaskRegistry;
-import com.island.nature.entities.WorldInitializer;
-import com.island.nature.model.Island;
 import com.island.nature.model.DefaultBiomassManager;
-import com.island.nature.entities.BiomassManager;
+import com.island.nature.model.Island;
 import com.island.nature.service.AlertService;
 import com.island.nature.service.DefaultProtectionService;
 import com.island.nature.service.ProtectionService;
 import com.island.nature.service.StatisticsService;
 import com.island.nature.view.ConsoleView;
 import com.island.nature.view.SimulationView;
-import com.island.util.DefaultRandomProvider;
-import com.island.util.InteractionMatrix;
-import com.island.util.InteractionProvider;
-import com.island.util.RandomProvider;
-import com.island.nature.entities.SpeciesKey;
-import com.island.nature.entities.AnimalType;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import com.island.engine.core.SimulationContext;
+import com.island.engine.core.SimulationPlugin;
+import com.island.engine.core.SimulationWorld;
+import com.island.engine.scheduling.GameLoop;
+import com.island.nature.entities.core.AnimalType;
+import com.island.nature.entities.core.Organism;
+import com.island.nature.entities.core.SpeciesKey;
+import com.island.nature.entities.domain.NatureDomainContext;
+import com.island.nature.entities.domain.NatureWorld;
+import com.island.nature.entities.domain.TaskRegistry;
+import com.island.nature.entities.registry.AnimalFactory;
+import com.island.nature.entities.registry.BiomassManager;
+import com.island.nature.entities.registry.SpeciesLoader;
+import com.island.nature.entities.registry.SpeciesRegistry;
+import com.island.nature.entities.registry.WorldInitializer;
+import com.island.util.common.DefaultRandomProvider;
+import com.island.util.common.RandomProvider;
+import com.island.util.interaction.InteractionMatrix;
+import com.island.util.interaction.InteractionProvider;
 
 /**
  * Plugin implementation for the Nature (Island) simulation.
@@ -72,7 +74,7 @@ public class NaturePlugin implements SimulationPlugin<Organism> {
     }
 
     @Override
-    public SimulationWorld<Organism> createWorld(com.island.engine.event.EventBus eventBus) {
+    public SimulationWorld<Organism> createWorld(EventBus eventBus) {
         Island island = new Island(domainContext, config.getIslandWidth(), config.getIslandHeight(), eventBus);
         
         WorldInitializer initializer = new WorldInitializer();
@@ -89,7 +91,7 @@ public class NaturePlugin implements SimulationPlugin<Organism> {
     }
 
     @Override
-    public void registerTasks(GameLoop<Organism> gameLoop, SimulationWorld<Organism> world, com.island.engine.event.EventBus eventBus) {
+    public void registerTasks(GameLoop<Organism> gameLoop, SimulationWorld<Organism> world, EventBus eventBus) {
         NatureWorld natureWorld = (NatureWorld) world;
         
         TaskRegistry taskRegistry = new TaskRegistry(gameLoop, natureWorld, domainContext.getInteractionProvider(), 
@@ -99,13 +101,13 @@ public class NaturePlugin implements SimulationPlugin<Organism> {
     }
 
     @Override
-    public void onSimulationStarted(com.island.engine.SimulationContext<Organism> context) {
+    public void onSimulationStarted(SimulationContext<Organism> context) {
         domainContext.getStatisticsService().subscribe(context.eventBus());
         domainContext.getAlertService().subscribe(context.eventBus());
     }
 
     @Override
-    public boolean shouldStop(com.island.engine.SimulationContext<Organism> context) {
+    public boolean shouldStop(SimulationContext<Organism> context) {
         if (!(context.world() instanceof Island island)) {
             return false;
         }

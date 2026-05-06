@@ -1,24 +1,22 @@
 package com.island.nature.service;
 
 import com.island.nature.config.EnergyPolicy;
-import com.island.nature.entities.Animal;
-import com.island.nature.entities.AnimalFactory;
-import com.island.nature.entities.AnimalType;
-import com.island.nature.entities.DeathCause;
-import com.island.nature.entities.NatureWorld;
-import com.island.nature.entities.Organism;
-import com.island.nature.entities.SpeciesRegistry;
-import com.island.nature.entities.TaskRegistry;
-import com.island.engine.SimulationNode;
 import com.island.nature.model.Cell;
-import com.island.util.RandomProvider;
-import com.island.util.SamplingContext;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import com.island.nature.entities.core.Animal;
+import com.island.nature.entities.core.AnimalType;
+import com.island.nature.entities.core.DeathCause;
+import com.island.nature.entities.domain.NatureWorld;
+import com.island.nature.entities.domain.TaskRegistry;
+import com.island.nature.entities.registry.AnimalFactory;
+import com.island.nature.entities.registry.SpeciesRegistry;
+import com.island.util.common.RandomProvider;
+import com.island.util.sampling.SamplingContext;
 
 /**
  * Service responsible for animal reproduction using integer-based arithmetic.
@@ -26,14 +24,12 @@ import java.util.concurrent.ExecutorService;
 public class ReproductionService extends AbstractService {
     private final AnimalFactory animalFactory;
     private final SpeciesRegistry speciesRegistry;
-    private final com.island.engine.event.EventBus eventBus;
 
     public ReproductionService(NatureWorld world, AnimalFactory animalFactory, 
-                               SpeciesRegistry speciesRegistry, ExecutorService executor, RandomProvider random, com.island.engine.event.EventBus eventBus) {
+                               SpeciesRegistry speciesRegistry, ExecutorService executor, RandomProvider random) {
         super(world, executor, random);
         this.animalFactory = animalFactory;
         this.speciesRegistry = speciesRegistry;
-        this.eventBus = eventBus;
     }
 
     @Override
@@ -42,45 +38,43 @@ public class ReproductionService extends AbstractService {
     }
 
     @Override
-    public void processCell(SimulationNode<Organism> node, int tickCount) {
-        if (node instanceof Cell cell) {
-            List<Animal> candidates = new ArrayList<>();
-            int totalAnimalsInCell = cell.getAnimalCount(); 
-            int limit = config.getReproductionLodLimit();
-            
-            cell.forEachAnimalSampled(new SamplingContext(limit, getRandom()), a -> {
-                if (shouldAct(a, AnimalType.Action.REPRODUCE, tickCount)) {
-                    candidates.add(a);
-                }
-            });
-
-            if (candidates.size() < 2) {
-                return;
+    protected void doProcessCell(Cell cell, int tickCount) {
+        List<Animal> candidates = new ArrayList<>();
+        int totalAnimalsInCell = cell.getAnimalCount(); 
+        int limit = config.getReproductionLodLimit();
+        
+        cell.forEachAnimalSampled(new SamplingContext(limit, getRandom()), a -> {
+            if (shouldAct(a, AnimalType.Action.REPRODUCE, tickCount)) {
+                candidates.add(a);
             }
-            
-            int samplingScale = (totalAnimalsInCell > limit) ? (totalAnimalsInCell / limit) : 1;
-            Set<Animal> alreadyMated = new HashSet<>();
+        });
 
-            for (int i = 0; i < candidates.size(); i++) {
-                Animal a1 = candidates.get(i);
-                if (alreadyMated.contains(a1) || !a1.canInitiateReproduction()) {
+        if (candidates.size() < 2) {
+            return;
+        }
+        
+        int samplingScale = (totalAnimalsInCell > limit) ? (totalAnimalsInCell / limit) : 1;
+        Set<Animal> alreadyMated = new HashSet<>();
+
+        for (int i = 0; i < candidates.size(); i++) {
+            Animal a1 = candidates.get(i);
+            if (alreadyMated.contains(a1) || !a1.canInitiateReproduction()) {
+                continue;
+            }
+
+            for (int j = i + 1; j < candidates.size(); j++) {
+                Animal a2 = candidates.get(j);
+                if (alreadyMated.contains(a2) || !a2.canInitiateReproduction()) {
                     continue;
                 }
 
-                for (int j = i + 1; j < candidates.size(); j++) {
-                    Animal a2 = candidates.get(j);
-                    if (alreadyMated.contains(a2) || !a2.canInitiateReproduction()) {
-                        continue;
-                    }
-
-                    if (a1.getAnimalType().equals(a2.getAnimalType())) {
-                        int chance = a1.getAnimalType().getReproductionChance();
-                        if (getRandom().nextInt(0, 100) < chance) {
-                            if (tryReproduceScaled(a1, a2, cell, samplingScale)) {
-                                alreadyMated.add(a1);
-                                alreadyMated.add(a2);
-                                break;
-                            }
+                if (a1.getAnimalType().equals(a2.getAnimalType())) {
+                    int chance = a1.getAnimalType().getReproductionChance();
+                    if (getRandom().nextInt(0, 100) < chance) {
+                        if (tryReproduceScaled(a1, a2, cell, samplingScale)) {
+                            alreadyMated.add(a1);
+                            alreadyMated.add(a2);
+                            break;
                         }
                     }
                 }

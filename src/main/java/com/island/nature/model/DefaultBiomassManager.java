@@ -1,10 +1,10 @@
 package com.island.nature.model;
 
-import com.island.nature.entities.Biomass;
-import com.island.nature.entities.BiomassManager;
-import com.island.engine.SimulationNode;
-import com.island.nature.entities.Organism;
 import lombok.RequiredArgsConstructor;
+import com.island.engine.core.SimulationNode;
+import com.island.nature.entities.core.Biomass;
+import com.island.nature.entities.core.Organism;
+import com.island.nature.entities.registry.BiomassManager;
 
 /**
  * Default implementation of BiomassManager.

@@ -1,12 +1,12 @@
 package com.island.nature.entities;
 
-import static com.island.nature.config.SimulationConstants.SCALE_1M;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import com.island.nature.entities.predators.Chameleon;
-import com.island.util.DefaultRandomProvider;
 import java.util.HashMap;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.island.nature.entities.core.AnimalType;
+import com.island.nature.entities.core.SpeciesKey;
+import com.island.util.common.DefaultRandomProvider;
 
 public class ChameleonTest {
 

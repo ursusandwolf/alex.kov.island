@@ -1,11 +1,7 @@
 package com.island.simcity.model;
 
-import com.island.engine.SimulationNode;
-import com.island.engine.SimulationWorld;
-import com.island.engine.WorldSnapshot;
 import com.island.engine.event.EventBus;
 import com.island.simcity.entities.SimEntity;
-import com.island.util.GridUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -13,6 +9,10 @@ import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 import lombok.Getter;
 import lombok.Setter;
+import com.island.engine.core.SimulationNode;
+import com.island.engine.core.SimulationWorld;
+import com.island.engine.model.WorldSnapshot;
+import com.island.util.math.GridUtils;
 
 @Getter
 public class CityMap implements SimulationWorld<SimEntity> {

@@ -1,25 +1,11 @@
 package com.island.nature.model;
 
-import com.island.engine.SimulationNode;
-import com.island.engine.SimulationWorld;
-import com.island.engine.WorldSnapshot;
 import com.island.engine.event.EntityBornEvent;
 import com.island.engine.event.EntityDiedEvent;
 import com.island.engine.event.EventBus;
 import com.island.nature.config.Configuration;
-import com.island.nature.entities.Animal;
-import com.island.nature.entities.AnimalType;
-import com.island.nature.entities.Biomass;
-import com.island.nature.entities.DeathCause;
-import com.island.nature.entities.NatureDomainContext;
-import com.island.nature.entities.NatureWorld;
-import com.island.nature.entities.Organism;
-import com.island.nature.entities.Season;
-import com.island.nature.entities.SpeciesKey;
-import com.island.nature.entities.SpeciesRegistry;
 import com.island.nature.service.ProtectionService;
 import com.island.nature.service.StatisticsService;
-import com.island.util.GridUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -29,6 +15,20 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.Getter;
 import lombok.Setter;
+import com.island.engine.core.SimulationNode;
+import com.island.engine.core.SimulationWorld;
+import com.island.engine.model.WorldSnapshot;
+import com.island.nature.entities.core.Animal;
+import com.island.nature.entities.core.AnimalType;
+import com.island.nature.entities.core.Biomass;
+import com.island.nature.entities.core.DeathCause;
+import com.island.nature.entities.core.Organism;
+import com.island.nature.entities.core.SpeciesKey;
+import com.island.nature.entities.domain.NatureDomainContext;
+import com.island.nature.entities.domain.NatureWorld;
+import com.island.nature.entities.environment.Season;
+import com.island.nature.entities.registry.SpeciesRegistry;
+import com.island.util.math.GridUtils;
 
 @Getter
 public class Island implements NatureWorld {

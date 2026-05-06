@@ -1,11 +1,7 @@
 package com.island;
 
-import com.island.nature.entities.DeathCause;
-import com.island.nature.entities.NatureWorld;
-import com.island.nature.entities.Organism;
-import com.island.nature.entities.SpeciesKey;
-import com.island.engine.GameLoop;
-import com.island.engine.SimulationContext;
+import com.island.nature.NaturePlugin;
+import com.island.nature.config.Configuration;
 import com.island.nature.model.Island;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -13,6 +9,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
+import com.island.engine.core.SimulationContext;
+import com.island.engine.core.SimulationEngine;
+import com.island.engine.scheduling.GameLoop;
+import com.island.nature.entities.core.DeathCause;
+import com.island.nature.entities.core.Organism;
+import com.island.nature.entities.core.SpeciesKey;
+import com.island.nature.entities.domain.NatureWorld;
 
 /**
  * Diagnostic test to identify species that go extinct too often.
@@ -28,9 +31,9 @@ public class ExtinctionBalanceTest {
         Map<SpeciesKey, AtomicInteger> extinctionStats = new HashMap<>();
 
         for (int i = 0; i < ITERATIONS; i++) {
-            com.island.nature.config.Configuration config = com.island.nature.config.Configuration.load();
-            com.island.nature.NaturePlugin plugin = new com.island.nature.NaturePlugin(config);
-            com.island.engine.SimulationEngine<Organism> engine = new com.island.engine.SimulationEngine<>();
+            Configuration config = Configuration.load();
+            NaturePlugin plugin = new NaturePlugin(config);
+            SimulationEngine<Organism> engine = new SimulationEngine<>();
             SimulationContext<Organism> context = engine.build(plugin, config.getTickDurationMs(), 4);
             
             GameLoop<Organism> gameLoop = context.gameLoop();
@@ -53,6 +56,6 @@ public class ExtinctionBalanceTest {
         System.out.println("\n=== EXTINCTION STATS (after " + ITERATIONS + " runs) ===");
         extinctionStats.entrySet().stream()
                 .sorted(Comparator.comparingInt((Map.Entry<SpeciesKey, AtomicInteger> e) -> e.getValue().get()).reversed())
-                .forEach(e -> System.out.println(e.getKey().getCode() + ": " + e.getValue().get() + " extinctions"));
+                .forEach(e -> System.out.println(e.getKey().getCode() + ": " + e.getValue().get() + " extinctions");
     }
 }

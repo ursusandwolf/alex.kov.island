@@ -1,10 +1,10 @@
 package com.island.simcity.model;
 
-import com.island.engine.NodeSnapshot;
-import com.island.engine.WorldSnapshot;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import com.island.engine.model.NodeSnapshot;
+import com.island.engine.model.WorldSnapshot;
 
 @RequiredArgsConstructor
 public class CitySnapshot implements WorldSnapshot {

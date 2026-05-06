@@ -1,7 +1,5 @@
 package com.island.simcity.model;
 
-import com.island.engine.SimulationNode;
-import com.island.engine.SimulationWorld;
 import com.island.simcity.entities.SimEntity;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,6 +10,8 @@ import java.util.function.Consumer;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import com.island.engine.core.SimulationNode;
+import com.island.engine.core.SimulationWorld;
 
 @RequiredArgsConstructor
 public class CityTile implements SimulationNode<SimEntity> {

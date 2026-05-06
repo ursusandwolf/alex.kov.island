@@ -1,8 +1,6 @@
 package com.island.simcity;
 
-import com.island.engine.GameLoop;
-import com.island.engine.SimulationPlugin;
-import com.island.engine.SimulationWorld;
+import com.island.engine.event.EventBus;
 import com.island.simcity.entities.SimEntity;
 import com.island.simcity.model.CityMap;
 import com.island.simcity.service.BuildingService;
@@ -10,6 +8,9 @@ import com.island.simcity.service.CityAnalyticsService;
 import com.island.simcity.service.ConnectivityService;
 import com.island.simcity.service.EconomyService;
 import com.island.simcity.service.PopulationService;
+import com.island.engine.core.SimulationPlugin;
+import com.island.engine.core.SimulationWorld;
+import com.island.engine.scheduling.GameLoop;
 
 /**
  * Plugin implementation for the SimCity simulation.
@@ -24,12 +25,12 @@ public class SimCityPlugin implements SimulationPlugin<SimEntity> {
     }
 
     @Override
-    public SimulationWorld<SimEntity> createWorld(com.island.engine.event.EventBus eventBus) {
+    public SimulationWorld<SimEntity> createWorld(EventBus eventBus) {
         return new CityMap(width, height, eventBus);
     }
 
     @Override
-    public void registerTasks(GameLoop<SimEntity> gameLoop, SimulationWorld<SimEntity> world, com.island.engine.event.EventBus eventBus) {
+    public void registerTasks(GameLoop<SimEntity> gameLoop, SimulationWorld<SimEntity> world, EventBus eventBus) {
         CityMap map = (CityMap) world;
         
         ConnectivityService connService = new ConnectivityService(map);

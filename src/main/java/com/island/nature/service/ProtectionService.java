@@ -1,7 +1,7 @@
 package com.island.nature.service;
 
-import com.island.nature.entities.SpeciesKey;
 import java.util.Map;
+import com.island.nature.entities.core.SpeciesKey;
 
 /**
  * Service responsible for identifying and protecting endangered species.

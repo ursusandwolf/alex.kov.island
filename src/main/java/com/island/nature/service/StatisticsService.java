@@ -1,15 +1,9 @@
 package com.island.nature.service;
 
-import com.island.engine.SimulationWorld;
 import com.island.engine.event.EntityBornEvent;
 import com.island.engine.event.EntityDiedEvent;
 import com.island.engine.event.EventBus;
 import com.island.nature.config.Configuration;
-import com.island.nature.entities.Animal;
-import com.island.nature.entities.DeathCause;
-import com.island.nature.entities.Organism;
-import com.island.nature.entities.SimulationMetrics;
-import com.island.nature.entities.SpeciesKey;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,6 +11,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.LongAdder;
 import lombok.Getter;
+import com.island.engine.core.SimulationWorld;
+import com.island.nature.entities.core.Animal;
+import com.island.nature.entities.core.Biomass;
+import com.island.nature.entities.core.DeathCause;
+import com.island.nature.entities.core.Organism;
+import com.island.nature.entities.core.SpeciesKey;
+import com.island.nature.entities.domain.SimulationMetrics;
 
 /**
  * Service responsible for gathering and providing simulation statistics using integer arithmetic.

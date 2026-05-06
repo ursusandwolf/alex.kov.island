@@ -1,31 +1,14 @@
 package com.island.nature.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-
-import com.island.nature.config.Configuration;
-import com.island.nature.entities.Animal;
-import com.island.nature.entities.AnimalType;
-import com.island.nature.entities.DeathCause;
-import com.island.nature.entities.NatureWorld;
-import com.island.nature.entities.Organism;
-import com.island.nature.entities.Season;
-import com.island.nature.entities.SpeciesKey;
-import com.island.nature.entities.SpeciesLoader;
-import com.island.nature.entities.SpeciesRegistry;
-import com.island.engine.SimulationNode;
-import com.island.engine.SimulationWorld;
 import com.island.engine.event.DefaultEventBus;
+import com.island.nature.config.Configuration;
 import com.island.nature.model.Cell;
-import com.island.util.RandomProvider;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,6 +17,23 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+
+import static org.mockito.BDDMockito.given;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.verify;
+
+import com.island.engine.core.SimulationNode;
+import com.island.engine.core.SimulationWorld;
+import com.island.nature.entities.core.Animal;
+import com.island.nature.entities.core.AnimalType;
+import com.island.nature.entities.core.DeathCause;
+import com.island.nature.entities.core.Organism;
+import com.island.nature.entities.core.SpeciesKey;
+import com.island.nature.entities.domain.NatureWorld;
+import com.island.nature.entities.environment.Season;
+import com.island.nature.entities.registry.SpeciesLoader;
+import com.island.nature.entities.registry.SpeciesRegistry;
+import com.island.util.common.RandomProvider;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -50,6 +50,7 @@ class LifecycleServiceTest {
     @Mock
     private Animal animal;
 
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private Cell cell;
     private SpeciesRegistry registry;
     private final Configuration config = new Configuration();
@@ -58,7 +59,7 @@ class LifecycleServiceTest {
     void setUp() {
         registry = new SpeciesLoader(config).load();
         given(world.getConfiguration()).willReturn(config);
-        lifecycleService = new LifecycleService(world, Executors.newSingleThreadExecutor(), random, new DefaultEventBus());
+        lifecycleService = new LifecycleService(world, executor, random);
         cell = new Cell(0, 0, world);
         
         AnimalType wolfType = registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow();
@@ -67,6 +68,11 @@ class LifecycleServiceTest {
         given(animal.getSpeciesKey()).willReturn(new SpeciesKey("wolf", true));
         
         given(world.getCurrentSeason()).willReturn(Season.SUMMER);
+    }
+
+    @AfterEach
+    void tearDown() {
+        executor.shutdown();
     }
 
     @Test
@@ -133,6 +139,6 @@ class LifecycleServiceTest {
         // 1000 * 100 / 10000 = 10
         // Winter metabolism modifier = 1.2
         // 10 * 1.2 = 12
-        verify(animal).tryConsumeEnergy(150L);
+        verify(animal).tryConsumeEnergy(12L);
     }
 }

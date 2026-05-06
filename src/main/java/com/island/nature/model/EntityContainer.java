@@ -1,12 +1,6 @@
 package com.island.nature.model;
 
 import com.island.nature.config.Configuration;
-import com.island.nature.entities.Animal;
-import com.island.nature.entities.AnimalType;
-import com.island.nature.entities.Biomass;
-import com.island.nature.entities.Organism;
-import com.island.nature.entities.SizeClass;
-import com.island.nature.entities.SpeciesKey;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -17,6 +11,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+import com.island.nature.entities.core.Animal;
+import com.island.nature.entities.core.AnimalType;
+import com.island.nature.entities.core.Biomass;
+import com.island.nature.entities.core.Organism;
+import com.island.nature.entities.core.SizeClass;
+import com.island.nature.entities.core.SpeciesKey;
 
 public class EntityContainer {
     private final Configuration config;

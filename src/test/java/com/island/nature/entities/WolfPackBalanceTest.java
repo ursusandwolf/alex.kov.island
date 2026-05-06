@@ -1,5 +1,6 @@
 package com.island.nature.entities;
 
+import com.island.engine.event.DefaultEventBus;
 import com.island.nature.config.Configuration;
 import com.island.nature.entities.predators.Bear;
 import com.island.nature.model.Cell;
@@ -7,14 +8,21 @@ import com.island.nature.model.DefaultBiomassManager;
 import com.island.nature.model.Island;
 import com.island.nature.service.DefaultProtectionService;
 import com.island.nature.service.FeedingService;
-import com.island.engine.event.DefaultEventBus;
 import com.island.nature.service.StatisticsService;
-import com.island.util.DefaultRandomProvider;
-import com.island.util.InteractionMatrix;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.Test;
+import com.island.nature.entities.core.GenericAnimal;
+import com.island.nature.entities.core.SpeciesKey;
+import com.island.nature.entities.domain.NatureDomainContext;
+import com.island.nature.entities.registry.AnimalFactory;
+import com.island.nature.entities.registry.SpeciesLoader;
+import com.island.nature.entities.registry.SpeciesRegistry;
+import com.island.nature.entities.strategy.DefaultHuntingStrategy;
+import com.island.nature.entities.strategy.HuntingStrategy;
+import com.island.util.common.DefaultRandomProvider;
+import com.island.util.interaction.InteractionMatrix;
 
 class WolfPackBalanceTest {
 
@@ -76,8 +84,7 @@ class WolfPackBalanceTest {
         }
 
         HuntingStrategy huntingStrategy = new DefaultHuntingStrategy(config, matrix);
-        FeedingService service = new FeedingService(island, animalFactory, matrix, registry, huntingStrategy, 
-                                            Executors.newSingleThreadExecutor(), new DefaultRandomProvider(), new DefaultEventBus());
+        FeedingService service = new FeedingService(island, animalFactory, matrix, registry, huntingStrategy, executor, new DefaultRandomProvider());
 
         long totalTime = 0;
         int lastSurvivors = 0;
@@ -101,7 +108,7 @@ class WolfPackBalanceTest {
         }
 
         if (iterations == 100) {
-            System.out.println((usePack ? "[PACK]" : "[SOLO]") + " Survivors: " + lastSurvivors + ", Avg Energy: " + String.format("%.2f", lastAvgEnergy));
+            System.out.println((usePack ? "[PACK]" : "[SOLO]") + " Survivors: " + lastSurvivors + ", Avg Energy: " + String.format("%.2f", lastAvgEnergy);
         }
 
         return totalTime;

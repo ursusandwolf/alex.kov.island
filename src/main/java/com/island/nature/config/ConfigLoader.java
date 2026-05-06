@@ -1,8 +1,9 @@
 package com.island.nature.config;
 
-import com.island.nature.entities.SpeciesKey;
-import com.island.nature.entities.SpeciesRegistry;
-import com.island.util.InteractionMatrix;
+import com.island.nature.entities.core.SpeciesKey;
+import com.island.nature.entities.registry.SpeciesRegistry;
+import com.island.util.interaction.InteractionMatrix;
+
 
 /**
  * Handles loading of all simulation configurations.

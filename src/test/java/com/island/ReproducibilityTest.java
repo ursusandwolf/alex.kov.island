@@ -1,29 +1,28 @@
 package com.island;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import com.island.nature.entities.AnimalFactory;
-import com.island.nature.entities.DefaultHuntingStrategy;
-import com.island.nature.entities.HuntingStrategy;
-import com.island.nature.entities.NatureDomainContext;
-import com.island.nature.entities.SpeciesKey;
-import com.island.nature.entities.SpeciesLoader;
-import com.island.nature.entities.SpeciesRegistry;
+import com.island.engine.event.DefaultEventBus;
 import com.island.nature.config.Configuration;
 import com.island.nature.model.DefaultBiomassManager;
 import com.island.nature.model.Island;
 import com.island.nature.service.DefaultProtectionService;
 import com.island.nature.service.FeedingService;
-import com.island.engine.event.DefaultEventBus;
 import com.island.nature.service.LifecycleService;
 import com.island.nature.service.MovementService;
 import com.island.nature.service.StatisticsService;
-import com.island.util.DefaultRandomProvider;
-import com.island.util.InteractionMatrix;
-import com.island.util.RandomProvider;
-import com.island.util.RandomUtils;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import com.island.nature.entities.core.SpeciesKey;
+import com.island.nature.entities.domain.NatureDomainContext;
+import com.island.nature.entities.registry.AnimalFactory;
+import com.island.nature.entities.registry.SpeciesLoader;
+import com.island.nature.entities.registry.SpeciesRegistry;
+import com.island.nature.entities.strategy.DefaultHuntingStrategy;
+import com.island.nature.entities.strategy.HuntingStrategy;
+import com.island.util.common.DefaultRandomProvider;
+import com.island.util.common.RandomProvider;
+import com.island.util.common.RandomUtils;
+import com.island.util.interaction.InteractionMatrix;
 
 class ReproducibilityTest {
 
@@ -84,9 +83,9 @@ class ReproducibilityTest {
         island.getCell(1, 1).addAnimal(factory.createAnimal(new SpeciesKey("rabbit", false)).orElseThrow());
 
         // 2. Run one tick of services
-        new LifecycleService(island, executor, fixedProvider, new DefaultEventBus()).tick(1);
-        new FeedingService(island, factory, matrix, registry, strategy, executor, fixedProvider, new DefaultEventBus()).tick(1);
-        new MovementService(island, registry, executor, fixedProvider, new DefaultEventBus()).tick(1);
+        new LifecycleService(island, executor, fixedProvider).tick(1);
+        new FeedingService(island, factory, matrix, registry, strategy, executor, fixedProvider).tick(1);
+        new MovementService(island, registry, executor, fixedProvider).tick(1);
 
         String state = island.getSpeciesCounts().toString() + "_" + island.getTotalOrganismCount();
         

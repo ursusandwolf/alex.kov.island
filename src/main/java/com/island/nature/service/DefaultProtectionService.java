@@ -1,13 +1,13 @@
 package com.island.nature.service;
 
 import com.island.nature.config.Configuration;
-import com.island.nature.entities.AnimalType;
-import com.island.nature.entities.SpeciesKey;
-import com.island.nature.entities.SpeciesRegistry;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import com.island.nature.entities.core.AnimalType;
+import com.island.nature.entities.core.SpeciesKey;
+import com.island.nature.entities.registry.SpeciesRegistry;
 
 @RequiredArgsConstructor
 public class DefaultProtectionService implements ProtectionService {

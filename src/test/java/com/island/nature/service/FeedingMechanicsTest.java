@@ -1,30 +1,8 @@
 package com.island.nature.service;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.verify;
-
-import com.island.nature.config.Configuration;
-import com.island.nature.entities.Animal;
-import com.island.nature.entities.AnimalFactory;
-import com.island.nature.entities.AnimalType;
-import com.island.nature.entities.Biomass;
-import com.island.nature.entities.DefaultHuntingStrategy;
-import com.island.nature.entities.HuntingStrategy;
-import com.island.nature.entities.NatureWorld;
-import com.island.nature.entities.Organism;
-import com.island.nature.entities.SpeciesKey;
-import com.island.nature.entities.SpeciesLoader;
-import com.island.nature.entities.SpeciesRegistry;
-import com.island.engine.SimulationNode;
-import com.island.engine.SimulationWorld;
 import com.island.engine.event.DefaultEventBus;
+import com.island.nature.config.Configuration;
 import com.island.nature.model.Cell;
-import com.island.util.InteractionMatrix;
-import com.island.util.InteractionProvider;
-import com.island.util.RandomProvider;
 import java.util.Collections;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,6 +13,23 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.island.engine.core.SimulationNode;
+import com.island.engine.core.SimulationWorld;
+import com.island.nature.entities.core.Animal;
+import com.island.nature.entities.core.AnimalType;
+import com.island.nature.entities.core.Biomass;
+import com.island.nature.entities.core.Organism;
+import com.island.nature.entities.core.SpeciesKey;
+import com.island.nature.entities.domain.NatureWorld;
+import com.island.nature.entities.registry.AnimalFactory;
+import com.island.nature.entities.registry.SpeciesLoader;
+import com.island.nature.entities.registry.SpeciesRegistry;
+import com.island.nature.entities.strategy.DefaultHuntingStrategy;
+import com.island.nature.entities.strategy.HuntingStrategy;
+import com.island.util.common.RandomProvider;
+import com.island.util.interaction.InteractionMatrix;
+import com.island.util.interaction.InteractionProvider;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -62,7 +57,7 @@ class FeedingMechanicsTest {
         HuntingStrategy strategy = new DefaultHuntingStrategy(config, matrix);
         
         given(world.getConfiguration()).willReturn(config);
-        feedingService = new FeedingService(world, animalFactory, matrix, registry, strategy, Executors.newSingleThreadExecutor(), random, new DefaultEventBus());
+        feedingService = new FeedingService(world, animalFactory, matrix, registry, strategy, executor, random);
         cell = new Cell(0, 0, world);
         
         given(world.getRegistry()).willReturn(registry);

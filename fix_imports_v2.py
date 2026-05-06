@@ -1,182 +1,201 @@
 import os
 import re
-from pathlib import Path
 
-# Mapping of package -> set of class names or class -> set of static members
-package_map = {}
-
-def populate_package_map():
-    # 1. Internal classes from glob results (approximate)
-    src_root = Path("/Users/alex/IdeaProjects/alex.kov.island/src/main/java")
-    for java_file in src_root.rglob("*.java"):
-        # Get package name from path
-        rel_path = java_file.relative_to(src_root)
-        package = ".".join(rel_path.parent.parts)
-        if package:
-            package = "com.island." + package if not package.startswith("com.island") else package
-        else:
-            package = "com.island"
-        
-        class_name = java_file.stem
-        if package not in package_map:
-            package_map[package] = set()
-        package_map[package].add(class_name)
-
-    # 2. SimulationConstants static members
-    constants_file = src_root / "com/island/config/SimulationConstants.java"
-    if constants_file.exists():
-        content = constants_file.read_text()
-        members = re.findall(r"public static final \w+ (\w+)", content)
-        package_map["static com.island.config.SimulationConstants"] = set(members)
-
-    # 3. java.util common classes
-    package_map["java.util"] = {
-        "List", "ArrayList", "LinkedList", "Map", "HashMap", "TreeMap", "LinkedHashMap",
-        "Set", "HashSet", "TreeSet", "LinkedHashSet", "Collections", "Arrays", "Objects",
-        "Optional", "Scanner", "UUID", "Random", "Iterator", "Enumeration", "Vector",
-        "Stack", "Queue", "Deque", "PriorityQueue", "BitSet", "Calendar", "Date",
-        "GregorianCalendar", "StringTokenizer", "Properties", "Comparator", "InputMismatchException",
-        "NoSuchElementException", "ConcurrentModificationException", "Timer", "TimerTask",
-        "Formatter", "Locale", "ResourceBundle", "TimeZone", "ServiceLoader", "Collection"
-    }
+package_map = {
+    # com.island.nature.entities
+    "Animal": "com.island.nature.entities.core",
+    "Organism": "com.island.nature.entities.core",
+    "Biomass": "com.island.nature.entities.core",
+    "GenericAnimal": "com.island.nature.entities.core",
+    "GenericBiomass": "com.island.nature.entities.core",
+    "SwarmOrganism": "com.island.nature.entities.core",
+    "AnimalType": "com.island.nature.entities.core",
+    "SizeClass": "com.island.nature.entities.core",
+    "DeathCause": "com.island.nature.entities.core",
+    "SpeciesKey": "com.island.nature.entities.core",
     
-    # 3b. java.io and java.nio
-    package_map["java.io"] = {
-        "File", "InputStream", "OutputStream", "FileInputStream", "FileOutputStream",
-        "BufferedReader", "BufferedWriter", "InputStreamReader", "OutputStreamWriter",
-        "FileReader", "FileWriter", "PrintWriter", "IOException", "Serializable",
-        "ByteArrayInputStream", "ByteArrayOutputStream", "ObjectInputStream", "ObjectOutputStream",
-        "PrintStream", "StringReader", "StringWriter"
-    }
-    package_map["java.nio.file"] = {
-        "Path", "Paths", "Files", "StandardOpenOption", "FileSystems"
-    }
+    "NatureRegistry": "com.island.nature.entities.registry",
+    "SpeciesRegistry": "com.island.nature.entities.registry",
+    "SpeciesLoader": "com.island.nature.entities.registry",
+    "AnimalFactory": "com.island.nature.entities.registry",
+    "WorldInitializer": "com.island.nature.entities.registry",
+    "BiomassManager": "com.island.nature.entities.registry",
     
-    # 4. org.junit.jupiter.api.Assertions
-    package_map["static org.junit.jupiter.api.Assertions"] = {
-        "assertEquals", "assertNotEquals", "assertTrue", "assertFalse", "assertNull", 
-        "assertNotNull", "assertSame", "assertNotSame", "assertThrows", "assertDoesNotThrow",
-        "assertTimeout", "assertTimeoutPreemptively", "assertAll", "fail"
-    }
+    "HuntingStrategy": "com.island.nature.entities.strategy",
+    "DefaultHuntingStrategy": "com.island.nature.entities.strategy",
+    "PreyProvider": "com.island.nature.entities.strategy",
+    
+    "NatureDomainContext": "com.island.nature.entities.domain",
+    "NatureEnvironment": "com.island.nature.entities.domain",
+    "NatureWorld": "com.island.nature.entities.domain",
+    "SimulationMetrics": "com.island.nature.entities.domain",
+    "NatureStatistics": "com.island.nature.entities.domain",
+    "TaskRegistry": "com.island.nature.entities.domain",
+    
+    "Season": "com.island.nature.entities.environment",
+    "SeasonManager": "com.island.nature.entities.environment",
+    
+    # com.island.engine
+    "SimulationEngine": "com.island.engine.core",
+    "SimulationWorld": "com.island.engine.core",
+    "SimulationNode": "com.island.engine.core",
+    "SimulationPlugin": "com.island.engine.core",
+    "SimulationContext": "com.island.engine.core",
+    "ExecutionMode": "com.island.engine.core",
+    
+    "GameLoop": "com.island.engine.scheduling",
+    "PhaseScheduler": "com.island.engine.scheduling",
+    "Phase": "com.island.engine.scheduling",
+    "ScheduledTask": "com.island.engine.scheduling",
+    
+    "ParallelDispatcher": "com.island.engine.parallel",
+    "ParallelTask": "com.island.engine.parallel",
+    
+    "NodeSnapshot": "com.island.engine.model",
+    "WorldSnapshot": "com.island.engine.model",
+    "Tickable": "com.island.engine.model",
+    "Mortal": "com.island.engine.model",
+    
+    "CellService": "com.island.engine.service",
+    
+    # com.island.util
+    "GridUtils": "com.island.util.math",
+    "SamplingUtils": "com.island.util.sampling",
+    "SamplingContext": "com.island.util.sampling",
+    "RandomProvider": "com.island.util.common",
+    "DefaultRandomProvider": "com.island.util.common",
+    "RandomUtils": "com.island.util.common",
+    "ObjectPool": "com.island.util.common",
+    "Poolable": "com.island.util.common",
+    "ViewUtils": "com.island.util.common",
+    "InteractionMatrix": "com.island.util.interaction",
+    "InteractionProvider": "com.island.util.interaction"
+}
 
-    # 5. org.mockito.Mockito
-    package_map["static org.mockito.Mockito"] = {
-        "mock", "when", "verify", "times", "never", "atLeast", "atLeastOnce", "atMost",
-        "any", "anyInt", "anyString", "anyLong", "anyList", "eq", "doReturn", "doThrow",
-        "doAnswer", "doNothing", "spy", "argumentCaptor", "verifyNoInteractions", "verifyNoMoreInteractions"
-    }
+# Add other classes that might be used as FQNs but weren't moved in this batch
+# We need to know where they are.
+# Let's find all com.island classes first.
 
-def fix_imports(file_path):
+all_classes = {}
+
+def find_all_classes():
+    for root, dirs, files in os.walk("src/main/java"):
+        for file in files:
+            if file.endswith(".java"):
+                class_name = file[:-5]
+                rel_path = os.path.relpath(root, "src/main/java")
+                package = rel_path.replace(os.sep, ".")
+                all_classes[class_name] = package
+
+find_all_classes()
+# Override with our new mapping
+all_classes.update(package_map)
+
+def get_package_from_path(file_path):
+    if "src/main/java/" in file_path:
+        rel_path = os.path.dirname(os.path.relpath(file_path, "src/main/java/"))
+    elif "src/test/java/" in file_path:
+        rel_path = os.path.dirname(os.path.relpath(file_path, "src/test/java/"))
+    else:
+        return None
+    return rel_path.replace(os.sep, ".")
+
+def fix_file(file_path):
     with open(file_path, 'r') as f:
         lines = f.readlines()
 
+    new_package = get_package_from_path(file_path)
+    if not new_package:
+        return
+
     content = "".join(lines)
     
-    # Find all wildcard imports
-    wildcard_imports = re.findall(r"import (?:static )?([\w\.]+)\.\*;", content)
-    if not wildcard_imports:
-        return False
+    # Update package declaration
+    content = re.sub(r"package com\.island\.[^;]+;", f"package {new_package};", content)
+    # If it's com.island (e.g. Main.java), it might just be package com.island;
+    content = re.sub(r"package com\.island;", f"package {new_package};", content)
 
-    new_imports = set()
-    wildcard_lines = []
+    # Handle FQNs and collect necessary imports
+    needed_imports = set()
     
-    # Get all words in the file to check for usage
-    words = set(re.findall(r"\b\w+\b", content))
-
-    for imp in wildcard_imports:
-        # Check if it's static
-        is_static = f"import static {imp}.*;" in content
-        key = ("static " if is_static else "") + imp
+    def fqn_replacer(match):
+        fqn = match.group(0)
+        parts = fqn.split('.')
+        class_name = parts[-1]
+        package = ".".join(parts[:-1])
         
-        if key in package_map:
-            for member in package_map[key]:
-                if member in words:
-                    # Check if it's not the class definition itself or already explicitly imported
-                    # (Simple heuristic)
-                    if is_static:
-                        new_imports.add(f"import static {imp}.{member};")
-                    else:
-                        new_imports.add(f"import {imp}.{member};")
-        
-        # Mark lines for removal
-        if is_static:
-            wildcard_lines.append(f"import static {imp}.*;\n")
-        else:
-            wildcard_lines.append(f"import {imp}.*;\n")
+        # If it's a known class, we can potentially simplify it
+        if class_name in all_classes:
+            target_package = all_classes[class_name]
+            if target_package != new_package:
+                needed_imports.add(f"{target_package}.{class_name}")
+            return class_name
+        return fqn
 
-    if not new_imports and not wildcard_lines:
-        return False
+    # Replace com.island.X.Y.ClassName with ClassName
+    content = re.sub(r"com\.island\.[a-zA-Z0-9_.]+\.([A-Z][a-zA-Z0-9_]+)", fqn_replacer, content)
 
-    # Filter out existing explicit imports from new_imports to avoid duplicates
-    existing_imports = set(re.findall(r"import (?:static )?[\w\.]+;", content))
-    new_imports = {ni for ni in new_imports if ni.strip(";") not in existing_imports}
+    # Update existing imports
+    def import_replacer(match):
+        imp = match.group(1)
+        parts = imp.split('.')
+        class_name = parts[-1]
+        if class_name in all_classes:
+            target_package = all_classes[class_name]
+            if target_package != new_package:
+                needed_imports.add(f"{target_package}.{class_name}")
+            return "" # Remove old import, we'll re-add it
+        return match.group(0)
 
-    # Reconstruct the file
-    new_lines = []
-    import_inserted = False
+    content = re.sub(r"import (com\.island\.[^;]+);", import_replacer, content)
+
+    # Now re-add all needed imports
+    lines = content.splitlines()
+    final_lines = []
+    package_line_idx = -1
+    last_import_idx = -1
     
-    # Simple strategy: remove wildcard lines, find first import line, insert new ones there
-    # then sort all imports.
+    for i, line in enumerate(lines):
+        if line.startswith("package "):
+            package_line_idx = i
+        if line.startswith("import "):
+            last_import_idx = i
+            
+    # Remove empty import lines left by our replacer
+    lines = [l for l in lines if l.strip() != "import ;" and l.strip() != "import"]
     
-    current_imports = []
+    # Collect imports again
+    existing_imports = set()
     other_lines = []
-    
-    in_imports = False
     for line in lines:
         if line.startswith("import "):
-            if line not in wildcard_lines:
-                current_imports.append(line)
-            in_imports = True
-        elif line.strip() == "" and in_imports:
-            # Keep empty lines between import groups for now? 
-            # Actually let's just collect all imports and re-emit them.
-            pass
-        elif line.startswith("package "):
-            other_lines.append(line)
+            existing_imports.add(line)
         else:
             other_lines.append(line)
-            if line.strip() != "":
-                in_imports = False
-
-    all_imports = list(set(current_imports) | {ni + "\n" for ni in new_imports})
-    
-    # Sort imports: static first, then by name
-    all_imports.sort(key=lambda x: (not x.startswith("import static"), x))
-
-    # Build new file content
-    final_lines = []
-    for line in other_lines:
-        final_lines.append(line)
-        if line.startswith("package "):
-            final_lines.append("\n")
-            final_lines.extend(all_imports)
-            import_inserted = True
             
-    if not import_inserted:
-        # No package declaration?
-        final_lines = all_imports + ["\n"] + other_lines
-
-    # Clean up multiple newlines
-    final_content = "".join(final_lines)
-    final_content = re.sub(r'\n{3,}', '\n\n', final_content)
-
-    if final_content != content:
-        with open(file_path, 'w') as f:
-            f.write(final_content)
-        return True
-    return False
-
-if __name__ == "__main__":
-    populate_package_map()
-    root_dirs = [
-        "/Users/alex/IdeaProjects/alex.kov.island/src/main/java",
-        "/Users/alex/IdeaProjects/alex.kov.island/src/test/java"
-    ]
+    for imp in needed_imports:
+        existing_imports.add(f"import {imp};")
+        
+    # Sort and place imports
+    sorted_imports = sorted(list(existing_imports))
     
-    count = 0
-    for root_dir in root_dirs:
-        for p in Path(root_dir).rglob("*.java"):
-            if fix_imports(p):
-                print(f"Fixed {p}")
-                count += 1
-    print(f"Total files fixed: {count}")
+    # Find where to insert
+    new_content = []
+    found_package = False
+    for line in other_lines:
+        new_content.append(line)
+        if line.startswith("package "):
+            new_content.append("")
+            new_content.extend(sorted_imports)
+            found_package = True
+            
+    if not found_package:
+         new_content = sorted_imports + [""] + other_lines
+
+    with open(file_path, 'w') as f:
+        f.write("\n".join(new_content) + "\n")
+
+for root, dirs, files in os.walk("src"):
+    for file in files:
+        if file.endswith(".java"):
+            fix_file(os.path.join(root, file))

@@ -1,14 +1,12 @@
 package com.island.nature.service;
 
-import com.island.nature.entities.Animal;
-import com.island.nature.entities.AnimalFactory;
-import com.island.nature.entities.NatureWorld;
-import com.island.nature.entities.Organism;
-import com.island.nature.entities.TaskRegistry;
-import com.island.engine.SimulationNode;
 import com.island.nature.model.Cell;
-import com.island.util.RandomProvider;
 import java.util.concurrent.ExecutorService;
+import com.island.nature.entities.core.Animal;
+import com.island.nature.entities.domain.NatureWorld;
+import com.island.nature.entities.domain.TaskRegistry;
+import com.island.nature.entities.registry.AnimalFactory;
+import com.island.util.common.RandomProvider;
 
 /**
  * Service responsible for cleaning up dead organisms and returning them to the pool.
@@ -28,13 +26,11 @@ public class CleanupService extends AbstractService {
     }
 
     @Override
-    public void processCell(SimulationNode<Organism> node, int tickCount) {
-        if (node instanceof Cell cell) {
-            cell.cleanupDeadEntities(e -> {
-                if (e instanceof Animal a) {
-                    animalFactory.releaseAnimal(a);
-                }
-            });
-        }
+    protected void doProcessCell(Cell cell, int tickCount) {
+        cell.cleanupDeadEntities(e -> {
+            if (e instanceof Animal a) {
+                animalFactory.releaseAnimal(a);
+            }
+        });
     }
 }

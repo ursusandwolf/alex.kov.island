@@ -1,13 +1,13 @@
 package com.island.nature.model;
 
-import com.island.nature.entities.Animal;
-import com.island.nature.entities.AnimalType;
-import com.island.nature.entities.Biomass;
-import com.island.nature.entities.NatureWorld;
-import com.island.nature.entities.SpeciesKey;
-import com.island.engine.NodeSnapshot;
 import java.util.HashMap;
 import java.util.Map;
+import com.island.engine.model.NodeSnapshot;
+import com.island.nature.entities.core.Animal;
+import com.island.nature.entities.core.AnimalType;
+import com.island.nature.entities.core.Biomass;
+import com.island.nature.entities.core.SpeciesKey;
+import com.island.nature.entities.domain.NatureWorld;
 
 /**
  * Island-specific implementation of NodeSnapshot using integer arithmetic for sorting.

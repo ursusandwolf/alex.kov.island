@@ -1,28 +1,27 @@
 package com.island.nature.model;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import com.island.nature.entities.Animal;
-import com.island.nature.entities.AnimalFactory;
-import com.island.nature.entities.NatureDomainContext;
-import com.island.nature.entities.SpeciesKey;
-import com.island.nature.entities.SpeciesLoader;
-import com.island.nature.entities.SpeciesRegistry;
+import com.island.engine.event.DefaultEventBus;
+import com.island.nature.config.Configuration;
 import com.island.nature.service.DefaultProtectionService;
 import com.island.nature.service.StatisticsService;
-import com.island.nature.config.Configuration;
-import com.island.engine.event.DefaultEventBus;
-import com.island.util.DefaultRandomProvider;
-import com.island.util.SamplingContext;
-import com.island.util.InteractionMatrix;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.island.nature.entities.core.Animal;
+import com.island.nature.entities.core.SpeciesKey;
+import com.island.nature.entities.domain.NatureDomainContext;
+import com.island.nature.entities.registry.AnimalFactory;
+import com.island.nature.entities.registry.SpeciesLoader;
+import com.island.nature.entities.registry.SpeciesRegistry;
+import com.island.util.common.DefaultRandomProvider;
+import com.island.util.interaction.InteractionMatrix;
+import com.island.util.sampling.SamplingContext;
 
 class CellIterationTest {
     private Cell cell;
@@ -60,7 +59,7 @@ class CellIterationTest {
         }
 
         AtomicInteger count = new AtomicInteger();
-        cell.forEachAnimal(a -> count.incrementAndGet());
+        cell.forEachAnimal(a -> count.incrementAndGet();
         assertEquals(10, count.get());
     }
 
@@ -78,7 +77,7 @@ class CellIterationTest {
         cell.forEachAnimalSampled(new SamplingContext(10, new DefaultRandomProvider() {
             @Override
             public int nextInt(int bound) { return 0; }
-        }), a -> count.incrementAndGet());
+        }), a -> count.incrementAndGet();
         
         assertEquals(10, count.get());
     }

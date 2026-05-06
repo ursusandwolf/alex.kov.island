@@ -1,13 +1,12 @@
 package com.island.nature.service;
 
 import com.island.nature.config.Configuration;
-import com.island.nature.entities.SpeciesKey;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.util.Map;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import com.island.nature.entities.core.Biomass;
+import com.island.nature.entities.core.SpeciesKey;
 
 class StatisticsServiceTest {
     private StatisticsService statisticsService;
@@ -29,7 +28,7 @@ class StatisticsServiceTest {
         }
         
         // Biomass equivalent to 2 wolves
-        statisticsService.registerBiomassChange(key, 2 * config.getScale1M());
+        statisticsService.registerBiomassChange(key, 2 * config.getScale1M();
         
         Map<SpeciesKey, Integer> counts = statisticsService.getSpeciesCountsMap();
         assertEquals(7, counts.get(key), "Count should be sum of animals and biomass units");
@@ -39,8 +38,8 @@ class StatisticsServiceTest {
     @Test
     void shouldHandleNegativeBiomassCorrectly() {
         SpeciesKey key = new SpeciesKey("plant", false);
-        statisticsService.registerBiomassChange(key, 5 * config.getScale1M());
-        statisticsService.registerBiomassChange(key, -2 * config.getScale1M());
+        statisticsService.registerBiomassChange(key, 5 * config.getScale1M();
+        statisticsService.registerBiomassChange(key, -2 * config.getScale1M();
         
         assertEquals(3, statisticsService.getSpeciesCount(key));
         assertEquals(3, statisticsService.getTotalPopulation());

@@ -1,12 +1,5 @@
 package com.island.simcity;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import com.island.engine.GameLoop;
-import com.island.engine.ParallelDispatcher;
-import com.island.engine.PhaseScheduler;
 import com.island.engine.event.DefaultEventBus;
 import com.island.simcity.entities.Building;
 import com.island.simcity.entities.Resident;
@@ -21,6 +14,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.island.engine.parallel.ParallelDispatcher;
+import com.island.engine.scheduling.GameLoop;
+import com.island.engine.scheduling.PhaseScheduler;
 
 class SimCityCoreLogicTest {
 

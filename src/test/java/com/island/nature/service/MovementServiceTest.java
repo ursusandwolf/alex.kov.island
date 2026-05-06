@@ -1,26 +1,25 @@
 package com.island.nature.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
+import com.island.engine.event.DefaultEventBus;
 import com.island.nature.config.Configuration;
-import com.island.nature.entities.AnimalFactory;
-import com.island.nature.entities.GenericAnimal;
-import com.island.nature.entities.NatureDomainContext;
-import com.island.nature.entities.SpeciesKey;
-import com.island.nature.entities.SpeciesLoader;
-import com.island.nature.entities.SpeciesRegistry;
 import com.island.nature.model.Cell;
 import com.island.nature.model.DefaultBiomassManager;
 import com.island.nature.model.Island;
-import com.island.nature.service.DefaultProtectionService;
-import com.island.engine.event.DefaultEventBus;
-import com.island.util.DefaultRandomProvider;
-import com.island.util.InteractionMatrix;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import com.island.nature.entities.core.Animal;
+import com.island.nature.entities.core.GenericAnimal;
+import com.island.nature.entities.core.SpeciesKey;
+import com.island.nature.entities.domain.NatureDomainContext;
+import com.island.nature.entities.registry.AnimalFactory;
+import com.island.nature.entities.registry.SpeciesLoader;
+import com.island.nature.entities.registry.SpeciesRegistry;
+import com.island.util.common.DefaultRandomProvider;
+import com.island.util.interaction.InteractionMatrix;
 
 class MovementServiceTest {
     private final Configuration config = new Configuration();
@@ -51,7 +50,7 @@ class MovementServiceTest {
         
         int numThreads = 10;
         ExecutorService executor = Executors.newFixedThreadPool(numThreads);
-        MovementService service = new MovementService(island, registry, executor, new DefaultRandomProvider(), new DefaultEventBus());
+        MovementService service = new MovementService(island, registry, executor), new DefaultEventBus();
         
         CountDownLatch latch = new CountDownLatch(1);
         

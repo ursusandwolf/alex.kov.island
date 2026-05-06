@@ -1,29 +1,31 @@
 package com.island;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import com.island.nature.entities.AnimalType;
-import com.island.nature.entities.Organism;
-import com.island.nature.entities.SpeciesKey;
-import com.island.nature.entities.SpeciesRegistry;
-import com.island.engine.SimulationContext;
+import com.island.nature.NaturePlugin;
+import com.island.nature.config.Configuration;
 import com.island.nature.model.Island;
 import java.util.Map;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.island.engine.core.SimulationContext;
+import com.island.engine.core.SimulationEngine;
+import com.island.nature.entities.core.AnimalType;
+import com.island.nature.entities.core.Organism;
+import com.island.nature.entities.core.SpeciesKey;
+import com.island.nature.entities.registry.SpeciesRegistry;
 
 public class StressStabilityTest {
 
     @Test
     void testEcosystemStabilityFor200Ticks() {
         System.out.println("\n=== STARTING STRESS STABILITY TEST (200 TICKS) ===");
-        com.island.nature.config.Configuration config = com.island.nature.config.Configuration.load();
+        Configuration config = Configuration.load();
         // Use a smaller world for the test to avoid extreme slowdowns
         config.setIslandWidth(5);
         config.setIslandHeight(5);
         
-        com.island.nature.NaturePlugin plugin = new com.island.nature.NaturePlugin(config);
-        com.island.engine.SimulationEngine<Organism> engine = new com.island.engine.SimulationEngine<>();
+        NaturePlugin plugin = new NaturePlugin(config);
+        SimulationEngine<Organism> engine = new SimulationEngine<>();
         SimulationContext<Organism> context = engine.build(plugin, config.getTickDurationMs(), 4);
         
         Island island = (Island) context.world();
@@ -32,11 +34,11 @@ public class StressStabilityTest {
             context.gameLoop().runTick();
             
             if (i % 50 == 0) {
-                System.out.println("Tick " + i + ": Population=" + island.getTotalOrganismCount());
+                System.out.println("Tick " + i + ": Population=" + island.getTotalOrganismCount();
             }
         }
 
-        System.out.println("Final Population: " + island.getTotalOrganismCount());
+        System.out.println("Final Population: " + island.getTotalOrganismCount();
         assertTrue(island.getTotalOrganismCount() > 0, "Ecosystem should not be empty after 200 ticks");
     }
 }

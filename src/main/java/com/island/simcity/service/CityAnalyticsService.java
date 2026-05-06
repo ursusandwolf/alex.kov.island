@@ -1,7 +1,5 @@
 package com.island.simcity.service;
 
-import com.island.engine.CellService;
-import com.island.engine.SimulationNode;
 import com.island.simcity.entities.Building;
 import com.island.simcity.entities.Resident;
 import com.island.simcity.entities.SimEntity;
@@ -9,6 +7,8 @@ import com.island.simcity.model.CityMap;
 import com.island.simcity.model.CityTile;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.RequiredArgsConstructor;
+import com.island.engine.core.SimulationNode;
+import com.island.engine.service.CellService;
 
 @RequiredArgsConstructor
 public class CityAnalyticsService implements CellService<SimEntity> {

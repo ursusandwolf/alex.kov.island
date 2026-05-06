@@ -1,8 +1,5 @@
 package com.island.engine;
 
-import com.island.engine.Mortal;
-import com.island.engine.SimulationNode;
-import com.island.engine.SimulationWorld;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -10,8 +7,17 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.island.engine.core.ExecutionMode;
+import com.island.engine.core.SimulationNode;
+import com.island.engine.core.SimulationWorld;
+import com.island.engine.model.Mortal;
+import com.island.engine.parallel.ParallelDispatcher;
+import com.island.engine.scheduling.GameLoop;
+import com.island.engine.scheduling.Phase;
+import com.island.engine.scheduling.PhaseScheduler;
+import com.island.engine.service.CellService;
 
 class GameLoopOptimizationTest {
 
@@ -66,7 +72,7 @@ class GameLoopOptimizationTest {
         gameLoop.setWorld(world);
 
         SimulationNode<Mortal> node = mock(SimulationNode.class);
-        Collection<Collection<SimulationNode<Mortal>>> workUnits = Collections.singletonList(Collections.singletonList(node));
+        Collection<Collection<SimulationNode<Mortal>>> workUnits = Collections.singletonList(Collections.singletonList(node);
         when(world.getParallelWorkUnits()).thenAnswer(inv -> workUnits);
 
         AtomicInteger callCount = new AtomicInteger(0);
@@ -78,7 +84,7 @@ class GameLoopOptimizationTest {
         doAnswer(inv -> {
             callCount.incrementAndGet();
             throw new RuntimeException("Parallel boom");
-        }).when(service).processCell(any(), anyInt());
+        }).when(service).processCell(any(), anyInt();
 
         gameLoop.addRecurringTask(service);
         

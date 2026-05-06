@@ -3,10 +3,11 @@ package com.island.nature.entities;
 import com.island.nature.config.Configuration;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.island.nature.entities.core.Organism;
+import com.island.nature.entities.core.SpeciesKey;
 
 class OrganismTest {
 
@@ -37,7 +38,7 @@ class OrganismTest {
         // Initial energy is 50% of max by default (BIRTH_INITIAL factor is 0.5)
         assertEquals(maxEnergy / 2, organism.getCurrentEnergy());
         
-        long val = (long) (10.555555 * config.getScale1M());
+        long val = (long) (10.555555 * config.getScale1M();
         organism.setEnergy(val);
         assertEquals(val, organism.getCurrentEnergy());
     }
@@ -46,9 +47,9 @@ class OrganismTest {
     @DisplayName("Energy consumption should be thread-safe and precise")
     void testEnergyConsumption() {
         Organism organism = new TestOrganism(config, 100 * config.getScale1M(), 10);
-        organism.setEnergy(10 * config.getScale1M());
+        organism.setEnergy(10 * config.getScale1M();
         
-        boolean stillAlive = organism.tryConsumeEnergy((long) (9.999999 * config.getScale1M()));
+        boolean stillAlive = organism.tryConsumeEnergy((long) (9.999999 * config.getScale1M());
         assertTrue(stillAlive);
         assertEquals(1, organism.getCurrentEnergy()); // 1 micro-unit left
         

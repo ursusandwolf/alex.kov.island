@@ -1,12 +1,12 @@
 package com.island.nature.config;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.InputStream;
 import java.lang.reflect.Modifier;
 import java.util.Properties;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import com.island.nature.entities.core.Biomass;
 
 /**
  * Loads and provides access to simulation parameters.

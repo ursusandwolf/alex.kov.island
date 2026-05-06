@@ -1,8 +1,8 @@
 package com.island.simcity.entities;
 
-import com.island.engine.Mortal;
 import lombok.Getter;
 import lombok.Setter;
+import com.island.engine.model.Mortal;
 
 @Getter
 @Setter

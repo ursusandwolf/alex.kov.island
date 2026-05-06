@@ -1,7 +1,8 @@
 package com.island.nature.entities.herbivores;
 
-import com.island.nature.entities.Animal;
-import com.island.nature.entities.AnimalType;
+import com.island.nature.entities.core.Animal;
+import com.island.nature.entities.core.AnimalType;
+
 
 /**
  * Convenience abstract class for herbivores using integer arithmetic.

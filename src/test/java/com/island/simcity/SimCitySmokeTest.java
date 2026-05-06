@@ -1,11 +1,5 @@
 package com.island.simcity;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import com.island.engine.GameLoop;
-import com.island.engine.ParallelDispatcher;
-import com.island.engine.PhaseScheduler;
 import com.island.engine.event.DefaultEventBus;
 import com.island.simcity.entities.Building;
 import com.island.simcity.entities.SimEntity;
@@ -15,6 +9,11 @@ import com.island.simcity.service.PopulationService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.island.engine.parallel.ParallelDispatcher;
+import com.island.engine.scheduling.GameLoop;
+import com.island.engine.scheduling.PhaseScheduler;
 
 public class SimCitySmokeTest {
 
@@ -61,6 +60,6 @@ public class SimCitySmokeTest {
         assertEquals(5, population, "Population should reach the cap of 5 in the residential cell");
         assertTrue(map.getMoney() > initialMoney, "Money should increase due to taxes");
         
-        System.out.println("Smoke test passed: Population=" + population + ", Money=" + map.getMoney());
+        System.out.println("Smoke test passed: Population=" + population + ", Money=" + map.getMoney();
     }
 }

@@ -1,8 +1,5 @@
 package com.island.nature.view;
 
-import com.island.engine.NodeSnapshot;
-import com.island.engine.WorldSnapshot;
-import com.island.util.ViewUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -10,6 +7,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import com.island.engine.model.NodeSnapshot;
+import com.island.engine.model.WorldSnapshot;
+import com.island.util.common.ViewUtils;
 
 /**
  * Console visualization of the simulation.

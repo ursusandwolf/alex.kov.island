@@ -1,25 +1,22 @@
 package com.island.nature;
 
-import com.island.engine.GameLoop;
-import com.island.engine.SimulationContext;
-import com.island.engine.SimulationEngine;
 import com.island.nature.config.Configuration;
-import com.island.nature.entities.Animal;
-import com.island.nature.entities.AnimalFactory;
-import com.island.nature.entities.DeathCause;
-import com.island.nature.entities.Organism;
-import com.island.nature.entities.SpeciesKey;
 import com.island.nature.model.Cell;
-import com.island.nature.model.Island;
 import com.island.nature.model.Chunk;
-import org.junit.jupiter.api.Test;
-
+import com.island.nature.model.Island;
+import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.ArrayList;
-
+import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.island.engine.core.SimulationContext;
+import com.island.engine.core.SimulationEngine;
+import com.island.engine.scheduling.GameLoop;
+import com.island.nature.entities.core.Animal;
+import com.island.nature.entities.core.DeathCause;
+import com.island.nature.entities.core.Organism;
+import com.island.nature.entities.core.SpeciesKey;
+import com.island.nature.entities.registry.AnimalFactory;
 
 class SimulationStopConditionTest {
 

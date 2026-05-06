@@ -1,13 +1,13 @@
 package com.island.simcity;
 
-import com.island.engine.SimulationContext;
-import com.island.engine.SimulationEngine;
 import com.island.simcity.entities.Building;
 import com.island.simcity.entities.Resident;
 import com.island.simcity.entities.SimEntity;
 import com.island.simcity.model.CityMap;
 import com.island.simcity.service.BuildingService;
 import com.island.simcity.view.CityConsoleView;
+import com.island.engine.core.SimulationContext;
+import com.island.engine.core.SimulationEngine;
 
 public class SimCityLauncher {
     public static void main(String[] args) {

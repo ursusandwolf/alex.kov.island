@@ -1,17 +1,18 @@
 package com.island;
 
-import com.island.engine.GameLoop;
-import com.island.engine.SimulationContext;
-import com.island.nature.entities.DeathCause;
-import com.island.nature.entities.Organism;
-import com.island.nature.entities.SpeciesKey;
+import com.island.nature.NaturePlugin;
+import com.island.nature.config.Configuration;
 import com.island.nature.model.Island;
 import com.island.nature.service.StatisticsService;
-import org.junit.jupiter.api.Test;
-
-import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import org.junit.jupiter.api.Test;
+import com.island.engine.core.SimulationContext;
+import com.island.engine.core.SimulationEngine;
+import com.island.engine.scheduling.GameLoop;
+import com.island.nature.entities.core.DeathCause;
+import com.island.nature.entities.core.Organism;
+import com.island.nature.entities.core.SpeciesKey;
 
 /**
  * Targeted calibration test for apex predators and large herbivores.
@@ -34,12 +35,12 @@ public class SurvivalCalibrationTest {
         TARGET_SPECIES.forEach(k -> globalStats.put(k, new SpeciesStats()));
 
         for (int i = 0; i < ITERATIONS; i++) {
-            com.island.nature.config.Configuration config = com.island.nature.config.Configuration.load();
+            Configuration config = Configuration.load();
             config.setIslandWidth(10);
             config.setIslandHeight(10);
             
-            com.island.nature.NaturePlugin plugin = new com.island.nature.NaturePlugin(config);
-            com.island.engine.SimulationEngine<Organism> engine = new com.island.engine.SimulationEngine<>();
+            NaturePlugin plugin = new NaturePlugin(config);
+            SimulationEngine<Organism> engine = new SimulationEngine<>();
             SimulationContext<Organism> context = engine.build(plugin, config.getTickDurationMs(), 4);
             
             Island island = (Island) context.world();
@@ -63,8 +64,8 @@ public class SurvivalCalibrationTest {
                     s.extinctions.incrementAndGet();
                 }
                 
-                s.hungerDeaths.addAndGet(hungerDeaths.getOrDefault(key, 0));
-                s.ageDeaths.addAndGet(ageDeaths.getOrDefault(key, 0));
+                s.hungerDeaths.addAndGet(hungerDeaths.getOrDefault(key, 0);
+                s.ageDeaths.addAndGet(ageDeaths.getOrDefault(key, 0);
             }
             gameLoop.stop();
         }
@@ -74,7 +75,7 @@ public class SurvivalCalibrationTest {
 
     private void printResults(Map<SpeciesKey, SpeciesStats> stats) {
         System.out.println(String.format("%-10s | %-12s | %-12s | %-12s | %-12s", 
-                "Species", "Avg Pop", "Extinct Rate", "Hunger %", "Age %"));
+                "Species", "Avg Pop", "Extinct Rate", "Hunger %", "Age %");
         System.out.println("-----------|--------------|--------------|--------------|--------------");
 
         for (SpeciesKey key : TARGET_SPECIES) {
@@ -86,7 +87,7 @@ public class SurvivalCalibrationTest {
             double agePct = totalDeaths > 0 ? (double) s.ageDeaths.get() * 100 / totalDeaths : 0;
 
             System.out.println(String.format("%-10s | %-12.2f | %-12.2f | %-12.1f%% | %-12.1f%%", 
-                    key.getCode(), avgPop, extinctRate, hungerPct, agePct));
+                    key.getCode(), avgPop, extinctRate, hungerPct, agePct);
         }
         
         System.out.println("\n--- Calibration Recommendations ---");

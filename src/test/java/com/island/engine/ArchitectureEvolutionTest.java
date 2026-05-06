@@ -5,21 +5,21 @@ import com.island.engine.event.DefaultEventBus;
 import com.island.engine.event.EntityDiedEvent;
 import com.island.engine.event.EventBus;
 import com.island.nature.config.Configuration;
-import com.island.nature.entities.Animal;
-import com.island.nature.entities.AnimalType;
-import com.island.nature.entities.Organism;
-import com.island.nature.entities.SpeciesKey;
 import com.island.nature.entities.components.HealthComponent;
 import com.island.nature.entities.components.MovementComponent;
+import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import java.util.HashMap;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import com.island.engine.model.Mortal;
+import com.island.nature.entities.core.Animal;
+import com.island.nature.entities.core.AnimalType;
+import com.island.nature.entities.core.Organism;
+import com.island.nature.entities.core.SpeciesKey;
 
 class ArchitectureEvolutionTest {
 

@@ -1,19 +1,16 @@
 package com.island.nature.service;
 
-import com.island.engine.SimulationNode;
-import com.island.engine.event.EventBus;
-import com.island.nature.entities.Animal;
-import com.island.nature.entities.Biomass;
-import com.island.nature.entities.DeathCause;
-import com.island.nature.entities.NatureEnvironment;
-import com.island.nature.entities.NatureStatistics;
-import com.island.nature.entities.NatureWorld;
-import com.island.nature.entities.Organism;
-import com.island.nature.entities.Season;
-import com.island.nature.entities.TaskRegistry;
 import com.island.nature.model.Cell;
-import com.island.util.RandomProvider;
 import java.util.concurrent.ExecutorService;
+import com.island.nature.entities.core.Animal;
+import com.island.nature.entities.core.Biomass;
+import com.island.nature.entities.core.DeathCause;
+import com.island.nature.entities.domain.NatureEnvironment;
+import com.island.nature.entities.domain.NatureStatistics;
+import com.island.nature.entities.domain.NatureWorld;
+import com.island.nature.entities.domain.TaskRegistry;
+import com.island.nature.entities.environment.Season;
+import com.island.util.common.RandomProvider;
 
 /**
  * Service responsible for aging, energy decay, and natural growth/death using integer arithmetic.
@@ -22,13 +19,11 @@ public class LifecycleService extends AbstractService {
 
     private final NatureStatistics statistics;
     private final NatureEnvironment environment;
-    private final EventBus eventBus;
 
-    public LifecycleService(NatureWorld world, ExecutorService executor, RandomProvider random, EventBus eventBus) {
+    public LifecycleService(NatureWorld world, ExecutorService executor, RandomProvider random) {
         super(world, executor, random);
         this.statistics = world;
         this.environment = world;
-        this.eventBus = eventBus;
     }
 
     @Override
@@ -37,11 +32,9 @@ public class LifecycleService extends AbstractService {
     }
 
     @Override
-    public void processCell(SimulationNode<Organism> node, int tickCount) {
-        if (node instanceof Cell cell) {
-            processAging(cell);
-            processBiomassGrowth(cell);
-        }
+    protected void doProcessCell(Cell cell, int tickCount) {
+        processAging(cell);
+        processBiomassGrowth(cell);
     }
 
     private void processAging(Cell node) {

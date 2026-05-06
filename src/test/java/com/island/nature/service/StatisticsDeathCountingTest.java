@@ -3,26 +3,25 @@ package com.island.nature.service;
 import com.island.engine.event.DefaultEventBus;
 import com.island.engine.event.EventBus;
 import com.island.nature.config.Configuration;
-import com.island.nature.entities.Animal;
-import com.island.nature.entities.AnimalFactory;
-import com.island.nature.entities.DeathCause;
-import com.island.nature.entities.DefaultHuntingStrategy;
-import com.island.nature.entities.NatureDomainContext;
-import com.island.nature.entities.SpeciesKey;
-import com.island.nature.entities.SpeciesLoader;
-import com.island.nature.entities.SpeciesRegistry;
 import com.island.nature.model.Cell;
 import com.island.nature.model.Island;
-import com.island.util.DefaultRandomProvider;
-import com.island.util.InteractionMatrix;
-import com.island.util.RandomProvider;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import com.island.nature.entities.core.Animal;
+import com.island.nature.entities.core.DeathCause;
+import com.island.nature.entities.core.SpeciesKey;
+import com.island.nature.entities.domain.NatureDomainContext;
+import com.island.nature.entities.registry.AnimalFactory;
+import com.island.nature.entities.registry.SpeciesLoader;
+import com.island.nature.entities.registry.SpeciesRegistry;
+import com.island.nature.entities.strategy.DefaultHuntingStrategy;
+import com.island.util.common.DefaultRandomProvider;
+import com.island.util.common.RandomProvider;
+import com.island.util.interaction.InteractionMatrix;
 
 class StatisticsDeathCountingTest {
     private Island island;
@@ -63,9 +62,9 @@ class StatisticsDeathCountingTest {
         
         DefaultHuntingStrategy huntingStrategy = new DefaultHuntingStrategy(config, matrix);
         
-        new FeedingService(island, animalFactory, matrix, registry, huntingStrategy, executor, random, eventBus);
-        new MovementService(island, registry, executor, random, eventBus);
-        new ReproductionService(island, animalFactory, registry, executor, random, eventBus);
+        new FeedingService(island, animalFactory, matrix, registry, huntingStrategy, executor, random);
+        new MovementService(island, registry, executor, random);
+        new ReproductionService(island, animalFactory, registry, executor, random);
         new CleanupService(island, animalFactory, executor, random);
     }
 

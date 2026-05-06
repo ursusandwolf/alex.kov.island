@@ -1,8 +1,8 @@
 package com.island.nature.entities.plants;
 
 import com.island.nature.config.Configuration;
-import com.island.nature.entities.Biomass;
-import com.island.nature.entities.SpeciesKey;
+import com.island.nature.entities.core.Biomass;
+import com.island.nature.entities.core.SpeciesKey;
 
 /**
  * Mushroom implementation.

@@ -6,8 +6,6 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.Test;
 
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
-
 class ArchitectureTest {
 
     private final JavaClasses importedClasses = new ClassFileImporter()

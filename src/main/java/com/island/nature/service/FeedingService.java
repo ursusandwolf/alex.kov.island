@@ -1,27 +1,27 @@
 package com.island.nature.service;
 
-import com.island.engine.SimulationNode;
 import com.island.engine.event.EventBus;
-import com.island.nature.entities.Animal;
-import com.island.nature.entities.AnimalFactory;
-import com.island.nature.entities.AnimalType;
-import com.island.nature.entities.Biomass;
-import com.island.nature.entities.DeathCause;
-import com.island.nature.entities.HuntingStrategy;
-import com.island.nature.entities.NatureEnvironment;
-import com.island.nature.entities.NatureStatistics;
-import com.island.nature.entities.NatureWorld;
-import com.island.nature.entities.Organism;
-import com.island.nature.entities.PreyProvider;
-import com.island.nature.entities.SpeciesKey;
-import com.island.nature.entities.SpeciesRegistry;
-import com.island.nature.entities.TaskRegistry;
 import com.island.nature.model.Cell;
-import com.island.util.InteractionProvider;
-import com.island.util.RandomProvider;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import com.island.engine.core.SimulationNode;
+import com.island.nature.entities.core.Animal;
+import com.island.nature.entities.core.AnimalType;
+import com.island.nature.entities.core.Biomass;
+import com.island.nature.entities.core.DeathCause;
+import com.island.nature.entities.core.Organism;
+import com.island.nature.entities.core.SpeciesKey;
+import com.island.nature.entities.domain.NatureEnvironment;
+import com.island.nature.entities.domain.NatureStatistics;
+import com.island.nature.entities.domain.NatureWorld;
+import com.island.nature.entities.domain.TaskRegistry;
+import com.island.nature.entities.registry.AnimalFactory;
+import com.island.nature.entities.registry.SpeciesRegistry;
+import com.island.nature.entities.strategy.HuntingStrategy;
+import com.island.nature.entities.strategy.PreyProvider;
+import com.island.util.common.RandomProvider;
+import com.island.util.interaction.InteractionProvider;
 
 /**
  * Service responsible for feeding logic using integer-based arithmetic.
@@ -31,20 +31,16 @@ public class FeedingService extends AbstractService {
     private final InteractionProvider interactionMatrix;
     private final SpeciesRegistry speciesRegistry;
     private final HuntingStrategy huntingStrategy;
-    private final NatureStatistics statistics;
-    private final EventBus eventBus;
 
     public FeedingService(NatureWorld world, AnimalFactory animalFactory, 
                           InteractionProvider interactionMatrix, 
                           SpeciesRegistry speciesRegistry, HuntingStrategy huntingStrategy, 
-                          ExecutorService executor, RandomProvider random, EventBus eventBus) {
+                          ExecutorService executor, RandomProvider random) {
         super(world, executor, random);
         this.animalFactory = animalFactory;
         this.interactionMatrix = interactionMatrix;
         this.speciesRegistry = speciesRegistry;
         this.huntingStrategy = huntingStrategy;
-        this.statistics = world;
-        this.eventBus = eventBus;
     }
 
     @Override
@@ -53,11 +49,9 @@ public class FeedingService extends AbstractService {
     }
 
     @Override
-    public void processCell(SimulationNode<Organism> node, int tickCount) {
-        if (node instanceof Cell cell) {
-            processPredators(cell, tickCount);
-            processHerbivores(cell, tickCount);
-        }
+    protected void doProcessCell(Cell cell, int tickCount) {
+        processPredators(cell, tickCount);
+        processHerbivores(cell, tickCount);
     }
 
     private void processPredators(Cell node, int tickCount) {

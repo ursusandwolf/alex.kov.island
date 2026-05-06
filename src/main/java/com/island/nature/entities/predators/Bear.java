@@ -1,7 +1,7 @@
 package com.island.nature.entities.predators;
 
-import com.island.nature.entities.AnimalType;
 import com.island.nature.entities.herbivores.Herbivore;
+import com.island.nature.entities.core.AnimalType;
 
 /**
  * Bear implementation with integer-based metabolism and hibernation logic.

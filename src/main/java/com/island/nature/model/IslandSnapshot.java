@@ -1,10 +1,10 @@
 package com.island.nature.model;
 
-import com.island.nature.entities.DeathCause;
-import com.island.engine.NodeSnapshot;
-import com.island.engine.WorldSnapshot;
 import java.util.HashMap;
 import java.util.Map;
+import com.island.engine.model.NodeSnapshot;
+import com.island.engine.model.WorldSnapshot;
+import com.island.nature.entities.core.DeathCause;
 
 /**
  * Island-specific implementation of WorldSnapshot.

@@ -1,33 +1,33 @@
 package com.island.nature;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
-import com.island.engine.SimulationNode;
 import com.island.engine.event.DefaultEventBus;
 import com.island.engine.event.EventBus;
 import com.island.nature.config.Configuration;
-import com.island.nature.entities.Animal;
-import com.island.nature.entities.AnimalFactory;
-import com.island.nature.entities.DeathCause;
-import com.island.nature.entities.NatureDomainContext;
-import com.island.nature.entities.Organism;
-import com.island.nature.entities.SpeciesKey;
-import com.island.nature.entities.SpeciesLoader;
-import com.island.nature.entities.SpeciesRegistry;
 import com.island.nature.model.Cell;
 import com.island.nature.model.Island;
 import com.island.nature.service.DefaultProtectionService;
 import com.island.nature.service.ProtectionService;
 import com.island.nature.service.StatisticsService;
-import com.island.util.DefaultRandomProvider;
-import com.island.util.GridUtils;
-import com.island.util.InteractionMatrix;
-import com.island.util.SamplingContext;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.island.engine.core.SimulationNode;
+import com.island.nature.entities.core.Animal;
+import com.island.nature.entities.core.DeathCause;
+import com.island.nature.entities.core.Organism;
+import com.island.nature.entities.core.SpeciesKey;
+import com.island.nature.entities.domain.NatureDomainContext;
+import com.island.nature.entities.registry.AnimalFactory;
+import com.island.nature.entities.registry.SpeciesLoader;
+import com.island.nature.entities.registry.SpeciesRegistry;
+import com.island.util.common.DefaultRandomProvider;
+import com.island.util.interaction.InteractionMatrix;
+import com.island.util.math.GridUtils;
+import com.island.util.sampling.SamplingContext;
 
 class RefactoringVerificationTest {
 
@@ -81,7 +81,7 @@ class RefactoringVerificationTest {
         AtomicInteger count = new AtomicInteger();
         // size=20, limit=5 -> step = 20/5 + 1 = 5. Hits: 0, 5, 10, 15 -> 4 animals.
         SamplingContext context = new SamplingContext(5, new DefaultRandomProvider());
-        cell.forEachAnimalSampled(context, a -> count.incrementAndGet());
+        cell.forEachAnimalSampled(context, a -> count.incrementAndGet();
 
         assertEquals(4, count.get(), "Should respect the sampling logic with limit 5");
     }

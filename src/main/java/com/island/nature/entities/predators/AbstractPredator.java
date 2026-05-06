@@ -1,7 +1,8 @@
 package com.island.nature.entities.predators;
 
-import com.island.nature.entities.Animal;
-import com.island.nature.entities.AnimalType;
+import com.island.nature.entities.core.Animal;
+import com.island.nature.entities.core.AnimalType;
+
 
 /**
  * Convenience abstract class for predators using integer arithmetic.

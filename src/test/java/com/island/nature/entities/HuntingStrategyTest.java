@@ -1,16 +1,15 @@
 package com.island.nature.entities;
 
-import static com.island.nature.config.SimulationConstants.SCALE_1M;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import com.island.util.InteractionMatrix;
 import com.island.nature.config.Configuration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.island.nature.entities.core.Animal;
+import com.island.nature.entities.core.SpeciesKey;
+import com.island.nature.entities.strategy.DefaultHuntingStrategy;
+import com.island.util.interaction.InteractionMatrix;
 
 class HuntingStrategyTest {
     private InteractionMatrix matrix;

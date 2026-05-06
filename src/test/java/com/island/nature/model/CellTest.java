@@ -1,22 +1,21 @@
 package com.island.nature.model;
 
+import com.island.engine.event.DefaultEventBus;
+import com.island.nature.config.Configuration;
+import com.island.nature.service.DefaultProtectionService;
+import com.island.nature.service.StatisticsService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import com.island.nature.config.Configuration;
-import com.island.nature.entities.AnimalType;
-import com.island.nature.entities.GenericAnimal;
-import com.island.nature.entities.NatureDomainContext;
-import com.island.nature.entities.SpeciesKey;
-import com.island.nature.entities.SpeciesLoader;
-import com.island.nature.entities.SpeciesRegistry;
-import com.island.nature.service.DefaultProtectionService;
-import com.island.nature.service.StatisticsService;
-import com.island.engine.event.DefaultEventBus;
-import com.island.util.DefaultRandomProvider;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import com.island.nature.entities.core.AnimalType;
+import com.island.nature.entities.core.GenericAnimal;
+import com.island.nature.entities.core.SpeciesKey;
+import com.island.nature.entities.domain.NatureDomainContext;
+import com.island.nature.entities.registry.SpeciesLoader;
+import com.island.nature.entities.registry.SpeciesRegistry;
+import com.island.util.common.DefaultRandomProvider;
 
 class CellTest {
     private Cell cell;

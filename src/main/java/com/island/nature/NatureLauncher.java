@@ -1,16 +1,16 @@
 package com.island.nature;
 
-import com.island.engine.GameLoop;
-import com.island.engine.SimulationEngine;
-import com.island.engine.SimulationContext;
 import com.island.nature.config.Configuration;
-import com.island.nature.entities.Organism;
 import com.island.nature.view.ConsoleView;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
+import com.island.engine.core.SimulationContext;
+import com.island.engine.core.SimulationEngine;
+import com.island.engine.scheduling.GameLoop;
+import com.island.nature.entities.core.Organism;
 
 /**
  * Main entry point for the Nature Simulation (Island).

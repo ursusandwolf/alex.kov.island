@@ -1,9 +1,9 @@
 package com.island.nature.entities.predators;
 
-import com.island.nature.entities.Animal;
-import com.island.nature.entities.AnimalType;
 import com.island.nature.entities.herbivores.Herbivore;
-import com.island.util.RandomProvider;
+import com.island.nature.entities.core.Animal;
+import com.island.nature.entities.core.AnimalType;
+import com.island.util.common.RandomProvider;
 
 /**
  * Chameleon with integer-based arithmetic.
