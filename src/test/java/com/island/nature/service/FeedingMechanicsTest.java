@@ -4,6 +4,7 @@ import com.island.engine.event.DefaultEventBus;
 import com.island.nature.config.Configuration;
 import com.island.nature.model.Cell;
 import java.util.Collections;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -14,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.BDDMockito.*;
 import com.island.engine.core.SimulationNode;
 import com.island.engine.core.SimulationWorld;
 import com.island.nature.entities.core.Animal;
@@ -40,6 +42,7 @@ class FeedingMechanicsTest {
     private InteractionProvider matrix;
     private AnimalFactory animalFactory;
     private final Configuration config = new Configuration();
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     @Mock
     private NatureWorld world;

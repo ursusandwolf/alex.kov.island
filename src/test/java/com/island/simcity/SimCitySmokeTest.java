@@ -60,6 +60,6 @@ public class SimCitySmokeTest {
         assertEquals(5, population, "Population should reach the cap of 5 in the residential cell");
         assertTrue(map.getMoney() > initialMoney, "Money should increase due to taxes");
         
-        System.out.println("Smoke test passed: Population=" + population + ", Money=" + map.getMoney();
+        System.out.println("Smoke test passed: Population=" + population + ", Money=" + map.getMoney());
     }
 }

@@ -10,7 +10,7 @@ class EventBusTest {
     void shouldPublishToDirectSubscribers() {
         EventBus bus = new DefaultEventBus();
         AtomicInteger count = new AtomicInteger(0);
-        bus.subscribe(String.class, s -> count.incrementAndGet();
+        bus.subscribe(String.class, s -> count.incrementAndGet());
 
         bus.publish("Hello");
         assertEquals(1, count.get());
@@ -20,8 +20,8 @@ class EventBusTest {
     void shouldPublishToHierarchicalSubscribers() {
         EventBus bus = new DefaultEventBus();
         AtomicInteger count = new AtomicInteger(0);
-        bus.subscribe(Object.class, o -> count.incrementAndGet();
-        bus.subscribe(CharSequence.class, cs -> count.incrementAndGet();
+        bus.subscribe(Object.class, o -> count.incrementAndGet());
+        bus.subscribe(CharSequence.class, cs -> count.incrementAndGet());
 
         bus.publish("Hello");
         // String is both Object and CharSequence
@@ -49,7 +49,7 @@ class EventBusTest {
         AtomicInteger count = new AtomicInteger(0);
         
         bus.subscribe(String.class, s -> { throw new RuntimeException("Fail"); });
-        bus.subscribe(String.class, s -> count.incrementAndGet();
+        bus.subscribe(String.class, s -> count.incrementAndGet());
 
         bus.publish("Hello");
         // Second subscriber should still run

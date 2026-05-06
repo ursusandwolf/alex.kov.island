@@ -81,7 +81,7 @@ class RefactoringVerificationTest {
         AtomicInteger count = new AtomicInteger();
         // size=20, limit=5 -> step = 20/5 + 1 = 5. Hits: 0, 5, 10, 15 -> 4 animals.
         SamplingContext context = new SamplingContext(5, new DefaultRandomProvider());
-        cell.forEachAnimalSampled(context, a -> count.incrementAndGet();
+        cell.forEachAnimalSampled(context, a -> count.incrementAndGet());
 
         assertEquals(4, count.get(), "Should respect the sampling logic with limit 5");
     }

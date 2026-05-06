@@ -5,6 +5,7 @@ import com.island.engine.event.EventBus;
 import com.island.nature.config.Configuration;
 import com.island.nature.model.Cell;
 import com.island.nature.model.Island;
+import com.island.nature.model.DefaultBiomassManager;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.AfterEach;
@@ -55,6 +56,7 @@ class StatisticsDeathCountingTest {
                 .animalFactory(animalFactory)
                 .statisticsService(statisticsService)
                 .protectionService(protectionService)
+                .biomassManager(new DefaultBiomassManager())
                 .randomProvider(random)
                 .build();
         
@@ -63,7 +65,8 @@ class StatisticsDeathCountingTest {
         DefaultHuntingStrategy huntingStrategy = new DefaultHuntingStrategy(config, matrix);
         
         new FeedingService(island, animalFactory, matrix, registry, huntingStrategy, executor, random);
-        new MovementService(island, registry, executor, random);
+        new HealthSystem(island, executor, random);
+        new MovementSystem(island, executor, random);
         new ReproductionService(island, animalFactory, registry, executor, random);
         new CleanupService(island, animalFactory, executor, random);
     }

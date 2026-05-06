@@ -34,11 +34,11 @@ public class StressStabilityTest {
             context.gameLoop().runTick();
             
             if (i % 50 == 0) {
-                System.out.println("Tick " + i + ": Population=" + island.getTotalOrganismCount();
+                System.out.println("Tick " + i + ": Population=" + island.getTotalOrganismCount());
             }
         }
 
-        System.out.println("Final Population: " + island.getTotalOrganismCount();
+        System.out.println("Final Population: " + island.getTotalOrganismCount());
         assertTrue(island.getTotalOrganismCount() > 0, "Ecosystem should not be empty after 200 ticks");
     }
 }

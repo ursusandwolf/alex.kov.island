@@ -48,8 +48,8 @@ class ReproductionServiceTest {
         Animal r1 = new GenericAnimal(registry.getAnimalType(new SpeciesKey("rabbit", false)).orElseThrow());
         Animal r2 = new GenericAnimal(registry.getAnimalType(new SpeciesKey("rabbit", false)).orElseThrow());
         
-        r1.setEnergy(r1.getMaxEnergy();
-        r2.setEnergy(r2.getMaxEnergy();
+        r1.setEnergy(r1.getMaxEnergy());
+        r2.setEnergy(r2.getMaxEnergy());
         // Increment age to 1
         r1.checkAgeDeath();
         r2.checkAgeDeath();
@@ -57,7 +57,7 @@ class ReproductionServiceTest {
         cell.addAnimal(r1);
         cell.addAnimal(r2);
         
-        ReproductionService service = new ReproductionService(island, factory, registry, executor, new DefaultRandomProvider());
+        ReproductionService service = new ReproductionService(island, factory, registry, Executors.newSingleThreadExecutor(), new DefaultRandomProvider());
         for (int i = 0; i < 20; i++) {
             service.tick(1);
         }
@@ -97,8 +97,8 @@ class ReproductionServiceTest {
         Animal r1 = new GenericAnimal(registry.getAnimalType(new SpeciesKey("rabbit", false)).orElseThrow());
         Animal r2 = new GenericAnimal(registry.getAnimalType(new SpeciesKey("rabbit", false)).orElseThrow());
 
-        r1.setEnergy(r1.getMaxEnergy();
-        r2.setEnergy(r2.getMaxEnergy();
+        r1.setEnergy(r1.getMaxEnergy());
+        r2.setEnergy(r2.getMaxEnergy());
         r1.checkAgeDeath(); // Age = 1
         r2.checkAgeDeath(); // Age = 1
 
@@ -106,7 +106,7 @@ class ReproductionServiceTest {
         cell.addAnimal(r2);
 
         double energyBefore = r1.getCurrentEnergy();
-        ReproductionService service = new ReproductionService(island, factory, registry, executor, zeroRandom);
+        ReproductionService service = new ReproductionService(island, factory, registry, Executors.newSingleThreadExecutor(), zeroRandom);
         service.tick(1);
 
         assertEquals(energyBefore, r1.getCurrentEnergy(), 0.000001, "Energy should not be consumed if 0 offspring were produced");

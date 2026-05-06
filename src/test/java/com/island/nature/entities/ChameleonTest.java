@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.island.nature.entities.core.AnimalType;
 import com.island.nature.entities.core.SpeciesKey;
 import com.island.util.common.DefaultRandomProvider;
+import com.island.nature.config.SimulationConstants;
 
 public class ChameleonTest {
 
@@ -15,17 +16,17 @@ public class ChameleonTest {
         AnimalType type = AnimalType.builder()
                 .speciesKey(new SpeciesKey("chameleon", false))
                 .typeName("chameleon")
-                .weight((long) (0.1 * SCALE_1M))
+                .weight((long) (0.1 * SimulationConstants.SCALE_1M))
                 .maxPerCell(300)
                 .speed(1)
-                .foodForSaturation((long) (0.02 * SCALE_1M))
-                .maxEnergy((long) (0.02 * SCALE_1M))
+                .foodForSaturation((long) (0.02 * SimulationConstants.SCALE_1M))
+                .maxEnergy((long) (0.02 * SimulationConstants.SCALE_1M))
                 .maxLifespan(100)
                 .huntProbabilities(new HashMap<>())
                 .isColdBlooded(true)
                 .presenceChance(30)
-                .settlementBase((long) (0.3 * SCALE_1M))
-                .settlementRange((long) (0.2 * SCALE_1M))
+                .settlementBase((long) (0.3 * SimulationConstants.SCALE_1M))
+                .settlementRange((long) (0.2 * SimulationConstants.SCALE_1M))
                 .build();
                 
         Chameleon chameleon = new Chameleon(type, new DefaultRandomProvider());

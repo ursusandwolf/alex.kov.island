@@ -56,6 +56,6 @@ public class ExtinctionBalanceTest {
         System.out.println("\n=== EXTINCTION STATS (after " + ITERATIONS + " runs) ===");
         extinctionStats.entrySet().stream()
                 .sorted(Comparator.comparingInt((Map.Entry<SpeciesKey, AtomicInteger> e) -> e.getValue().get()).reversed())
-                .forEach(e -> System.out.println(e.getKey().getCode() + ": " + e.getValue().get() + " extinctions");
+                .forEach(e -> System.out.println(e.getKey().getCode() + ": " + e.getValue().get() + " extinctions"));
     }
 }

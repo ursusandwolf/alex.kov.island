@@ -28,7 +28,7 @@ class StatisticsServiceTest {
         }
         
         // Biomass equivalent to 2 wolves
-        statisticsService.registerBiomassChange(key, 2 * config.getScale1M();
+        statisticsService.registerBiomassChange(key, 2 * config.getScale1M());
         
         Map<SpeciesKey, Integer> counts = statisticsService.getSpeciesCountsMap();
         assertEquals(7, counts.get(key), "Count should be sum of animals and biomass units");
@@ -38,8 +38,8 @@ class StatisticsServiceTest {
     @Test
     void shouldHandleNegativeBiomassCorrectly() {
         SpeciesKey key = new SpeciesKey("plant", false);
-        statisticsService.registerBiomassChange(key, 5 * config.getScale1M();
-        statisticsService.registerBiomassChange(key, -2 * config.getScale1M();
+        statisticsService.registerBiomassChange(key, 5 * config.getScale1M());
+        statisticsService.registerBiomassChange(key, -2 * config.getScale1M());
         
         assertEquals(3, statisticsService.getSpeciesCount(key));
         assertEquals(3, statisticsService.getTotalPopulation());

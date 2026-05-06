@@ -2,16 +2,17 @@
 
 ## Current State
 - **Major Refactoring (May 2026)**: 
-    - Reorganized `com.island.nature.entities`, `com.island.engine`, and `com.island.util` into specialized sub-packages (core, registry, strategy, scheduling, etc.) to maintain a clean directory structure (< 10 files per folder).
-    - Refactored simulation services in `com.island.nature.service` to use a Template Method pattern in `AbstractService`, significantly reducing duplication and improving type safety.
-    - Standardized service constructors to use `ExecutorService` and `RandomProvider` while removing the unused `EventBus`.
-    - Cleaned up imports and removed FQNs across the entire source tree.
+    - Reorganized `com.island.nature.entities`, `com.island.engine`, and `com.island.util` into specialized sub-packages.
+    - **ECS Implementation**: Introduced `ComponentStore` (Default and Array implementations) and `EntityQuery`.
+    - **System Migration**: Migrated `LifecycleService` to `HealthSystem` and `MovementService` to `MovementSystem` using the ECS System pattern.
+    - **Service Cleanup**: Removed deprecated `LifecycleService` and `MovementService`.
+    - **Build Stability**: Fixed numerous test compilation errors related to syntax and missing imports.
 
 ## Technical Debt / Known Issues
-- **Test Suite**: The tests have been structurally updated to match new packages, but the test-classes currently face compilation errors due to complex mock setups and service instantiation mismatches in edge-case tests.
-- **Lombok Usage**: While improved, some classes still have redundant boilerplate that could be further reduced with `@RequiredArgsConstructor` or `@Slf4j`.
+- **ECS Transition**: `FeedingService` and `ReproductionService` still follow the old service pattern and should be migrated to `EntitySystem` in the next sprint.
+- **Checkstyle**: There are still some Checkstyle violations that need to be addressed to achieve a clean build without `-Dcheckstyle.skip`.
 
 ## Pending Items
-- Resolve remaining test compilation errors in `src/test/java`.
-- Finalize the migration of `MovementService` to a fully component-based ECS approach as planned.
-- Update UML diagrams to reflect the new package structure.
+- Finalize the migration of all services to a fully component-based ECS approach (Sprint 2 tasks).
+- Implement `ComponentFactory` for standard component bundles (S2-3).
+- Update UML diagrams to reflect the new ECS architecture and package structure.

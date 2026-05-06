@@ -84,7 +84,7 @@ class WolfPackBalanceTest {
         }
 
         HuntingStrategy huntingStrategy = new DefaultHuntingStrategy(config, matrix);
-        FeedingService service = new FeedingService(island, animalFactory, matrix, registry, huntingStrategy, executor, new DefaultRandomProvider());
+        FeedingService service = new FeedingService(island, animalFactory, matrix, registry, huntingStrategy, Executors.newSingleThreadExecutor(), new DefaultRandomProvider());
 
         long totalTime = 0;
         int lastSurvivors = 0;
@@ -108,7 +108,7 @@ class WolfPackBalanceTest {
         }
 
         if (iterations == 100) {
-            System.out.println((usePack ? "[PACK]" : "[SOLO]") + " Survivors: " + lastSurvivors + ", Avg Energy: " + String.format("%.2f", lastAvgEnergy);
+            System.out.println((usePack ? "[PACK]" : "[SOLO]") + " Survivors: " + lastSurvivors + ", Avg Energy: " + String.format("%.2f", lastAvgEnergy));
         }
 
         return totalTime;

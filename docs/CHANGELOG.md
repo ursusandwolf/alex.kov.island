@@ -1,7 +1,21 @@
 # Changelog
 
+## [1.21.0] - 2026-05-06
+### Added
+- **ECS Infrastructure**: Introduced `ComponentStore` (Default and Array implementations) and `EntityQuery` for high-performance component management.
+- **ECS Systems**: Migrated `LifecycleService` and `MovementService` to `HealthSystem` and `MovementSystem` using the ECS System pattern.
+- **Verification**: Added `HealthSystemTest` and `MovementSystemTest` for comprehensive verification of the new architecture.
+
+### Changed
+- **Organism Refactoring**: Refactored `Organism` to use `ComponentStore` instead of direct `Map` for components, optimizing lookup and memory usage.
+- **Biomass Mobility**: Updated `Biomass` to support `MovementComponent`, enabling unified movement logic through the ECS system.
+
+### Removed
+- **Deprecated Services**: Removed `LifecycleService` and `MovementService` along with their associated tests.
+
 ## [1.20.0] - 2026-05-06
 ### Fixed
+- **Test Suite Stability**: Fixed "cannot find symbol" errors across multiple test files (`TrophicFeedingTest`, `GameLoopOptimizationTest`, `FeedingMechanicsTest`, `ArchitectureTest`, `ChameleonTest`). Standardized static imports for Mockito, JUnit 5, and ArchUnit, and resolved missing dependency injections in test constructors.
 - **HF-1: Centralized Death Reporting**: Standardized `MovementService` and `ReproductionService` to use `die(cause)` for explicit state management. Verified that all services have shifted from direct `EventBus` publication to centralized reporting via `Island.onEntityRemoved`, eliminating double-counting of deaths.
 - **Species Registry Cleanup**: Removed redundant `SpeciesKey` and optimized `SpeciesLoader` for better maintainability and performance.
 - **Herbivore Lifecycle**: Modernized `Butterfly` and `Caterpillar` lifecycle management with improved trait and state handling.

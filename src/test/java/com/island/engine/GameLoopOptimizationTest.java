@@ -7,8 +7,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.*;
 import com.island.engine.core.ExecutionMode;
 import com.island.engine.core.SimulationNode;
 import com.island.engine.core.SimulationWorld;
@@ -72,7 +73,7 @@ class GameLoopOptimizationTest {
         gameLoop.setWorld(world);
 
         SimulationNode<Mortal> node = mock(SimulationNode.class);
-        Collection<Collection<SimulationNode<Mortal>>> workUnits = Collections.singletonList(Collections.singletonList(node);
+        Collection<Collection<SimulationNode<Mortal>>> workUnits = Collections.singletonList(Collections.singletonList(node));
         when(world.getParallelWorkUnits()).thenAnswer(inv -> workUnits);
 
         AtomicInteger callCount = new AtomicInteger(0);
@@ -84,7 +85,7 @@ class GameLoopOptimizationTest {
         doAnswer(inv -> {
             callCount.incrementAndGet();
             throw new RuntimeException("Parallel boom");
-        }).when(service).processCell(any(), anyInt();
+        }).when(service).processCell(any(), anyInt());
 
         gameLoop.addRecurringTask(service);
         

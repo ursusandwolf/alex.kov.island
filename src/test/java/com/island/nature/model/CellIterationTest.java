@@ -59,26 +59,25 @@ class CellIterationTest {
         }
 
         AtomicInteger count = new AtomicInteger();
-        cell.forEachAnimal(a -> count.incrementAndGet();
+        cell.forEachAnimal(a -> count.incrementAndGet());
         assertEquals(10, count.get());
-    }
+        }
 
-    @Test
-    @DisplayName("forEachAnimalSampled should respect limit and be deterministic for 0 random")
-    void testForEachAnimalSampled() {
+        @Test
+        @DisplayName("forEachAnimalSampled should respect limit and be deterministic for 0 random")
+        void testForEachAnimalSampled() {
         for (int i = 0; i < 100; i++) {
             cell.addAnimal(factory.createAnimal(new SpeciesKey("mouse", false)).orElseThrow());
         }
 
         AtomicInteger count = new AtomicInteger();
         // Limit 10, step should be 100/10 + 1 = 11. Actually size/limit + 1. 100/10 + 1 = 11.
-        // Wait, 100 animals, limit 10. step = 100/10 + 1 = 11.
         // i=0, 11, 22, 33, 44, 55, 66, 77, 88, 99. Total 10.
         cell.forEachAnimalSampled(new SamplingContext(10, new DefaultRandomProvider() {
             @Override
             public int nextInt(int bound) { return 0; }
-        }), a -> count.incrementAndGet();
-        
+        }), a -> count.incrementAndGet());
+
         assertEquals(10, count.get());
     }
 

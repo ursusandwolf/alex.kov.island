@@ -8,6 +8,7 @@ import com.island.nature.model.Island;
 import com.island.nature.service.DefaultProtectionService;
 import com.island.nature.service.FeedingService;
 import com.island.nature.service.StatisticsService;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,6 +33,7 @@ class TrophicFeedingTest {
     private FeedingService feedingService;
     private final Configuration config = new Configuration();
     private final SpeciesRegistry registry = new SpeciesLoader(config).load();
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     @BeforeEach
     void setUp() {

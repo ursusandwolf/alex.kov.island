@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import com.island.engine.core.SimulationNode;
 import com.island.nature.entities.domain.NatureWorld;
+import com.island.nature.entities.components.MovementComponent;
 
 /**
  * Base class for all biomass-based organisms (Plants, Insects).
@@ -27,6 +28,9 @@ public abstract class Biomass extends Organism {
         this.maxBiomass = maxBiomass;
         this.biomass = (maxBiomass * config.getPlantInitialBiomassBP()) / config.getScale10K(); 
         this.speed = speed;
+        if (speed > 0) {
+            addComponent(new MovementComponent(speed));
+        }
     }
 
     @Override

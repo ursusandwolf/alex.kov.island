@@ -1,12 +1,12 @@
 package com.island.nature.entities.core;
 
 import com.island.engine.ecs.Component;
+import com.island.engine.ecs.ComponentStore;
+import com.island.engine.ecs.DefaultComponentStore;
 import com.island.nature.config.Configuration;
 import com.island.nature.config.EnergyPolicy;
 import com.island.nature.entities.components.AgeComponent;
 import com.island.nature.entities.components.HealthComponent;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,7 +16,7 @@ import com.island.util.common.Poolable;
 @Getter
 public abstract class Organism implements Poolable, Mortal {
     protected final Configuration config;
-    private final Map<Class<? extends Component>, Component> components = new ConcurrentHashMap<>();
+    private final ComponentStore componentStore = new DefaultComponentStore();
     
     // Hot components optimization: direct fields to avoid Map lookup overhead
     private HealthComponent healthComponent;
@@ -42,7 +42,7 @@ public abstract class Organism implements Poolable, Mortal {
         } else if (component instanceof AgeComponent ac) {
             this.ageComponent = ac;
         }
-        components.put(component.getClass(), component);
+        componentStore.add(component);
     }
 
     @SuppressWarnings("unchecked")
@@ -53,7 +53,7 @@ public abstract class Organism implements Poolable, Mortal {
         if (type == AgeComponent.class) {
             return (C) ageComponent;
         }
-        return type.cast(components.get(type));
+        return componentStore.get(type);
     }
 
     @Override

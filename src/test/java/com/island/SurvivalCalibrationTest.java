@@ -4,6 +4,9 @@ import com.island.nature.NaturePlugin;
 import com.island.nature.config.Configuration;
 import com.island.nature.model.Island;
 import com.island.nature.service.StatisticsService;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.Test;
@@ -64,8 +67,8 @@ public class SurvivalCalibrationTest {
                     s.extinctions.incrementAndGet();
                 }
                 
-                s.hungerDeaths.addAndGet(hungerDeaths.getOrDefault(key, 0);
-                s.ageDeaths.addAndGet(ageDeaths.getOrDefault(key, 0);
+                s.hungerDeaths.addAndGet(hungerDeaths.getOrDefault(key, 0));
+                s.ageDeaths.addAndGet(ageDeaths.getOrDefault(key, 0));
             }
             gameLoop.stop();
         }
@@ -75,7 +78,7 @@ public class SurvivalCalibrationTest {
 
     private void printResults(Map<SpeciesKey, SpeciesStats> stats) {
         System.out.println(String.format("%-10s | %-12s | %-12s | %-12s | %-12s", 
-                "Species", "Avg Pop", "Extinct Rate", "Hunger %", "Age %");
+                "Species", "Avg Pop", "Extinct Rate", "Hunger %", "Age %"));
         System.out.println("-----------|--------------|--------------|--------------|--------------");
 
         for (SpeciesKey key : TARGET_SPECIES) {
@@ -87,7 +90,7 @@ public class SurvivalCalibrationTest {
             double agePct = totalDeaths > 0 ? (double) s.ageDeaths.get() * 100 / totalDeaths : 0;
 
             System.out.println(String.format("%-10s | %-12.2f | %-12.2f | %-12.1f%% | %-12.1f%%", 
-                    key.getCode(), avgPop, extinctRate, hungerPct, agePct);
+                    key.getCode(), avgPop, extinctRate, hungerPct, agePct));
         }
         
         System.out.println("\n--- Calibration Recommendations ---");

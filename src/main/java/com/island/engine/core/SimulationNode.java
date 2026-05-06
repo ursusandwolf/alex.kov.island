@@ -1,5 +1,6 @@
 package com.island.engine.core;
 
+import com.island.engine.ecs.EntityQuery;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Consumer;
@@ -47,6 +48,17 @@ public interface SimulationNode<T extends Mortal> {
      * The implementation must ensure thread-safety (e.g., by holding a lock).
      */
     void forEachEntity(Consumer<T> action);
+
+    /**
+     * Executes the action for each entity matching the query.
+     */
+    default void query(EntityQuery<T> query, Consumer<T> action) {
+        forEachEntity(entity -> {
+            if (query.matches(entity)) {
+                action.accept(entity);
+            }
+        });
+    }
 
     /**
      * Gets total entity count in this node.

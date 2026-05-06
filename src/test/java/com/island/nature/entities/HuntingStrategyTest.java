@@ -10,6 +10,9 @@ import com.island.nature.entities.core.Animal;
 import com.island.nature.entities.core.SpeciesKey;
 import com.island.nature.entities.strategy.DefaultHuntingStrategy;
 import com.island.util.interaction.InteractionMatrix;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static com.island.nature.config.SimulationConstants.SCALE_1M;
 
 class HuntingStrategyTest {
     private InteractionMatrix matrix;
