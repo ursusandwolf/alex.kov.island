@@ -1,7 +1,6 @@
 package com.island.nature.service;
 
 import com.island.engine.SimulationNode;
-import com.island.engine.event.EntityDiedEvent;
 import com.island.engine.event.EventBus;
 import com.island.nature.entities.Animal;
 import com.island.nature.entities.Biomass;
