@@ -1,22 +1,17 @@
 # Project Context
 
 ## Current State
-- The project is an Island Ecosystem Simulator.
-- Critical technical debt from v5/v6 has been resolved:
-    - `SpeciesKey` singleton replaced with registry-based management.
-    - `PhaseScheduler` and `ParallelDispatcher` thread-safety and resource management improved.
-    - `SimulationContext` modernized as a Java Record.
-- Centralized event publication (HF-1) implemented: all deaths are now reported via `Island.onEntityRemoved`, eliminating double-counting.
-- Engine is fully decoupled from domain-specific logic.
+- **Major Refactoring (May 2026)**: 
+    - Reorganized `com.island.nature.entities`, `com.island.engine`, and `com.island.util` into specialized sub-packages (core, registry, strategy, scheduling, etc.) to maintain a clean directory structure (< 10 files per folder).
+    - Refactored simulation services in `com.island.nature.service` to use a Template Method pattern in `AbstractService`, significantly reducing duplication and improving type safety.
+    - Standardized service constructors to use `ExecutorService` and `RandomProvider` while removing the unused `EventBus`.
+    - Cleaned up imports and removed FQNs across the entire source tree.
 
-## Recent Changes
-- **Species Registry Cleanup**: Removed redundant `SpeciesKey` and optimized `SpeciesLoader`.
-- **Herbivore Lifecycle**: Modernized `Butterfly` and `Caterpillar` lifecycle management.
-- **ParallelTask Abstraction**: Decoupled engine scheduling from domain-specific `CellService` using a new `ParallelTask` interface and `asParallelTask()` visitor-like method.
-- **SpeciesRegistry Modernization**: Optimized registry with `Map.copyOf` and cached species codes for O(1) code set retrieval.
-- **Improved Test Coverage**: Integrated `SimulationStopConditionTest` and `StatisticsDeathCountingTest`.
+## Technical Debt / Known Issues
+- **Test Suite**: The tests have been structurally updated to match new packages, but the test-classes currently face compilation errors due to complex mock setups and service instantiation mismatches in edge-case tests.
+- **Lombok Usage**: While improved, some classes still have redundant boilerplate that could be further reduced with `@RequiredArgsConstructor` or `@Slf4j`.
 
 ## Pending Items
-- Enhance ECS system layer for more complex logic.
-- Consider adding a `System` layer to handle domain logic outside of `CellService`.
-- Implement more complex behaviors in SimCity plugin to test the new parallel abstraction.
+- Resolve remaining test compilation errors in `src/test/java`.
+- Finalize the migration of `MovementService` to a fully component-based ECS approach as planned.
+- Update UML diagrams to reflect the new package structure.
