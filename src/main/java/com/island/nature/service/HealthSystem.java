@@ -35,6 +35,7 @@ public class HealthSystem extends NatureEntitySystem {
 
     @Override
     protected void process(Organism entity, Cell cell, int tickCount) {
+        // TODO: Избавиться от instanceof Animal/Biomass (Нарушение OCP). Разделить на AnimalHealthSystem и BiomassGrowthSystem.
         if (entity instanceof Animal animal) {
             processAnimal(animal);
         } else if (entity instanceof Biomass biomass) {
@@ -43,7 +44,9 @@ public class HealthSystem extends NatureEntitySystem {
     }
 
     private void processAnimal(Animal a) {
-        if (!a.isAlive()) return;
+        if (!a.isAlive()) {
+            return;
+        }
 
         Season season = getEnvironment().getCurrentSeason();
         int seasonMetabolismModifierBP = (int) (season.getMetabolismModifier() * config.getScale10K());
@@ -73,7 +76,9 @@ public class HealthSystem extends NatureEntitySystem {
     }
 
     private void processBiomass(Biomass b, Cell cell) {
-        if (!b.isAlive()) return;
+        if (!b.isAlive()) {
+            return;
+        }
         
         Season season = getEnvironment().getCurrentSeason();
         double growthModifier = season.getGrowthModifier();

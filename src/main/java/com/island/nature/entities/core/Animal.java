@@ -2,6 +2,7 @@ package com.island.nature.entities.core;
 
 import com.island.nature.config.EnergyPolicy;
 import com.island.nature.entities.components.MovementComponent;
+import com.island.nature.entities.components.MetabolismComponent;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,6 +17,7 @@ public abstract class Animal extends Organism {
         super(animalType.getConfig(), animalType.getMaxEnergy(), animalType.getMaxLifespan());
         this.animalType = animalType;
         addComponent(new MovementComponent(animalType.getSpeed()));
+        addComponent(new MetabolismComponent());
     }
 
     @Override

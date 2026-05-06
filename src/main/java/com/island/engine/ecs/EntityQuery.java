@@ -2,7 +2,6 @@ package com.island.engine.ecs;
 
 import java.util.List;
 import com.island.engine.model.Mortal;
-import com.island.nature.entities.core.Organism;
 
 /**
  * Filter for entities based on their required components.
@@ -15,9 +14,9 @@ public class EntityQuery<T extends Mortal> {
     }
 
     public boolean matches(T entity) {
-        if (entity instanceof Organism organism) {
+        if (entity instanceof Entity e) {
             for (Class<? extends Component> componentClass : requiredComponents) {
-                if (!organism.getComponentStore().has(componentClass)) {
+                if (!e.getComponentStore().has(componentClass)) {
                     return false;
                 }
             }

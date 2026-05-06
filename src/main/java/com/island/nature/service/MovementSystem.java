@@ -44,25 +44,32 @@ public class MovementSystem extends NatureEntitySystem {
         // 1. Process Animals with sampling to maintain performance
         cell.forEachAnimalSampled(new SamplingContext(config.getMovementLodLimit(), getRandom()), animal -> {
             if (animal.getComponent(MovementComponent.class) != null) {
-                processAnimal(animal, cell, tickCount);
+                process(animal, cell, tickCount);
             }
         });
 
         // 2. Process Mobile Biomass (they also have MovementComponent)
         cell.query(new EntityQuery<>(requiredComponents()), entity -> {
             if (entity instanceof Biomass biomass && biomass.getSpeed() > 0 && biomass.getBiomass() > 0) {
-                processBiomass(biomass, cell);
+                process(biomass, cell, tickCount);
             }
         });
     }
 
     @Override
     protected void process(Organism entity, Cell cell, int tickCount) {
-        // Not used directly because we override doProcessCell to handle sampling and Biomass specifically
+        // TODO: Избавиться от instanceof Animal/Biomass (Нарушение OCP). Разделить на AnimalMovementSystem и BiomassMovementSystem.
+        if (entity instanceof Animal animal) {
+            processAnimal(animal, cell, tickCount);
+        } else if (entity instanceof Biomass biomass) {
+            processBiomass(biomass, cell);
+        }
     }
 
     private void processAnimal(Animal animal, Cell node, int tickCount) {
-        if (!animal.isAlive()) return;
+        if (!animal.isAlive()) {
+            return;
+        }
 
         if (shouldAct(animal, AnimalType.Action.MOVE, tickCount)) {
             MovementComponent move = animal.getComponent(MovementComponent.class);

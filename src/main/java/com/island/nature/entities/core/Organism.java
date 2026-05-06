@@ -11,10 +11,11 @@ import java.util.concurrent.locks.ReentrantLock;
 import lombok.Getter;
 import lombok.Setter;
 import com.island.engine.model.Mortal;
+import com.island.engine.ecs.Entity;
 import com.island.util.common.Poolable;
 
 @Getter
-public abstract class Organism implements Poolable, Mortal {
+public abstract class Organism implements Poolable, Entity {
     protected final Configuration config;
     private final ComponentStore componentStore = new DefaultComponentStore();
     
