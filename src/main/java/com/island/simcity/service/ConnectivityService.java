@@ -9,11 +9,9 @@ import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import com.island.engine.core.SimulationNode;
-import com.island.engine.service.CellService;
 
 @RequiredArgsConstructor
-public class ConnectivityService implements CellService<SimEntity> {
+public class ConnectivityService extends AbstractSimCityService {
     private final CityMap map;
 
     @Override
@@ -60,6 +58,6 @@ public class ConnectivityService implements CellService<SimEntity> {
     }
 
     @Override
-    public void processCell(SimulationNode<SimEntity> node, int tickCount) {
+    protected void doProcessTile(CityTile tile, int tickCount) {
     }
 }

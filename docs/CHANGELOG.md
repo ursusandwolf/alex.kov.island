@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.23.0] - 2026-05-07
+### Added
+- **System Execution Graph**: Implemented `SystemExecutionGraph` with static dependency resolution and parallel grouping based on read/write component sets.
+- **PhaseScheduler Optimization**: Added schedule caching to `PhaseScheduler`, avoiding redundant graph traversals when the task list is unchanged.
+- **Config-Driven Partitioning**: Moved all chunking magic numbers from `Island.java` to the `Configuration` system.
+- **Lifecycle Guarantees**: Unified simulation termination logic via `onStopCallback` in `GameLoop`, ensuring `onSimulationStopped` is always called.
+
+### Fixed
+- **GC Allocation Reduction**: Optimized `SystemExecutionGraph.buildSchedule` to use list-based conflict detection, eliminating `HashSet` churn in the hot path.
+- **Code Standards**: Removed dead `process()` overrides in ECS systems (`AnimalReproductionSystem`) and cleaned up FQNs in `PhaseScheduler`.
+
 ## [1.22.0] - 2026-05-07
 ### Added
 - **Typed Events**: Introduced `AnimalBornEvent` and `AnimalDiedEvent` to the core engine. These provide type-safe lifecycle notifications, enabling `StatisticsService` and `AlertService` to handle events without `instanceof` checks.

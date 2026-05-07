@@ -66,8 +66,7 @@ public abstract class SwarmOrganism extends Biomass {
         }
     }
 
-    @Override
-    public void addBiomass(long amount, Cell cell) {
+    public void addBiomassAmount(long amount, Cell cell) {
         if (amount > 0) {
             long newTotal = getBiomass() + amount;
             if (maxBiomass > 0 && newTotal > maxBiomass) {

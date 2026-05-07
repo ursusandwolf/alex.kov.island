@@ -1,5 +1,6 @@
 package com.island.nature.model;
 
+import com.island.engine.ecs.EntityQuery;
 import com.island.nature.config.Configuration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -109,6 +110,16 @@ public class Cell implements SimulationNode<Organism> {
         rwLock.readLock().lock();
         try {
             container.forEachEntity(action);
+        } finally {
+            rwLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public void query(EntityQuery<Organism> query, Consumer<Organism> action) {
+        rwLock.readLock().lock();
+        try {
+            container.forEachMatching(query, action);
         } finally {
             rwLock.readLock().unlock();
         }
@@ -318,7 +329,7 @@ public class Cell implements SimulationNode<Organism> {
         try {
             Biomass existing = container.getBiomass(b.getSpeciesKey());
             if (existing != null) {
-                existing.addBiomass(b.getBiomass(), this);
+                existing.addBiomassAmount(b.getBiomass(), this);
                 return true;
             }
             container.addBiomass(b);
@@ -333,7 +344,7 @@ public class Cell implements SimulationNode<Organism> {
         try {
             Biomass existing = container.getBiomass(key);
             if (existing != null) {
-                existing.addBiomass(amount, this);
+                existing.addBiomassAmount(amount, this);
                 return true;
             }
             return false;

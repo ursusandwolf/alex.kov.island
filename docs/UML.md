@@ -22,8 +22,8 @@
 - **Specialized ECS Systems**:
     - `AnimalHealthSystem` / `BiomassGrowthSystem`: Handle lifecycle logic (metabolism, growth, aging) based on entity components.
     - `AnimalMovementSystem` / `BiomassMovementSystem`: Coordinate spatial transitions using `MovementComponent` data.
-- `FeedingService`: Optimized hunting/grazing with pre-calculated interaction matrices. Supports pack hunting.
-- `ReproductionService`: Population growth with LOD scaling.
+    - `AnimalFeedingSystem`: Optimized hunting/grazing with pre-calculated interaction matrices. Supports pack hunting and ECS components.
+    - `AnimalReproductionSystem`: Population growth with LOD scaling and `ReproductionComponent` support.
 - `CleanupService`: O(1) removal and pool-based recycling of dead entities.
 - `StatisticsService`: Zero-scan reporting using pre-aggregated metrics via `EventBus` with specialized `AnimalBornEvent` and `AnimalDiedEvent` support.
 

@@ -1,5 +1,7 @@
 package com.island.nature.model;
 
+import com.island.engine.ecs.EntityArchetype;
+import com.island.engine.ecs.EntityQuery;
 import com.island.nature.config.Configuration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,6 +29,9 @@ public class EntityContainer {
     private final Map<SpeciesKey, Biomass> biomassBySpecies = new HashMap<>();
     private final Set<Animal> allAnimals = new LinkedHashSet<>();
     private final List<Biomass> allBiomass = new ArrayList<>();
+    
+    // Archetype grouping for optimized querying
+    private final Map<EntityArchetype, Set<Organism>> entitiesByArchetype = new HashMap<>();
 
     public EntityContainer(Configuration config) {
         this.config = config;
@@ -43,6 +48,12 @@ public class EntityContainer {
         }
         SizeClass size = type.getSizeClass();
         animalsBySize.computeIfAbsent(size, k -> new LinkedHashSet<>()).add(animal);
+        
+        // Update archetype index
+        EntityArchetype archetype = animal.getArchetype();
+        if (archetype != null) {
+            entitiesByArchetype.computeIfAbsent(archetype, k -> new LinkedHashSet<>()).add(animal);
+        }
     }
 
     public boolean removeAnimal(Animal animal) {
@@ -59,6 +70,18 @@ public class EntityContainer {
             Set<Animal> sizeSet = animalsBySize.get(size);
             if (sizeSet != null) {
                 sizeSet.remove(animal);
+            }
+            
+            // Update archetype index
+            EntityArchetype archetype = animal.getArchetype();
+            if (archetype != null) {
+                Set<Organism> archSet = entitiesByArchetype.get(archetype);
+                if (archSet != null) {
+                    archSet.remove(animal);
+                    if (archSet.isEmpty()) {
+                        entitiesByArchetype.remove(archetype);
+                    }
+                }
             }
             return true;
         }
@@ -123,6 +146,14 @@ public class EntityContainer {
         allBiomass.forEach(action);
     }
 
+    public void forEachMatching(EntityQuery<Organism> query, Consumer<Organism> action) {
+        for (Map.Entry<EntityArchetype, Set<Organism>> entry : entitiesByArchetype.entrySet()) {
+            if (query.matches(entry.getKey())) {
+                entry.getValue().forEach(action);
+            }
+        }
+    }
+
     public void removeDeadAnimals(Consumer<Animal> onRemoved) {
         Iterator<Animal> it = allAnimals.iterator();
         while (it.hasNext()) {
@@ -148,6 +179,18 @@ public class EntityContainer {
                 if (sizeSet != null) {
                     sizeSet.remove(a);
                 }
+
+                // Update archetype index
+                EntityArchetype archetype = a.getArchetype();
+                if (archetype != null) {
+                    Set<Organism> archSet = entitiesByArchetype.get(archetype);
+                    if (archSet != null) {
+                        archSet.remove(a);
+                        if (archSet.isEmpty()) {
+                            entitiesByArchetype.remove(archetype);
+                        }
+                    }
+                }
                 
                 if (onRemoved != null) {
                     onRemoved.accept(a);
@@ -159,6 +202,12 @@ public class EntityContainer {
     public void addBiomass(Biomass b) {
         biomassBySpecies.put(b.getSpeciesKey(), b);
         allBiomass.add(b);
+        
+        // Update archetype index
+        EntityArchetype archetype = b.getArchetype();
+        if (archetype != null) {
+            entitiesByArchetype.computeIfAbsent(archetype, k -> new LinkedHashSet<>()).add(b);
+        }
     }
 
     public Biomass getBiomass(SpeciesKey key) {

@@ -10,6 +10,7 @@ import com.island.nature.entities.core.Animal;
 import com.island.nature.entities.core.AnimalType;
 import com.island.nature.entities.core.Biomass;
 import com.island.nature.entities.core.DeathCause;
+import com.island.nature.model.Cell;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,12 +31,12 @@ public class NatureComponentFactory {
         
         components.add(ConsumableComponent.builder()
                 .isAnimal(true)
-                .consumeAction(requested -> {
+                .consumeAction((requested, context) -> {
                     if (animal.isAlive()) {
                         animal.die(DeathCause.EATEN);
                         return animal.getWeight();
                     }
-                    return 0;
+                    return 0L;
                 })
                 .build());
                 
@@ -52,11 +53,11 @@ public class NatureComponentFactory {
         
         components.add(ConsumableComponent.builder()
                 .isAnimal(false)
-                .consumeAction(requested -> {
-                    // This is slightly tricky as consumeBiomass needs Cell context in current implementation.
-                    // For ECS System, the system itself will have the Cell context.
-                    // So we might need to pass the Cell to the consume method.
-                    return 0; // Systems should handle biomass consumption directly or via enhanced component
+                .consumeAction((requested, context) -> {
+                    if (context instanceof Cell cell) {
+                        return biomass.consumeBiomass(requested, cell);
+                    }
+                    return 0L;
                 })
                 .build());
                 

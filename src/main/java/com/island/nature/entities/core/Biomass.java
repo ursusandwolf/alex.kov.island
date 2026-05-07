@@ -7,8 +7,6 @@ import com.island.nature.entities.registry.NatureComponentFactory;
 import lombok.Getter;
 import lombok.Setter;
 import com.island.nature.entities.domain.NatureWorld;
-import com.island.nature.entities.components.MovementComponent;
-import com.island.nature.entities.components.GrowthComponent;
 
 /**
  * Base class for all biomass-based organisms (Plants, Insects).
@@ -46,18 +44,6 @@ public abstract class Biomass extends Organism {
         return 100; // Biomass always has full energy for logic purposes
     }
 
-    public void tick(Cell cell) {
-        grow(cell, 1.0);
-    }
-
-    public void grow(Cell cell, double growthModifier) {
-        long old = biomass;
-        long growth = (maxBiomass * config.getPlantGrowthRateBP()) / config.getScale10K();
-        growth = (long) (growth * growthModifier);
-        biomass = Math.min(maxBiomass, biomass + growth);
-        reportChange(cell, biomass - old);
-    }
-
     public long consumeBiomass(long amount, Cell cell) {
         long actualEaten = Math.min(biomass, amount);
         biomass -= actualEaten;
@@ -65,7 +51,7 @@ public abstract class Biomass extends Organism {
         return actualEaten;
     }
 
-    public void addBiomass(long amount, Cell cell) {
+    public void addBiomassAmount(long amount, Cell cell) {
         long old = biomass;
         if (maxBiomass > 0) {
             this.biomass = Math.min(maxBiomass, this.biomass + amount);

@@ -22,6 +22,7 @@ public abstract class NatureEntitySystem extends AbstractService implements Enti
                   .distinct()
                   .toList()
         );
+        this.entityQuery.bind(world.getComponentRegistry());
     }
 
     @Override

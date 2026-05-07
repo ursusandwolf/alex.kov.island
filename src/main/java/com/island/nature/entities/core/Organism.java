@@ -4,6 +4,7 @@ import com.island.engine.ecs.Component;
 import com.island.engine.ecs.ComponentRegistry;
 import com.island.engine.ecs.ComponentStore;
 import com.island.engine.ecs.ArrayComponentStore;
+import com.island.engine.ecs.EntityArchetype;
 import com.island.nature.config.Configuration;
 import com.island.nature.config.EnergyPolicy;
 import com.island.nature.entities.components.AgeComponent;
@@ -18,7 +19,9 @@ import com.island.util.common.Poolable;
 @Getter
 public abstract class Organism implements Poolable, Entity {
     protected final Configuration config;
+    private final ComponentRegistry componentRegistry;
     private final ComponentStore componentStore;
+    private volatile EntityArchetype archetype;
     
     // Hot components optimization: direct fields to avoid Map lookup overhead
     private HealthComponent healthComponent;
@@ -33,6 +36,7 @@ public abstract class Organism implements Poolable, Entity {
 
     protected Organism(Configuration config, ComponentRegistry registry, long maxEnergy, int maxLifespan, int initialEnergyPercent) {
         this.config = config;
+        this.componentRegistry = registry;
         this.componentStore = new ArrayComponentStore(registry);
         long currentEnergy = (maxEnergy * initialEnergyPercent) / 100;
         addComponent(new HealthComponent(currentEnergy, maxEnergy, true));
@@ -46,6 +50,16 @@ public abstract class Organism implements Poolable, Entity {
             this.ageComponent = ac;
         }
         componentStore.add(component);
+        updateArchetype();
+    }
+
+    private void updateArchetype() {
+        this.archetype = componentRegistry.getArchetype(componentStore.getComponentBitSet());
+    }
+
+    @Override
+    public EntityArchetype getArchetype() {
+        return archetype;
     }
 
     @SuppressWarnings("unchecked")
@@ -70,6 +84,7 @@ public abstract class Organism implements Poolable, Entity {
             ageComponent.setAge(0);
             ageComponent.setMaxLifespan(0);
         }
+        this.archetype = null;
     }
 
     public void init(long maxEnergy, int maxLifespan, int initialEnergyPercent) {
@@ -83,6 +98,7 @@ public abstract class Organism implements Poolable, Entity {
             ageComponent.setMaxLifespan(maxLifespan);
         }
         this.lastDeathCause = null;
+        updateArchetype();
     }
 
     public boolean isAlive() {

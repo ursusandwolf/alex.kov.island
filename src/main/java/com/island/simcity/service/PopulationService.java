@@ -7,9 +7,8 @@ import com.island.simcity.model.CityMap;
 import com.island.simcity.model.CityTile;
 import java.util.concurrent.atomic.AtomicInteger;
 import com.island.engine.core.SimulationNode;
-import com.island.engine.service.CellService;
 
-public class PopulationService implements CellService<SimEntity> {
+public class PopulationService extends AbstractSimCityService {
     private final CityMap map;
     private final AtomicInteger totalPopulation = new AtomicInteger(0);
 
@@ -23,8 +22,7 @@ public class PopulationService implements CellService<SimEntity> {
     }
 
     @Override
-    public void processCell(SimulationNode<SimEntity> node, int tickCount) {
-        CityTile tile = (CityTile) node;
+    protected void doProcessTile(CityTile tile, int tickCount) {
         int cellPopulation = 0;
         boolean hasResidential = false;
         int neighborIndustrial = 0;

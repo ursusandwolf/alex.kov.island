@@ -1,6 +1,9 @@
 package com.island.simcity.model;
 
+import com.island.simcity.entities.Resident;
 import com.island.simcity.entities.SimEntity;
+import com.island.simcity.event.ResidentBornEvent;
+import com.island.simcity.event.ResidentDiedEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -81,6 +84,9 @@ public class CityTile implements SimulationNode<SimEntity> {
         try {
             if (entities.add(entity)) {
                 world.onEntityAdded(entity);
+                if (entity instanceof Resident resident) {
+                    world.getEventBus().publish(new ResidentBornEvent(resident));
+                }
                 return true;
             }
             return false;
@@ -95,6 +101,9 @@ public class CityTile implements SimulationNode<SimEntity> {
         try {
             if (entities.remove(entity)) {
                 world.onEntityRemoved(entity);
+                if (entity instanceof Resident resident) {
+                    world.getEventBus().publish(new ResidentDiedEvent(resident));
+                }
                 return true;
             }
             return false;
@@ -110,6 +119,9 @@ public class CityTile implements SimulationNode<SimEntity> {
             entities.removeIf(e -> {
                 if (!e.isAlive()) {
                     world.onEntityRemoved(e);
+                    if (e instanceof Resident resident) {
+                        world.getEventBus().publish(new ResidentDiedEvent(resident));
+                    }
                     onEntityRemoved.accept(e);
                     return true;
                 }

@@ -92,13 +92,13 @@ The `SimulationWorld` publishes events to the `EventBus` when entities are added
 ```
 
 ### 2.4 Strategy Pattern (Hunting)
-Hunting logic is encapsulated in `HuntingStrategy`, allowing different behaviors for predators (e.g., pack hunting vs. solo hunting) without modifying the `FeedingService`.
+Hunting logic is encapsulated in `HuntingStrategy`, allowing different behaviors for predators (e.g., pack hunting vs. solo hunting) without modifying the `AnimalFeedingSystem`.
 
 **UML Pseudo-graphics:**
 ```text
-+------------------+          +--------------------------------+
-|  FeedingService  |--------->|        HuntingStrategy         |
-+------------------+          +--------------------------------+
++---------------------+          +--------------------------------+
+| AnimalFeedingSystem |--------->|        HuntingStrategy         |
++---------------------+          +--------------------------------+
                               | + selectPrey(pred, provider)   |
                               | + selectPackPrey(pack, prov)   |
                               +--------------------------------+

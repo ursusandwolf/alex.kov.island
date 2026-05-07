@@ -7,4 +7,8 @@ import com.island.engine.model.Mortal;
  */
 public interface Entity extends Mortal {
     ComponentStore getComponentStore();
+
+    default EntityArchetype getArchetype() {
+        return null;
+    }
 }

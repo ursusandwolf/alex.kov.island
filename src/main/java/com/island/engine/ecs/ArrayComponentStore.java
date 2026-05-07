@@ -1,6 +1,7 @@
 package com.island.engine.ecs;
 
 import java.util.Arrays;
+import java.util.BitSet;
 
 /**
  * High-performance implementation of ComponentStore using an array.
@@ -46,6 +47,17 @@ public class ArrayComponentStore implements ComponentStore {
         if (index < components.length) {
             components[index] = null;
         }
+    }
+
+    @Override
+    public BitSet getComponentBitSet() {
+        BitSet bitSet = new BitSet();
+        for (int i = 0; i < components.length; i++) {
+            if (components[i] != null) {
+                bitSet.set(i);
+            }
+        }
+        return bitSet;
     }
 
     private void ensureCapacity(int index) {

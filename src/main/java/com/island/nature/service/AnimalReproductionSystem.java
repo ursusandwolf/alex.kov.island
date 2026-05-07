@@ -99,11 +99,6 @@ public class AnimalReproductionSystem extends NatureEntitySystem {
         }
     }
 
-    @Override
-    protected void process(Organism entity, Cell cell, int tickCount) {
-        // Not used as we override doProcessCell for group logic
-    }
-
     private boolean tryReproduceScaled(Animal parent1, Animal parent2, Cell node, int scale) {
         AnimalType type = parent1.getAnimalType();
         ReproductionComponent rep = parent1.getComponent(ReproductionComponent.class);

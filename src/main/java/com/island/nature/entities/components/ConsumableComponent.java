@@ -1,7 +1,7 @@
 package com.island.nature.entities.components;
 
 import com.island.engine.ecs.Component;
-import java.util.function.ToLongFunction;
+import java.util.function.BiFunction;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -16,11 +16,15 @@ public class ConsumableComponent implements Component {
     
     /**
      * Logic to handle consumption.
-     * Takes requested amount, returns actual gain for the consumer.
+     * Takes requested amount and context (e.g. Cell), returns actual gain for the consumer.
      */
-    private final ToLongFunction<Long> consumeAction;
+    private final BiFunction<Long, Object, Long> consumeAction;
 
     public long consume(long requestedAmount) {
-        return consumeAction != null ? consumeAction.applyAsLong(requestedAmount) : 0;
+        return consume(requestedAmount, null);
+    }
+
+    public long consume(long requestedAmount, Object context) {
+        return consumeAction != null ? consumeAction.apply(requestedAmount, context) : 0;
     }
 }

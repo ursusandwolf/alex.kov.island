@@ -38,14 +38,23 @@ public class BiomassGrowthSystem extends NatureEntitySystem {
 
     @Override
     protected void process(Organism entity, Cell cell, int tickCount) {
-        // Safe cast due to requiredComponents filter
+        // Safe cast due to query filter
         Biomass b = (Biomass) entity;
-        if (!b.isAlive()) {
+        if (b.getBiomass() <= 0) {
             return;
         }
         
         Season season = getEnvironment().getCurrentSeason();
         double growthModifier = season.getGrowthModifier();
-        b.grow(cell, growthModifier);
+        
+        long old = b.getBiomass();
+        long growth = (b.getMaxBiomass() * config.getPlantGrowthRateBP()) / config.getScale10K();
+        growth = (long) (growth * growthModifier);
+        b.setBiomass(Math.min(b.getMaxBiomass(), b.getBiomass() + growth));
+        
+        long delta = b.getBiomass() - old;
+        if (delta != 0) {
+            getWorld().getStatisticsService().registerBiomassChange(b.getSpeciesKey(), delta);
+        }
     }
 }

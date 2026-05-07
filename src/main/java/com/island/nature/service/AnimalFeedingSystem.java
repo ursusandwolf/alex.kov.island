@@ -204,12 +204,8 @@ public class AnimalFeedingSystem extends NatureEntitySystem {
                 // Biomass consumption
                 if (!isPlantProtected(preyCandidate.getSpeciesKey())) {
                     long foodNeeded = consumer.getFoodForSaturation() - consumer.getCurrentEnergy();
-                    // We still use direct call for biomass for now as consumeAction needs Cell context
-                    // Or we can enhance ConsumableComponent to take context or handle it here
-                    if (preyCandidate instanceof com.island.nature.entities.core.Biomass b) {
-                        consumer.addEnergy(b.consumeBiomass(foodNeeded, node));
-                        success = true;
-                    }
+                    consumer.addEnergy(consumable.consume(foodNeeded, node));
+                    success = true;
                 }
             }
         }
