@@ -95,7 +95,7 @@ public class GameLoop<T extends Mortal> {
             return;
         }
         running = false;
-        if (loopThread != null) {
+        if (loopThread != null && Thread.currentThread() != loopThread) {
             loopThread.interrupt();
             try {
                 loopThread.join(2000);

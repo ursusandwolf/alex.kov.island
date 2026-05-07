@@ -243,10 +243,10 @@ public class Island implements NatureWorld {
         int targetTasks;
         if (totalCells <= config.getPartitioningSmallWorldThreshold()) {
             targetTasks = config.getPartitioningSmallWorldTasks();
-        } else if (totalCells <= processors * 16) {
-            targetTasks = processors * 2;
+        } else if (totalCells <= processors * config.getPartitioningMediumWorldMultiplier()) {
+            targetTasks = processors * config.getPartitioningMediumWorldTasksMultiplier();
         } else {
-            targetTasks = processors * 4;
+            targetTasks = processors * config.getPartitioningLargeWorldTasksMultiplier();
         }
 
         targetTasks = Math.min(targetTasks, totalCells);

@@ -49,28 +49,25 @@ public class NaturePlugin implements SimulationPlugin<Organism> {
     public NaturePlugin(Configuration config, SimulationView view) {
         this.config = config;
         this.view = view;
-        
+        this.domainContext = assembleDomainContext(config);
+    }
+
+    private NatureDomainContext assembleDomainContext(Configuration config) {
         SpeciesRegistry speciesRegistry = new SpeciesLoader(config).load();
-        InteractionProvider interactionMatrix = InteractionMatrix.buildFrom(speciesRegistry);
         StatisticsService statisticsService = new StatisticsService(config);
-        AlertService alertService = new AlertService();
         RandomProvider randomProvider = new DefaultRandomProvider();
         ComponentRegistry componentRegistry = new ComponentRegistry();
-        AnimalFactory animalFactory = new AnimalFactory(speciesRegistry, randomProvider, componentRegistry);
-        ProtectionService protectionService = new DefaultProtectionService(config, speciesRegistry, 
-                                                                          statisticsService, 
-                                                                          config.getIslandWidth() * config.getIslandHeight());
-        BiomassManager biomassManager = new DefaultBiomassManager();
-
-        this.domainContext = NatureDomainContext.builder()
+        
+        return NatureDomainContext.builder()
                 .config(config)
                 .speciesRegistry(speciesRegistry)
-                .interactionProvider(interactionMatrix)
+                .interactionProvider(InteractionMatrix.buildFrom(speciesRegistry))
                 .statisticsService(statisticsService)
-                .alertService(alertService)
-                .animalFactory(animalFactory)
-                .protectionService(protectionService)
-                .biomassManager(biomassManager)
+                .alertService(new AlertService())
+                .animalFactory(new AnimalFactory(speciesRegistry, randomProvider, componentRegistry))
+                .protectionService(new DefaultProtectionService(config, speciesRegistry, statisticsService, 
+                                     config.getIslandWidth() * config.getIslandHeight()))
+                .biomassManager(new DefaultBiomassManager())
                 .randomProvider(randomProvider)
                 .componentRegistry(componentRegistry)
                 .build();

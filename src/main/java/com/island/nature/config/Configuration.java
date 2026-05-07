@@ -84,6 +84,9 @@ public class Configuration {
     // Partitioning
     private int partitioningSmallWorldThreshold = 64;
     private int partitioningSmallWorldTasks = 16;
+    private int partitioningMediumWorldMultiplier = 16;
+    private int partitioningMediumWorldTasksMultiplier = 2;
+    private int partitioningLargeWorldTasksMultiplier = 4;
     private int partitioningLargeWorldThreshold = 1000;
     private int partitioningMaxChunkSize = 32;
 

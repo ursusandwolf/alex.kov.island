@@ -8,6 +8,7 @@
 
 ### Changed
 - **ECS Registry Isolation**: Refactored `ComponentRegistry` from a global static singleton to an instance-based registry. This allows multiple simulation instances to run in isolation with their own component indexing.
+- **Stop Condition Semantics**: Updated `NaturePlugin.shouldStop` to trigger on total animal extinction (excluding biomass) instead of individual species extinction, providing a more stable end-game state for large simulations.
 - **Safe Component Storage**: Updated `ArrayComponentStore` to support dynamic array growth, preventing silent component loss when exceeding initial capacity.
 - **Contract Simplification**: Removed the redundant `process(T, int)` method from the `EntitySystem` interface to resolve signature conflicts with the optimized parallel execution path.
 - **Dependency Injection**: Updated `Organism`, `AnimalFactory`, and `WorldInitializer` to receive `ComponentRegistry` via constructor injection, furthering the shift away from global state.

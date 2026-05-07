@@ -65,12 +65,6 @@ public class NatureLauncher {
                 latch.countDown();
                 return;
             }
-
-            if (plugin.shouldStop(context)) {
-                log.error("\n💀 Species extinction or critical condition detected! Stopping...");
-                engine.stop(context, plugin);
-                latch.countDown();
-            }
         }, config.getMonitoringIntervalMs(), config.getMonitoringIntervalMs(), TimeUnit.MILLISECONDS);
     }
 }

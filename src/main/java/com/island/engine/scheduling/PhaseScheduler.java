@@ -19,9 +19,16 @@ import com.island.engine.parallel.ParallelTask;
  */
 @Slf4j
 public class PhaseScheduler<T extends Mortal> {
+    private static final Comparator<ScheduledTask> PRIORITY_COMPARATOR = 
+            Comparator.comparingInt(ScheduledTask::priority).reversed();
+
     private final ParallelDispatcher<T> dispatcher;
     private final Map<Phase, List<ScheduledTask>> phasedTasks = new EnumMap<>(Phase.class);
     private final List<ParallelTask<T>> parallelGroup = new ArrayList<>();
+    
+    // Cache for optimized execution graph
+    private List<ScheduledTask> lastProcessedTasks = null;
+    private final Map<Phase, List<List<ParallelTask<T>>>> cachedSchedules = new EnumMap<>(Phase.class);
 
     public PhaseScheduler(ParallelDispatcher<T> dispatcher) {
         this.dispatcher = dispatcher;
@@ -31,16 +38,12 @@ public class PhaseScheduler<T extends Mortal> {
     }
 
     public void execute(SimulationWorld<T> world, List<ScheduledTask> tasks, int tickCount) {
-        for (List<ScheduledTask> list : phasedTasks.values()) {
-            list.clear();
+        boolean tasksChanged = lastProcessedTasks == null || !lastProcessedTasks.equals(tasks);
+        
+        if (tasksChanged) {
+            rebuildSchedule(tasks);
+            lastProcessedTasks = new ArrayList<>(tasks);
         }
-
-        // Group tasks by phase
-        for (ScheduledTask task : tasks) {
-            phasedTasks.get(task.phase()).add(task);
-        }
-
-        parallelGroup.clear();
 
         // Execute phases in order
         for (Phase phase : Phase.values()) {
@@ -49,39 +52,66 @@ public class PhaseScheduler<T extends Mortal> {
                 continue;
             }
 
-            // Sort descending by priority (higher priority executes first)
-            phaseTasks.sort(Comparator.comparingInt(ScheduledTask::priority).reversed());
-
-            parallelGroup.clear();
-            for (ScheduledTask task : phaseTasks) {
-                ParallelTask<T> parallelTask = task.asParallelTask();
-                if (parallelTask != null) {
-                    parallelGroup.add(parallelTask);
-                } else {
-                    // Dispatch any accumulated parallel services before sequential task
-                    if (!parallelGroup.isEmpty()) {
-                        List<List<ParallelTask<T>>> batches = SystemExecutionGraph.buildSchedule(parallelGroup);
-                        for (List<ParallelTask<T>> batch : batches) {
-                            dispatcher.dispatch(world, batch, tickCount);
-                        }
-                        parallelGroup.clear();
-                    }
-                    try {
-                        task.tick(tickCount);
-                    } catch (Exception e) {
-                        log.error("Error during simulation tick in phase {}: {}", phase, e.getMessage(), e);
-                    }
-                }
-            }
-            
-            // Dispatch remaining parallel services
-            if (!parallelGroup.isEmpty()) {
-                List<List<ParallelTask<T>>> batches = SystemExecutionGraph.buildSchedule(parallelGroup);
+            List<List<ParallelTask<T>>> batches = cachedSchedules.get(phase);
+            if (batches != null) {
+                // Optimized path: use cached parallel batches
                 for (List<ParallelTask<T>> batch : batches) {
                     dispatcher.dispatch(world, batch, tickCount);
                 }
-                parallelGroup.clear();
+                
+                // Execute remaining sequential tasks in this phase (if any)
+                for (ScheduledTask task : phaseTasks) {
+                    if (task.asParallelTask() == null) {
+                        executeSequential(task, phase, tickCount);
+                    }
+                }
+            } else {
+                // Fallback/Legacy path for phases without batches
+                for (ScheduledTask task : phaseTasks) {
+                    executeSequential(task, phase, tickCount);
+                }
             }
+        }
+    }
+
+    private void rebuildSchedule(List<ScheduledTask> tasks) {
+        for (List<ScheduledTask> list : phasedTasks.values()) {
+            list.clear();
+        }
+        cachedSchedules.clear();
+
+        // Group and sort tasks
+        for (ScheduledTask task : tasks) {
+            phasedTasks.get(task.phase()).add(task);
+        }
+
+        for (Phase phase : Phase.values()) {
+            List<ScheduledTask> phaseTasks = phasedTasks.get(phase);
+            if (phaseTasks.isEmpty()) {
+                continue;
+            }
+
+            phaseTasks.sort(PRIORITY_COMPARATOR);
+            
+            parallelGroup.clear();
+            for (ScheduledTask task : phaseTasks) {
+                ParallelTask<T> pt = task.asParallelTask();
+                if (pt != null) {
+                    parallelGroup.add(pt);
+                }
+            }
+
+            if (!parallelGroup.isEmpty()) {
+                cachedSchedules.put(phase, SystemExecutionGraph.buildSchedule(parallelGroup));
+            }
+        }
+    }
+
+    private void executeSequential(ScheduledTask task, Phase phase, int tickCount) {
+        try {
+            task.tick(tickCount);
+        } catch (Exception e) {
+            log.error("Error during simulation tick in phase {}: {}", phase, e.getMessage(), e);
         }
     }
 }

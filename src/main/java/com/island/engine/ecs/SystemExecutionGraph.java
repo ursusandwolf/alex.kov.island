@@ -22,6 +22,10 @@ public class SystemExecutionGraph {
      * @return A list of batches (lists of tasks).
      */
     public static <T extends Mortal> List<List<ParallelTask<T>>> buildSchedule(List<ParallelTask<T>> tasks) {
+        if (tasks.isEmpty()) {
+            return List.of();
+        }
+
         // Sort by priority first (descending)
         List<ParallelTask<T>> sorted = new ArrayList<>(tasks);
         sorted.sort((a, b) -> Integer.compare(b.priority(), a.priority()));
@@ -49,8 +53,8 @@ public class SystemExecutionGraph {
     }
 
     private static <T extends Mortal> boolean conflictsWithAny(ParallelTask<T> task, List<ParallelTask<T>> batch) {
-        for (ParallelTask<T> batchTask : batch) {
-            if (conflicts(task, batchTask)) {
+        for (int i = 0; i < batch.size(); i++) {
+            if (conflicts(task, batch.get(i))) {
                 return true;
             }
         }
@@ -59,32 +63,36 @@ public class SystemExecutionGraph {
 
     private static <T extends Mortal> boolean conflicts(ParallelTask<T> a, ParallelTask<T> b) {
         if (!(a instanceof EntitySystem) || !(b instanceof EntitySystem)) {
-            // If we don't know the components, assume they conflict to be safe
             return true;
         }
         
         EntitySystem<?> sysA = (EntitySystem<?>) a;
         EntitySystem<?> sysB = (EntitySystem<?>) b;
 
-        Set<Class<? extends Component>> aRead = new HashSet<>(sysA.readComponents());
-        Set<Class<? extends Component>> aWrite = new HashSet<>(sysA.writeComponents());
-        Set<Class<? extends Component>> bRead = new HashSet<>(sysB.readComponents());
-        Set<Class<? extends Component>> bWrite = new HashSet<>(sysB.writeComponents());
+        List<Class<? extends Component>> aRead = sysA.readComponents();
+        List<Class<? extends Component>> aWrite = sysA.writeComponents();
+        List<Class<? extends Component>> bRead = sysB.readComponents();
+        List<Class<? extends Component>> bWrite = sysB.writeComponents();
 
         // Conflict occurs if:
-        // A writes and B reads
-        // A reads and B writes
-        // A writes and B writes
-        for (Class<? extends Component> c : aWrite) {
-            if (bRead.contains(c) || bWrite.contains(c)) {
-                return true;
+        // A writes and B reads/writes
+        // B writes and A reads/writes
+        if (!aWrite.isEmpty()) {
+            for (Class<? extends Component> c : aWrite) {
+                if (bRead.contains(c) || bWrite.contains(c)) {
+                    return true;
+                }
             }
         }
-        for (Class<? extends Component> c : aRead) {
-            if (bWrite.contains(c)) {
-                return true;
+        
+        if (!bWrite.isEmpty()) {
+            for (Class<? extends Component> c : bWrite) {
+                if (aRead.contains(c)) {
+                    return true;
+                }
             }
         }
+        
         return false;
     }
 }

@@ -25,12 +25,15 @@
     - **Category 4 Cleanup**: Enhance `ConsumableComponent` logic to eliminate `instanceof Biomass` checks in `AnimalFeedingSystem`.
     - **Category 5 Cleanup**: Move biomass growth logic fully from `Biomass.grow` to `BiomassGrowthSystem.process()`.
     - **SimCity Alignment**: Apply node narrowing and typed event patterns to the `SimCity` module for consistency.
-- **Task 4: Performance Benchmarking**
-    - Create `SimulationBenchmarkTest` to measure TPS (Ticks Per Second) on large grids (100x100).
-    - Profile simulation throughput and GC overhead against established baselines.
+- **Task 4: Performance Benchmarking & GC Optimization**
+    - **Schedule Caching**: Implemented task schedule caching in `PhaseScheduler` to eliminate redundant `SystemExecutionGraph` traversals.
+    - **Allocation Reduction**: Optimized `SystemExecutionGraph.buildSchedule` to avoid `HashSet` and intermediate `List` creations during conflict detection, significantly reducing per-tick GC pressure.
+    - **Safe Lifecycle Management**: Fixed a self-join bug in `GameLoop.stop()` and unified simulation termination logic, ensuring `onSimulationStopped` is called reliably.
+    - **Config-Driven Partitioning**: Moved remaining magic numbers in `Island` chunking logic to `Configuration`.
 
 ## Maintenance (Ongoing)
     - Refactor remaining `Biomass.grow` and `consumeBiomass` to a fully component-based ECS approach (Sprint 2 tasks).
     - Implement `ComponentFactory` for standard component bundles (S2-3). [DONE]
     - Implement "Consumable" component for `FeedingService` to remove remaining `instanceof` checks during predation. [DONE]
     - Stabilize `SimCity` module by applying similar `instanceof` narrowing refactorings.
+    - GC-Optimization of hot paths in ECS iteration. [IN PROGRESS]

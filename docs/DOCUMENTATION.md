@@ -121,6 +121,24 @@ To allow rendering or state analysis without locking the active simulation, the 
 +-----------------------+          +-----------------------+
 ```
 
+### 2.6 System Execution Graph (ECS)
+The engine automatically resolves dependencies between `EntitySystem` instances by analyzing their `readComponents` and `writeComponents` sets. Systems with non-overlapping write sets (and no read/write conflicts) are grouped into parallel batches.
+
+**UML Pseudo-graphics:**
+```text
++-----------------------+          +------------------------+
+|   SystemExecutionGraph|--------->|    ParallelDispatcher  |
++-----------------------+          +------------------------+
+| + buildSchedule(tasks)|          | + dispatch(batch)      |
++-----------------------+          +------------------------+
+```
+
+### 2.7 GC & Allocation Optimization
+To support high-frequency ticks in large-scale simulations, the engine employs several object reuse strategies:
+- **Schedule Caching**: `PhaseScheduler` caches the execution graph, avoiding re-calculating dependency batches if the task list hasn't changed.
+- **Set-Free Conflict Detection**: `SystemExecutionGraph` utilizes list-based intersection checks to avoid object churn from temporary `HashSet` creations in the hot path.
+- **Collection Pooling**: Core scheduler structures like `EnumMap` and `ArrayList` are retained as fields and cleared between ticks.
+
 ---
 
 ## 3. Data Flow & Execution Model
