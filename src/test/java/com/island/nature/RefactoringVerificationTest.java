@@ -6,6 +6,7 @@ import com.island.engine.event.EventBus;
 import com.island.nature.config.Configuration;
 import com.island.nature.model.Cell;
 import com.island.nature.model.Island;
+import com.island.nature.model.StaticChunkingStrategy;
 import com.island.nature.service.DefaultProtectionService;
 import com.island.nature.service.ProtectionService;
 import com.island.nature.service.StatisticsService;
@@ -59,6 +60,7 @@ class RefactoringVerificationTest {
                 .protectionService(protectionService)
                 .animalFactory(animalFactory)
                 .componentRegistry(componentRegistry)
+                .chunkingStrategy(new StaticChunkingStrategy(config))
                 .build();
 
         EventBus bus = new DefaultEventBus();

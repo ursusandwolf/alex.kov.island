@@ -8,6 +8,7 @@ import com.island.nature.entities.herbivores.Caterpillar;
 import com.island.nature.model.Cell;
 import com.island.nature.model.DefaultBiomassManager;
 import com.island.nature.model.Island;
+import com.island.nature.model.StaticChunkingStrategy;
 import com.island.nature.service.DefaultProtectionService;
 import com.island.nature.service.AnimalFeedingSystem;
 import com.island.nature.service.StatisticsService;
@@ -54,6 +55,7 @@ public class SimulationOptimizationTest {
                 .biomassManager(new DefaultBiomassManager())
                 .randomProvider(randomProvider)
                 .componentRegistry(componentRegistry)
+                .chunkingStrategy(new StaticChunkingStrategy(config))
                 .build();
 
         island = new Island(context, 1, 1, new DefaultEventBus());

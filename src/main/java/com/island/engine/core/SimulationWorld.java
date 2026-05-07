@@ -18,7 +18,7 @@ public interface SimulationWorld<T extends Mortal> extends Tickable {
     /**
      * Returns "work units" (e.g. chunks) of nodes for parallel processing.
      */
-    Collection<? extends Collection<? extends SimulationNode<T>>> getParallelWorkUnits();
+    Collection<? extends WorkUnit<T>> getParallelWorkUnits();
 
     /**
      * Gets a specific node by relative coordinates from a current node.
@@ -66,4 +66,9 @@ public interface SimulationWorld<T extends Mortal> extends Tickable {
      * Gets the event bus associated with this world.
      */
     EventBus getEventBus();
+
+    /**
+     * Re-evaluates world partitioning and load balancing.
+     */
+    default void rebalance() { }
 }

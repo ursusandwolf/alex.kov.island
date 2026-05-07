@@ -56,10 +56,12 @@ class FeedingMechanicsTest {
     void setUp() {
         registry = new SpeciesLoader(config).load();
         matrix = InteractionMatrix.buildFrom(registry);
-        animalFactory = new AnimalFactory(registry, random, new com.island.engine.ecs.ComponentRegistry());
+        com.island.engine.ecs.ComponentRegistry componentRegistry = new com.island.engine.ecs.ComponentRegistry();
+        animalFactory = new AnimalFactory(registry, random, componentRegistry);
         HuntingStrategy strategy = new DefaultHuntingStrategy(config, matrix);
         
         given(world.getConfiguration()).willReturn(config);
+        given(world.getComponentRegistry()).willReturn(componentRegistry);
         feedingSystem = new AnimalFeedingSystem(world, animalFactory, matrix, registry, strategy, executor, random);
         cell = new Cell(0, 0, world);
         

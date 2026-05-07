@@ -11,6 +11,8 @@ import lombok.Getter;
 import lombok.Setter;
 import com.island.engine.core.SimulationNode;
 import com.island.engine.core.SimulationWorld;
+import com.island.engine.core.WorkUnit;
+import com.island.engine.core.DefaultWorkUnit;
 import com.island.engine.model.WorldSnapshot;
 import com.island.util.math.GridUtils;
 
@@ -66,11 +68,13 @@ public class CityMap implements SimulationWorld<SimEntity> {
     }
 
     @Override
-    public Collection<? extends Collection<? extends SimulationNode<SimEntity>>> getParallelWorkUnits() {
+    public Collection<? extends WorkUnit<SimEntity>> getParallelWorkUnits() {
         if (cachedChunks == null) {
             initializeChunks();
         }
-        return cachedChunks;
+        return cachedChunks.stream()
+                .map(DefaultWorkUnit<SimEntity>::new)
+                .toList();
     }
 
     private synchronized void initializeChunks() {

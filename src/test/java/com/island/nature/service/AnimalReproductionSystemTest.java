@@ -6,6 +6,7 @@ import com.island.nature.config.Configuration;
 import com.island.nature.model.Cell;
 import com.island.nature.model.DefaultBiomassManager;
 import com.island.nature.model.Island;
+import com.island.nature.model.StaticChunkingStrategy;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -40,6 +41,7 @@ class AnimalReproductionSystemTest {
                 .statisticsService(statisticsService)
                 .protectionService(new DefaultProtectionService(config, registry, statisticsService, 1))
                 .biomassManager(new DefaultBiomassManager())
+                .chunkingStrategy(new StaticChunkingStrategy(config))
                 .randomProvider(randomProvider)
                 .componentRegistry(componentRegistry)
                 .build();
@@ -90,6 +92,7 @@ class AnimalReproductionSystemTest {
                 .statisticsService(statisticsService)
                 .protectionService(new DefaultProtectionService(config, registry, statisticsService, 1))
                 .biomassManager(new DefaultBiomassManager())
+                .chunkingStrategy(new StaticChunkingStrategy(config))
                 .randomProvider(zeroRandom)
                 .componentRegistry(componentRegistry)
                 .build();

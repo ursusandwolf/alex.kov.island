@@ -5,6 +5,7 @@ import com.island.engine.event.DefaultEventBus;
 import com.island.nature.config.Configuration;
 import com.island.nature.model.DefaultBiomassManager;
 import com.island.nature.model.Island;
+import com.island.nature.model.StaticChunkingStrategy;
 import com.island.nature.service.DefaultProtectionService;
 import com.island.nature.service.StatisticsService;
 import java.util.concurrent.ExecutorService;
@@ -40,6 +41,7 @@ public class WorldInitializationTest {
                 .biomassManager(new DefaultBiomassManager())
                 .randomProvider(randomProvider)
                 .componentRegistry(componentRegistry)
+                .chunkingStrategy(new StaticChunkingStrategy(config))
                 .build();
 
         Island island = new Island(context, 16, 16, new DefaultEventBus());

@@ -1,14 +1,8 @@
 package com.island.nature;
 
 import com.island.engine.event.EventBus;
-import com.island.engine.ecs.ComponentRegistry;
 import com.island.nature.config.Configuration;
-import com.island.nature.model.DefaultBiomassManager;
 import com.island.nature.model.Island;
-import com.island.nature.service.AlertService;
-import com.island.nature.service.DefaultProtectionService;
-import com.island.nature.service.ProtectionService;
-import com.island.nature.service.StatisticsService;
 import com.island.nature.view.ConsoleView;
 import com.island.nature.view.SimulationView;
 import java.util.Map;
@@ -24,15 +18,8 @@ import com.island.nature.entities.core.SpeciesKey;
 import com.island.nature.entities.domain.NatureDomainContext;
 import com.island.nature.entities.domain.NatureWorld;
 import com.island.nature.entities.domain.TaskRegistry;
-import com.island.nature.entities.registry.AnimalFactory;
-import com.island.nature.entities.registry.BiomassManager;
-import com.island.nature.entities.registry.SpeciesLoader;
-import com.island.nature.entities.registry.SpeciesRegistry;
 import com.island.nature.entities.registry.WorldInitializer;
-import com.island.util.common.DefaultRandomProvider;
-import com.island.util.common.RandomProvider;
-import com.island.util.interaction.InteractionMatrix;
-import com.island.util.interaction.InteractionProvider;
+import com.island.nature.entities.domain.NatureDomainContextFactory;
 
 /**
  * Plugin implementation for the Nature (Island) simulation.
@@ -49,28 +36,7 @@ public class NaturePlugin implements SimulationPlugin<Organism> {
     public NaturePlugin(Configuration config, SimulationView view) {
         this.config = config;
         this.view = view;
-        this.domainContext = assembleDomainContext(config);
-    }
-
-    private NatureDomainContext assembleDomainContext(Configuration config) {
-        SpeciesRegistry speciesRegistry = new SpeciesLoader(config).load();
-        StatisticsService statisticsService = new StatisticsService(config);
-        RandomProvider randomProvider = new DefaultRandomProvider();
-        ComponentRegistry componentRegistry = new ComponentRegistry();
-        
-        return NatureDomainContext.builder()
-                .config(config)
-                .speciesRegistry(speciesRegistry)
-                .interactionProvider(InteractionMatrix.buildFrom(speciesRegistry))
-                .statisticsService(statisticsService)
-                .alertService(new AlertService())
-                .animalFactory(new AnimalFactory(speciesRegistry, randomProvider, componentRegistry))
-                .protectionService(new DefaultProtectionService(config, speciesRegistry, statisticsService, 
-                                     config.getIslandWidth() * config.getIslandHeight()))
-                .biomassManager(new DefaultBiomassManager())
-                .randomProvider(randomProvider)
-                .componentRegistry(componentRegistry)
-                .build();
+        this.domainContext = NatureDomainContextFactory.create(config);
     }
 
     @Override

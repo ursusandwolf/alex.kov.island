@@ -20,17 +20,17 @@
 - [x] **Task 4: Performance Benchmarking & GC Optimization**
 
 ## 🛠 Immediate Technical Debt & Bug Fixes
-- [ ] **Technical Debt: NaturePlugin Assembly**
-    - [ ] Refactor `NaturePlugin` constructor to use a cleaner DI-like approach or Factory for domain context assembly.
+- [x] **Technical Debt: NaturePlugin Assembly**
+    - [x] Refactor `NaturePlugin` constructor to use a cleaner DI-like approach or Factory for domain context assembly.
 - [x] **Code Quality: Dead Code Removal**
     - [x] Remove empty/unused `process()` overrides in ECS systems.
 - [x] **Architecture: Test Organization**
 - [x] **Engine: EventBus Improvements**
 
 ## 📈 Phase 2: Optimization & Scalability
-- [ ] **Vector 3: Dynamic Load Balancing**
-    - [ ] Implement `DynamicChunkingStrategy`.
-    - [ ] Add monitoring for thread load per chunk.
+- [x] **Vector 3: Dynamic Load Balancing**
+    - [x] Implement `DynamicChunkingStrategy`.
+    - [x] Add monitoring for thread load per chunk.
 - [ ] **Performance Tuning**
     - [ ] Profiling GC and Object Pools using `java-performance` skill.
     - [ ] Optimize `GridUtils` locking mechanisms.
@@ -42,4 +42,4 @@
 ## 🛠 Maintenance
 - [ ] Increase test coverage for concurrent scenarios.
 - [ ] Update `GEMINI.md` with new architectural rules.
-- [ ] Review `shouldStop` semantic change.
+- [x] Review shouldStop semantic change.

@@ -7,6 +7,7 @@ import com.island.nature.config.Configuration;
 import com.island.nature.model.Cell;
 import com.island.nature.model.Island;
 import com.island.nature.model.DefaultBiomassManager;
+import com.island.nature.model.StaticChunkingStrategy;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.AfterEach;
@@ -60,6 +61,7 @@ class StatisticsDeathCountingTest {
                 .statisticsService(statisticsService)
                 .protectionService(protectionService)
                 .biomassManager(new DefaultBiomassManager())
+                .chunkingStrategy(new StaticChunkingStrategy(config))
                 .randomProvider(random)
                 .componentRegistry(componentRegistry)
                 .build();

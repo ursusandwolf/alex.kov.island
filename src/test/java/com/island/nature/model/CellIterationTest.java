@@ -45,6 +45,7 @@ class CellIterationTest {
                 .statisticsService(statisticsService)
                 .protectionService(new DefaultProtectionService(config, registry, statisticsService, 1))
                 .biomassManager(new DefaultBiomassManager())
+                .chunkingStrategy(new StaticChunkingStrategy(config))
                 .randomProvider(randomProvider)
                 .build();
 

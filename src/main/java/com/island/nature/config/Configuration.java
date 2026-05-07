@@ -90,6 +90,12 @@ public class Configuration {
     private int partitioningLargeWorldThreshold = 1000;
     private int partitioningMaxChunkSize = 32;
 
+    // Dynamic Load Balancing
+    private boolean dynamicChunkingEnabled = false;
+    private int rebalanceInterval = 10;
+    private int dynamicChunkingTargetLoad = 500;
+    private int dynamicChunkingMinSize = 2;
+
     // Simulation monitoring
     private long maxSimulationDurationMs = 5 * 60 * 1000;
     private int monitoringIntervalMs = 2000;

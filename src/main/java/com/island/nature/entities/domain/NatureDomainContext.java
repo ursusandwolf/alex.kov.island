@@ -4,6 +4,7 @@ import com.island.nature.config.Configuration;
 import com.island.nature.service.AlertService;
 import com.island.nature.service.ProtectionService;
 import com.island.nature.service.StatisticsService;
+import com.island.nature.model.ChunkingStrategy;
 import lombok.Builder;
 import lombok.Getter;
 import com.island.engine.ecs.ComponentRegistry;
@@ -30,4 +31,5 @@ public class NatureDomainContext {
     private final BiomassManager biomassManager;
     private final RandomProvider randomProvider;
     private final ComponentRegistry componentRegistry;
+    private final ChunkingStrategy chunkingStrategy;
 }

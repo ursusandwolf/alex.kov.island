@@ -1,12 +1,17 @@
 package com.island.nature.model;
 
+import com.island.engine.core.SimulationNode;
+import com.island.engine.core.WorkUnit;
+import com.island.nature.entities.core.Organism;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 /**
- * Composite: Chunk consists of cells.
+ * Composite: Chunk consists of cells. Implements WorkUnit for engine compatibility and instrumentation.
  */
-public class Chunk {
+public class Chunk implements WorkUnit<Organism> {
     private final int chunkIdX;
     private final int chunkIdY;
     private final int startX;
@@ -15,6 +20,7 @@ public class Chunk {
     private final int endY;
     private final Island island;
     private final List<Cell> cells = new ArrayList<>();
+    private long lastExecutionTimeNanos;
 
     public Chunk(int idX, int idY, int sx, int ex, int sy, int ey, Island island) {
         this.chunkIdX = idX;
@@ -49,6 +55,90 @@ public class Chunk {
 
     @Override
     public String toString() {
-        return String.format("Chunk[%d,%d] cells=%d", chunkIdX, chunkIdY, cells.size());
+        return String.format("Chunk[%d,%d] cells=%d time=%dms", chunkIdX, chunkIdY, 
+                cells.size(), lastExecutionTimeNanos / 1000000);
+    }
+
+    // Collection implementation delegating to cells
+    @Override
+    public int size() {
+        return cells.size();
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return cells.isEmpty();
+    }
+
+    @Override
+    public boolean contains(Object o) {
+        return cells.contains(o);
+    }
+
+    @Override
+    public Iterator<SimulationNode<Organism>> iterator() {
+        return (Iterator) cells.iterator();
+    }
+
+    @Override
+    public Object[] toArray() {
+        return cells.toArray();
+    }
+
+    @Override
+    public <T> T[] toArray(T[] a) {
+        return cells.toArray(a);
+    }
+
+    @Override
+    public boolean add(SimulationNode<Organism> node) {
+        if (node instanceof Cell cell) {
+            return cells.add(cell);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean remove(Object o) {
+        return cells.remove(o);
+    }
+
+    @Override
+    public boolean containsAll(Collection<?> c) {
+        return cells.containsAll(c);
+    }
+
+    @Override
+    public boolean addAll(Collection<? extends SimulationNode<Organism>> c) {
+        boolean changed = false;
+        for (SimulationNode<Organism> node : c) {
+            if (add(node)) {
+                changed = true;
+            }
+        }
+        return changed;
+    }
+
+    @Override
+    public boolean removeAll(Collection<?> c) {
+        return cells.removeAll(c);
+    }
+
+    @Override
+    public boolean retainAll(Collection<?> c) {
+        return cells.retainAll(c);
+    }
+
+    @Override
+    public void clear() {
+        cells.clear();
+    }
+
+    public long getLastExecutionTimeNanos() {
+        return lastExecutionTimeNanos;
+    }
+
+    public void setLastExecutionTimeNanos(long lastExecutionTimeNanos) {
+        this.lastExecutionTimeNanos = lastExecutionTimeNanos;
     }
 }

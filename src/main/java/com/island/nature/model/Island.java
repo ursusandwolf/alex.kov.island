@@ -18,6 +18,7 @@ import lombok.Getter;
 import lombok.Setter;
 import com.island.engine.core.SimulationNode;
 import com.island.engine.core.SimulationWorld;
+import com.island.engine.core.WorkUnit;
 import com.island.engine.model.WorldSnapshot;
 import com.island.nature.entities.core.Animal;
 import com.island.nature.entities.core.AnimalType;
@@ -33,6 +34,7 @@ import com.island.util.math.GridUtils;
 
 @Getter
 public class Island implements NatureWorld {
+    private final NatureDomainContext domainContext;
     private final Configuration config;
     private final int width;
     private final int height;
@@ -48,6 +50,7 @@ public class Island implements NatureWorld {
     private final EventBus eventBus;
 
     public Island(NatureDomainContext domainContext, int width, int height, EventBus eventBus) {
+        this.domainContext = domainContext;
         this.config = domainContext.getConfig();
         this.width = width;
         this.height = height;
@@ -147,8 +150,8 @@ public class Island implements NatureWorld {
     }
 
     @Override
-    public Collection<? extends Collection<? extends SimulationNode<Organism>>> getParallelWorkUnits() {
-        return chunks.stream().map(Chunk::getCells).toList();
+    public Collection<? extends WorkUnit<Organism>> getParallelWorkUnits() {
+        return chunks;
     }
 
     @Override
@@ -220,6 +223,16 @@ public class Island implements NatureWorld {
         updateSeason();
         statisticsService.onTickStarted();
         protectionService.update(tickCount);
+        
+        if (config.isDynamicChunkingEnabled() && tickCount % config.getRebalanceInterval() == 0) {
+            rebalance();
+        }
+    }
+
+    @Override
+    public void rebalance() {
+        this.chunks.clear();
+        partitionIntoChunks();
     }
 
     private void updateSeason() {
@@ -237,37 +250,7 @@ public class Island implements NatureWorld {
     }
 
     private void partitionIntoChunks() {
-        int processors = Runtime.getRuntime().availableProcessors();
-        int totalCells = width * height;
-
-        int targetTasks;
-        if (totalCells <= config.getPartitioningSmallWorldThreshold()) {
-            targetTasks = config.getPartitioningSmallWorldTasks();
-        } else if (totalCells <= processors * config.getPartitioningMediumWorldMultiplier()) {
-            targetTasks = processors * config.getPartitioningMediumWorldTasksMultiplier();
-        } else {
-            targetTasks = processors * config.getPartitioningLargeWorldTasksMultiplier();
-        }
-
-        targetTasks = Math.min(targetTasks, totalCells);
-        int cellsPerChunk = Math.max(1, totalCells / targetTasks);
-        int chunkSize = (int) Math.sqrt(cellsPerChunk);
-
-        if (chunkSize < 1) {
-            chunkSize = 1;
-        }
-
-        if (totalCells > config.getPartitioningLargeWorldThreshold() && chunkSize > config.getPartitioningMaxChunkSize()) {
-            chunkSize = config.getPartitioningMaxChunkSize();
-        }
-
-        for (int x = 0; x < width; x += chunkSize) {
-            for (int y = 0; y < height; y += chunkSize) {
-                chunks.add(new Chunk(x / chunkSize, y / chunkSize,
-                        x, Math.min(x + chunkSize, width),
-                        y, Math.min(y + chunkSize, height), this));
-            }
-        }
+        this.chunks.addAll(domainContext.getChunkingStrategy().partition(width, height, this));
     }
 
     @Override

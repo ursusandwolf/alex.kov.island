@@ -13,6 +13,8 @@ import static org.mockito.ArgumentMatchers.*;
 import com.island.engine.core.ExecutionMode;
 import com.island.engine.core.SimulationNode;
 import com.island.engine.core.SimulationWorld;
+import com.island.engine.core.WorkUnit;
+import com.island.engine.core.DefaultWorkUnit;
 import com.island.engine.model.Mortal;
 import com.island.engine.parallel.ParallelDispatcher;
 import com.island.engine.scheduling.GameLoop;
@@ -34,8 +36,8 @@ class GameLoopOptimizationTest {
 
         // Create mock nodes and work units
         SimulationNode<Mortal> node = mock(SimulationNode.class);
-        Collection<SimulationNode<Mortal>> unit = Collections.singletonList(node);
-        Collection<Collection<SimulationNode<Mortal>>> workUnits = Collections.singletonList(unit);
+        WorkUnit<Mortal> unit = new DefaultWorkUnit<>(Collections.singletonList(node));
+        Collection<WorkUnit<Mortal>> workUnits = Collections.singletonList(unit);
         when(world.getParallelWorkUnits()).thenAnswer(inv -> workUnits);
 
         // Mock a parallel service
@@ -73,7 +75,8 @@ class GameLoopOptimizationTest {
         gameLoop.setWorld(world);
 
         SimulationNode<Mortal> node = mock(SimulationNode.class);
-        Collection<Collection<SimulationNode<Mortal>>> workUnits = Collections.singletonList(Collections.singletonList(node));
+        WorkUnit<Mortal> unit = new DefaultWorkUnit<>(Collections.singletonList(node));
+        Collection<WorkUnit<Mortal>> workUnits = Collections.singletonList(unit);
         when(world.getParallelWorkUnits()).thenAnswer(inv -> workUnits);
 
         AtomicInteger callCount = new AtomicInteger(0);

@@ -33,6 +33,7 @@ class CellTest {
                 .statisticsService(statisticsService)
                 .protectionService(new DefaultProtectionService(config, registry, statisticsService, 1))
                 .biomassManager(new DefaultBiomassManager())
+                .chunkingStrategy(new StaticChunkingStrategy(config))
                 .randomProvider(new DefaultRandomProvider())
                 .componentRegistry(componentRegistry)
                 .build();

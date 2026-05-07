@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import com.island.engine.core.SimulationNode;
 import com.island.engine.core.SimulationWorld;
+import com.island.engine.core.WorkUnit;
 import com.island.engine.model.Mortal;
 import com.island.engine.scheduling.GameLoop;
 
@@ -41,7 +42,7 @@ public class ParallelDispatcher<T extends Mortal> {
             }
         }
 
-        Collection<? extends Collection<? extends SimulationNode<T>>> workUnits = world.getParallelWorkUnits();
+        Collection<? extends WorkUnit<T>> workUnits = world.getParallelWorkUnits();
         int unitCount = workUnits.size();
         
         if (unitCount > 0) {
@@ -58,7 +59,7 @@ public class ParallelDispatcher<T extends Mortal> {
 
             CountDownLatch latch = new CountDownLatch(unitCount);
             int i = 0;
-            for (Collection<? extends SimulationNode<T>> unit : workUnits) {
+            for (WorkUnit<T> unit : workUnits) {
                 CellProcessor<T> processor = processorPool.get(i++);
                 processor.update(unit, services, tickCount, latch);
                 try {
@@ -93,13 +94,13 @@ public class ParallelDispatcher<T extends Mortal> {
     }
 
     private static class CellProcessor<T extends Mortal> implements Runnable {
-        private volatile Collection<? extends SimulationNode<T>> unit;
+        private volatile WorkUnit<T> unit;
         private volatile List<ParallelTask<T>> services;
         private volatile int tickCount;
         private volatile CountDownLatch latch;
         private volatile Throwable error;
 
-        void update(Collection<? extends SimulationNode<T>> unit, List<ParallelTask<T>> services, int tickCount, CountDownLatch latch) {
+        void update(WorkUnit<T> unit, List<ParallelTask<T>> services, int tickCount, CountDownLatch latch) {
             this.unit = unit;
             this.services = services;
             this.tickCount = tickCount;
@@ -113,6 +114,7 @@ public class ParallelDispatcher<T extends Mortal> {
 
         @Override
         public void run() {
+            long start = System.nanoTime();
             try {
                 for (SimulationNode<T> node : unit) {
                     for (ParallelTask<T> service : services) {
@@ -127,6 +129,8 @@ public class ParallelDispatcher<T extends Mortal> {
             } catch (Throwable t) {
                 this.error = t;
             } finally {
+                long duration = System.nanoTime() - start;
+                unit.setLastExecutionTimeNanos(duration);
                 latch.countDown();
             }
         }

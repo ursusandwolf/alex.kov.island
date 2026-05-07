@@ -6,6 +6,7 @@ import com.island.nature.config.Configuration;
 import com.island.nature.model.Cell;
 import com.island.nature.model.DefaultBiomassManager;
 import com.island.nature.model.Island;
+import com.island.nature.model.StaticChunkingStrategy;
 import com.island.nature.service.AlertService;
 import com.island.nature.service.DefaultProtectionService;
 import com.island.nature.service.AnimalFeedingSystem;
@@ -55,6 +56,7 @@ class TrophicFeedingTest {
                 .alertService(new AlertService())
                 .protectionService(new DefaultProtectionService(config, registry, statisticsService, 1))
                 .biomassManager(new DefaultBiomassManager())
+                .chunkingStrategy(new StaticChunkingStrategy(config))
                 .randomProvider(randomProvider)
                 .componentRegistry(componentRegistry)
                 .build();

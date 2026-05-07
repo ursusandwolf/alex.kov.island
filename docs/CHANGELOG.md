@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.24.0] - 2026-05-07
+### Added
+- **Dynamic Load Balancing**: Introduced `DynamicChunkingStrategy` which adaptively partitions the world based on entity density (recursive splitting).
+- **Engine Telemetry**: Added `WorkUnit` interface and instrumented `ParallelDispatcher` to measure actual execution time per work unit.
+- **Generic WorkUnits**: Added `DefaultWorkUnit` for non-specialized domains (e.g., SimCity).
+- **Periodic Rebalancing**: Added `rebalance()` hook to `SimulationWorld` and integrated it into `Island` tick lifecycle (configurable interval).
+
+### Changed
+- **NaturePlugin Refactoring**: Extracted `NatureDomainContextFactory` to handle complex domain assembly, simplifying the plugin constructor.
+- **Architecture Enforcement**: Decoupled engine's parallel infrastructure from domain-specific `Chunk` model using the `WorkUnit` abstraction.
+
+### Fixed
+- **FeedingMechanicsTest**: Resolved NullPointerException caused by missing `ComponentRegistry` stubbing.
+- **Test Suite Stability**: Updated 12+ test files to include mandatory `ChunkingStrategy` in `NatureDomainContext` builder.
+- **Checkstyle Compliance**: Fixed formatting in several core classes to meet strict project standards.
+
 ## [1.23.0] - 2026-05-07
 ### Added
 - **System Execution Graph**: Implemented `SystemExecutionGraph` with static dependency resolution and parallel grouping based on read/write component sets.
