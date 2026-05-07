@@ -129,7 +129,7 @@ public class Cell implements SimulationNode<Organism> {
     public int getEntityCount() {
         rwLock.readLock().lock();
         try {
-            return container.getAllAnimals().size() + container.getAllBiomass().size();
+            return container.getEntityCount();
         } finally {
             rwLock.readLock().unlock();
         }
@@ -169,13 +169,21 @@ public class Cell implements SimulationNode<Organism> {
     }
 
     public boolean addAnimal(Animal animal) {
+        return addAnimal(animal, true);
+    }
+
+    public boolean addAnimal(Animal animal, boolean fireEvents) {
         rwLock.writeLock().lock();
         try {
             if (container.countByType(animal.getAnimalType()) >= animal.getMaxPerCell()) {
                 return false;
             }
             container.addAnimal(animal);
-            world.onEntityAdded(animal);
+            if (fireEvents) {
+                world.onEntityAdded(animal);
+            } else {
+                ((NatureWorld) world).getStatisticsService().registerBirth(animal.getSpeciesKey());
+            }
             return true;
         } finally {
             rwLock.writeLock().unlock();
@@ -207,7 +215,13 @@ public class Cell implements SimulationNode<Organism> {
     public List<Animal> getPredators() {
         rwLock.readLock().lock();
         try {
-            return new ArrayList<>(container.getPredators());
+            List<Animal> predators = new ArrayList<>();
+            container.forEachAnimal(a -> {
+                if (a.isAnimalPredator()) {
+                    predators.add(a);
+                }
+            });
+            return predators;
         } finally {
             rwLock.readLock().unlock();
         }
@@ -216,73 +230,74 @@ public class Cell implements SimulationNode<Organism> {
     public List<Animal> getHerbivores() {
         rwLock.readLock().lock();
         try {
-            return new ArrayList<>(container.getHerbivores());
+            List<Animal> herbivores = new ArrayList<>();
+            container.forEachAnimal(a -> {
+                if (!a.isAnimalPredator()) {
+                    herbivores.add(a);
+                }
+            });
+            return herbivores;
         } finally {
             rwLock.readLock().unlock();
         }
     }
 
     public void forEachAnimal(Consumer<Animal> action) {
-        List<Animal> copy;
         rwLock.readLock().lock();
         try {
-            copy = new ArrayList<>(container.getAllAnimals());
+            container.forEachAnimal(action);
         } finally {
             rwLock.readLock().unlock();
         }
-        copy.forEach(action);
     }
 
     public void forEachAnimalSampled(SamplingContext context, Consumer<Animal> action) {
-        List<Animal> sampled = new ArrayList<>();
         rwLock.readLock().lock();
         try {
-            SamplingUtils.forEachSampled(container.getAllAnimals(), context, sampled::add);
+            List<Animal> all = new ArrayList<>(getAnimalCount());
+            container.forEachAnimal(all::add);
+            SamplingUtils.forEachSampled(all, context, action);
         } finally {
             rwLock.readLock().unlock();
         }
-        sampled.forEach(action);
     }
 
     public void forEachPredator(Consumer<Animal> action) {
-        List<Animal> copy;
         rwLock.readLock().lock();
         try {
-            copy = new ArrayList<>(container.getPredators());
+            container.forEachAnimal(a -> {
+                if (a.isAnimalPredator()) {
+                    action.accept(a);
+                }
+            });
         } finally {
             rwLock.readLock().unlock();
         }
-        copy.forEach(action);
     }
 
     public void forEachHerbivoreSampled(int limit, RandomProvider random, Consumer<Animal> action) {
-        List<Animal> sampled = new ArrayList<>();
         rwLock.readLock().lock();
         try {
-            SamplingUtils.forEachSampled(container.getHerbivores(), limit, random, sampled::add);
+            List<Animal> herbivores = new ArrayList<>();
+            container.forEachAnimal(a -> {
+                if (!a.isAnimalPredator()) {
+                    herbivores.add(a);
+                }
+            });
+            SamplingUtils.forEachSampled(herbivores, limit, random, action);
         } finally {
             rwLock.readLock().unlock();
         }
-        sampled.forEach(action);
     }
 
     public Animal getRandomAnimalByType(AnimalType type, RandomProvider random) {
         rwLock.readLock().lock();
         try {
-            Set<Animal> set = container.getByType(type);
-            if (set.isEmpty()) {
+            List<Animal> list = container.getByType(type);
+            if (list.isEmpty()) {
                 return null;
             }
-            int size = set.size();
-            int index = random.nextInt(size);
-            int i = 0;
-            for (Animal a : set) {
-                if (i == index) {
-                    return a;
-                }
-                i++;
-            }
-            return null;
+            return list.get(random.nextInt(list.size()));
         } finally {
             rwLock.readLock().unlock();
         }
@@ -309,7 +324,7 @@ public class Cell implements SimulationNode<Organism> {
     public int getAnimalCount() {
         rwLock.readLock().lock();
         try {
-            return container.getAllAnimals().size();
+            return container.getAnimalCount();
         } finally {
             rwLock.readLock().unlock();
         }
@@ -318,7 +333,7 @@ public class Cell implements SimulationNode<Organism> {
     public int getBiomassCount() {
         rwLock.readLock().lock();
         try {
-            return container.getAllBiomass().size();
+            return container.getBiomassCount();
         } finally {
             rwLock.readLock().unlock();
         }

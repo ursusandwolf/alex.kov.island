@@ -47,9 +47,20 @@ public class BiomassGrowthSystem extends NatureEntitySystem {
         Season season = getEnvironment().getCurrentSeason();
         double growthModifier = season.getGrowthModifier();
         
+        // Temperature-based growth factor
+        int temp = getEnvironment().getTemperature();
+        double tempFactor = 1.0;
+        if (temp < 0) {
+            tempFactor = 0.2; // Frozen
+        } else if (temp < 10) {
+            tempFactor = 0.5; // Chilly
+        } else if (temp > 35) {
+            tempFactor = 0.4; // Heat stress
+        }
+        
         long old = b.getBiomass();
         long growth = (b.getMaxBiomass() * config.getPlantGrowthRateBP()) / config.getScale10K();
-        growth = (long) (growth * growthModifier);
+        growth = (long) (growth * growthModifier * tempFactor);
         b.setBiomass(Math.min(b.getMaxBiomass(), b.getBiomass() + growth));
         
         long delta = b.getBiomass() - old;

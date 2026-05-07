@@ -14,6 +14,8 @@ public interface NatureEnvironment {
 
     Season getCurrentSeason();
 
+    int getTemperature();
+
     ProtectionService getProtectionService();
 
     Map<SpeciesKey, Integer> getProtectionMap();

@@ -28,7 +28,6 @@ public abstract class Organism implements Poolable, Entity {
     private AgeComponent ageComponent;
     
     @Setter private volatile DeathCause lastDeathCause;
-    private final ReentrantLock energyLock = new ReentrantLock();
 
     protected Organism(Configuration config, ComponentRegistry registry, long maxEnergy, int maxLifespan) {
         this(config, registry, maxEnergy, maxLifespan, EnergyPolicy.BIRTH_INITIAL.getPercent());
@@ -127,18 +126,13 @@ public abstract class Organism implements Poolable, Entity {
     }
 
     public boolean tryConsumeEnergy(long amount) {
-        energyLock.lock();
-        try {
-            if (healthComponent != null && healthComponent.isAlive()) {
-                healthComponent.setCurrentEnergy(Math.max(0, healthComponent.getCurrentEnergy() - amount));
-                if (healthComponent.getCurrentEnergy() == 0) {
-                    die(DeathCause.HUNGER);
-                }
+        if (healthComponent != null && healthComponent.isAlive()) {
+            healthComponent.setCurrentEnergy(Math.max(0, healthComponent.getCurrentEnergy() - amount));
+            if (healthComponent.getCurrentEnergy() == 0) {
+                die(DeathCause.HUNGER);
             }
-            return isAlive();
-        } finally {
-            energyLock.unlock();
         }
+        return isAlive();
     }
 
     public void consumeEnergy(long amount) {
@@ -146,27 +140,17 @@ public abstract class Organism implements Poolable, Entity {
     }
 
     public void setEnergy(long energy) {
-        energyLock.lock();
-        try {
-            if (healthComponent != null) {
-                healthComponent.setCurrentEnergy(Math.min(energy, healthComponent.getMaxEnergy()));
-                if (healthComponent.getCurrentEnergy() == 0 && healthComponent.isAlive()) {
-                    healthComponent.setAlive(false);
-                }
+        if (healthComponent != null) {
+            healthComponent.setCurrentEnergy(Math.min(energy, healthComponent.getMaxEnergy()));
+            if (healthComponent.getCurrentEnergy() == 0 && healthComponent.isAlive()) {
+                healthComponent.setAlive(false);
             }
-        } finally {
-            energyLock.unlock();
         }
     }
 
     public void addEnergy(long amount) {
-        energyLock.lock();
-        try {
-            if (healthComponent != null) {
-                healthComponent.setCurrentEnergy(Math.min(healthComponent.getMaxEnergy(), healthComponent.getCurrentEnergy() + amount));
-            }
-        } finally {
-            energyLock.unlock();
+        if (healthComponent != null) {
+            healthComponent.setCurrentEnergy(Math.min(healthComponent.getMaxEnergy(), healthComponent.getCurrentEnergy() + amount));
         }
     }
 

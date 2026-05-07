@@ -9,13 +9,13 @@ import java.util.BitSet;
  * Automatically grows the internal array if needed.
  */
 public class ArrayComponentStore implements ComponentStore {
+    private static final Component[] EMPTY_COMPONENTS = new Component[0];
     private final ComponentRegistry registry;
     private Component[] components;
 
     public ArrayComponentStore(ComponentRegistry registry) {
         this.registry = registry;
-        // Initial size based on current registry or a small default
-        this.components = new Component[Math.max(registry.size(), 8)];
+        this.components = EMPTY_COMPONENTS;
     }
 
     @Override

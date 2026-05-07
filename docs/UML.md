@@ -1,4 +1,4 @@
-# Island Simulator Architecture (v1.6)
+# Island Simulator Architecture (v1.7)
 
 ## Class Diagram Concepts
 
@@ -12,15 +12,16 @@
 - `CellService`: Simplified domain interface for simulation logic.
 
 ### Domain Layer (Lombok Powered)
-- `SpeciesRegistry`: Centralized, non-static registry for species metadata and unique `SpeciesKey` interning.
-- `Organism`: Base for all life. Standardized on `long` energy (fixed-point). Features thread-safe `energyLock` and volatile ECS components.
+- `SpeciesRegistry`: Centralized, non-static registry for species metadata and unique `SpeciesKey interning.
+- `ClimateService`: Global system for managing environmental state (Seasons, Temperature).
+- `Organism`: Base for all life. Standardized on `long` energy (fixed-point). Optimized for memory with volatile ECS components and minimized locking.
 - `Animal` (Herbivore/Predator): LOD 0 entities with individual logic and components.
-- `SwarmOrganism`: LOD 1 entities (Plants, Butterflies) using mass-based aggregation.
-- `EntityContainer`: O(1) management using indexed buckets and `LinkedHashSet`.
+- `Biomass`: LOD 1 entities (Plants, Insects) using mass-based aggregation.
+- `EntityContainer`: Memory-optimized O(1) management using indexed buckets.
 
 ### Services (The Logic)
 - **Specialized ECS Systems**:
-    - `AnimalHealthSystem` / `BiomassGrowthSystem`: Handle lifecycle logic (metabolism, growth, aging) based on entity components.
+    - `AnimalHealthSystem` / `BiomassGrowthSystem`: Handle lifecycle logic (metabolism, growth, aging) influenced by Climate factors.
     - `AnimalMovementSystem` / `BiomassMovementSystem`: Coordinate spatial transitions using `MovementComponent` data.
     - `AnimalFeedingSystem`: Optimized hunting/grazing with pre-calculated interaction matrices. Supports pack hunting and ECS components.
     - `AnimalReproductionSystem`: Population growth with LOD scaling and `ReproductionComponent` support.

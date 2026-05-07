@@ -17,9 +17,7 @@ public class AlertService {
     }
 
     private void handleAnimalDied(AnimalDiedEvent event) {
-        Animal animal = event.getAnimal();
-        if (event.getCause() == DeathCause.HUNGER) {
-            log.debug("Animal {} died of {}", animal.getTypeName(), DeathCause.HUNGER.getDisplayName());
-        }
+        // Individual logging disabled for performance. 
+        // Use StatisticsService for aggregated data.
     }
 }

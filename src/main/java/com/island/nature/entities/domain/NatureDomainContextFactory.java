@@ -10,6 +10,7 @@ import com.island.nature.model.DefaultBiomassManager;
 import com.island.nature.model.DynamicChunkingStrategy;
 import com.island.nature.model.StaticChunkingStrategy;
 import com.island.nature.service.AlertService;
+import com.island.nature.service.DefaultClimateService;
 import com.island.nature.service.DefaultProtectionService;
 import com.island.nature.service.StatisticsService;
 import com.island.util.common.DefaultRandomProvider;
@@ -38,6 +39,7 @@ public class NatureDomainContextFactory {
                 .interactionProvider(InteractionMatrix.buildFrom(speciesRegistry))
                 .statisticsService(statisticsService)
                 .alertService(new AlertService())
+                .climateService(new DefaultClimateService(config, randomProvider))
                 .animalFactory(new AnimalFactory(speciesRegistry, randomProvider, componentRegistry))
                 .protectionService(new DefaultProtectionService(config, speciesRegistry, statisticsService, 
                                      config.getIslandWidth() * config.getIslandHeight()))

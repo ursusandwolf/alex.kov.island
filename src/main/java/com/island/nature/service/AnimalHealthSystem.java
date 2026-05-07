@@ -47,18 +47,32 @@ public class AnimalHealthSystem extends NatureEntitySystem {
         }
 
         Season season = getEnvironment().getCurrentSeason();
+        int temp = getEnvironment().getTemperature();
         int seasonMetabolismModifierBP = (int) (season.getMetabolismModifier() * config.getScale10K());
 
         // 1. Metabolism (Energy decay)
         long metabolism = a.getDynamicMetabolismRate();
         
+        // Temperature/Season effects
+        if (a.getAnimalType().isColdBlooded()) {
+            if (temp < 10) {
+                // Hibernation-like slowdown for cold-blooded
+                metabolism = (metabolism * config.getHibernationMetabolismModifierBP()) / config.getScale10K();
+            } else if (temp > 35) {
+                // Heat stress
+                metabolism = (metabolism * 12000) / config.getScale10K();
+            }
+        } else {
+            // Warm-blooded: homeostasis cost in cold
+            if (temp < 0) {
+                metabolism = (metabolism * 15000) / config.getScale10K();
+            } else if (temp > 35) {
+                metabolism = (metabolism * 13000) / config.getScale10K();
+            }
+        }
+
         // Season global modifier
         metabolism = (metabolism * seasonMetabolismModifierBP) / config.getScale10K();
-
-        // Hibernation: drastically reduce metabolism for cold-blooded in Winter
-        if (season == Season.WINTER && a.getAnimalType().isColdBlooded()) {
-            metabolism = (metabolism * config.getHibernationMetabolismModifierBP()) / config.getScale10K();
-        }
 
         // Endangered protection: reduce metabolism if protected
         if (protectionMap != null && protectionMap.containsKey(a.getSpeciesKey())) {

@@ -31,6 +31,7 @@ public class TaskRegistry {
 
     private final GameLoop<Organism> gameLoop;
     private final NatureWorld world;
+    private final NatureDomainContext domainContext;
     private final InteractionProvider matrix;
     private final AnimalFactory animalFactory;
     private final SpeciesRegistry speciesRegistry;
@@ -38,11 +39,12 @@ public class TaskRegistry {
     private final RandomProvider random;
     private final EventBus eventBus;
 
-    public TaskRegistry(GameLoop<Organism> gameLoop, NatureWorld world, InteractionProvider matrix, 
+    public TaskRegistry(GameLoop<Organism> gameLoop, NatureWorld world, NatureDomainContext domainContext, InteractionProvider matrix, 
                         AnimalFactory animalFactory, SpeciesRegistry speciesRegistry, 
                         SimulationView view, RandomProvider random, EventBus eventBus) {
         this.gameLoop = gameLoop;
         this.world = world;
+        this.domainContext = domainContext;
         this.matrix = matrix;
         this.animalFactory = animalFactory;
         this.speciesRegistry = speciesRegistry;
@@ -53,6 +55,8 @@ public class TaskRegistry {
 
     public void registerAll() {
         HuntingStrategy huntingStrategy = new DefaultHuntingStrategy(world.getConfiguration(), matrix);
+        // Climate
+        gameLoop.addRecurringTask(domainContext.getClimateService());
         // Food
         gameLoop.addRecurringTask(new AnimalFeedingSystem(world, animalFactory, matrix, speciesRegistry, huntingStrategy, gameLoop.getTaskExecutor(), random));
         // Move

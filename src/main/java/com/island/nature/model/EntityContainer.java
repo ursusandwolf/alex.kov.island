@@ -22,16 +22,11 @@ import com.island.nature.entities.core.SpeciesKey;
 
 public class EntityContainer {
     private final Configuration config;
-    private final Map<AnimalType, Set<Animal>> animalsByType = new HashMap<>();
-    private final Map<SizeClass, Set<Animal>> animalsBySize = new EnumMap<>(SizeClass.class);
-    private final Set<Animal> predators = new LinkedHashSet<>();
-    private final Set<Animal> herbivores = new LinkedHashSet<>();
+    private final Map<AnimalType, List<Animal>> animalsByType = new HashMap<>();
     private final Map<SpeciesKey, Biomass> biomassBySpecies = new HashMap<>();
-    private final Set<Animal> allAnimals = new LinkedHashSet<>();
-    private final List<Biomass> allBiomass = new ArrayList<>();
     
     // Archetype grouping for optimized querying
-    private final Map<EntityArchetype, Set<Organism>> entitiesByArchetype = new HashMap<>();
+    private final Map<EntityArchetype, List<Organism>> entitiesByArchetype = new HashMap<>();
 
     public EntityContainer(Configuration config) {
         this.config = config;
@@ -39,46 +34,26 @@ public class EntityContainer {
 
     public void addAnimal(Animal animal) {
         AnimalType type = animal.getAnimalType();
-        animalsByType.computeIfAbsent(type, k -> new LinkedHashSet<>()).add(animal);
-        allAnimals.add(animal);
-        if (animal.isAnimalPredator()) {
-            predators.add(animal);
-        } else {
-            herbivores.add(animal);
-        }
-        SizeClass size = type.getSizeClass();
-        animalsBySize.computeIfAbsent(size, k -> new LinkedHashSet<>()).add(animal);
+        animalsByType.computeIfAbsent(type, k -> new ArrayList<>()).add(animal);
         
         // Update archetype index
         EntityArchetype archetype = animal.getArchetype();
         if (archetype != null) {
-            entitiesByArchetype.computeIfAbsent(archetype, k -> new LinkedHashSet<>()).add(animal);
+            entitiesByArchetype.computeIfAbsent(archetype, k -> new ArrayList<>()).add(animal);
         }
     }
 
     public boolean removeAnimal(Animal animal) {
         AnimalType type = animal.getAnimalType();
-        Set<Animal> typeSet = animalsByType.get(type);
-        if (typeSet != null && typeSet.remove(animal)) {
-            allAnimals.remove(animal);
-            if (animal.isAnimalPredator()) {
-                predators.remove(animal);
-            } else {
-                herbivores.remove(animal);
-            }
-            SizeClass size = type.getSizeClass();
-            Set<Animal> sizeSet = animalsBySize.get(size);
-            if (sizeSet != null) {
-                sizeSet.remove(animal);
-            }
-            
+        List<Animal> typeList = animalsByType.get(type);
+        if (typeList != null && typeList.remove(animal)) {
             // Update archetype index
             EntityArchetype archetype = animal.getArchetype();
             if (archetype != null) {
-                Set<Organism> archSet = entitiesByArchetype.get(archetype);
-                if (archSet != null) {
-                    archSet.remove(animal);
-                    if (archSet.isEmpty()) {
+                List<Organism> archList = entitiesByArchetype.get(archetype);
+                if (archList != null) {
+                    archList.remove(animal);
+                    if (archList.isEmpty()) {
                         entitiesByArchetype.remove(archetype);
                     }
                 }
@@ -88,40 +63,45 @@ public class EntityContainer {
         return false;
     }
 
-    public Set<Animal> getByType(AnimalType type) {
-        Set<Animal> set = animalsByType.get(type);
-        return set != null ? Collections.unmodifiableSet(set) : Collections.emptySet();
+    public int getAnimalCount() {
+        int count = 0;
+        for (List<Animal> list : animalsByType.values()) {
+            count += list.size();
+        }
+        return count;
     }
 
-    public Set<Animal> getBySize(SizeClass size) {
-        Set<Animal> set = animalsBySize.get(size);
-        return set != null ? Collections.unmodifiableSet(set) : Collections.emptySet();
+    public int getBiomassCount() {
+        return biomassBySpecies.size();
     }
 
-    public Set<Animal> getPredators() {
-        return Collections.unmodifiableSet(predators);
+    public int getEntityCount() {
+        return getAnimalCount() + getBiomassCount();
     }
 
-    public Set<Animal> getHerbivores() {
-        return Collections.unmodifiableSet(herbivores);
+    public List<Animal> getByType(AnimalType type) {
+        List<Animal> list = animalsByType.get(type);
+        return list != null ? Collections.unmodifiableList(list) : Collections.emptyList();
     }
 
-    public Set<Animal> getAllAnimals() {
-        return Collections.unmodifiableSet(allAnimals);
+    public List<Animal> getAllAnimals() {
+        List<Animal> all = new ArrayList<>();
+        animalsByType.values().forEach(all::addAll);
+        return all;
     }
 
     public List<Biomass> getAllBiomass() {
-        return Collections.unmodifiableList(allBiomass);
+        return List.copyOf(biomassBySpecies.values());
     }
 
     public int countByType(AnimalType type) {
-        Set<Animal> set = animalsByType.get(type);
-        return set != null ? set.size() : 0;
+        List<Animal> list = animalsByType.get(type);
+        return list != null ? list.size() : 0;
     }
 
     public int countBySpecies(SpeciesKey key) {
         int count = 0;
-        for (Map.Entry<AnimalType, Set<Animal>> entry : animalsByType.entrySet()) {
+        for (Map.Entry<AnimalType, List<Animal>> entry : animalsByType.entrySet()) {
             if (entry.getKey().getSpeciesKey().equals(key)) {
                 count += entry.getValue().size();
             }
@@ -134,20 +114,20 @@ public class EntityContainer {
     }
 
     public void forEachAnimal(Consumer<Animal> action) {
-        allAnimals.forEach(action);
+        animalsByType.values().forEach(list -> list.forEach(action));
     }
 
     public void forEachBiomass(Consumer<Biomass> action) {
-        allBiomass.forEach(action);
+        biomassBySpecies.values().forEach(action);
     }
 
     public void forEachEntity(Consumer<Organism> action) {
-        allAnimals.forEach(action);
-        allBiomass.forEach(action);
+        forEachAnimal(action::accept);
+        biomassBySpecies.values().forEach(b -> action.accept((Organism) b));
     }
 
     public void forEachMatching(EntityQuery<Organism> query, Consumer<Organism> action) {
-        for (Map.Entry<EntityArchetype, Set<Organism>> entry : entitiesByArchetype.entrySet()) {
+        for (Map.Entry<EntityArchetype, List<Organism>> entry : entitiesByArchetype.entrySet()) {
             if (query.matches(entry.getKey())) {
                 entry.getValue().forEach(action);
             }
@@ -155,45 +135,28 @@ public class EntityContainer {
     }
 
     public void removeDeadAnimals(Consumer<Animal> onRemoved) {
-        Iterator<Animal> it = allAnimals.iterator();
-        while (it.hasNext()) {
-            Animal a = it.next();
-            if (!a.isAlive()) {
-                it.remove();
-                
-                // Remove from other indices
-                AnimalType type = a.getAnimalType();
-                Set<Animal> typeSet = animalsByType.get(type);
-                if (typeSet != null) {
-                    typeSet.remove(a);
-                }
-                
-                if (a.isAnimalPredator()) {
-                    predators.remove(a);
-                } else {
-                    herbivores.remove(a);
-                }
-                
-                SizeClass size = type.getSizeClass();
-                Set<Animal> sizeSet = animalsBySize.get(size);
-                if (sizeSet != null) {
-                    sizeSet.remove(a);
-                }
-
-                // Update archetype index
-                EntityArchetype archetype = a.getArchetype();
-                if (archetype != null) {
-                    Set<Organism> archSet = entitiesByArchetype.get(archetype);
-                    if (archSet != null) {
-                        archSet.remove(a);
-                        if (archSet.isEmpty()) {
-                            entitiesByArchetype.remove(archetype);
+        for (List<Animal> list : animalsByType.values()) {
+            Iterator<Animal> it = list.iterator();
+            while (it.hasNext()) {
+                Animal a = it.next();
+                if (!a.isAlive()) {
+                    it.remove();
+                    
+                    // Update archetype index
+                    EntityArchetype archetype = a.getArchetype();
+                    if (archetype != null) {
+                        List<Organism> archList = entitiesByArchetype.get(archetype);
+                        if (archList != null) {
+                            archList.remove(a);
+                            if (archList.isEmpty()) {
+                                entitiesByArchetype.remove(archetype);
+                            }
                         }
                     }
-                }
-                
-                if (onRemoved != null) {
-                    onRemoved.accept(a);
+                    
+                    if (onRemoved != null) {
+                        onRemoved.accept(a);
+                    }
                 }
             }
         }
@@ -201,12 +164,11 @@ public class EntityContainer {
 
     public void addBiomass(Biomass b) {
         biomassBySpecies.put(b.getSpeciesKey(), b);
-        allBiomass.add(b);
         
         // Update archetype index
         EntityArchetype archetype = b.getArchetype();
         if (archetype != null) {
-            entitiesByArchetype.computeIfAbsent(archetype, k -> new LinkedHashSet<>()).add(b);
+            entitiesByArchetype.computeIfAbsent(archetype, k -> new ArrayList<>()).add(b);
         }
     }
 

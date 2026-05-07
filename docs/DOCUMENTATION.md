@@ -166,5 +166,6 @@ The `Configuration` class uses reflection to load parameters from `species.prope
 ## 5. Domain Specific Patterns (Nature)
 - **AnimalFactory**: Uses the Factory pattern to create organisms based on `SpeciesKey`.
 - **SpeciesRegistry**: A centralized, non-static registry of all available species, their metadata (`AnimalType`), and unique `SpeciesKey` instances.
+- **Climate System**: A global service that updates environmental factors (Season, Temperature) during the `PREPARE` phase. These factors are consumed by ECS systems to modify organism behavior.
 - **ComponentRegistry**: An instance-based registry that maps ECS component classes to stable integer indices. This enables high-performance array-based storage in `ArrayComponentStore` while maintaining isolation between concurrent simulation instances.
 - **NatureDomainContext**: Uses the **Builder** pattern to aggregate all domain services (statistics, registry, etc.) for easier dependency injection into the `Island`.

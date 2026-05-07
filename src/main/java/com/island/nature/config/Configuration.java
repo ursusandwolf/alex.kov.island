@@ -22,6 +22,13 @@ public class Configuration {
     private int tickDurationMs = 100;
     private int seasonDuration = 50;
 
+    // Climate System
+    private boolean climateEnabled = true;
+    private int baseTemperature = 20; // Celsius
+    private int winterTemperatureDelta = -30;
+    private int summerTemperatureDelta = 15;
+    private int temperatureFluctuationRange = 5;
+
     // Scaling factors
     private long scale1M = 1_000_000L;
     private int scale10K = 10_000;

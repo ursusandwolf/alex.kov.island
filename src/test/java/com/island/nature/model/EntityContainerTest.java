@@ -32,7 +32,7 @@ class EntityContainerTest {
     }
 
     @Test
-    @DisplayName("Should add and remove animals in O(1)")
+    @DisplayName("Should add and remove animals")
     void testAddRemoveAnimal() {
         AnimalType wolfType = registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow();
         Animal wolf = new GenericAnimal(wolfType, componentRegistry);
@@ -48,41 +48,8 @@ class EntityContainerTest {
     }
 
     @Test
-    @DisplayName("Should index by predators and herbivores")
-    void testRoleIndexing() {
-        AnimalType wolfType = registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow();
-        AnimalType rabbitType = registry.getAnimalType(new SpeciesKey("rabbit", false)).orElseThrow();
-
-        Animal wolf = new GenericAnimal(wolfType, componentRegistry);
-        Animal rabbit = new GenericAnimal(rabbitType, componentRegistry);
-
-        container.addAnimal(wolf);
-        container.addAnimal(rabbit);
-
-        assertTrue(container.getPredators().contains(wolf));
-        assertFalse(container.getPredators().contains(rabbit));
-        assertTrue(container.getHerbivores().contains(rabbit));
-        assertFalse(container.getHerbivores().contains(wolf));
-    }
-
-    @Test
-    @DisplayName("Should index by size class")
-    void testSizeIndexing() {
-        AnimalType wolfType = registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow();
-        SizeClass wolfSize = wolfType.getSizeClass();
-        Animal wolf = new GenericAnimal(wolfType, componentRegistry);
-
-        container.addAnimal(wolf);
-        Set<Animal> bySize = container.getBySize(wolfSize);
-        assertTrue(bySize.contains(wolf));
-
-        container.removeAnimal(wolf);
-        assertFalse(container.getBySize(wolfSize).contains(wolf));
-    }
-
-    @Test
-    @DisplayName("Should maintain deterministic order (LinkedHashSet)")
-    void testDeterministicOrder() {
+    @DisplayName("Should maintain order in lists")
+    void testOrder() {
         AnimalType wolfType = registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow();
         Animal wolf1 = new GenericAnimal(wolfType, componentRegistry);
         Animal wolf2 = new GenericAnimal(wolfType, componentRegistry);
@@ -92,9 +59,9 @@ class EntityContainerTest {
         container.addAnimal(wolf2);
         container.addAnimal(wolf3);
 
-        Animal[] ordered = container.getAllAnimals().toArray(new Animal[0]);
-        assertSame(wolf1, ordered[0]);
-        assertSame(wolf2, ordered[1]);
-        assertSame(wolf3, ordered[2]);
+        java.util.List<Animal> ordered = container.getByType(wolfType);
+        assertSame(wolf1, ordered.get(0));
+        assertSame(wolf2, ordered.get(1));
+        assertSame(wolf3, ordered.get(2));
     }
 }

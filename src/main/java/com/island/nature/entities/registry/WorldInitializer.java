@@ -114,7 +114,7 @@ public class WorldInitializer {
                 }
                 
                 for (int i = 0; i < count; i++) {
-                    animalFactory.createInitialAnimal(species).ifPresent(cell::addAnimal);
+                    animalFactory.createInitialAnimal(species).ifPresent(a -> cell.addAnimal(a, false));
                 }
             }
         }

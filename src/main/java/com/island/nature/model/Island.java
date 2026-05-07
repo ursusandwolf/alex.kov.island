@@ -46,7 +46,6 @@ public class Island implements NatureWorld {
     private final ProtectionService protectionService;
     private int tickCount = 0;
     @Setter private boolean redBookProtectionEnabled = true;
-    private Season currentSeason = Season.SPRING;
     private final EventBus eventBus;
 
     public Island(NatureDomainContext domainContext, int width, int height, EventBus eventBus) {
@@ -218,9 +217,18 @@ public class Island implements NatureWorld {
     }
 
     @Override
+    public Season getCurrentSeason() {
+        return domainContext.getClimateService().getCurrentSeason();
+    }
+
+    @Override
+    public int getTemperature() {
+        return domainContext.getClimateService().getTemperature();
+    }
+
+    @Override
     public void tick(int tickCount) {
         this.tickCount = tickCount;
-        updateSeason();
         statisticsService.onTickStarted();
         protectionService.update(tickCount);
         
@@ -233,12 +241,6 @@ public class Island implements NatureWorld {
     public void rebalance() {
         this.chunks.clear();
         partitionIntoChunks();
-    }
-
-    private void updateSeason() {
-        int seasonDuration = config.getSeasonDuration();
-        int seasonIndex = (tickCount / seasonDuration) % 4;
-        this.currentSeason = Season.values()[seasonIndex];
     }
 
     private void initializeGrid() {

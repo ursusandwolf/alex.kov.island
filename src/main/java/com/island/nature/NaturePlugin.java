@@ -53,6 +53,7 @@ public class NaturePlugin implements SimulationPlugin<Organism> {
             initExecutor.shutdown();
         }
         island.init();
+        island.rebalance(); // Ensure partition reflects initial population
         return island;
     }
 
@@ -60,7 +61,7 @@ public class NaturePlugin implements SimulationPlugin<Organism> {
     public void registerTasks(GameLoop<Organism> gameLoop, SimulationWorld<Organism> world, EventBus eventBus) {
         NatureWorld natureWorld = (NatureWorld) world;
         
-        TaskRegistry taskRegistry = new TaskRegistry(gameLoop, natureWorld, domainContext.getInteractionProvider(), 
+        TaskRegistry taskRegistry = new TaskRegistry(gameLoop, natureWorld, domainContext, domainContext.getInteractionProvider(), 
                                                      domainContext.getAnimalFactory(), domainContext.getSpeciesRegistry(), 
                                                      view, domainContext.getRandomProvider(), eventBus);
         taskRegistry.registerAll();

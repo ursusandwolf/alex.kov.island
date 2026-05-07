@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.25.0] - 2026-05-07
+### Added
+- **Climate System**: Introduced `ClimateService` (and `DefaultClimateService`) to manage global seasons and temperature in the `PREPARE` phase.
+- **Temperature-Driven Growth**: Updated `BiomassGrowthSystem` to scale plant growth based on current temperature (frozen/heat stress modifiers).
+- **Thermal Metabolism**: Enhanced `AnimalHealthSystem` with temperature-dependent metabolism. Cold-blooded animals hibernate/slow down in cold; warm-blooded animals consume more energy in extremes to maintain homeostasis.
+
+### Optimized
+- **Memory Footprint**: Refactored `EntityContainer` to use compact `ArrayList` buckets and eliminated multiple redundant `Set` indices, significantly reducing memory usage for extreme-scale simulations (millions of entities).
+- **Fast Initialization**: Added "silent" mode to `Cell.addAnimal` to bypass the event bus during initial world population, preventing `OutOfMemoryError` and GC thrashing during startup.
+- **Component Storage**: Reduced `ArrayComponentStore` overhead by using lazy array initialization.
+- **Locking Overhead**: Removed internal `energyLock` from `Organism` by utilizing the thread-safety guarantees of the phase-based execution graph and cell-level locks.
+- **Partitioning Strategy**: Fixed a bottleneck where dynamic chunking wasn't applied after initial population, ensuring parallel efficiency from the first tick.
+
+### Fixed
+- **Log Spam**: Silenced individual death logging in `AlertService` for common hunger deaths, preserving debug logs for critical system events only.
+- **Benchmark Stability**: Tuned `ExtremeScalePerformanceTest` to run reliably on standard hardware (4GB heap) with a 20x20 grid (4M+ entities).
+
 ## [1.24.0] - 2026-05-07
 ### Added
 - **Dynamic Load Balancing**: Introduced `DynamicChunkingStrategy` which adaptively partitions the world based on entity density (recursive splitting).
