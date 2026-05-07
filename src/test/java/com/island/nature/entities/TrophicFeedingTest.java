@@ -1,12 +1,14 @@
 package com.island.nature.entities;
 
+import com.island.engine.ecs.ComponentRegistry;
 import com.island.engine.event.DefaultEventBus;
 import com.island.nature.config.Configuration;
 import com.island.nature.model.Cell;
 import com.island.nature.model.DefaultBiomassManager;
 import com.island.nature.model.Island;
+import com.island.nature.service.AlertService;
 import com.island.nature.service.DefaultProtectionService;
-import com.island.nature.service.FeedingService;
+import com.island.nature.service.AnimalFeedingSystem;
 import com.island.nature.service.StatisticsService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -30,17 +32,19 @@ class TrophicFeedingTest {
     private Island island;
     private Cell cell;
     private InteractionMatrix matrix;
-    private FeedingService feedingService;
+    private AnimalFeedingSystem feedingSystem;
+    private ComponentRegistry componentRegistry;
     private final Configuration config = new Configuration();
     private final SpeciesRegistry registry = new SpeciesLoader(config).load();
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     @BeforeEach
     void setUp() {
+        componentRegistry = new ComponentRegistry();
         StatisticsService statisticsService = new StatisticsService(config);
         matrix = new InteractionMatrix(registry);
         DefaultRandomProvider randomProvider = new DefaultRandomProvider();
-        AnimalFactory animalFactory = new AnimalFactory(registry, randomProvider);
+        AnimalFactory animalFactory = new AnimalFactory(registry, randomProvider, componentRegistry);
 
         NatureDomainContext context = NatureDomainContext.builder()
                 .config(config)
@@ -48,15 +52,17 @@ class TrophicFeedingTest {
                 .interactionProvider(matrix)
                 .animalFactory(animalFactory)
                 .statisticsService(statisticsService)
+                .alertService(new AlertService())
                 .protectionService(new DefaultProtectionService(config, registry, statisticsService, 1))
                 .biomassManager(new DefaultBiomassManager())
                 .randomProvider(randomProvider)
+                .componentRegistry(componentRegistry)
                 .build();
 
         island = new Island(context, 1, 1, new DefaultEventBus());
         cell = island.getCell(0, 0);
         HuntingStrategy huntingStrategy = new DefaultHuntingStrategy(config, matrix);
-        feedingService = new FeedingService(island, animalFactory, matrix, registry, huntingStrategy, executor, randomProvider);
+        feedingSystem = new AnimalFeedingSystem(island, animalFactory, matrix, registry, huntingStrategy, executor, randomProvider);
     }
 
     @Test
@@ -64,8 +70,8 @@ class TrophicFeedingTest {
         // Wolf eats Wolf (Intraspecies Predation) with 10% chance
         matrix.setChance(new SpeciesKey("wolf", true), new SpeciesKey("wolf", true), 10);
         
-        GenericAnimal predator = new GenericAnimal(registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow());
-        GenericAnimal victim = new GenericAnimal(registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow());
+        GenericAnimal predator = new GenericAnimal(registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow(), componentRegistry);
+        GenericAnimal victim = new GenericAnimal(registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow(), componentRegistry);
         
         predator.setEnergy(predator.getMaxEnergy() / 2);
         long initialEnergy = predator.getCurrentEnergy();
@@ -74,7 +80,7 @@ class TrophicFeedingTest {
         cell.addAnimal(victim);
         
         matrix.setChance(new SpeciesKey("wolf", true), new SpeciesKey("wolf", true), 100);
-        feedingService.tick(1);
+        feedingSystem.tick(1);
         
         assertTrue(predator.getCurrentEnergy() > initialEnergy, "Wolf energy should increase after eating another wolf");
         assertEquals(1, cell.getAnimalCount());
@@ -86,16 +92,16 @@ class TrophicFeedingTest {
         matrix.setChance(new SpeciesKey("wolf", true), new SpeciesKey("fox", true), 30);
         
         for (int i = 0; i < 5; i++) {
-            GenericAnimal fox = new GenericAnimal(registry.getAnimalType(new SpeciesKey("fox", true)).orElseThrow());
+            GenericAnimal fox = new GenericAnimal(registry.getAnimalType(new SpeciesKey("fox", true)).orElseThrow(), componentRegistry);
             cell.addAnimal(fox);
         }
         
-        GenericAnimal wolf = new GenericAnimal(registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow());
+        GenericAnimal wolf = new GenericAnimal(registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow(), componentRegistry);
         wolf.setEnergy(wolf.getMaxEnergy() / 2);
         cell.addAnimal(wolf);
         
         matrix.setChance(new SpeciesKey("wolf", true), new SpeciesKey("fox", true), 100);
-        feedingService.tick(1);
+        feedingSystem.tick(1);
         
         assertTrue(cell.getAnimalCount() < 6);
         assertTrue(wolf.isAlive());
@@ -106,17 +112,17 @@ class TrophicFeedingTest {
         matrix.setChance(new SpeciesKey("wolf", true), new SpeciesKey("rabbit", false), 100);
         
         for (int i = 0; i < 10; i++) {
-            cell.addAnimal(new GenericAnimal(registry.getAnimalType(new SpeciesKey("rabbit", false)).orElseThrow()));
+            cell.addAnimal(new GenericAnimal(registry.getAnimalType(new SpeciesKey("rabbit", false)).orElseThrow(), componentRegistry));
         }
         
-        GenericAnimal wolf = new GenericAnimal(registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow());
+        GenericAnimal wolf = new GenericAnimal(registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow(), componentRegistry);
         wolf.setEnergy(wolf.getMaxEnergy() / 2);
         cell.addAnimal(wolf);
         
         Animal target = (Animal) cell.getAnimals().get(0);
         target.setHiding(true);
         
-        feedingService.tick(1);
+        feedingSystem.tick(1);
         
         assertTrue(target.isAlive());
         assertTrue(cell.getAnimalCount() < 11);

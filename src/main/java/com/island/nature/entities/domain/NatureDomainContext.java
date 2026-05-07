@@ -6,6 +6,7 @@ import com.island.nature.service.ProtectionService;
 import com.island.nature.service.StatisticsService;
 import lombok.Builder;
 import lombok.Getter;
+import com.island.engine.ecs.ComponentRegistry;
 import com.island.nature.entities.registry.AnimalFactory;
 import com.island.nature.entities.registry.BiomassManager;
 import com.island.nature.entities.registry.SpeciesRegistry;
@@ -28,4 +29,5 @@ public class NatureDomainContext {
     private final ProtectionService protectionService;
     private final BiomassManager biomassManager;
     private final RandomProvider randomProvider;
+    private final ComponentRegistry componentRegistry;
 }

@@ -1,5 +1,6 @@
 package com.island.nature;
 
+import com.island.engine.ecs.ComponentRegistry;
 import com.island.engine.event.DefaultEventBus;
 import com.island.engine.event.EventBus;
 import com.island.nature.config.Configuration;
@@ -35,25 +36,29 @@ class RefactoringVerificationTest {
     private StatisticsService statisticsService;
     private SpeciesRegistry registry;
     private AnimalFactory animalFactory;
+    private ComponentRegistry componentRegistry;
     private Configuration config;
 
     @BeforeEach
     void setUp() {
         config = new Configuration();
         registry = new SpeciesLoader(config).load();
+        componentRegistry = new ComponentRegistry();
         statisticsService = new StatisticsService(config);
         
         // Area = 100 for a 10x10 world
         ProtectionService protectionService = new DefaultProtectionService(config, registry, statisticsService, 100);
         
         InteractionMatrix matrix = new InteractionMatrix(registry);
-        animalFactory = new AnimalFactory(registry, new DefaultRandomProvider());
+        animalFactory = new AnimalFactory(registry, new DefaultRandomProvider(), componentRegistry);
 
         NatureDomainContext context = NatureDomainContext.builder()
                 .config(config)
                 .speciesRegistry(registry)
                 .statisticsService(statisticsService)
                 .protectionService(protectionService)
+                .animalFactory(animalFactory)
+                .componentRegistry(componentRegistry)
                 .build();
 
         EventBus bus = new DefaultEventBus();

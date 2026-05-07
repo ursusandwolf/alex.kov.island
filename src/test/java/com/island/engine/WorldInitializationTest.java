@@ -1,5 +1,6 @@
 package com.island.engine;
 
+import com.island.engine.ecs.ComponentRegistry;
 import com.island.engine.event.DefaultEventBus;
 import com.island.nature.config.Configuration;
 import com.island.nature.model.DefaultBiomassManager;
@@ -24,9 +25,10 @@ public class WorldInitializationTest {
     public void testWorldInitializationDensity() {
         Configuration config = new Configuration();
         SpeciesRegistry registry = new SpeciesLoader(config).load();
+        ComponentRegistry componentRegistry = new ComponentRegistry();
         StatisticsService statisticsService = new StatisticsService(config);
         DefaultRandomProvider randomProvider = new DefaultRandomProvider();
-        AnimalFactory animalFactory = new AnimalFactory(registry, randomProvider);
+        AnimalFactory animalFactory = new AnimalFactory(registry, randomProvider, componentRegistry);
 
         NatureDomainContext context = NatureDomainContext.builder()
                 .config(config)
@@ -37,6 +39,7 @@ public class WorldInitializationTest {
                 .protectionService(new DefaultProtectionService(config, registry, statisticsService, 16 * 16))
                 .biomassManager(new DefaultBiomassManager())
                 .randomProvider(randomProvider)
+                .componentRegistry(componentRegistry)
                 .build();
 
         Island island = new Island(context, 16, 16, new DefaultEventBus());

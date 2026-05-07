@@ -1,11 +1,13 @@
 package com.island.nature.entities.domain;
 
 import com.island.engine.event.EventBus;
+import com.island.nature.service.AnimalFeedingSystem;
+import com.island.nature.service.AnimalHealthSystem;
+import com.island.nature.service.AnimalMovementSystem;
+import com.island.nature.service.AnimalReproductionSystem;
+import com.island.nature.service.BiomassGrowthSystem;
+import com.island.nature.service.BiomassMovementSystem;
 import com.island.nature.service.CleanupService;
-import com.island.nature.service.FeedingService;
-import com.island.nature.service.HealthSystem;
-import com.island.nature.service.MovementSystem;
-import com.island.nature.service.ReproductionService;
 import com.island.nature.view.SimulationView;
 import com.island.engine.scheduling.GameLoop;
 import com.island.nature.entities.core.Organism;
@@ -52,13 +54,15 @@ public class TaskRegistry {
     public void registerAll() {
         HuntingStrategy huntingStrategy = new DefaultHuntingStrategy(world.getConfiguration(), matrix);
         // Food
-        gameLoop.addRecurringTask(new FeedingService(world, animalFactory, matrix, speciesRegistry, huntingStrategy, gameLoop.getTaskExecutor(), random));
+        gameLoop.addRecurringTask(new AnimalFeedingSystem(world, animalFactory, matrix, speciesRegistry, huntingStrategy, gameLoop.getTaskExecutor(), random));
         // Move
-        gameLoop.addRecurringTask(new MovementSystem(world, gameLoop.getTaskExecutor(), random));
+        gameLoop.addRecurringTask(new AnimalMovementSystem(world, gameLoop.getTaskExecutor(), random));
+        gameLoop.addRecurringTask(new BiomassMovementSystem(world, gameLoop.getTaskExecutor(), random));
         // Repro
-        gameLoop.addRecurringTask(new ReproductionService(world, animalFactory, speciesRegistry, gameLoop.getTaskExecutor(), random));
+        gameLoop.addRecurringTask(new AnimalReproductionSystem(world, animalFactory, speciesRegistry, gameLoop.getTaskExecutor(), random));
         // Death (Metabolism, Age)
-        gameLoop.addRecurringTask(new HealthSystem(world, gameLoop.getTaskExecutor(), random));
+        gameLoop.addRecurringTask(new AnimalHealthSystem(world, gameLoop.getTaskExecutor(), random));
+        gameLoop.addRecurringTask(new BiomassGrowthSystem(world, gameLoop.getTaskExecutor(), random));
         // Cleanup
         gameLoop.addRecurringTask(new CleanupService(world, animalFactory, gameLoop.getTaskExecutor(), random));
         // View

@@ -1,7 +1,8 @@
 package com.island.nature.model;
 
-import com.island.engine.event.EntityBornEvent;
-import com.island.engine.event.EntityDiedEvent;
+import com.island.engine.ecs.ComponentRegistry;
+import com.island.engine.event.AnimalBornEvent;
+import com.island.engine.event.AnimalDiedEvent;
 import com.island.engine.event.EventBus;
 import com.island.nature.config.Configuration;
 import com.island.nature.service.ProtectionService;
@@ -38,6 +39,7 @@ public class Island implements NatureWorld {
     private final Cell[][] grid;
     private final List<Chunk> chunks = new ArrayList<>();
     private final SpeciesRegistry registry;
+    private final ComponentRegistry componentRegistry;
     private final StatisticsService statisticsService;
     private final ProtectionService protectionService;
     private int tickCount = 0;
@@ -51,6 +53,7 @@ public class Island implements NatureWorld {
         this.height = height;
         this.eventBus = eventBus;
         this.registry = domainContext.getSpeciesRegistry();
+        this.componentRegistry = domainContext.getComponentRegistry();
         this.statisticsService = domainContext.getStatisticsService();
         this.protectionService = domainContext.getProtectionService();
         this.grid = new Cell[width][height];
@@ -65,7 +68,7 @@ public class Island implements NatureWorld {
     @Override
     public void onEntityAdded(Organism entity) {
         if (entity instanceof Animal a && eventBus != null) {
-            eventBus.publish(new EntityBornEvent(a));
+            eventBus.publish(new AnimalBornEvent(a));
         }
     }
 
@@ -73,7 +76,7 @@ public class Island implements NatureWorld {
     public void onEntityRemoved(Organism entity) {
         if (entity instanceof Animal a && eventBus != null) {
             DeathCause cause = a.getLastDeathCause();
-            eventBus.publish(new EntityDiedEvent(a, (cause != null) ? cause.name() : "REMOVED"));
+            eventBus.publish(new AnimalDiedEvent(a, (cause != null) ? cause : DeathCause.HUNGER));
         }
     }
 
@@ -84,6 +87,11 @@ public class Island implements NatureWorld {
                 cell.setNeighbors(GridUtils.getNeighbors(this, cell, width, height));
             }
         }
+    }
+
+    @Override
+    public ComponentRegistry getComponentRegistry() {
+        return componentRegistry;
     }
 
     @Override

@@ -23,9 +23,11 @@ import java.util.concurrent.Executors;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.island.engine.ecs.ComponentRegistry;
+import com.island.engine.event.DefaultEventBus;
 
-class HealthSystemTest {
-    private HealthSystem healthSystem;
+class AnimalHealthSystemTest {
+    private AnimalHealthSystem healthSystem;
     private Island island;
     private Cell cell;
     private NatureDomainContext domainContext;
@@ -36,9 +38,10 @@ class HealthSystemTest {
     @BeforeEach
     void setUp() {
         SpeciesRegistry registry = new SpeciesLoader(config).load();
-        AnimalFactory animalFactory = new AnimalFactory(registry, random);
+        ComponentRegistry componentRegistry = new ComponentRegistry();
+        AnimalFactory animalFactory = new AnimalFactory(registry, random, componentRegistry);
         StatisticsService stats = new StatisticsService(config);
-        
+
         domainContext = NatureDomainContext.builder()
                 .config(config)
                 .speciesRegistry(registry)
@@ -49,12 +52,14 @@ class HealthSystemTest {
                 .protectionService(new DefaultProtectionService(config, registry, stats, 1))
                 .biomassManager(new DefaultBiomassManager())
                 .randomProvider(random)
+                .componentRegistry(componentRegistry)
                 .build();
 
         island = new Island(domainContext, 1, 1, new DefaultEventBus());
         cell = island.getCell(0, 0);
-        healthSystem = new HealthSystem(island, executor, random);
+        healthSystem = new AnimalHealthSystem(island, executor, random);
     }
+
 
     @AfterEach
     void tearDown() {

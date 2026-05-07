@@ -1,6 +1,7 @@
 package com.island.nature;
 
 import com.island.engine.event.EventBus;
+import com.island.engine.ecs.ComponentRegistry;
 import com.island.nature.config.Configuration;
 import com.island.nature.model.DefaultBiomassManager;
 import com.island.nature.model.Island;
@@ -54,7 +55,8 @@ public class NaturePlugin implements SimulationPlugin<Organism> {
         StatisticsService statisticsService = new StatisticsService(config);
         AlertService alertService = new AlertService();
         RandomProvider randomProvider = new DefaultRandomProvider();
-        AnimalFactory animalFactory = new AnimalFactory(speciesRegistry, randomProvider);
+        ComponentRegistry componentRegistry = new ComponentRegistry();
+        AnimalFactory animalFactory = new AnimalFactory(speciesRegistry, randomProvider, componentRegistry);
         ProtectionService protectionService = new DefaultProtectionService(config, speciesRegistry, 
                                                                           statisticsService, 
                                                                           config.getIslandWidth() * config.getIslandHeight());
@@ -70,6 +72,7 @@ public class NaturePlugin implements SimulationPlugin<Organism> {
                 .protectionService(protectionService)
                 .biomassManager(biomassManager)
                 .randomProvider(randomProvider)
+                .componentRegistry(componentRegistry)
                 .build();
     }
 

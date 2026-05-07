@@ -1,5 +1,6 @@
 package com.island.nature.model;
 
+import com.island.engine.ecs.ComponentRegistry;
 import com.island.nature.config.Configuration;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,19 +21,21 @@ import com.island.nature.entities.registry.SpeciesRegistry;
 class EntityContainerTest {
     private EntityContainer container;
     private SpeciesRegistry registry;
+    private ComponentRegistry componentRegistry;
 
     @BeforeEach
     void setUp() {
         Configuration config = new Configuration();
         container = new EntityContainer(config);
         registry = new SpeciesLoader(config).load();
+        componentRegistry = new ComponentRegistry();
     }
 
     @Test
     @DisplayName("Should add and remove animals in O(1)")
     void testAddRemoveAnimal() {
         AnimalType wolfType = registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow();
-        Animal wolf = new GenericAnimal(wolfType);
+        Animal wolf = new GenericAnimal(wolfType, componentRegistry);
 
         container.addAnimal(wolf);
         assertTrue(container.getAllAnimals().contains(wolf));
@@ -50,8 +53,8 @@ class EntityContainerTest {
         AnimalType wolfType = registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow();
         AnimalType rabbitType = registry.getAnimalType(new SpeciesKey("rabbit", false)).orElseThrow();
 
-        Animal wolf = new GenericAnimal(wolfType);
-        Animal rabbit = new GenericAnimal(rabbitType);
+        Animal wolf = new GenericAnimal(wolfType, componentRegistry);
+        Animal rabbit = new GenericAnimal(rabbitType, componentRegistry);
 
         container.addAnimal(wolf);
         container.addAnimal(rabbit);
@@ -67,7 +70,7 @@ class EntityContainerTest {
     void testSizeIndexing() {
         AnimalType wolfType = registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow();
         SizeClass wolfSize = wolfType.getSizeClass();
-        Animal wolf = new GenericAnimal(wolfType);
+        Animal wolf = new GenericAnimal(wolfType, componentRegistry);
 
         container.addAnimal(wolf);
         Set<Animal> bySize = container.getBySize(wolfSize);
@@ -81,9 +84,9 @@ class EntityContainerTest {
     @DisplayName("Should maintain deterministic order (LinkedHashSet)")
     void testDeterministicOrder() {
         AnimalType wolfType = registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow();
-        Animal wolf1 = new GenericAnimal(wolfType);
-        Animal wolf2 = new GenericAnimal(wolfType);
-        Animal wolf3 = new GenericAnimal(wolfType);
+        Animal wolf1 = new GenericAnimal(wolfType, componentRegistry);
+        Animal wolf2 = new GenericAnimal(wolfType, componentRegistry);
+        Animal wolf3 = new GenericAnimal(wolfType, componentRegistry);
 
         container.addAnimal(wolf1);
         container.addAnimal(wolf2);

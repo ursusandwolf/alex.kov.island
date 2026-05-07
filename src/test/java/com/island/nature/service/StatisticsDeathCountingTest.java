@@ -1,5 +1,6 @@
 package com.island.nature.service;
 
+import com.island.engine.ecs.ComponentRegistry;
 import com.island.engine.event.DefaultEventBus;
 import com.island.engine.event.EventBus;
 import com.island.nature.config.Configuration;
@@ -23,6 +24,7 @@ import com.island.nature.entities.strategy.DefaultHuntingStrategy;
 import com.island.util.common.DefaultRandomProvider;
 import com.island.util.common.RandomProvider;
 import com.island.util.interaction.InteractionMatrix;
+import com.island.util.interaction.InteractionProvider;
 
 class StatisticsDeathCountingTest {
     private Island island;
@@ -44,7 +46,8 @@ class StatisticsDeathCountingTest {
         eventBus = new DefaultEventBus();
         statisticsService.subscribe(eventBus);
 
-        animalFactory = new AnimalFactory(registry, random);
+        ComponentRegistry componentRegistry = new ComponentRegistry();
+        animalFactory = new AnimalFactory(registry, random, componentRegistry);
         
         InteractionMatrix matrix = InteractionMatrix.buildFrom(registry);
         DefaultProtectionService protectionService = new DefaultProtectionService(config, registry, statisticsService, 1);
@@ -58,16 +61,19 @@ class StatisticsDeathCountingTest {
                 .protectionService(protectionService)
                 .biomassManager(new DefaultBiomassManager())
                 .randomProvider(random)
+                .componentRegistry(componentRegistry)
                 .build();
         
         island = new Island(domainContext, 1, 1, eventBus);
         
         DefaultHuntingStrategy huntingStrategy = new DefaultHuntingStrategy(config, matrix);
         
-        new FeedingService(island, animalFactory, matrix, registry, huntingStrategy, executor, random);
-        new HealthSystem(island, executor, random);
-        new MovementSystem(island, executor, random);
-        new ReproductionService(island, animalFactory, registry, executor, random);
+        new AnimalFeedingSystem(island, animalFactory, matrix, registry, huntingStrategy, executor, random);
+        new AnimalHealthSystem(island, executor, random);
+        new BiomassGrowthSystem(island, executor, random);
+        new AnimalMovementSystem(island, executor, random);
+        new BiomassMovementSystem(island, executor, random);
+        new AnimalReproductionSystem(island, animalFactory, registry, executor, random);
         new CleanupService(island, animalFactory, executor, random);
     }
 

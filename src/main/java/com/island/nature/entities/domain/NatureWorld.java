@@ -1,5 +1,6 @@
 package com.island.nature.entities.domain;
 
+import com.island.engine.ecs.ComponentRegistry;
 import com.island.nature.config.Configuration;
 import com.island.engine.core.SimulationWorld;
 import com.island.nature.entities.core.Organism;
@@ -13,4 +14,6 @@ import com.island.nature.entities.registry.NatureRegistry;
 public interface NatureWorld extends SimulationWorld<Organism>, 
         NatureRegistry, NatureStatistics, NatureEnvironment, BiomassManager {
     Configuration getConfiguration();
+
+    ComponentRegistry getComponentRegistry();
 }

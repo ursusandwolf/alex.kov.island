@@ -1,13 +1,15 @@
 package com.island.nature.entities;
 
+import com.island.engine.ecs.ComponentRegistry;
 import com.island.engine.event.DefaultEventBus;
 import com.island.nature.config.Configuration;
 import com.island.nature.entities.predators.Bear;
 import com.island.nature.model.Cell;
 import com.island.nature.model.DefaultBiomassManager;
 import com.island.nature.model.Island;
+import com.island.nature.service.AlertService;
 import com.island.nature.service.DefaultProtectionService;
-import com.island.nature.service.FeedingService;
+import com.island.nature.service.AnimalFeedingSystem;
 import com.island.nature.service.StatisticsService;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,9 +51,10 @@ class WolfPackBalanceTest {
 
     private long runSimulation(SpeciesRegistry registry, boolean usePack, int iterations, Configuration config) {
         config.setWolfPackMinSize(usePack ? 3 : 1000);
+        ComponentRegistry componentRegistry = new ComponentRegistry();
         StatisticsService statisticsService = new StatisticsService(config);
         DefaultRandomProvider randomProvider = new DefaultRandomProvider();
-        AnimalFactory animalFactory = new AnimalFactory(registry, randomProvider);
+        AnimalFactory animalFactory = new AnimalFactory(registry, randomProvider, componentRegistry);
         InteractionMatrix matrix = InteractionMatrix.buildFrom(registry);
 
         NatureDomainContext context = NatureDomainContext.builder()
@@ -60,9 +63,11 @@ class WolfPackBalanceTest {
                 .interactionProvider(matrix)
                 .animalFactory(animalFactory)
                 .statisticsService(statisticsService)
+                .alertService(new AlertService())
                 .protectionService(new DefaultProtectionService(config, registry, statisticsService, 1))
                 .biomassManager(new DefaultBiomassManager())
                 .randomProvider(randomProvider)
+                .componentRegistry(componentRegistry)
                 .build();
 
         Island island = new Island(context, 1, 1, new DefaultEventBus());
@@ -71,20 +76,20 @@ class WolfPackBalanceTest {
         
         List<GenericAnimal> wolves = new ArrayList<>();
         for (int i = 0; i < 20; i++) {
-            GenericAnimal wolf = new GenericAnimal(registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow());
+            GenericAnimal wolf = new GenericAnimal(registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow(), componentRegistry);
             wolf.setEnergy((wolf.getMaxEnergy() * 30) / 100);
             cell.addAnimal(wolf);
             wolves.add(wolf);
         }
 
         for (int i = 0; i < 5; i++) {
-            Bear bear = new Bear(registry.getAnimalType(new SpeciesKey("bear", true)).orElseThrow());
+            Bear bear = new Bear(registry.getAnimalType(new SpeciesKey("bear", true)).orElseThrow(), componentRegistry);
             for(int a=0; a<60; a++) { bear.checkAgeDeath(); }
             cell.addAnimal(bear);
         }
 
         HuntingStrategy huntingStrategy = new DefaultHuntingStrategy(config, matrix);
-        FeedingService service = new FeedingService(island, animalFactory, matrix, registry, huntingStrategy, Executors.newSingleThreadExecutor(), new DefaultRandomProvider());
+        AnimalFeedingSystem feedingSystem = new AnimalFeedingSystem(island, animalFactory, matrix, registry, huntingStrategy, Executors.newSingleThreadExecutor(), new DefaultRandomProvider());
 
         long totalTime = 0;
         int lastSurvivors = 0;
@@ -92,7 +97,7 @@ class WolfPackBalanceTest {
 
         for (int i = 0; i < iterations; i++) {
             long start = System.nanoTime();
-            service.tick(1);
+            feedingSystem.tick(1);
             totalTime += (System.nanoTime() - start);
             
             int survivors = 0;

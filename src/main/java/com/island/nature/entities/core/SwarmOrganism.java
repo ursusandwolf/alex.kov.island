@@ -1,5 +1,6 @@
 package com.island.nature.entities.core;
 
+import com.island.engine.ecs.ComponentRegistry;
 import com.island.nature.config.Configuration;
 import lombok.Getter;
 import com.island.engine.core.SimulationNode;
@@ -11,9 +12,9 @@ public abstract class SwarmOrganism extends Biomass {
     protected final int metabolismRateBP; 
     protected final int reproductionRateBP; 
 
-    protected SwarmOrganism(Configuration config, String typeName, SpeciesKey speciesKey, long maxBiomass, 
+    protected SwarmOrganism(Configuration config, ComponentRegistry registry, String typeName, SpeciesKey speciesKey, long maxBiomass, 
                             int speed, int maxAge, int metabolismRateBP, int reproductionRateBP) {
-        super(config, typeName, speciesKey, maxBiomass, speed);
+        super(config, registry, typeName, speciesKey, maxBiomass, speed);
         this.ageBuckets = new long[maxAge + 1];
         this.metabolismRateBP = metabolismRateBP;
         this.reproductionRateBP = reproductionRateBP;

@@ -1,5 +1,6 @@
 package com.island.nature.entities.registry;
 
+import com.island.engine.ecs.ComponentRegistry;
 import com.island.nature.entities.herbivores.Butterfly;
 import com.island.nature.entities.herbivores.Caterpillar;
 import com.island.nature.entities.plants.Grass;
@@ -60,6 +61,7 @@ public class WorldInitializer {
         }
 
         Island island = (Island) cell.getWorld();
+        ComponentRegistry compRegistry = island.getComponentRegistry();
 
         // Initialize biomass containers (Plants, Insects modeled as biomass)
         for (SpeciesKey biomassKey : registry.getAllBiomassKeys()) {
@@ -70,17 +72,17 @@ public class WorldInitializer {
                 
                 String code = biomassKey.getCode();
                 if ("butterfly".equals(code)) {
-                    b = new Butterfly(island.getConfiguration(), biomassKey, initialAmount, capacity, type.getSpeed());
+                    b = new Butterfly(island.getConfiguration(), compRegistry, biomassKey, initialAmount, capacity, type.getSpeed());
                 } else if ("caterpillar".equals(code)) {
-                    b = new Caterpillar(island.getConfiguration(), biomassKey, initialAmount, capacity, type.getSpeed());
+                    b = new Caterpillar(island.getConfiguration(), compRegistry, biomassKey, initialAmount, capacity, type.getSpeed());
                 } else if ("grass".equals(code)) {
-                    b = new Grass(island.getConfiguration(), biomassKey, capacity, type.getSpeed());
+                    b = new Grass(island.getConfiguration(), compRegistry, biomassKey, capacity, type.getSpeed());
                     b.setBiomass(initialAmount);
                 } else if ("mushroom".equals(code)) {
-                    b = new Mushroom(island.getConfiguration(), biomassKey, capacity, type.getSpeed());
+                    b = new Mushroom(island.getConfiguration(), compRegistry, biomassKey, capacity, type.getSpeed());
                     b.setBiomass(initialAmount);
                 } else {
-                    b = new GenericBiomass(type);
+                    b = new GenericBiomass(type, compRegistry);
                     b.setBiomass(initialAmount);
                 }
                 cell.addBiomass(b);

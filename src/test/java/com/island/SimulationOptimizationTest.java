@@ -1,5 +1,6 @@
 package com.island;
 
+import com.island.engine.ecs.ComponentRegistry;
 import com.island.engine.event.DefaultEventBus;
 import com.island.nature.config.Configuration;
 import com.island.nature.config.SimulationConstants;
@@ -8,7 +9,7 @@ import com.island.nature.model.Cell;
 import com.island.nature.model.DefaultBiomassManager;
 import com.island.nature.model.Island;
 import com.island.nature.service.DefaultProtectionService;
-import com.island.nature.service.FeedingService;
+import com.island.nature.service.AnimalFeedingSystem;
 import com.island.nature.service.StatisticsService;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,17 +30,19 @@ import com.island.util.interaction.InteractionMatrix;
 public class SimulationOptimizationTest {
     private Island island;
     private SpeciesRegistry registry;
-    private FeedingService feedingService;
+    private AnimalFeedingSystem feedingSystem;
     private AnimalFactory animalFactory;
+    private ComponentRegistry componentRegistry;
     private final Configuration config = new Configuration();
 
     @BeforeEach
     void setUp() {
         registry = new SpeciesLoader(config).load();
+        componentRegistry = new ComponentRegistry();
         StatisticsService statisticsService = new StatisticsService(config);
         InteractionMatrix matrix = InteractionMatrix.buildFrom(registry);
         DefaultRandomProvider randomProvider = new DefaultRandomProvider();
-        animalFactory = new AnimalFactory(registry, randomProvider);
+        animalFactory = new AnimalFactory(registry, randomProvider, componentRegistry);
 
         NatureDomainContext context = NatureDomainContext.builder()
                 .config(config)
@@ -50,10 +53,11 @@ public class SimulationOptimizationTest {
                 .protectionService(new DefaultProtectionService(config, registry, statisticsService, 1))
                 .biomassManager(new DefaultBiomassManager())
                 .randomProvider(randomProvider)
+                .componentRegistry(componentRegistry)
                 .build();
 
         island = new Island(context, 1, 1, new DefaultEventBus());
-        feedingService = new FeedingService(island, animalFactory, matrix, registry, 
+        feedingSystem = new AnimalFeedingSystem(island, animalFactory, matrix, registry, 
                 new DefaultHuntingStrategy(config, matrix), Executors.newSingleThreadExecutor(), randomProvider);
     }
 
@@ -70,18 +74,18 @@ public class SimulationOptimizationTest {
         cell.addAnimal(chameleon);
         
         // Tick 1: Should SKIP
-        feedingService.tick(1);
+        feedingSystem.tick(1);
         assertEquals(initialEnergy, chameleon.getCurrentEnergy(), "Chameleon should skip eating on tick 1");
 
         // Tick 2: Should SKIP
-        feedingService.tick(2);
+        feedingSystem.tick(2);
         assertEquals(initialEnergy, chameleon.getCurrentEnergy(), "Chameleon should skip eating on tick 2");
 
         // Tick 3: Should ACT
         // Add a caterpillar (biomass)
-        cell.addBiomass(new Caterpillar(config, new SpeciesKey("caterpillar", false), 100L * SimulationConstants.SCALE_1M, 1000L * SimulationConstants.SCALE_1M, 0));
+        cell.addBiomass(new Caterpillar(config, componentRegistry, new SpeciesKey("caterpillar", false), 100L * SimulationConstants.SCALE_1M, 1000L * SimulationConstants.SCALE_1M, 0));
         
-        feedingService.tick(3);
+        feedingSystem.tick(3);
     }
 
     @Test
@@ -95,6 +99,6 @@ public class SimulationOptimizationTest {
             cell.addAnimal(mouse);
         }
 
-        assertDoesNotThrow(() -> feedingService.tick(0));
+        assertDoesNotThrow(() -> feedingSystem.tick(0));
     }
 }

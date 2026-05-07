@@ -1,5 +1,6 @@
 package com.island.nature.entities.core;
 
+import com.island.engine.ecs.ComponentRegistry;
 import com.island.nature.entities.herbivores.Herbivore;
 import com.island.nature.entities.predators.Predator;
 
@@ -11,8 +12,8 @@ public class GenericAnimal extends Animal implements Herbivore, Predator {
     private final boolean isHerbivore;
     private final boolean isColdBlooded;
 
-    public GenericAnimal(AnimalType type) {
-        super(type);
+    public GenericAnimal(AnimalType type, ComponentRegistry registry) {
+        super(type, registry);
         // If an animal can eat plants, we treat it as a herbivore for metabolic bonuses
         this.isHerbivore = type.getPreySpecies().stream()
                 .anyMatch(k -> {

@@ -1,35 +1,45 @@
 package com.island.nature.service;
 
+import com.island.engine.ecs.Component;
 import com.island.nature.config.EnergyPolicy;
+import com.island.nature.entities.components.HealthComponent;
+import com.island.nature.entities.components.ReproductionComponent;
+import com.island.nature.entities.core.Animal;
+import com.island.nature.entities.core.AnimalType;
+import com.island.nature.entities.core.DeathCause;
+import com.island.nature.entities.core.Organism;
+import com.island.nature.entities.domain.NatureWorld;
+import com.island.nature.entities.domain.TaskRegistry;
+import com.island.nature.entities.registry.AnimalFactory;
+import com.island.nature.entities.registry.SpeciesRegistry;
 import com.island.nature.model.Cell;
+import com.island.util.common.RandomProvider;
+import com.island.util.sampling.SamplingContext;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import com.island.nature.entities.core.Animal;
-import com.island.nature.entities.core.AnimalType;
-import com.island.nature.entities.core.DeathCause;
-import com.island.nature.entities.domain.NatureWorld;
-import com.island.nature.entities.domain.TaskRegistry;
-import com.island.nature.entities.registry.AnimalFactory;
-import com.island.nature.entities.registry.SpeciesRegistry;
-import com.island.util.common.RandomProvider;
-import com.island.util.sampling.SamplingContext;
 
 /**
- * Service responsible for animal reproduction using integer-based arithmetic.
+ * ECS System responsible for animal reproduction logic.
+ * Replaces ReproductionService.
  */
-public class ReproductionService extends AbstractService {
+public class AnimalReproductionSystem extends NatureEntitySystem {
     private final AnimalFactory animalFactory;
     private final SpeciesRegistry speciesRegistry;
 
-    public ReproductionService(NatureWorld world, AnimalFactory animalFactory, 
-                               SpeciesRegistry speciesRegistry, ExecutorService executor, RandomProvider random) {
+    public AnimalReproductionSystem(NatureWorld world, AnimalFactory animalFactory,
+                                    SpeciesRegistry speciesRegistry, ExecutorService executor, RandomProvider random) {
         super(world, executor, random);
         this.animalFactory = animalFactory;
         this.speciesRegistry = speciesRegistry;
+    }
+
+    @Override
+    public List<Class<? extends Component>> requiredComponents() {
+        return List.of(HealthComponent.class, ReproductionComponent.class);
     }
 
     @Override
@@ -69,7 +79,9 @@ public class ReproductionService extends AbstractService {
                 }
 
                 if (a1.getAnimalType().equals(a2.getAnimalType())) {
-                    int chance = a1.getAnimalType().getReproductionChance();
+                    ReproductionComponent rep = a1.getComponent(ReproductionComponent.class);
+                    int chance = (rep != null) ? rep.getChance() : a1.getAnimalType().getReproductionChance();
+                    
                     if (getRandom().nextInt(0, 100) < chance) {
                         if (tryReproduceScaled(a1, a2, cell, samplingScale)) {
                             alreadyMated.add(a1);
@@ -82,11 +94,17 @@ public class ReproductionService extends AbstractService {
         }
     }
 
+    @Override
+    protected void process(Organism entity, Cell cell, int tickCount) {
+        // Not used as we override doProcessCell for group logic
+    }
+
     private boolean tryReproduceScaled(Animal parent1, Animal parent2, Cell node, int scale) {
         AnimalType type = parent1.getAnimalType();
-        int baseMaxOffspring = type.getMaxOffspring();
-        boolean isEndangered = protectionMap != null && protectionMap.containsKey(type.getSpeciesKey());
+        ReproductionComponent rep = parent1.getComponent(ReproductionComponent.class);
+        int baseMaxOffspring = (rep != null) ? rep.getMaxOffspring() : type.getMaxOffspring();
         
+        boolean isEndangered = protectionMap != null && protectionMap.containsKey(type.getSpeciesKey());
         if (isEndangered) {
             baseMaxOffspring += 2;
         }

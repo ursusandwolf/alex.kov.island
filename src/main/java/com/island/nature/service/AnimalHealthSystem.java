@@ -3,8 +3,8 @@ package com.island.nature.service;
 import com.island.engine.ecs.Component;
 import com.island.nature.entities.components.AgeComponent;
 import com.island.nature.entities.components.HealthComponent;
+import com.island.nature.entities.components.MetabolismComponent;
 import com.island.nature.entities.core.Animal;
-import com.island.nature.entities.core.Biomass;
 import com.island.nature.entities.core.Organism;
 import com.island.nature.entities.domain.NatureWorld;
 import com.island.nature.entities.domain.TaskRegistry;
@@ -15,17 +15,17 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 /**
- * ECS System responsible for aging, metabolism, and biomass growth.
+ * ECS System responsible for animal aging and metabolism.
  */
-public class HealthSystem extends NatureEntitySystem {
+public class AnimalHealthSystem extends NatureEntitySystem {
 
-    public HealthSystem(NatureWorld world, ExecutorService executor, RandomProvider random) {
+    public AnimalHealthSystem(NatureWorld world, ExecutorService executor, RandomProvider random) {
         super(world, executor, random);
     }
 
     @Override
     public List<Class<? extends Component>> requiredComponents() {
-        return List.of(HealthComponent.class, AgeComponent.class);
+        return List.of(HealthComponent.class, AgeComponent.class, MetabolismComponent.class);
     }
 
     @Override
@@ -35,15 +35,8 @@ public class HealthSystem extends NatureEntitySystem {
 
     @Override
     protected void process(Organism entity, Cell cell, int tickCount) {
-        // TODO: Избавиться от instanceof Animal/Biomass (Нарушение OCP). Разделить на AnimalHealthSystem и BiomassGrowthSystem.
-        if (entity instanceof Animal animal) {
-            processAnimal(animal);
-        } else if (entity instanceof Biomass biomass) {
-            processBiomass(biomass, cell);
-        }
-    }
-
-    private void processAnimal(Animal a) {
+        // Safe cast due to requiredComponents filter
+        Animal a = (Animal) entity;
         if (!a.isAlive()) {
             return;
         }
@@ -73,15 +66,5 @@ public class HealthSystem extends NatureEntitySystem {
         if (a.isAlive()) {
             a.checkAgeDeath();
         }
-    }
-
-    private void processBiomass(Biomass b, Cell cell) {
-        if (!b.isAlive()) {
-            return;
-        }
-        
-        Season season = getEnvironment().getCurrentSeason();
-        double growthModifier = season.getGrowthModifier();
-        b.grow(cell, growthModifier);
     }
 }

@@ -19,12 +19,13 @@
 - `EntityContainer`: O(1) management using indexed buckets and `LinkedHashSet`.
 
 ### Services (The Logic)
-- `MovementService`: Coordinate-ordered cell transitions. Overrides `DeathCause` if exhausted.
+- **Specialized ECS Systems**:
+    - `AnimalHealthSystem` / `BiomassGrowthSystem`: Handle lifecycle logic (metabolism, growth, aging) based on entity components.
+    - `AnimalMovementSystem` / `BiomassMovementSystem`: Coordinate spatial transitions using `MovementComponent` data.
 - `FeedingService`: Optimized hunting/grazing with pre-calculated interaction matrices. Supports pack hunting.
 - `ReproductionService`: Population growth with LOD scaling.
-- `LifecycleService`: Aging and metabolism with seasonal and hibernation modifiers.
 - `CleanupService`: O(1) removal and pool-based recycling of dead entities.
-- `StatisticsService`: Zero-scan reporting using pre-aggregated metrics via `EventBus` with hierarchical type support.
+- `StatisticsService`: Zero-scan reporting using pre-aggregated metrics via `EventBus` with specialized `AnimalBornEvent` and `AnimalDiedEvent` support.
 
 ## Core Principles
 

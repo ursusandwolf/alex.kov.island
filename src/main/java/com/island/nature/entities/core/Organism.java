@@ -1,8 +1,9 @@
 package com.island.nature.entities.core;
 
 import com.island.engine.ecs.Component;
+import com.island.engine.ecs.ComponentRegistry;
 import com.island.engine.ecs.ComponentStore;
-import com.island.engine.ecs.DefaultComponentStore;
+import com.island.engine.ecs.ArrayComponentStore;
 import com.island.nature.config.Configuration;
 import com.island.nature.config.EnergyPolicy;
 import com.island.nature.entities.components.AgeComponent;
@@ -17,7 +18,7 @@ import com.island.util.common.Poolable;
 @Getter
 public abstract class Organism implements Poolable, Entity {
     protected final Configuration config;
-    private final ComponentStore componentStore = new DefaultComponentStore();
+    private final ComponentStore componentStore;
     
     // Hot components optimization: direct fields to avoid Map lookup overhead
     private HealthComponent healthComponent;
@@ -26,12 +27,13 @@ public abstract class Organism implements Poolable, Entity {
     @Setter private volatile DeathCause lastDeathCause;
     private final ReentrantLock energyLock = new ReentrantLock();
 
-    protected Organism(Configuration config, long maxEnergy, int maxLifespan) {
-        this(config, maxEnergy, maxLifespan, EnergyPolicy.BIRTH_INITIAL.getPercent());
+    protected Organism(Configuration config, ComponentRegistry registry, long maxEnergy, int maxLifespan) {
+        this(config, registry, maxEnergy, maxLifespan, EnergyPolicy.BIRTH_INITIAL.getPercent());
     }
 
-    protected Organism(Configuration config, long maxEnergy, int maxLifespan, int initialEnergyPercent) {
+    protected Organism(Configuration config, ComponentRegistry registry, long maxEnergy, int maxLifespan, int initialEnergyPercent) {
         this.config = config;
+        this.componentStore = new ArrayComponentStore(registry);
         long currentEnergy = (maxEnergy * initialEnergyPercent) / 100;
         addComponent(new HealthComponent(currentEnergy, maxEnergy, true));
         addComponent(new AgeComponent(0, maxLifespan));

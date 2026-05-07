@@ -37,7 +37,7 @@ import com.island.util.interaction.InteractionProvider;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class FeedingMechanicsTest {
 
-    private FeedingService feedingService;
+    private AnimalFeedingSystem feedingSystem;
     private SpeciesRegistry registry;
     private InteractionProvider matrix;
     private AnimalFactory animalFactory;
@@ -56,11 +56,11 @@ class FeedingMechanicsTest {
     void setUp() {
         registry = new SpeciesLoader(config).load();
         matrix = InteractionMatrix.buildFrom(registry);
-        animalFactory = new AnimalFactory(registry, random);
+        animalFactory = new AnimalFactory(registry, random, new com.island.engine.ecs.ComponentRegistry());
         HuntingStrategy strategy = new DefaultHuntingStrategy(config, matrix);
         
         given(world.getConfiguration()).willReturn(config);
-        feedingService = new FeedingService(world, animalFactory, matrix, registry, strategy, executor, random);
+        feedingSystem = new AnimalFeedingSystem(world, animalFactory, matrix, registry, strategy, executor, random);
         cell = new Cell(0, 0, world);
         
         given(world.getRegistry()).willReturn(registry);
@@ -79,7 +79,7 @@ class FeedingMechanicsTest {
         // Force success
         given(random.nextInt(0, 100)).willReturn(0); 
         
-        feedingService.processCell(cell, 1);
+        feedingSystem.processCell(cell, 1);
         
         assertTrue(rabbit.isAlive() == false || cell.getAnimalCount() == 1);
     }

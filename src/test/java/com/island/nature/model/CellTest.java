@@ -1,5 +1,6 @@
 package com.island.nature.model;
 
+import com.island.engine.ecs.ComponentRegistry;
 import com.island.engine.event.DefaultEventBus;
 import com.island.nature.config.Configuration;
 import com.island.nature.service.DefaultProtectionService;
@@ -21,6 +22,7 @@ class CellTest {
     private Cell cell;
     private final Configuration config = new Configuration();
     private final SpeciesRegistry registry = new SpeciesLoader(config).load();
+    private final ComponentRegistry componentRegistry = new ComponentRegistry();
 
     @BeforeEach
     void setUp() {
@@ -32,6 +34,7 @@ class CellTest {
                 .protectionService(new DefaultProtectionService(config, registry, statisticsService, 1))
                 .biomassManager(new DefaultBiomassManager())
                 .randomProvider(new DefaultRandomProvider())
+                .componentRegistry(componentRegistry)
                 .build();
         Island island = new Island(context, 1, 1, new DefaultEventBus());
         cell = new Cell(0, 0, island);
@@ -40,7 +43,7 @@ class CellTest {
     @Test
     void testAddAnimal() {
         AnimalType wolfType = registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow();
-        GenericAnimal wolf = new GenericAnimal(wolfType);
+        GenericAnimal wolf = new GenericAnimal(wolfType, componentRegistry);
         boolean added = cell.addAnimal(wolf);
         assertTrue(added);
         assertEquals(1, cell.getAnimalCount());
@@ -51,14 +54,14 @@ class CellTest {
     void testAddAnimalExceedingLimit() {
         int max = registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow().getMaxPerCell();
         for (int i = 0; i < max; i++) {
-            assertTrue(cell.addAnimal(new GenericAnimal(registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow())), "Should be able to add wolf " + i);
+            assertTrue(cell.addAnimal(new GenericAnimal(registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow(), componentRegistry)), "Should be able to add wolf " + i);
         }
-        assertFalse(cell.addAnimal(new GenericAnimal(registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow())), "Should not be able to add wolf exceeding limit");
+        assertFalse(cell.addAnimal(new GenericAnimal(registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow(), componentRegistry)), "Should not be able to add wolf exceeding limit");
     }
 
     @Test
     void testRemoveAnimal() {
-        GenericAnimal wolf = new GenericAnimal(registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow());
+        GenericAnimal wolf = new GenericAnimal(registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow(), componentRegistry);
         cell.addAnimal(wolf);
         boolean removed = cell.removeAnimal(wolf);
         assertTrue(removed);
@@ -67,8 +70,8 @@ class CellTest {
 
     @Test
     void testCleanupDeadOrganisms() {
-        GenericAnimal aliveWolf = new GenericAnimal(registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow());
-        GenericAnimal deadWolf = new GenericAnimal(registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow());
+        GenericAnimal aliveWolf = new GenericAnimal(registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow(), componentRegistry);
+        GenericAnimal deadWolf = new GenericAnimal(registry.getAnimalType(new SpeciesKey("wolf", true)).orElseThrow(), componentRegistry);
         deadWolf.consumeEnergy(deadWolf.getMaxEnergy()); // Kill it
         
         cell.addAnimal(aliveWolf);

@@ -1,7 +1,7 @@
 package com.island.nature.service;
 
-import com.island.engine.event.EntityBornEvent;
-import com.island.engine.event.EntityDiedEvent;
+import com.island.engine.event.AnimalBornEvent;
+import com.island.engine.event.AnimalDiedEvent;
 import com.island.engine.event.EventBus;
 import com.island.nature.config.Configuration;
 import java.util.EnumMap;
@@ -44,20 +44,11 @@ public class StatisticsService {
     }
 
     public void subscribe(EventBus bus) {
-        bus.subscribe(EntityBornEvent.class, event -> {
-            if (event.getEntity() instanceof Animal a) {
-                registerBirth(a.getSpeciesKey());
-            }
+        bus.subscribe(AnimalBornEvent.class, event -> {
+            registerBirth(event.getAnimal().getSpeciesKey());
         });
-        bus.subscribe(EntityDiedEvent.class, event -> {
-            if (event.getEntity() instanceof Animal a) {
-                try {
-                    DeathCause cause = DeathCause.valueOf(event.getCause());
-                    registerDeath(a.getSpeciesKey(), cause);
-                } catch (IllegalArgumentException e) {
-                    registerRemoval(a.getSpeciesKey());
-                }
-            }
+        bus.subscribe(AnimalDiedEvent.class, event -> {
+            registerDeath(event.getAnimal().getSpeciesKey(), event.getCause());
         });
     }
 

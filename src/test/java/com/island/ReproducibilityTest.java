@@ -1,13 +1,14 @@
 package com.island;
 
+import com.island.engine.ecs.ComponentRegistry;
 import com.island.engine.event.DefaultEventBus;
 import com.island.nature.config.Configuration;
 import com.island.nature.model.DefaultBiomassManager;
 import com.island.nature.model.Island;
+import com.island.nature.service.AnimalHealthSystem;
+import com.island.nature.service.AnimalMovementSystem;
 import com.island.nature.service.DefaultProtectionService;
-import com.island.nature.service.FeedingService;
-import com.island.nature.service.HealthSystem;
-import com.island.nature.service.MovementSystem;
+import com.island.nature.service.AnimalFeedingSystem;
 import com.island.nature.service.StatisticsService;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.Test;
@@ -59,8 +60,9 @@ class ReproducibilityTest {
         );
         matrix.freeze();
 
+        ComponentRegistry componentRegistry = new ComponentRegistry();
         StatisticsService statisticsService = new StatisticsService(config);
-        AnimalFactory factory = new AnimalFactory(registry, fixedProvider);
+        AnimalFactory factory = new AnimalFactory(registry, fixedProvider, componentRegistry);
 
         NatureDomainContext context = NatureDomainContext.builder()
                 .config(config)
@@ -71,6 +73,7 @@ class ReproducibilityTest {
                 .protectionService(new DefaultProtectionService(config, registry, statisticsService, 4))
                 .biomassManager(new DefaultBiomassManager())
                 .randomProvider(fixedProvider)
+                .componentRegistry(componentRegistry)
                 .build();
 
         Island island = new Island(context, 2, 2, new DefaultEventBus());
@@ -83,9 +86,9 @@ class ReproducibilityTest {
         island.getCell(1, 1).addAnimal(factory.createAnimal(new SpeciesKey("rabbit", false)).orElseThrow());
 
         // 2. Run one tick of services
-        new HealthSystem(island, executor, fixedProvider).tick(1);
-        new FeedingService(island, factory, matrix, registry, strategy, executor, fixedProvider).tick(1);
-        new MovementSystem(island, executor, fixedProvider).tick(1);
+        new AnimalHealthSystem(island, executor, fixedProvider).tick(1);
+        new AnimalFeedingSystem(island, factory, matrix, registry, strategy, executor, fixedProvider).tick(1);
+        new AnimalMovementSystem(island, executor, fixedProvider).tick(1);
 
         String state = island.getSpeciesCounts().toString() + "_" + island.getTotalOrganismCount();
         

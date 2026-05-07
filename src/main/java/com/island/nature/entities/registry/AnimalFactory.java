@@ -1,5 +1,6 @@
 package com.island.nature.entities.registry;
 
+import com.island.engine.ecs.ComponentRegistry;
 import com.island.nature.entities.predators.Bear;
 import com.island.nature.entities.predators.Chameleon;
 import java.util.HashMap;
@@ -21,15 +22,17 @@ import com.island.util.common.RandomProvider;
 public final class AnimalFactory {
     private final SpeciesRegistry speciesRegistry;
     private final RandomProvider random;
+    private final ComponentRegistry registry;
     private final Map<SpeciesKey, Function<AnimalType, Animal>> creators = new HashMap<>();
     private final Map<SpeciesKey, ObjectPool<Animal>> pools = new HashMap<>();
 
-    public AnimalFactory(SpeciesRegistry speciesRegistry, RandomProvider random) {
+    public AnimalFactory(SpeciesRegistry speciesRegistry, RandomProvider random, ComponentRegistry registry) {
         this.speciesRegistry = speciesRegistry;
         this.random = random;
+        this.registry = registry;
         
-        speciesRegistry.getKey("bear").ifPresent(k -> creators.put(k, Bear::new));
-        speciesRegistry.getKey("chameleon").ifPresent(k -> creators.put(k, type -> new Chameleon(type, random)));
+        speciesRegistry.getKey("bear").ifPresent(k -> creators.put(k, type -> new Bear(type, registry)));
+        speciesRegistry.getKey("chameleon").ifPresent(k -> creators.put(k, type -> new Chameleon(type, random, registry)));
         
         for (SpeciesKey key : speciesRegistry.getAllAnimalKeys()) {
             pools.put(key, new ObjectPool<>(() -> createNewAnimal(key)));
@@ -39,7 +42,7 @@ public final class AnimalFactory {
     private Animal createNewAnimal(SpeciesKey key) {
         AnimalType type = speciesRegistry.getAnimalType(key).orElseThrow();
         Function<AnimalType, Animal> creator = creators.get(key);
-        return (creator != null) ? creator.apply(type) : new GenericAnimal(type);
+        return (creator != null) ? creator.apply(type) : new GenericAnimal(type, registry);
     }
 
     public Animal createAnimal(String key) {

@@ -1,5 +1,6 @@
 package com.island.nature.entities.predators;
 
+import com.island.engine.ecs.ComponentRegistry;
 import com.island.nature.entities.herbivores.Herbivore;
 import com.island.nature.entities.core.Animal;
 import com.island.nature.entities.core.AnimalType;
@@ -12,8 +13,8 @@ import com.island.util.common.RandomProvider;
 public class Chameleon extends Animal implements Herbivore {
     private final RandomProvider random;
 
-    public Chameleon(AnimalType type, RandomProvider random) {
-        super(type);
+    public Chameleon(AnimalType type, RandomProvider random, ComponentRegistry registry) {
+        super(type, registry);
         this.random = random;
     }
 

@@ -25,9 +25,4 @@ public abstract class NatureEntitySystem extends AbstractService implements Enti
     }
 
     protected abstract void process(Organism entity, Cell cell, int tickCount);
-
-    @Override
-    public final void process(Organism entity, int tickCount) {
-        // Default implementation from EntitySystem, not used by doProcessCell anymore
-    }
 }

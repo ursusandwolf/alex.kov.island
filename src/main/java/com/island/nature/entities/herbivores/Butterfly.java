@@ -1,5 +1,6 @@
 package com.island.nature.entities.herbivores;
 
+import com.island.engine.ecs.ComponentRegistry;
 import com.island.nature.config.Configuration;
 import com.island.nature.model.Cell;
 import com.island.engine.core.SimulationNode;
@@ -14,9 +15,12 @@ import com.island.nature.entities.domain.NatureWorld;
  * Generalized Butterfly using SwarmOrganism (LOD 1) with integer arithmetic.
  */
 public class Butterfly extends SwarmOrganism {
-    public Butterfly(Configuration config, SpeciesKey key, long initialBiomass, long maxBiomass, int speed) {
-        super(config, "Butterfly", key, maxBiomass, speed, 30, 
+    private final ComponentRegistry registry;
+
+    public Butterfly(Configuration config, ComponentRegistry registry, SpeciesKey key, long initialBiomass, long maxBiomass, int speed) {
+        super(config, registry, "Butterfly", key, maxBiomass, speed, 30, 
                 config.getCaterpillarMetabolismRateBP(), config.getButterflyReproductionRateBP());
+        this.registry = registry;
         spawn(initialBiomass);
     }
 
@@ -52,7 +56,7 @@ public class Butterfly extends SwarmOrganism {
                 if (c == null) {
                     AnimalType type = nw.getRegistry().getBiomassType(catKey).orElseThrow();
                     long capacity = type.getWeight() * type.getMaxPerCell();
-                    c = new Caterpillar(config, catKey, 0, capacity, type.getSpeed());
+                    c = new Caterpillar(config, registry, catKey, 0, capacity, type.getSpeed());
                     cell.addEntity(c);
                 }
                 c.spawn(offspringBiomass);

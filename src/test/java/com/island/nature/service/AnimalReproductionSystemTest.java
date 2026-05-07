@@ -1,5 +1,6 @@
 package com.island.nature.service;
 
+import com.island.engine.ecs.ComponentRegistry;
 import com.island.engine.event.DefaultEventBus;
 import com.island.nature.config.Configuration;
 import com.island.nature.model.Cell;
@@ -20,10 +21,11 @@ import com.island.util.common.DefaultRandomProvider;
 import com.island.util.common.RandomProvider;
 import com.island.util.interaction.InteractionMatrix;
 
-class ReproductionServiceTest {
+class AnimalReproductionSystemTest {
     private final Configuration config = new Configuration();
     private final SpeciesRegistry registry = new SpeciesLoader(config).load();
-    private final AnimalFactory factory = new AnimalFactory(registry, new DefaultRandomProvider());
+    private final ComponentRegistry componentRegistry = new ComponentRegistry();
+    private final AnimalFactory factory = new AnimalFactory(registry, new DefaultRandomProvider(), componentRegistry);
 
     @Test
     void testReproductionWithMaxEnergy() {
@@ -39,14 +41,15 @@ class ReproductionServiceTest {
                 .protectionService(new DefaultProtectionService(config, registry, statisticsService, 1))
                 .biomassManager(new DefaultBiomassManager())
                 .randomProvider(randomProvider)
+                .componentRegistry(componentRegistry)
                 .build();
 
         Island island = new Island(context, 1, 1, new DefaultEventBus());
         island.setRedBookProtectionEnabled(false);
         Cell cell = island.getCell(0, 0);
         
-        Animal r1 = new GenericAnimal(registry.getAnimalType(new SpeciesKey("rabbit", false)).orElseThrow());
-        Animal r2 = new GenericAnimal(registry.getAnimalType(new SpeciesKey("rabbit", false)).orElseThrow());
+        Animal r1 = new GenericAnimal(registry.getAnimalType(new SpeciesKey("rabbit", false)).orElseThrow(), componentRegistry);
+        Animal r2 = new GenericAnimal(registry.getAnimalType(new SpeciesKey("rabbit", false)).orElseThrow(), componentRegistry);
         
         r1.setEnergy(r1.getMaxEnergy());
         r2.setEnergy(r2.getMaxEnergy());
@@ -57,9 +60,9 @@ class ReproductionServiceTest {
         cell.addAnimal(r1);
         cell.addAnimal(r2);
         
-        ReproductionService service = new ReproductionService(island, factory, registry, Executors.newSingleThreadExecutor(), new DefaultRandomProvider());
+        AnimalReproductionSystem reproductionSystem = new AnimalReproductionSystem(island, factory, registry, Executors.newSingleThreadExecutor(), new DefaultRandomProvider());
         for (int i = 0; i < 20; i++) {
-            service.tick(1);
+            reproductionSystem.tick(1);
         }
         
         // Expected: 2 parents + at least some babies.
@@ -88,14 +91,15 @@ class ReproductionServiceTest {
                 .protectionService(new DefaultProtectionService(config, registry, statisticsService, 1))
                 .biomassManager(new DefaultBiomassManager())
                 .randomProvider(zeroRandom)
+                .componentRegistry(componentRegistry)
                 .build();
 
         Island island = new Island(context, 1, 1, new DefaultEventBus());
         island.setRedBookProtectionEnabled(false);
         Cell cell = island.getCell(0, 0);
 
-        Animal r1 = new GenericAnimal(registry.getAnimalType(new SpeciesKey("rabbit", false)).orElseThrow());
-        Animal r2 = new GenericAnimal(registry.getAnimalType(new SpeciesKey("rabbit", false)).orElseThrow());
+        Animal r1 = new GenericAnimal(registry.getAnimalType(new SpeciesKey("rabbit", false)).orElseThrow(), componentRegistry);
+        Animal r2 = new GenericAnimal(registry.getAnimalType(new SpeciesKey("rabbit", false)).orElseThrow(), componentRegistry);
 
         r1.setEnergy(r1.getMaxEnergy());
         r2.setEnergy(r2.getMaxEnergy());
@@ -106,8 +110,8 @@ class ReproductionServiceTest {
         cell.addAnimal(r2);
 
         double energyBefore = r1.getCurrentEnergy();
-        ReproductionService service = new ReproductionService(island, factory, registry, Executors.newSingleThreadExecutor(), zeroRandom);
-        service.tick(1);
+        AnimalReproductionSystem reproductionSystem = new AnimalReproductionSystem(island, factory, registry, Executors.newSingleThreadExecutor(), zeroRandom);
+        reproductionSystem.tick(1);
 
         assertEquals(energyBefore, r1.getCurrentEnergy(), 0.000001, "Energy should not be consumed if 0 offspring were produced");
         assertEquals(2, cell.getAnimalCount());

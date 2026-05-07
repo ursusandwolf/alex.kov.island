@@ -1,6 +1,8 @@
 package com.island.nature.entities.core;
 
+import com.island.engine.ecs.ComponentRegistry;
 import com.island.nature.config.Configuration;
+import com.island.nature.entities.registry.NatureComponentFactory;
 import lombok.Getter;
 import lombok.Setter;
 import com.island.engine.core.SimulationNode;
@@ -22,17 +24,16 @@ public abstract class Biomass extends Organism {
     protected final long maxBiomass;
     protected final int speed;
 
-    protected Biomass(Configuration config, String typeName, SpeciesKey speciesKey, long maxBiomass, int speed) {
-        super(config, 1L, 0, config.getPlantInitialBiomassBP() / 100); 
+    protected Biomass(Configuration config, ComponentRegistry registry, String typeName, SpeciesKey speciesKey, long maxBiomass, int speed) {
+        super(config, registry, 1L, 0, config.getPlantInitialBiomassBP() / 100); 
         this.typeName = typeName;
         this.speciesKey = speciesKey;
         this.maxBiomass = maxBiomass;
         this.biomass = (maxBiomass * config.getPlantInitialBiomassBP()) / config.getScale10K(); 
         this.speed = speed;
-        if (speed > 0) {
-            addComponent(new MovementComponent(speed));
-        }
-        addComponent(new GrowthComponent());
+        
+        // Use factory for all nature-specific components
+        new NatureComponentFactory().createBiomassComponents(this).forEach(this::addComponent);
     }
 
     @Override

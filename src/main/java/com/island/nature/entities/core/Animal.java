@@ -1,8 +1,10 @@
 package com.island.nature.entities.core;
 
+import com.island.engine.ecs.ComponentRegistry;
 import com.island.nature.config.EnergyPolicy;
 import com.island.nature.entities.components.MovementComponent;
 import com.island.nature.entities.components.MetabolismComponent;
+import com.island.nature.entities.registry.NatureComponentFactory;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,11 +15,12 @@ public abstract class Animal extends Organism {
     protected long weightOverride = 0;
     protected int speedOverride = -1;
 
-    protected Animal(AnimalType animalType) {
-        super(animalType.getConfig(), animalType.getMaxEnergy(), animalType.getMaxLifespan());
+    protected Animal(AnimalType animalType, ComponentRegistry registry) {
+        super(animalType.getConfig(), registry, animalType.getMaxEnergy(), animalType.getMaxLifespan());
         this.animalType = animalType;
-        addComponent(new MovementComponent(animalType.getSpeed()));
-        addComponent(new MetabolismComponent());
+        
+        // Use factory for all nature-specific components
+        new NatureComponentFactory().createAnimalComponents(animalType, this).forEach(this::addComponent);
     }
 
     @Override

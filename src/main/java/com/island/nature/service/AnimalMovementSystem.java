@@ -2,16 +2,14 @@ package com.island.nature.service;
 
 import com.island.engine.core.SimulationNode;
 import com.island.engine.ecs.Component;
-import com.island.engine.ecs.EntityQuery;
+import com.island.nature.entities.components.MetabolismComponent;
 import com.island.nature.entities.components.MovementComponent;
 import com.island.nature.entities.core.Animal;
 import com.island.nature.entities.core.AnimalType;
-import com.island.nature.entities.core.Biomass;
 import com.island.nature.entities.core.DeathCause;
 import com.island.nature.entities.core.Organism;
 import com.island.nature.entities.domain.NatureWorld;
 import com.island.nature.entities.domain.TaskRegistry;
-import com.island.nature.entities.registry.BiomassManager;
 import com.island.nature.model.Cell;
 import com.island.util.common.RandomProvider;
 import com.island.util.sampling.SamplingContext;
@@ -19,19 +17,17 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 /**
- * ECS System responsible for animal and mobile biomass movement.
+ * ECS System responsible for animal movement with performance sampling.
  */
-public class MovementSystem extends NatureEntitySystem {
-    private final BiomassManager biomassManager;
+public class AnimalMovementSystem extends NatureEntitySystem {
 
-    public MovementSystem(NatureWorld world, ExecutorService executor, RandomProvider random) {
+    public AnimalMovementSystem(NatureWorld world, ExecutorService executor, RandomProvider random) {
         super(world, executor, random);
-        this.biomassManager = world;
     }
 
     @Override
     public List<Class<? extends Component>> requiredComponents() {
-        return List.of(MovementComponent.class);
+        return List.of(MovementComponent.class, MetabolismComponent.class);
     }
 
     @Override
@@ -41,32 +37,18 @@ public class MovementSystem extends NatureEntitySystem {
 
     @Override
     protected void doProcessCell(Cell cell, int tickCount) {
-        // 1. Process Animals with sampling to maintain performance
+        // Animals use sampling to maintain performance
         cell.forEachAnimalSampled(new SamplingContext(config.getMovementLodLimit(), getRandom()), animal -> {
-            if (animal.getComponent(MovementComponent.class) != null) {
+            // Re-verify components due to sampling potentially bypassing query filter if used directly
+            if (animal.getComponent(MovementComponent.class) != null && animal.getComponent(MetabolismComponent.class) != null) {
                 process(animal, cell, tickCount);
-            }
-        });
-
-        // 2. Process Mobile Biomass (they also have MovementComponent)
-        cell.query(new EntityQuery<>(requiredComponents()), entity -> {
-            if (entity instanceof Biomass biomass && biomass.getSpeed() > 0 && biomass.getBiomass() > 0) {
-                process(biomass, cell, tickCount);
             }
         });
     }
 
     @Override
     protected void process(Organism entity, Cell cell, int tickCount) {
-        // TODO: Избавиться от instanceof Animal/Biomass (Нарушение OCP). Разделить на AnimalMovementSystem и BiomassMovementSystem.
-        if (entity instanceof Animal animal) {
-            processAnimal(animal, cell, tickCount);
-        } else if (entity instanceof Biomass biomass) {
-            processBiomass(biomass, cell);
-        }
-    }
-
-    private void processAnimal(Animal animal, Cell node, int tickCount) {
+        Animal animal = (Animal) entity;
         if (!animal.isAlive()) {
             return;
         }
@@ -80,9 +62,9 @@ public class MovementSystem extends NatureEntitySystem {
             }
             
             if (speed > 0) {
-                SimulationNode<Organism> target = selectTargetNode(node, speed);
-                if (target != node) {
-                    if (getWorld().moveEntity(animal, node, target)) {
+                SimulationNode<Organism> target = selectTargetNode(cell, speed);
+                if (target != cell) {
+                    if (getWorld().moveEntity(animal, cell, target)) {
                         long moveCost = (animal.getMaxEnergy() * (1 + speed) * config.getSpeedMoveCostStepBP()) / config.getScale10K();
                         animal.consumeEnergy(moveCost);
                         if (!animal.isAlive()) {
@@ -92,28 +74,6 @@ public class MovementSystem extends NatureEntitySystem {
                 }
             }
         }
-    }
-
-    private void processBiomass(Biomass b, Cell node) {
-        long totalMass = b.getBiomass();
-        long chunk = (totalMass * config.getBiomassMoveChunkBP()) / config.getScale10K();
-
-        int direction = getRandom().nextInt(4);
-        int dx = 0;
-        int dy = 0;
-        switch (direction) {
-            case 0 -> dy = -1;
-            case 1 -> dy = 1;
-            case 2 -> dx = -1;
-            case 3 -> dx = 1;
-            default -> { }
-        }
-
-        getWorld().getNode(node, dx, dy).ifPresent(target -> {
-            if (target != node && target instanceof Cell targetCell) {
-                biomassManager.moveBiomassPartially(b, node, targetCell, chunk);
-            }
-        });
     }
 
     private SimulationNode<Organism> selectTargetNode(Cell node, int speed) {

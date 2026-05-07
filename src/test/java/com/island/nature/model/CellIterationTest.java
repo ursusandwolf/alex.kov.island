@@ -1,5 +1,6 @@
 package com.island.nature.model;
 
+import com.island.engine.ecs.ComponentRegistry;
 import com.island.engine.event.DefaultEventBus;
 import com.island.nature.config.Configuration;
 import com.island.nature.service.DefaultProtectionService;
@@ -34,7 +35,7 @@ class CellIterationTest {
         registry = new SpeciesLoader(config).load();
         StatisticsService statisticsService = new StatisticsService(config);
         DefaultRandomProvider randomProvider = new DefaultRandomProvider();
-        factory = new AnimalFactory(registry, randomProvider);
+        factory = new AnimalFactory(registry, randomProvider, new ComponentRegistry());
 
         NatureDomainContext context = NatureDomainContext.builder()
                 .config(config)

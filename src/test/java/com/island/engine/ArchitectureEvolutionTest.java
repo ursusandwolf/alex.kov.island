@@ -1,6 +1,7 @@
 package com.island.engine;
 
 import com.island.engine.ecs.Component;
+import com.island.engine.ecs.ComponentRegistry;
 import com.island.engine.event.DefaultEventBus;
 import com.island.engine.event.EntityDiedEvent;
 import com.island.engine.event.EventBus;
@@ -50,8 +51,9 @@ class ArchitectureEvolutionTest {
     @DisplayName("Organism should support dynamic components (ECS)")
     void organismShouldSupportComponents() {
         Configuration config = new Configuration();
+        ComponentRegistry registry = new ComponentRegistry();
         // Anonymous implementation of Organism for testing
-        Organism organism = new Organism(config, 100, 10) {
+        Organism organism = new Organism(config, registry, 100, 10) {
             @Override
             public String getTypeName() { return "Test"; }
             @Override
@@ -88,7 +90,7 @@ class ArchitectureEvolutionTest {
                 .huntProbabilities(new HashMap<>())
                 .build();
 
-        Animal rabbit = new Animal(rabbitType) {};
+        Animal rabbit = new Animal(rabbitType, new ComponentRegistry()) {};
         
         MovementComponent move = rabbit.getComponent(MovementComponent.class);
         assertNotNull(move);

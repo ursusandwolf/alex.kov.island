@@ -6,6 +6,4 @@ import com.island.engine.service.CellService;
 
 public interface EntitySystem<T extends Mortal> extends CellService<T> {
     List<Class<? extends Component>> requiredComponents();
-
-    void process(T entity, int tickCount);
 }

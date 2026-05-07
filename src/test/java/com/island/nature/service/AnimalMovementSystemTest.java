@@ -23,9 +23,11 @@ import java.util.concurrent.Executors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.island.engine.ecs.ComponentRegistry;
+import com.island.engine.event.DefaultEventBus;
 
-class MovementSystemTest {
-    private MovementSystem movementSystem;
+class AnimalMovementSystemTest {
+    private AnimalMovementSystem movementSystem;
     private Island island;
     private NatureDomainContext domainContext;
     private final Configuration config = new Configuration();
@@ -35,9 +37,10 @@ class MovementSystemTest {
     @BeforeEach
     void setUp() {
         SpeciesRegistry registry = new SpeciesLoader(config).load();
-        AnimalFactory animalFactory = new AnimalFactory(registry, random);
+        ComponentRegistry componentRegistry = new ComponentRegistry();
+        AnimalFactory animalFactory = new AnimalFactory(registry, random, componentRegistry);
         StatisticsService stats = new StatisticsService(config);
-        
+
         domainContext = NatureDomainContext.builder()
                 .config(config)
                 .speciesRegistry(registry)
@@ -48,10 +51,12 @@ class MovementSystemTest {
                 .protectionService(new DefaultProtectionService(config, registry, stats, 4))
                 .biomassManager(new DefaultBiomassManager())
                 .randomProvider(random)
+                .componentRegistry(componentRegistry)
                 .build();
 
         island = new Island(domainContext, 2, 2, new DefaultEventBus());
-        movementSystem = new MovementSystem(island, executor, random);
+        movementSystem = new AnimalMovementSystem(island, executor, random);
+
         
         // Connect cells
         for (int x = 0; x < 2; x++) {

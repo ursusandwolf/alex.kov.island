@@ -29,7 +29,7 @@ public class ChameleonTest {
                 .settlementRange((long) (0.2 * SimulationConstants.SCALE_1M))
                 .build();
                 
-        Chameleon chameleon = new Chameleon(type, new DefaultRandomProvider());
+        Chameleon chameleon = new Chameleon(type, new DefaultRandomProvider(), new com.island.engine.ecs.ComponentRegistry());
 
         int protectedCount = 0;
         int iterations = 10000;
