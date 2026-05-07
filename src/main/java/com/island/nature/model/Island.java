@@ -241,8 +241,8 @@ public class Island implements NatureWorld {
         int totalCells = width * height;
 
         int targetTasks;
-        if (totalCells <= 64) {
-            targetTasks = 16;
+        if (totalCells <= config.getPartitioningSmallWorldThreshold()) {
+            targetTasks = config.getPartitioningSmallWorldTasks();
         } else if (totalCells <= processors * 16) {
             targetTasks = processors * 2;
         } else {
@@ -257,8 +257,8 @@ public class Island implements NatureWorld {
             chunkSize = 1;
         }
 
-        if (totalCells > 1000 && chunkSize > 32) {
-            chunkSize = 32;
+        if (totalCells > config.getPartitioningLargeWorldThreshold() && chunkSize > config.getPartitioningMaxChunkSize()) {
+            chunkSize = config.getPartitioningMaxChunkSize();
         }
 
         for (int x = 0; x < width; x += chunkSize) {

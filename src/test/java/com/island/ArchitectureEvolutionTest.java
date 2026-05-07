@@ -1,4 +1,4 @@
-package com.island.engine;
+package com.island;
 
 import com.island.engine.ecs.Component;
 import com.island.engine.ecs.ComponentRegistry;

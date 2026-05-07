@@ -65,12 +65,6 @@ public class AnimalFeedingSystem extends NatureEntitySystem {
         processHerbivores(cell, tickCount);
     }
 
-    @Override
-    protected void process(Organism entity, Cell cell, int tickCount) {
-        // This is called by NatureEntitySystem.doProcessCell if we didn't override it.
-        // But since we did, we can use it for individual feeding if needed.
-    }
-
     private void processPredators(Cell node, int tickCount) {
         List<Animal> packHunters = new ArrayList<>();
         List<Animal> soloHunters = new ArrayList<>();

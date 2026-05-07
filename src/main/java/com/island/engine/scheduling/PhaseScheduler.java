@@ -5,9 +5,9 @@ import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import com.island.engine.core.SimulationWorld;
+import com.island.engine.ecs.SystemExecutionGraph;
 import com.island.engine.model.Mortal;
 import com.island.engine.parallel.ParallelDispatcher;
 import com.island.engine.parallel.ParallelTask;
@@ -18,14 +18,21 @@ import com.island.engine.parallel.ParallelTask;
  * @param <T> The base type of entities.
  */
 @Slf4j
-@RequiredArgsConstructor
 public class PhaseScheduler<T extends Mortal> {
     private final ParallelDispatcher<T> dispatcher;
+    private final Map<Phase, List<ScheduledTask>> phasedTasks = new EnumMap<>(Phase.class);
+    private final List<ParallelTask<T>> parallelGroup = new ArrayList<>();
 
-    public void execute(SimulationWorld<T> world, List<ScheduledTask> tasks, int tickCount) {
-        Map<Phase, List<ScheduledTask>> phasedTasks = new EnumMap<>(Phase.class);
+    public PhaseScheduler(ParallelDispatcher<T> dispatcher) {
+        this.dispatcher = dispatcher;
         for (Phase phase : Phase.values()) {
             phasedTasks.put(phase, new ArrayList<>());
+        }
+    }
+
+    public void execute(SimulationWorld<T> world, List<ScheduledTask> tasks, int tickCount) {
+        for (List<ScheduledTask> list : phasedTasks.values()) {
+            list.clear();
         }
 
         // Group tasks by phase
@@ -33,7 +40,7 @@ public class PhaseScheduler<T extends Mortal> {
             phasedTasks.get(task.phase()).add(task);
         }
 
-        List<ParallelTask<T>> parallelGroup = new ArrayList<>();
+        parallelGroup.clear();
 
         // Execute phases in order
         for (Phase phase : Phase.values()) {
@@ -53,7 +60,7 @@ public class PhaseScheduler<T extends Mortal> {
                 } else {
                     // Dispatch any accumulated parallel services before sequential task
                     if (!parallelGroup.isEmpty()) {
-                        List<List<ParallelTask<T>>> batches = com.island.engine.ecs.SystemExecutionGraph.buildSchedule(parallelGroup);
+                        List<List<ParallelTask<T>>> batches = SystemExecutionGraph.buildSchedule(parallelGroup);
                         for (List<ParallelTask<T>> batch : batches) {
                             dispatcher.dispatch(world, batch, tickCount);
                         }
@@ -69,7 +76,7 @@ public class PhaseScheduler<T extends Mortal> {
             
             // Dispatch remaining parallel services
             if (!parallelGroup.isEmpty()) {
-                List<List<ParallelTask<T>>> batches = com.island.engine.ecs.SystemExecutionGraph.buildSchedule(parallelGroup);
+                List<List<ParallelTask<T>>> batches = SystemExecutionGraph.buildSchedule(parallelGroup);
                 for (List<ParallelTask<T>> batch : batches) {
                     dispatcher.dispatch(world, batch, tickCount);
                 }

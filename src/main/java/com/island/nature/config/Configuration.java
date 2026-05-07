@@ -81,6 +81,12 @@ public class Configuration {
     private int caterpillarFeedEfficiencyBP = 10000;
     private int butterflyReproductionRateBP = 1000;
 
+    // Partitioning
+    private int partitioningSmallWorldThreshold = 64;
+    private int partitioningSmallWorldTasks = 16;
+    private int partitioningLargeWorldThreshold = 1000;
+    private int partitioningMaxChunkSize = 32;
+
     // Simulation monitoring
     private long maxSimulationDurationMs = 5 * 60 * 1000;
     private int monitoringIntervalMs = 2000;

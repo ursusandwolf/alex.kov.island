@@ -39,6 +39,9 @@ public class GameLoop<T extends Mortal> {
     @Getter @Setter
     private java.util.function.Supplier<Boolean> stopCondition;
 
+    @Setter
+    private Runnable onStopCallback;
+
     @Getter
     private volatile boolean running = false;
     @Getter
@@ -135,6 +138,9 @@ public class GameLoop<T extends Mortal> {
                 if (stopCondition != null && stopCondition.get()) {
                     log.info("Stop condition met. Stopping GameLoop.");
                     running = false;
+                    if (onStopCallback != null) {
+                        onStopCallback.run();
+                    }
                     break;
                 }
             } catch (Throwable t) {

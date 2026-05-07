@@ -29,5 +29,7 @@ public abstract class NatureEntitySystem extends AbstractService implements Enti
         cell.query(entityQuery, entity -> process(entity, cell, tickCount));
     }
 
-    protected abstract void process(Organism entity, Cell cell, int tickCount);
+    protected void process(Organism entity, Cell cell, int tickCount) {
+        // Default implementation does nothing. Subclasses can override.
+    }
 }

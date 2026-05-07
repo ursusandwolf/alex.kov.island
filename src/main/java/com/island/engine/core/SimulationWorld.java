@@ -55,12 +55,12 @@ public interface SimulationWorld<T extends Mortal> extends Tickable {
     /**
      * Notifies the world that an entity has been added to a node.
      */
-    void onEntityAdded(T entity);
+    default void onEntityAdded(T entity) { }
 
     /**
      * Notifies the world that an entity has been removed from a node.
      */
-    void onEntityRemoved(T entity);
+    default void onEntityRemoved(T entity) { }
 
     /**
      * Gets the event bus associated with this world.
