@@ -22,7 +22,12 @@ public class BiomassGrowthSystem extends NatureEntitySystem {
     }
 
     @Override
-    public List<Class<? extends Component>> requiredComponents() {
+    public List<Class<? extends Component>> readComponents() {
+        return List.of();
+    }
+
+    @Override
+    public List<Class<? extends Component>> writeComponents() {
         return List.of(GrowthComponent.class);
     }
 

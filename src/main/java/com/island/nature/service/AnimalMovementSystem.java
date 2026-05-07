@@ -14,6 +14,7 @@ import com.island.nature.model.Cell;
 import com.island.util.common.RandomProvider;
 import com.island.util.sampling.SamplingContext;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -26,8 +27,13 @@ public class AnimalMovementSystem extends NatureEntitySystem {
     }
 
     @Override
-    public List<Class<? extends Component>> requiredComponents() {
-        return List.of(MovementComponent.class, MetabolismComponent.class);
+    public List<Class<? extends Component>> readComponents() {
+        return List.of(MovementComponent.class);
+    }
+
+    @Override
+    public List<Class<? extends Component>> writeComponents() {
+        return List.of(MetabolismComponent.class);
     }
 
     @Override
@@ -62,9 +68,9 @@ public class AnimalMovementSystem extends NatureEntitySystem {
             }
             
             if (speed > 0) {
-                SimulationNode<Organism> target = selectTargetNode(cell, speed);
+                Cell target = selectTargetCell(cell, speed);
                 if (target != cell) {
-                    if (getWorld().moveEntity(animal, cell, target)) {
+                    if (getWorld().moveOrganism(animal, cell, target)) {
                         long moveCost = (animal.getMaxEnergy() * (1 + speed) * config.getSpeedMoveCostStepBP()) / config.getScale10K();
                         animal.consumeEnergy(moveCost);
                         if (!animal.isAlive()) {
@@ -76,17 +82,36 @@ public class AnimalMovementSystem extends NatureEntitySystem {
         }
     }
 
-    private SimulationNode<Organism> selectTargetNode(Cell node, int speed) {
-        if (speed == 1) {
-            List<SimulationNode<Organism>> neighbors = node.getNeighbors();
+    private Cell selectTargetCell(Cell node, int speed) {
+        // For low speed or very small grids, neighbors are more reliable
+        if (speed == 1 || (config.getIslandWidth() <= 3 && config.getIslandHeight() <= 3)) {
+            List<Cell> neighbors = node.getCellNeighbors();
             if (!neighbors.isEmpty()) {
                 int choice = getRandom().nextInt(neighbors.size() + 1);
                 return (choice < neighbors.size()) ? neighbors.get(choice) : node;
             }
         }
         
-        int dx = getRandom().nextInt(-speed, speed + 1);
-        int dy = getRandom().nextInt(-speed, speed + 1);
-        return getWorld().getNode(node, dx, dy).orElse(node);
+        // Try to find a valid jump target
+        for (int i = 0; i < 5; i++) {
+            int dx = getRandom().nextInt(-speed, speed + 1);
+            int dy = getRandom().nextInt(-speed, speed + 1);
+            if (dx == 0 && dy == 0) {
+                continue;
+            }
+            
+            Optional<Cell> target = getWorld().getCell(node, dx, dy);
+            if (target.isPresent()) {
+                return target.get();
+            }
+        }
+        
+        // Fallback to neighbors if jump failed
+        List<Cell> neighbors = node.getCellNeighbors();
+        if (!neighbors.isEmpty()) {
+            return neighbors.get(getRandom().nextInt(neighbors.size()));
+        }
+
+        return node;
     }
 }

@@ -11,12 +11,26 @@
     - **System Splitting**: `HealthSystem` and `MovementSystem` split into `AnimalHealthSystem`, `BiomassGrowthSystem`, `AnimalMovementSystem`, and `BiomassMovementSystem`.
     - **Typed Events**: Introduced `AnimalBornEvent` and `AnimalDiedEvent` to the `EventBus`, removing `instanceof` in `StatisticsService` and `AlertService`.
     - **API Stabilization**: Simplified `EntitySystem` contract by removing the dead `process(T, int)` method.
+    - **Node Narrowing Cleanup**: Centralized `instanceof Cell` checks in `AbstractService`. Introduced `NatureWorld.getCell` and `moveOrganism` for type-safe domain operations. Refactored `Biomass` and `SwarmOrganism` to use `Cell` directly.
 
-## Pending Items
-- **Sprint 3: Advanced ECS & Performance**:
-    - Implement `SystemExecutionGraph` for automatic task ordering and parallel execution optimization.
-    - Introduce `Archetypes` for even faster entity creation and iteration.
-- **Maintenance**:
+## Sprint 3: Advanced ECS & Performance (Active)
+- **Task 1: System Execution Graph**
+    - Develop `SystemExecutionGraph` using **Static Dependency Resolution** to manage dependencies between `EntitySystem` instances.
+    - Update `EntitySystem` to replace `requiredComponents` with explicit `readComponents` and `writeComponents`.
+    - Group independent systems for parallel execution using `ParallelDispatcher`.
+- **Task 2: ECS Archetypes**
+    - Introduce `EntityArchetype` to group entities with identical component compositions.
+    - Implement **Logical Grouping** by refactoring `EntityContainer` and `Cell` to use `Map<EntityArchetype, Set<Entity>>` for $O(1)$ iteration over compatible entities.
+- **Task 3: Final Architectural Cleanup**
+    - **Category 4 Cleanup**: Enhance `ConsumableComponent` logic to eliminate `instanceof Biomass` checks in `AnimalFeedingSystem`.
+    - **Category 5 Cleanup**: Move biomass growth logic fully from `Biomass.grow` to `BiomassGrowthSystem.process()`.
+    - **SimCity Alignment**: Apply node narrowing and typed event patterns to the `SimCity` module for consistency.
+- **Task 4: Performance Benchmarking**
+    - Create `SimulationBenchmarkTest` to measure TPS (Ticks Per Second) on large grids (100x100).
+    - Profile simulation throughput and GC overhead against established baselines.
+
+## Maintenance (Ongoing)
     - Refactor remaining `Biomass.grow` and `consumeBiomass` to a fully component-based ECS approach (Sprint 2 tasks).
     - Implement `ComponentFactory` for standard component bundles (S2-3). [DONE]
     - Implement "Consumable" component for `FeedingService` to remove remaining `instanceof` checks during predation. [DONE]
+    - Stabilize `SimCity` module by applying similar `instanceof` narrowing refactorings.

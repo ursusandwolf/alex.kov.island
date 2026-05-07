@@ -25,8 +25,13 @@ public class BiomassMovementSystem extends NatureEntitySystem {
     }
 
     @Override
-    public List<Class<? extends Component>> requiredComponents() {
-        return List.of(MovementComponent.class, GrowthComponent.class);
+    public List<Class<? extends Component>> readComponents() {
+        return List.of(MovementComponent.class);
+    }
+
+    @Override
+    public List<Class<? extends Component>> writeComponents() {
+        return List.of(GrowthComponent.class);
     }
 
     @Override
@@ -55,8 +60,8 @@ public class BiomassMovementSystem extends NatureEntitySystem {
             default -> { }
         }
 
-        getWorld().getNode(cell, dx, dy).ifPresent(target -> {
-            if (target != cell && target instanceof Cell targetCell) {
+        getWorld().getCell(cell, dx, dy).ifPresent(targetCell -> {
+            if (targetCell != cell) {
                 biomassManager.moveBiomassPartially(b, cell, targetCell, chunk);
             }
         });

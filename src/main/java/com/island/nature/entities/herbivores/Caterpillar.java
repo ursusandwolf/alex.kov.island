@@ -25,13 +25,13 @@ public class Caterpillar extends SwarmOrganism {
     }
 
     @Override
-    protected void processFeeding(SimulationNode<Organism> node) {
+    protected void processFeeding(Cell cell) {
         long appetite = (getBiomass() * 10) / 100; // 10%
-        if (appetite > 0 && node instanceof Cell cell) {
+        if (appetite > 0) {
             for (Biomass p : cell.getBiomassContainers()) {
                 if (p != this && p.isAlive() && !(p instanceof Butterfly)) {
                     long consumed = (appetite * config.getScale10K()) / config.getCaterpillarFeedEfficiencyBP();
-                    long actualEaten = p.consumeBiomass(consumed, node);
+                    long actualEaten = p.consumeBiomass(consumed, cell);
                     long energyGain = (actualEaten * config.getCaterpillarFeedEfficiencyBP()) / config.getScale10K();
                     spawn(energyGain);
                     appetite -= energyGain;
@@ -44,10 +44,10 @@ public class Caterpillar extends SwarmOrganism {
     }
 
     @Override
-    protected void processReproduction(SimulationNode<Organism> node) {
+    protected void processReproduction(Cell cell) {
         // Reproduce if old enough (max age bucket)
         long readyToTransform = ageBuckets[ageBuckets.length - 1];
-        if (readyToTransform > 0 && node instanceof Cell cell) {
+        if (readyToTransform > 0) {
             ageBuckets[ageBuckets.length - 1] = 0;
             updateTotalBiomass();
 

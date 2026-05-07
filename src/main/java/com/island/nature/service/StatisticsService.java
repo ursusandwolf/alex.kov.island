@@ -1,7 +1,7 @@
 package com.island.nature.service;
 
-import com.island.engine.event.AnimalBornEvent;
-import com.island.engine.event.AnimalDiedEvent;
+import com.island.nature.event.AnimalBornEvent;
+import com.island.nature.event.AnimalDiedEvent;
 import com.island.engine.event.EventBus;
 import com.island.nature.config.Configuration;
 import java.util.EnumMap;

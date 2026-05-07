@@ -1,4 +1,4 @@
-package com.island.engine.event;
+package com.island.nature.event;
 
 import com.island.nature.entities.core.Animal;
 import lombok.Getter;

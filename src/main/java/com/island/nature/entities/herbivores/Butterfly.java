@@ -25,13 +25,13 @@ public class Butterfly extends SwarmOrganism {
     }
 
     @Override
-    protected void processFeeding(SimulationNode<Organism> node) {
+    protected void processFeeding(Cell cell) {
         long appetite = (getBiomass() * 10) / 100; // 10%
-        if (appetite > 0 && node instanceof Cell cell) {
+        if (appetite > 0) {
             for (Biomass p : cell.getBiomassContainers()) {
-                if (p != this && p.isAlive() && !(p instanceof Caterpillar)) {
+                if (p != this && p.isAlive() && !p.getSpeciesKey().equals(getSpeciesKey())) {
                     long consumed = (appetite * config.getScale10K()) / config.getCaterpillarFeedEfficiencyBP();
-                    long actualEaten = p.consumeBiomass(consumed, node);
+                    long actualEaten = p.consumeBiomass(consumed, cell);
                     long energyGain = (actualEaten * config.getCaterpillarFeedEfficiencyBP()) / config.getScale10K();
                     spawn(energyGain);
                     appetite -= energyGain;
@@ -44,10 +44,10 @@ public class Butterfly extends SwarmOrganism {
     }
 
     @Override
-    protected void processReproduction(SimulationNode<Organism> node) {
-        if (getBiomass() > 0 && node instanceof Cell cell) {
+    protected void processReproduction(Cell cell) {
+        if (getBiomass() > 0) {
             long offspringBiomass = (getBiomass() * reproductionRateBP) / config.getScale10K();
-            consumeBiomass(offspringBiomass, node);
+            consumeBiomass(offspringBiomass, cell);
 
             NatureWorld nw = (NatureWorld) cell.getWorld();
             SpeciesKey catKey = nw.getRegistry().getKey("caterpillar").orElse(null);

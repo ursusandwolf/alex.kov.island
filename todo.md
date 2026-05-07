@@ -16,6 +16,23 @@
     - [ ] Migrate `MovementService` to operate on `PositionComponent`.
     - [ ] Decouple `SimulationWorld` from specific entity classes.
 
+## 🚀 Sprint 3: Advanced ECS & Performance (Active)
+- [ ] **Task 1: System Execution Graph**
+    - [ ] Update `EntitySystem` to declare read/write components instead of just `requiredComponents()`.
+    - [ ] Implement `SystemExecutionGraph` for static dependency resolution (DAG generation).
+    - [ ] Group independent systems for parallel execution.
+- [ ] **Task 2: ECS Archetypes**
+    - [ ] Implement `EntityArchetype` (immutable set of component classes).
+    - [ ] Refactor `EntityContainer` and `Cell` to group entities logically by archetype (`Map<EntityArchetype, Set<Entity>>`).
+    - [ ] Optimize `EntityQuery` to match and fetch archetypes in O(1).
+- [ ] **Task 3: Final Architectural Cleanup**
+    - [ ] Category 4: ConsumableComponent handles biomass consumption (remove `instanceof Biomass`).
+    - [ ] Category 5: Move growth from `Biomass.grow` to `BiomassGrowthSystem`.
+    - [ ] Apply node narrowing and typed event patterns to the SimCity module.
+- [ ] **Task 4: Performance Benchmarking**
+    - [ ] Create `SimulationBenchmarkTest` to measure TPS.
+    - [ ] Establish new performance baselines for large grids.
+
 ## 🛠 Immediate Technical Debt & Bug Fixes
 - [x] **Bug: Inconsistent Death Reporting**
     - [x] Unified `STARVATION` + `HUNGER` into a single `HUNGER` death cause.

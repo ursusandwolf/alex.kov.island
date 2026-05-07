@@ -78,6 +78,20 @@ public class Cell implements SimulationNode<Organism> {
         }
     }
 
+    /**
+     * Type-safe version of getNeighbors for the nature domain.
+     */
+    @SuppressWarnings("unchecked")
+    public List<Cell> getCellNeighbors() {
+        rwLock.readLock().lock();
+        try {
+            // Safe as long as we only put Cells into Island grid
+            return (List<Cell>) (List<?>) cachedNeighbors;
+        } finally {
+            rwLock.readLock().unlock();
+        }
+    }
+
     @Override
     public List<Organism> getEntities() {
         rwLock.readLock().lock();

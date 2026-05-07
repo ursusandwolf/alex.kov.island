@@ -2,10 +2,10 @@ package com.island.nature.entities.core;
 
 import com.island.engine.ecs.ComponentRegistry;
 import com.island.nature.config.Configuration;
+import com.island.nature.model.Cell;
 import com.island.nature.entities.registry.NatureComponentFactory;
 import lombok.Getter;
 import lombok.Setter;
-import com.island.engine.core.SimulationNode;
 import com.island.nature.entities.domain.NatureWorld;
 import com.island.nature.entities.components.MovementComponent;
 import com.island.nature.entities.components.GrowthComponent;
@@ -46,37 +46,38 @@ public abstract class Biomass extends Organism {
         return 100; // Biomass always has full energy for logic purposes
     }
 
-    public void tick(SimulationNode<Organism> node) {
-        grow(node, 1.0);
+    public void tick(Cell cell) {
+        grow(cell, 1.0);
     }
 
-    public void grow(SimulationNode<Organism> node, double growthModifier) {
+    public void grow(Cell cell, double growthModifier) {
         long old = biomass;
         long growth = (maxBiomass * config.getPlantGrowthRateBP()) / config.getScale10K();
         growth = (long) (growth * growthModifier);
         biomass = Math.min(maxBiomass, biomass + growth);
-        reportChange(node, biomass - old);
+        reportChange(cell, biomass - old);
     }
 
-    public long consumeBiomass(long amount, SimulationNode<Organism> node) {
+    public long consumeBiomass(long amount, Cell cell) {
         long actualEaten = Math.min(biomass, amount);
         biomass -= actualEaten;
-        reportChange(node, -actualEaten);
+        reportChange(cell, -actualEaten);
         return actualEaten;
     }
 
-    public void addBiomass(long amount, SimulationNode<Organism> node) {
+    public void addBiomass(long amount, Cell cell) {
         long old = biomass;
         if (maxBiomass > 0) {
             this.biomass = Math.min(maxBiomass, this.biomass + amount);
         } else {
             this.biomass += amount;
         }
-        reportChange(node, biomass - old);
+        reportChange(cell, biomass - old);
     }
 
-    private void reportChange(SimulationNode<Organism> node, long delta) {
-        if (delta != 0 && node.getWorld() instanceof NatureWorld nw) {
+    private void reportChange(Cell cell, long delta) {
+        if (delta != 0) {
+            NatureWorld nw = (NatureWorld) cell.getWorld();
             nw.getStatisticsService().registerBiomassChange(speciesKey, delta);
         }
     }

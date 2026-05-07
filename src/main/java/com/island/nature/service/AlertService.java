@@ -1,6 +1,6 @@
 package com.island.nature.service;
 
-import com.island.engine.event.AnimalDiedEvent;
+import com.island.nature.event.AnimalDiedEvent;
 import com.island.engine.event.EventBus;
 import lombok.extern.slf4j.Slf4j;
 import com.island.nature.entities.core.DeathCause;

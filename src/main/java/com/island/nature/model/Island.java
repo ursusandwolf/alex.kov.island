@@ -1,8 +1,8 @@
 package com.island.nature.model;
 
 import com.island.engine.ecs.ComponentRegistry;
-import com.island.engine.event.AnimalBornEvent;
-import com.island.engine.event.AnimalDiedEvent;
+import com.island.nature.event.AnimalBornEvent;
+import com.island.nature.event.AnimalDiedEvent;
 import com.island.engine.event.EventBus;
 import com.island.nature.config.Configuration;
 import com.island.nature.service.ProtectionService;
@@ -154,11 +154,17 @@ public class Island implements NatureWorld {
     @Override
     public Optional<SimulationNode<Organism>> getNode(SimulationNode<Organism> current, int dx, int dy) {
         if (current instanceof Cell cell) {
-            int tx = cell.getX() + dx;
-            int ty = cell.getY() + dy;
-            if (GridUtils.isValid(tx, ty, width, height)) {
-                return Optional.of(grid[tx][ty]);
-            }
+            return getCell(cell, dx, dy).map(c -> c);
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<Cell> getCell(Cell current, int dx, int dy) {
+        int tx = current.getX() + dx;
+        int ty = current.getY() + dy;
+        if (GridUtils.isValid(tx, ty, width, height)) {
+            return Optional.of(grid[tx][ty]);
         }
         return Optional.empty();
     }
@@ -264,6 +270,7 @@ public class Island implements NatureWorld {
         }
     }
 
+    @Override
     public boolean moveOrganism(Animal animal, Cell from, Cell to) {
         if (from == to) {
             return true;

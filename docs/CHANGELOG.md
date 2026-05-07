@@ -4,16 +4,19 @@
 ### Added
 - **Typed Events**: Introduced `AnimalBornEvent` and `AnimalDiedEvent` to the core engine. These provide type-safe lifecycle notifications, enabling `StatisticsService` and `AlertService` to handle events without `instanceof` checks.
 - **Specialized ECS Systems**: Split the monolithic `HealthSystem` and `MovementSystem` into specialized variants: `AnimalHealthSystem`, `BiomassGrowthSystem`, `AnimalMovementSystem`, and `BiomassMovementSystem`. This ensures each system handles only entities with compatible components, adhering to the Open/Closed Principle.
+- **Type-Safe Nature API**: Added `getCell` and `moveOrganism` to `NatureWorld` and `Island` to provide a type-safe API for nature-domain operations, eliminating the need for `SimulationNode` to `Cell` narrowing in most systems.
 
 ### Changed
 - **ECS Registry Isolation**: Refactored `ComponentRegistry` from a global static singleton to an instance-based registry. This allows multiple simulation instances to run in isolation with their own component indexing.
 - **Safe Component Storage**: Updated `ArrayComponentStore` to support dynamic array growth, preventing silent component loss when exceeding initial capacity.
 - **Contract Simplification**: Removed the redundant `process(T, int)` method from the `EntitySystem` interface to resolve signature conflicts with the optimized parallel execution path.
 - **Dependency Injection**: Updated `Organism`, `AnimalFactory`, and `WorldInitializer` to receive `ComponentRegistry` via constructor injection, furthering the shift away from global state.
+- **Node Type Narrowing Refactoring**: Centralized `instanceof Cell` checks in `AbstractService` using the Template Method pattern. Updated `Biomass`, `SwarmOrganism`, and `PreyProvider` to use `Cell` directly, improving domain type safety.
 
 ### Fixed
 - **Simulation Isolation**: Fixed potential index collisions and state leakage between simulation runs caused by the static registry.
 - **Test Stability**: Resolved multiple "cannot find symbol" and compilation errors in the test suite resulting from the system refactoring and registry changes.
+- **Movement Logic Robustness**: Improved `AnimalMovementSystem.selectTargetCell` to be more reliable for small grids and high speeds, resolving flakiness in `AnimalMovementSystemTest`.
 
 ## [1.21.0] - 2026-05-06
 ### Added

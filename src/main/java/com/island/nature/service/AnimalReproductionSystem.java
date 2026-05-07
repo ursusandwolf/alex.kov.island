@@ -38,8 +38,13 @@ public class AnimalReproductionSystem extends NatureEntitySystem {
     }
 
     @Override
-    public List<Class<? extends Component>> requiredComponents() {
-        return List.of(HealthComponent.class, ReproductionComponent.class);
+    public List<Class<? extends Component>> readComponents() {
+        return List.of(ReproductionComponent.class);
+    }
+
+    @Override
+    public List<Class<? extends Component>> writeComponents() {
+        return List.of(HealthComponent.class);
     }
 
     @Override

@@ -14,6 +14,7 @@ public class ChameleonTest {
     @Test
     void testChameleonInvisibilityRate() {
         AnimalType type = AnimalType.builder()
+                .config(new com.island.nature.config.Configuration())
                 .speciesKey(new SpeciesKey("chameleon", false))
                 .typeName("chameleon")
                 .weight((long) (0.1 * SimulationConstants.SCALE_1M))

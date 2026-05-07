@@ -20,7 +20,7 @@ import com.island.util.interaction.InteractionProvider;
  * Provider for prey selection within a node using integer arithmetic.
  */
 public class PreyProvider {
-    private final SimulationNode<Organism> node;
+    private final Cell node;
     private final Configuration config;
     private final InteractionProvider matrix;
     private final int currentTick;
@@ -28,16 +28,16 @@ public class PreyProvider {
     private final boolean isWolfPack;
     private final RandomProvider random;
 
-    public PreyProvider(SimulationNode<Organism> node, InteractionProvider matrix, 
+    public PreyProvider(Cell node, InteractionProvider matrix, 
                         int currentTick, Map<SpeciesKey, Integer> protectionMap, RandomProvider random) {
         this(node, matrix, currentTick, protectionMap, false, random);
     }
 
-    public PreyProvider(SimulationNode<Organism> node, InteractionProvider matrix, 
+    public PreyProvider(Cell node, InteractionProvider matrix, 
                         int currentTick, Map<SpeciesKey, Integer> protectionMap, 
                         boolean isWolfPack, RandomProvider random) {
         this.node = node;
-        this.config = (node instanceof Cell cell) ? cell.getConfig() : null;
+        this.config = node.getConfig();
         this.matrix = matrix;
         this.currentTick = currentTick;
         this.protectionMap = protectionMap;
@@ -60,34 +60,32 @@ public class PreyProvider {
 
         Map<SpeciesKey, Organism> uniquePrey = new HashMap<>();
 
-        if (node instanceof Cell cell) {
-            // 1. Animals - group by species
-            cell.forEachAnimal(a -> {
-                if (a != predator && a.isAlive() && !uniquePrey.containsKey(a.getSpeciesKey())) {
-                    int baseChance = matrix.getChance(predator.getSpeciesKey(), a.getSpeciesKey());
-                    boolean canHunt = baseChance > 0;
+        // 1. Animals - group by species
+        node.forEachAnimal(a -> {
+            if (a != predator && a.isAlive() && !uniquePrey.containsKey(a.getSpeciesKey())) {
+                int baseChance = matrix.getChance(predator.getSpeciesKey(), a.getSpeciesKey());
+                boolean canHunt = baseChance > 0;
 
-                    if (!canHunt && canHuntAsPack && config != null && a.getWeight() > 150 * config.getScale1M()) {
-                        canHunt = true;
-                    }
-
-                    if (canHunt && !a.isProtected(currentTick)) {
-                        uniquePrey.put(a.getSpeciesKey(), a);
-                    }
+                if (!canHunt && canHuntAsPack && config != null && a.getWeight() > 150 * config.getScale1M()) {
+                    canHunt = true;
                 }
-            });
 
-            potential.addAll(uniquePrey.values());
-
-            // 2. Plants/Biomass
-            cell.forEachEntity(e -> {
-                if (e instanceof Biomass b && b.getBiomass() > 0 && matrix.getChance(predator.getSpeciesKey(), b.getSpeciesKey()) > 0) {
-                    if (!isPlantProtected(b)) {
-                        potential.add(b);
-                    }
+                if (canHunt && !a.isProtected(currentTick)) {
+                    uniquePrey.put(a.getSpeciesKey(), a);
                 }
-            });
-        }
+            }
+        });
+
+        potential.addAll(uniquePrey.values());
+
+        // 2. Plants/Biomass
+        node.forEachEntity(e -> {
+            if (e instanceof Biomass b && b.getBiomass() > 0 && matrix.getChance(predator.getSpeciesKey(), b.getSpeciesKey()) > 0) {
+                if (!isPlantProtected(b)) {
+                    potential.add(b);
+                }
+            }
+        });
         
         Collections.shuffle(potential);
         return potential;

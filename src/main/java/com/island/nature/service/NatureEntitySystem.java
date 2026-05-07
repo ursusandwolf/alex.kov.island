@@ -7,6 +7,7 @@ import com.island.nature.entities.domain.NatureWorld;
 import com.island.util.common.RandomProvider;
 import com.island.nature.model.Cell;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Stream;
 
 /**
  * Base class for Nature domain services that follow the ECS System pattern.
@@ -16,7 +17,11 @@ public abstract class NatureEntitySystem extends AbstractService implements Enti
 
     protected NatureEntitySystem(NatureWorld world, ExecutorService executor, RandomProvider random) {
         super(world, executor, random);
-        this.entityQuery = new EntityQuery<>(requiredComponents());
+        this.entityQuery = new EntityQuery<>(
+            Stream.concat(readComponents().stream(), writeComponents().stream())
+                  .distinct()
+                  .toList()
+        );
     }
 
     @Override

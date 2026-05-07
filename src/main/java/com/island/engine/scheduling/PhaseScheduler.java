@@ -53,7 +53,10 @@ public class PhaseScheduler<T extends Mortal> {
                 } else {
                     // Dispatch any accumulated parallel services before sequential task
                     if (!parallelGroup.isEmpty()) {
-                        dispatcher.dispatch(world, parallelGroup, tickCount);
+                        List<List<ParallelTask<T>>> batches = com.island.engine.ecs.SystemExecutionGraph.buildSchedule(parallelGroup);
+                        for (List<ParallelTask<T>> batch : batches) {
+                            dispatcher.dispatch(world, batch, tickCount);
+                        }
                         parallelGroup.clear();
                     }
                     try {
@@ -66,7 +69,10 @@ public class PhaseScheduler<T extends Mortal> {
             
             // Dispatch remaining parallel services
             if (!parallelGroup.isEmpty()) {
-                dispatcher.dispatch(world, parallelGroup, tickCount);
+                List<List<ParallelTask<T>>> batches = com.island.engine.ecs.SystemExecutionGraph.buildSchedule(parallelGroup);
+                for (List<ParallelTask<T>> batch : batches) {
+                    dispatcher.dispatch(world, batch, tickCount);
+                }
                 parallelGroup.clear();
             }
         }

@@ -3,7 +3,7 @@ package com.island.nature.entities.core;
 import com.island.engine.ecs.ComponentRegistry;
 import com.island.nature.config.Configuration;
 import lombok.Getter;
-import com.island.engine.core.SimulationNode;
+import com.island.nature.model.Cell;
 import com.island.nature.entities.domain.NatureWorld;
 
 @Getter
@@ -20,19 +20,18 @@ public abstract class SwarmOrganism extends Biomass {
         this.reproductionRateBP = reproductionRateBP;
     }
 
-    @Override
-    public void tick(SimulationNode<Organism> node) {
-        processLifecycle(node);
+    public void tick(Cell cell) {
+        processLifecycle(cell);
     }
 
-    protected void processLifecycle(SimulationNode<Organism> node) {
+    protected void processLifecycle(Cell cell) {
         final long oldBiomass = getBiomass();
         applyMetabolism();
-        processFeeding(node);
-        advanceAge(node);
-        processReproduction(node);
+        processFeeding(cell);
+        advanceAge(cell);
+        processReproduction(cell);
         updateTotalBiomass();
-        reportChange(node, getBiomass() - oldBiomass);
+        reportChange(cell, getBiomass() - oldBiomass);
     }
 
     protected void applyMetabolism() {
@@ -41,16 +40,16 @@ public abstract class SwarmOrganism extends Biomass {
         }
     }
 
-    protected abstract void processFeeding(SimulationNode<Organism> node);
+    protected abstract void processFeeding(Cell cell);
 
-    protected void advanceAge(SimulationNode<Organism> node) {
+    protected void advanceAge(Cell cell) {
         for (int i = ageBuckets.length - 1; i > 0; i--) {
             ageBuckets[i] = ageBuckets[i - 1];
         }
         ageBuckets[0] = 0; 
     }
 
-    protected abstract void processReproduction(SimulationNode<Organism> node);
+    protected abstract void processReproduction(Cell cell);
 
     protected void updateTotalBiomass() {
         long total = 0;
@@ -68,7 +67,7 @@ public abstract class SwarmOrganism extends Biomass {
     }
 
     @Override
-    public void addBiomass(long amount, SimulationNode<Organism> node) {
+    public void addBiomass(long amount, Cell cell) {
         if (amount > 0) {
             long newTotal = getBiomass() + amount;
             if (maxBiomass > 0 && newTotal > maxBiomass) {
@@ -77,13 +76,13 @@ public abstract class SwarmOrganism extends Biomass {
             if (amount > 0) {
                 ageBuckets[0] += amount;
                 updateTotalBiomass();
-                reportChange(node, amount);
+                reportChange(cell, amount);
             }
         }
     }
 
     @Override
-    public long consumeBiomass(long amount, SimulationNode<Organism> node) {
+    public long consumeBiomass(long amount, Cell cell) {
         long total = getBiomass();
         long actualEaten = Math.min(total, amount);
         if (actualEaten > 0 && total > 0) {
@@ -92,13 +91,14 @@ public abstract class SwarmOrganism extends Biomass {
                 ageBuckets[i] = (ageBuckets[i] * remaining) / total;
             }
             updateTotalBiomass();
-            reportChange(node, -actualEaten);
+            reportChange(cell, -actualEaten);
         }
         return actualEaten;
     }
 
-    private void reportChange(SimulationNode<Organism> node, long delta) {
-        if (delta != 0 && node.getWorld() instanceof NatureWorld nw) {
+    private void reportChange(Cell cell, long delta) {
+        if (delta != 0) {
+            NatureWorld nw = (NatureWorld) cell.getWorld();
             nw.getStatisticsService().registerBiomassChange(getSpeciesKey(), delta);
         }
     }

@@ -44,8 +44,12 @@ public class AnimalFeedingSystem extends NatureEntitySystem {
     }
 
     @Override
-    public List<Class<? extends Component>> requiredComponents() {
-        // Systems work on entities that CAN feed
+    public List<Class<? extends Component>> readComponents() {
+        return List.of();
+    }
+
+    @Override
+    public List<Class<? extends Component>> writeComponents() {
         return List.of(HealthComponent.class, MetabolismComponent.class);
     }
 
