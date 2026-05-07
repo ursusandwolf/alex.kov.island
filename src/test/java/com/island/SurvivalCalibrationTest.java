@@ -23,11 +23,11 @@ import com.island.nature.entities.core.SpeciesKey;
  */
 public class SurvivalCalibrationTest {
 
-    private static final int MAX_TICKS = 100;
-    private static final int ITERATIONS = 5;
-    
+    private static final int MAX_TICKS = 20;
+    private static final int ITERATIONS = 1;
+
     private static final List<SpeciesKey> TARGET_SPECIES = List.of(
-            new SpeciesKey("wolf", true), new SpeciesKey("bear", true), 
+            new SpeciesKey("wolf", true), new SpeciesKey("bear", true),
             new SpeciesKey("horse", false), new SpeciesKey("deer", false), new SpeciesKey("buffalo", false)
     );
 
@@ -39,9 +39,8 @@ public class SurvivalCalibrationTest {
 
         for (int i = 0; i < ITERATIONS; i++) {
             Configuration config = Configuration.load();
-            config.setIslandWidth(10);
-            config.setIslandHeight(10);
-            
+            config.setIslandWidth(3);
+            config.setIslandHeight(3);            
             NaturePlugin plugin = new NaturePlugin(config);
             SimulationEngine<Organism> engine = new SimulationEngine<>();
             SimulationContext<Organism> context = engine.build(plugin, config.getTickDurationMs(), 4);

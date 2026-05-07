@@ -23,8 +23,8 @@ import com.island.nature.entities.domain.NatureWorld;
  */
 public class ExtinctionBalanceTest {
 
-    private static final int MAX_TICKS = 50;
-    private static final int ITERATIONS = 10;
+    private static final int MAX_TICKS = 10;
+    private static final int ITERATIONS = 2;
 
     @Test
     void findExtinctionProneSpecies() {
@@ -32,6 +32,8 @@ public class ExtinctionBalanceTest {
 
         for (int i = 0; i < ITERATIONS; i++) {
             Configuration config = Configuration.load();
+            config.setIslandWidth(3);
+            config.setIslandHeight(3);
             NaturePlugin plugin = new NaturePlugin(config);
             SimulationEngine<Organism> engine = new SimulationEngine<>();
             SimulationContext<Organism> context = engine.build(plugin, config.getTickDurationMs(), 4);

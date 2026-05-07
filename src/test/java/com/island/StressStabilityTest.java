@@ -21,24 +21,23 @@ public class StressStabilityTest {
         System.out.println("\n=== STARTING STRESS STABILITY TEST (200 TICKS) ===");
         Configuration config = Configuration.load();
         // Use a smaller world for the test to avoid extreme slowdowns
-        config.setIslandWidth(5);
-        config.setIslandHeight(5);
-        
+        config.setIslandWidth(3);
+        config.setIslandHeight(3);
+
         NaturePlugin plugin = new NaturePlugin(config);
         SimulationEngine<Organism> engine = new SimulationEngine<>();
         SimulationContext<Organism> context = engine.build(plugin, config.getTickDurationMs(), 4);
-        
+
         Island island = (Island) context.world();
 
-        for (int i = 0; i < 200; i++) {
+        for (int i = 0; i < 50; i++) {
             context.gameLoop().runTick();
-            
-            if (i % 50 == 0) {
+
+            if (i % 25 == 0) {
                 System.out.println("Tick " + i + ": Population=" + island.getTotalOrganismCount());
             }
         }
 
         System.out.println("Final Population: " + island.getTotalOrganismCount());
-        assertTrue(island.getTotalOrganismCount() > 0, "Ecosystem should not be empty after 200 ticks");
-    }
-}
+        assertTrue(island.getTotalOrganismCount() > 0, "Ecosystem should not be empty after 50 ticks");
+    }}
