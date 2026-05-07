@@ -7,6 +7,8 @@
     - **Memory Optimization**: Refactored `EntityContainer` to use memory-efficient `ArrayList` buckets and removed redundant views, significantly reducing footprint for millions of entities.
     - **Engine Efficiency**: Optimized `ArrayComponentStore` with lazy initialization and reduced locking overhead in `Organism` by relying on phase-based execution guarantees.
     - **Initialization Speed**: Introduced "silent" entity addition during world setup to bypass event bus overhead, preventing OOM during large-scale population.
+    - **Headless Mode**: Decoupled simulation engine from ConsoleView. Optimized `TaskRegistry` to skip snapshots when in headless mode.
+    - **Locking Robustness**: Fixed a critical deadlock in `Cell` iteration methods by ensuring read locks are released before performing actions that require write locks.
 
 - **Phase 2: Optimization & Scalability Completed (May 2026)**:
     - **Dynamic Load Balancing**: Implemented `DynamicChunkingStrategy` with recursive splitting based on entity density. Added `WorkUnit` abstraction in the engine for performance telemetry.
@@ -14,9 +16,9 @@
     - **DI Refactoring**: Completed cleanup of manual dependency assembly in `NaturePlugin` by extracting `NatureDomainContextFactory`.
 
 ## Next Steps
-- **Headless Mode**: Decouple simulation engine from ConsoleView for CI/CD and automated benchmarking.
 - **Genetic Evolution**: Introduce mutation and trait inheritance for animals to adapt to climate changes.
 - **Spatial Interactions**: Implement inter-cell dependencies (e.g., forest fires, water flow).
+- **Genetic Algorithms**: Implement trait crossover for animal reproduction.
 
 ## Maintenance & Technical Debt
     - **Validation**: Continuous monitoring of ecosystem stability across seasonal extremes.

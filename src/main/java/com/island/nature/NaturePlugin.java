@@ -4,6 +4,7 @@ import com.island.engine.event.EventBus;
 import com.island.nature.config.Configuration;
 import com.island.nature.model.Island;
 import com.island.nature.view.ConsoleView;
+import com.island.nature.view.HeadlessView;
 import com.island.nature.view.SimulationView;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -30,7 +31,7 @@ public class NaturePlugin implements SimulationPlugin<Organism> {
     private final SimulationView view;
 
     public NaturePlugin(Configuration config) {
-        this(config, new ConsoleView());
+        this(config, config.isHeadless() ? new HeadlessView() : new ConsoleView());
     }
 
     public NaturePlugin(Configuration config, SimulationView view) {

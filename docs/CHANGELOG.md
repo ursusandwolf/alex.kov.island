@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.26.0] - 2026-05-07
+### Added
+- **Headless Mode**: Introduced `headless` configuration flag and `HeadlessView` to allow running simulations without visualization. Optimized `TaskRegistry` to skip expensive world snapshots when in headless mode, improving benchmark performance and enabling cleaner CI/CD integration.
+- **CLI Support**: Added `--headless` argument to `NatureLauncher`.
+
+### Fixed
+- **CRITICAL: Deadlock in Cell Iteration**: Resolved a major deadlock issue in `Cell.java` where `ReadWriteLock` read-to-write upgrades were attempted during entity iteration (e.g., during movement or feeding). All iteration methods (`forEachEntity`, `query`, `forEachAnimalSampled`, etc.) now use local copies to release the read lock before executing actions, ensuring thread safety and preventing simulation hangs.
+- **Task Scheduling Safety**: Improved `TaskRegistry` to conditionally register the view task based on the visualization mode.
+
 ## [1.25.0] - 2026-05-07
 ### Added
 - **Climate System**: Introduced `ClimateService` (and `DefaultClimateService`) to manage global seasons and temperature in the `PREPARE` phase.

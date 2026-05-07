@@ -8,6 +8,7 @@ import com.island.nature.service.AnimalReproductionSystem;
 import com.island.nature.service.BiomassGrowthSystem;
 import com.island.nature.service.BiomassMovementSystem;
 import com.island.nature.service.CleanupService;
+import com.island.nature.view.HeadlessView;
 import com.island.nature.view.SimulationView;
 import com.island.engine.scheduling.GameLoop;
 import com.island.nature.entities.core.Organism;
@@ -70,6 +71,8 @@ public class TaskRegistry {
         // Cleanup
         gameLoop.addRecurringTask(new CleanupService(world, animalFactory, gameLoop.getTaskExecutor(), random));
         // View
-        gameLoop.addRecurringTask(() -> view.display(world.createSnapshot()));
+        if (!(view instanceof HeadlessView)) {
+            gameLoop.addRecurringTask(() -> view.display(world.createSnapshot()));
+        }
     }
 }

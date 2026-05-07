@@ -110,7 +110,7 @@ Hunting logic is encapsulated in `HuntingStrategy`, allowing different behaviors
 ```
 
 ### 2.5 Snapshot Pattern
-To allow rendering or state analysis without locking the active simulation, the engine supports creating "Snapshots".
+To allow rendering or state analysis without locking the active simulation, the engine supports creating "Snapshots". Headless mode skips snapshot creation entirely to optimize performance.
 
 **UML Pseudo-graphics:**
 ```text
@@ -119,6 +119,11 @@ To allow rendering or state analysis without locking the active simulation, the 
 +-----------------------+          +-----------------------+
 | + createSnapshot()    |          | - nodeSnapshots: List |
 +-----------------------+          +-----------------------+
+                                              ^
+                                              |
+                                  +-----------+-----------+
+                                  |      HeadlessView     | (No-op)
+                                  +-----------------------+
 ```
 
 ### 2.6 System Execution Graph (ECS)
@@ -150,11 +155,11 @@ To support high-frequency ticks in large-scale simulations, the engine employs s
    - Tasks are grouped by `Phase` (PREPARE, SIMULATION, POSTPROCESS).
    - Within each phase, tasks are sorted by `priority`.
    - `CellService` tasks are executed in parallel across `WorkUnits` (chunks).
-3. **Locking Strategy**: `Cell` level `ReentrantLock` ensures thread-safety during parallel entity manipulation (e.g., movement between cells).
-
----
-
-## 4. Configuration System
+3. **Locking Strategy**: 
+   - **Cell-Level Locking**: `Cell` uses `ReentrantReadWriteLock`. 
+   - **Deadlock Prevention**: All iteration methods (`forEachEntity`, `query`, etc.) follow a **"copy-under-read-lock, then execute"** pattern. This ensures the read lock is released before any action that might require a write lock (e.g., moving an entity) is executed, preventing read-to-write upgrade deadlocks.
+   - **Multi-Locking**: `GridUtils.executeWithDoubleLock` uses a global coordinate-based ordering to prevent deadlocks during inter-cell movement.
+4. **Configuration System**:
 
 The `Configuration` class uses reflection to load parameters from `species.properties` or System properties.
 - Prefix: `island.`

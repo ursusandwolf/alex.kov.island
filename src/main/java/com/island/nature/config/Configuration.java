@@ -107,6 +107,9 @@ public class Configuration {
     private long maxSimulationDurationMs = 5 * 60 * 1000;
     private int monitoringIntervalMs = 2000;
 
+    // View
+    private boolean headless = false;
+
     // Cold-blooded intervals
     private int coldBloodedMoveInterval = 2;
     private int coldBloodedFeedInterval = 3;

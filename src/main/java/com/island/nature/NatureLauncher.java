@@ -1,7 +1,9 @@
 package com.island.nature;
 
 import com.island.nature.config.Configuration;
+import com.island.nature.view.SimulationView;
 import com.island.nature.view.ConsoleView;
+import com.island.nature.view.HeadlessView;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -19,9 +21,13 @@ import com.island.nature.entities.core.Organism;
 public class NatureLauncher {
     public static void main(String[] args) {
         Configuration config = Configuration.load();
+        for (String arg : args) {
+            if ("--headless".equals(arg)) {
+                config.setHeadless(true);
+            }
+        }
         
-        ConsoleView view = new ConsoleView();
-        NaturePlugin plugin = new NaturePlugin(config, view);
+        NaturePlugin plugin = new NaturePlugin(config);
         SimulationEngine<Organism> engine = new SimulationEngine<>();
         
         log.info("Starting Island Simulation...");

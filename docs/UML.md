@@ -41,6 +41,7 @@ Deterministic results using fixed-point arithmetic:
 
 ### 3. Concurrency Model
 - **Grouped Parallelism**: Multiple `CellService` tasks are processed per cell in a single parallel pass.
+- **Locking Pattern**: Uses **"Copy-under-Read-Lock, then Execute"** to prevent read-to-write upgrade deadlocks during iteration.
 - **Lock Ordering**: To prevent deadlocks, cells are always locked in (X, Y) order.
 - **Thread-Safe Components**: Organism components use `volatile` fields and `ConcurrentHashMap`.
 - **Robust EventBus**: Iterative type resolution and subscriber exception isolation.
@@ -85,6 +86,19 @@ Deterministic results using fixed-point arithmetic:
                                    +------------+------------+
                                    |      CellService<T>     |
                                    +-------------------------+
+                                                ^
+                                                |
+                                   +------------+------------+
+                                   |      SimulationView     |
+                                   +-------------------------+
+                                   | + display(snapshot)     |
+                                   +------------^------------+
+                                                |
+                                     +----------+----------+
+                                     |                     |
+                            +--------+-------+    +--------+-------+
+                            |   ConsoleView  |    |  HeadlessView  |
+                            +----------------+    +----------------+
 ```
 
 ### 5. Boilerplate-Free Domain
