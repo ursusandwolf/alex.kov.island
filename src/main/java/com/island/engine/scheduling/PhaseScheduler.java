@@ -84,7 +84,6 @@ public class PhaseScheduler<T extends Mortal> {
         for (ScheduledTask task : tasks) {
             phasedTasks.get(task.phase()).add(task);
         }
-
         for (Phase phase : Phase.values()) {
             List<ScheduledTask> phaseTasks = phasedTasks.get(phase);
             if (phaseTasks.isEmpty()) {
@@ -92,7 +91,7 @@ public class PhaseScheduler<T extends Mortal> {
             }
 
             phaseTasks.sort(PRIORITY_COMPARATOR);
-            
+
             parallelGroup.clear();
             for (ScheduledTask task : phaseTasks) {
                 ParallelTask<T> pt = task.asParallelTask();
