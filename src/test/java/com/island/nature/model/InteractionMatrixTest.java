@@ -1,4 +1,4 @@
-package com.island.util;
+package com.island.nature.model;
 
 import com.island.nature.config.Configuration;
 import org.junit.jupiter.api.BeforeEach;
@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.island.nature.entities.core.SpeciesKey;
 import com.island.nature.entities.registry.SpeciesLoader;
 import com.island.nature.entities.registry.SpeciesRegistry;
-import com.island.util.interaction.InteractionMatrix;
+import com.island.nature.model.InteractionMatrix;
 
 class InteractionMatrixTest {
     private InteractionMatrix matrix;

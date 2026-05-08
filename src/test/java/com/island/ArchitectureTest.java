@@ -22,4 +22,14 @@ class ArchitectureTest {
 
         rule.check(importedClasses);
     }
+
+    @Test
+    void utilShouldNotDependOnDomainPackages() {
+        ArchRule rule = noClasses()
+                .that().resideInAPackage("..util..")
+                .should().dependOnClassesThat()
+                .resideInAnyPackage("..nature..", "..simcity..");
+
+        rule.check(importedClasses);
+    }
 }

@@ -1,4 +1,4 @@
-package com.island.util.interaction;
+package com.island.nature.model;
 
 import com.island.nature.entities.core.SpeciesKey;
 

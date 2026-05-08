@@ -1,4 +1,4 @@
-package com.island.util.interaction;
+package com.island.nature.model;
 
 import java.util.Arrays;
 import java.util.HashMap;
