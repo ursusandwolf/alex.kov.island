@@ -9,6 +9,9 @@
     - **ECS Optimization**: 
         - Integrated `SystemExecutionGraph` into `PhaseScheduler` for automated parallel scheduling. [DONE]
         - Implemented 6 split ECS systems in Nature domain. [DONE]
+    - **Refactoring (May 2026)**:
+        - **SimCity ECS**: Migrated SimCity to a pure ECS architecture, removing `Resident` and `Building` subclasses and using components (`PopulationComponent`, `BuildingComponent`, `EconomyComponent`). [DONE]
+        - **Type Safety**: Refactored `ConsumableComponent<T>` with `ConsumeAction<T>` to eliminate hidden `instanceof` checks in consumption logic. [DONE]
 
 - **Phase 3: Global Systems & Performance Tuning (May 2026)**:
     - **Climate System**: Implemented `ClimateService` managing seasonal transitions. [DONE]
@@ -18,17 +21,11 @@
 - **Modularization**: 
     - Execute Maven multi-module migration (split `pom.xml`).
     - Define public API via `module-info.java` and `@EngineAPI` annotations.
-- **Refactoring (May 2026)**:
-    - **SimCity ECS**: Migrated SimCity to a pure ECS architecture, removing `Resident` and `Building` subclasses and using components (`PopulationComponent`, `BuildingComponent`, `EconomyComponent`). [DONE]
-    - **Type Safety**: Refactored `ConsumableComponent<T>` with `ConsumeAction<T>` to eliminate hidden `instanceof` checks in consumption logic. [DONE]
-
-## Next Steps
-- **Modularization**: 
-    - Execute Maven multi-module migration (split `pom.xml`).
-    - Define public API via `module-info.java` and `@EngineAPI` annotations.
-- **Genetic Evolution**: Introduce mutation and trait inheritance for animals to adapt to climate changes.
+- **Genetic Evolution**: 
+    - Introduce mutation and trait inheritance for animals to adapt to climate changes.
+    - Implement trait crossover for animal reproduction.
 
 ## Maintenance & Technical Debt
-    - **Validation**: Continuous monitoring of ecosystem stability across seasonal extremes.
-    - **Test Coverage**: Maintain `ExtremeScalePerformanceTest` as a regression gate.
-    - **API Stability**: Define public API via `module-info.java` and `@EngineAPI` annotations.
+- **Validation**: Continuous monitoring of ecosystem stability across seasonal extremes.
+- **Test Coverage**: Maintain `ExtremeScalePerformanceTest` as a regression gate.
+- **Clean Code**: Periodic review of generic type usage to ensure absolute type safety across domain boundaries.
