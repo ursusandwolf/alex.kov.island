@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.27.0] - 2026-05-08
+### Changed
+- **Documentation Overhaul**: Centralized architectural and project information. Removed redundant documents (`codereview.md`, `TODO.md`), consolidated information into `PROJECT_CONTEXT.md` and `DOCUMENTATION.md` for better maintainability and clarity, and updated the roadmap for the upcoming multi-module architecture migration.
+- **Architectural Refinement**: Verified architecture against Review v7 recommendations. Added roadmap for multi-module maven structure, API stability (via `@EngineAPI`), and module isolation.
+
 ## [1.26.0] - 2026-05-07
 ### Added
 - **Headless Mode**: Introduced `headless` configuration flag and `HeadlessView` to allow running simulations without visualization. Optimized `TaskRegistry` to skip expensive world snapshots when in headless mode, improving benchmark performance and enabling cleaner CI/CD integration.

@@ -16,127 +16,21 @@ The project is a modular simulation engine designed to support multiple "domains
 
 ### 2.1 Plugin Pattern
 The engine uses the Plugin pattern to decouple the simulation loop from domain-specific logic.
-**UML Pseudo-graphics:**
-```text
-+------------------+          +--------------------------------------------+
-| SimulationEngine |          |             SimulationPlugin<T>            |
-+------------------+          +--------------------------------------------+
-| + build()        |<>------->| + createWorld(EventBus): SimulationWorld    |
-+------------------+          | + registerTasks(GameLoop, World, EventBus) |
-                              +--------------------------------------------+
-                                               ^
-                                               |
-```
-
-                        +----------------------+----------------------+
-                        |                                             |
-            +-----------------------+                 +-----------------------+
-            |      NaturePlugin     |                 |      SimCityPlugin    |
-            +-----------------------+                 +-----------------------+
-            | - domainContext       |                 | - cityMap             |
-            +-----------------------+                 +-----------------------+
-```
 
 ### 2.2 Task Scheduling & Phase Management
 The `GameLoop` delegates task orchestration to `PhaseScheduler` and parallel execution to `ParallelDispatcher`. Tasks are organized by `Phase` and `priority`.
 
-**UML Pseudo-graphics:**
-```text
-+------------------+       +------------------+       +---------------------+
-|     GameLoop     |------>|  PhaseScheduler  |------>|  ParallelDispatcher |
-+------------------+       +------------------+       +---------------------+
-| + runTick()      |       | + schedule()     |       | + dispatch()        |
-+------------------+       +------------------+       +---------------------+
-                                     |                           |
-                                     v                           |
-                           +---------------------------------+   |
-                           |          ScheduledTask          |   |
-                           +---------------------------------+   |
-                           | + phase(): Phase                |   |
-                           | + priority(): int               |   |
-                           | + executionMode(): ExecMode     |   |
-                           | + asParallelTask(): ParallelTask|   |
-                           +---------------------------------+   |
-                                     ^                           |
-                                     |                           |
-                           +---------------------------------+   |
-                           |       ParallelTask<T>           |<--+
-                           +---------------------------------+
-                           | + beforeTick(tick)              |
-                           | + processCell(node, tick)       |
-                           | + afterTick(tick)               |
-                           +---------------------------------+
-                                     ^
-                                     |
-                           +---------------------------------+
-                           |         CellService<T>          |
-                           +---------------------------------+
-```
-
 ### 2.3 Observer Pattern (World Events)
 The `SimulationWorld` publishes events to the `EventBus` when entities are added or removed. This decouples the spatial grid from statistics or external services.
-
-**UML Pseudo-graphics:**
-```text
-+--------------------------+          +-----------------------+
-|   SimulationWorld<T>     |          |       EventBus        |
-+--------------------------+          +-----------------------+
-| + onEntityAdded(T)       |--------->| + publish(Object)     |
-| + onEntityRemoved(T)     |          | + subscribe(Class, S) |
-+--------------------------+          +-----------------------+
-             ^                                    
-             |                                    
-      +------+-------+                    
-      |    Island    |
-      +--------------+
-```
 
 ### 2.4 Strategy Pattern (Hunting)
 Hunting logic is encapsulated in `HuntingStrategy`, allowing different behaviors for predators (e.g., pack hunting vs. solo hunting) without modifying the `AnimalFeedingSystem`.
 
-**UML Pseudo-graphics:**
-```text
-+---------------------+          +--------------------------------+
-| AnimalFeedingSystem |--------->|        HuntingStrategy         |
-+---------------------+          +--------------------------------+
-                              | + selectPrey(pred, provider)   |
-                              | + selectPackPrey(pack, prov)   |
-                              +--------------------------------+
-                                              ^
-                                              |
-                                   +----------+----------+
-                                   | DefaultHuntingStrat |
-                                   +---------------------+
-```
-
 ### 2.5 Snapshot Pattern
 To allow rendering or state analysis without locking the active simulation, the engine supports creating "Snapshots". Headless mode skips snapshot creation entirely to optimize performance.
 
-**UML Pseudo-graphics:**
-```text
-+-----------------------+          +-----------------------+
-|    SimulationWorld    |--------->|     WorldSnapshot     |
-+-----------------------+          +-----------------------+
-| + createSnapshot()    |          | - nodeSnapshots: List |
-+-----------------------+          +-----------------------+
-                                              ^
-                                              |
-                                  +-----------+-----------+
-                                  |      HeadlessView     | (No-op)
-                                  +-----------------------+
-```
-
 ### 2.6 System Execution Graph (ECS)
 The engine automatically resolves dependencies between `EntitySystem` instances by analyzing their `readComponents` and `writeComponents` sets. Systems with non-overlapping write sets (and no read/write conflicts) are grouped into parallel batches.
-
-**UML Pseudo-graphics:**
-```text
-+-----------------------+          +------------------------+
-|   SystemExecutionGraph|--------->|    ParallelDispatcher  |
-+-----------------------+          +------------------------+
-| + buildSchedule(tasks)|          | + dispatch(batch)      |
-+-----------------------+          +------------------------+
-```
 
 ### 2.7 GC & Allocation Optimization
 To support high-frequency ticks in large-scale simulations, the engine employs several object reuse strategies:
@@ -174,3 +68,16 @@ The `Configuration` class uses reflection to load parameters from `species.prope
 - **Climate System**: A global service that updates environmental factors (Season, Temperature) during the `PREPARE` phase. These factors are consumed by ECS systems to modify organism behavior.
 - **ComponentRegistry**: An instance-based registry that maps ECS component classes to stable integer indices. This enables high-performance array-based storage in `ArrayComponentStore` while maintaining isolation between concurrent simulation instances.
 - **NatureDomainContext**: Uses the **Builder** pattern to aggregate all domain services (statistics, registry, etc.) for easier dependency injection into the `Island`.
+
+---
+
+## 6. Architecture Evolution Plan (v7)
+
+The project is currently evolving from a monolith to a library-ready, multi-module architecture.
+
+### 6.1 Roadmap
+1. **Module Separation**: Split into `island-engine`, `island-nature`, `island-simcity` and `island-app`.
+2. **Domain Isolation**: Move `util/interaction` logic into `nature` domain.
+3. **API Contracts**: Introduce `module-info.java`, `@EngineAPI` and `@InternalEngine` annotations.
+4. **Clean Domain**: Remove engine-package dependency on domain events (e.g., EntityBornEvent).
+5. **Scheduler Integration**: Fully integrate `SystemExecutionGraph` into `PhaseScheduler`.
