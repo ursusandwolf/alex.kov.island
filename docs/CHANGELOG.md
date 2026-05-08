@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.29.0] - 2026-05-08
+
+### Added
+- **Dynamic River Generation**: Updated `WorldInitializer` to generate a 3-cell wide winding river across the island. This acts as a natural barrier for slow land animals (speed 1-2) while remaining accessible to fast animals (speed 3-4), aquatic animals (ducks, frogs), and flying animals (eagles).
+
+### Changed
+- **Species Capabilities**: Updated `duck` properties to include `canFly=true`, allowing it to navigate over any terrain.
+
+### Fixed
+- **Test Suite Stability**: Resolved multiple `NullPointerException` failures in `ReproducibilityTest`, `SimulationOptimizationTest`, and `AnimalHealthSystemTest` by correctly injecting `DefaultClimateService` into the `NatureDomainContext` builder.
+
 ## [1.28.0] - 2026-05-08
 
 ### Added

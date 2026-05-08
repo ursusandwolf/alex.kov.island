@@ -11,6 +11,7 @@ import com.island.nature.model.Island;
 import com.island.nature.model.StaticChunkingStrategy;
 import com.island.nature.service.DefaultProtectionService;
 import com.island.nature.service.AnimalFeedingSystem;
+import com.island.nature.service.DefaultClimateService;
 import com.island.nature.service.StatisticsService;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,6 +52,7 @@ public class SimulationOptimizationTest {
                 .interactionProvider(matrix)
                 .animalFactory(animalFactory)
                 .statisticsService(statisticsService)
+                .climateService(new DefaultClimateService(config, randomProvider))
                 .protectionService(new DefaultProtectionService(config, registry, statisticsService, 1))
                 .biomassManager(new DefaultBiomassManager())
                 .randomProvider(randomProvider)

@@ -36,7 +36,9 @@
     - [ ] Optimize `GridUtils` locking mechanisms.
 
 ## 🌍 Phase 3: Global Systems & Integration
-- [ ] **Vector 4: Climate & Global Systems**
+- [x] **Vector 4: Climate & Global Systems**
+    - [x] Implement `ClimateService`.
+    - [x] Add river generation as a natural movement barrier.
 - [ ] **Vector 5: Headless & API**
 
 ## 🛠 Maintenance

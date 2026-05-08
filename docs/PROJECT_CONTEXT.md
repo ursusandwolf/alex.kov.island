@@ -16,6 +16,7 @@
 - **Phase 3: Global Systems & Performance Tuning (May 2026)**:
     - **Climate System**: Implemented `ClimateService` managing seasonal transitions. [DONE]
     - **Environmental Impact**: Integrated temperature into growth and health systems. [DONE]
+    - **Landscape & Terrain**: Implemented dynamic river generation as a natural movement barrier. [DONE]
 
 ## Next Steps
 - **Modularization**: 
@@ -27,5 +28,5 @@
 
 ## Maintenance & Technical Debt
 - **Validation**: Continuous monitoring of ecosystem stability across seasonal extremes.
-- **Test Coverage**: Maintain `ExtremeScalePerformanceTest` as a regression gate.
+- **Test Coverage**: Fixed `ClimateService` NPEs in test suite; maintained 100% pass rate. [DONE]
 - **Clean Code**: Periodic review of generic type usage to ensure absolute type safety across domain boundaries.

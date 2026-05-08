@@ -48,19 +48,26 @@ public class WorldInitializer {
     }
 
     private void initializeCell(Cell cell, SpeciesRegistry registry, AnimalFactory animalFactory, RandomProvider random) {
-        // Randomly assign terrain type
-        int terrainRoll = random.nextInt(100);
-        if (terrainRoll < 10) {
+        Island island = (Island) cell.getWorld();
+        
+        // Generate a winding river vertically across the island
+        int riverCenter = island.getWidth() / 2 + (int)(Math.sin(cell.getY() * 0.5) * 2);
+        boolean isRiver = Math.abs(cell.getX() - riverCenter) <= 1; // 3 cells wide river
+
+        if (isRiver) {
             cell.setTerrainType(TerrainType.WATER);
-        } else if (terrainRoll < 20) {
-            cell.setTerrainType(TerrainType.MOUNTAIN);
-        } else if (terrainRoll < 40) {
-            cell.setTerrainType(TerrainType.FOREST);
         } else {
-            cell.setTerrainType(TerrainType.MEADOW);
+            // Randomly assign other terrain types
+            int terrainRoll = random.nextInt(100);
+            if (terrainRoll < 15) {
+                cell.setTerrainType(TerrainType.MOUNTAIN);
+            } else if (terrainRoll < 40) {
+                cell.setTerrainType(TerrainType.FOREST);
+            } else {
+                cell.setTerrainType(TerrainType.MEADOW);
+            }
         }
 
-        Island island = (Island) cell.getWorld();
         ComponentRegistry compRegistry = island.getComponentRegistry();
 
         // Initialize biomass containers (Plants, Insects modeled as biomass)

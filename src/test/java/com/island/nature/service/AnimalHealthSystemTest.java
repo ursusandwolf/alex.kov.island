@@ -12,6 +12,8 @@ import com.island.nature.model.Cell;
 import com.island.nature.model.DefaultBiomassManager;
 import com.island.nature.model.Island;
 import com.island.nature.model.StaticChunkingStrategy;
+import com.island.nature.service.DefaultClimateService;
+import com.island.nature.service.StatisticsService;
 import com.island.util.common.DefaultRandomProvider;
 import com.island.nature.model.InteractionMatrix;
 import org.junit.jupiter.api.AfterEach;
@@ -49,6 +51,7 @@ class AnimalHealthSystemTest {
                 .interactionProvider(InteractionMatrix.buildFrom(registry))
                 .statisticsService(stats)
                 .alertService(new AlertService())
+                .climateService(new DefaultClimateService(config, random))
                 .animalFactory(animalFactory)
                 .protectionService(new DefaultProtectionService(config, registry, stats, 1))
                 .biomassManager(new DefaultBiomassManager())

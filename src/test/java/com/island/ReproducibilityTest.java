@@ -10,6 +10,7 @@ import com.island.nature.service.AnimalHealthSystem;
 import com.island.nature.service.AnimalMovementSystem;
 import com.island.nature.service.DefaultProtectionService;
 import com.island.nature.service.AnimalFeedingSystem;
+import com.island.nature.service.DefaultClimateService;
 import com.island.nature.service.StatisticsService;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.Test;
@@ -71,6 +72,7 @@ class ReproducibilityTest {
                 .interactionProvider(matrix)
                 .animalFactory(factory)
                 .statisticsService(statisticsService)
+                .climateService(new DefaultClimateService(config, fixedProvider))
                 .protectionService(new DefaultProtectionService(config, registry, statisticsService, 4))
                 .biomassManager(new DefaultBiomassManager())
                 .randomProvider(fixedProvider)
