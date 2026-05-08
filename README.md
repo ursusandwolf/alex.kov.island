@@ -39,6 +39,20 @@ Educational ecosystem simulator demonstrating OOP principles, design patterns (G
 
 ## Development & Testing
 
+### Running the Application
+
+This is a multi-module Maven project. Use the following commands to launch specific parts of the simulator:
+
+- **Run Nature Simulation (Island):**
+  ```bash
+  mvn exec:java -pl island-app -Dexec.mainClass="com.island.NatureLauncher"
+  ```
+
+- **Run SimCity Simulation:**
+  ```bash
+  mvn exec:java -pl island-app -Dexec.mainClass="com.island.SimCityLauncher"
+  ```
+
 ### Running Tests
 ```bash
 # Run full suite
