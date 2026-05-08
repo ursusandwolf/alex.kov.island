@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.CopyOnWriteArrayList;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,7 +23,7 @@ public class CityMap implements SimulationWorld<SimEntity> {
     private final int width;
     private final int height;
     private final CityTile[][] grid;
-    @Setter private long money = 10000;
+    private final AtomicLong money = new AtomicLong(10000);
     @Setter private int population = 0;
     @Setter private int totalJobs = 0;
     @Setter private int resDemand = 50;
@@ -49,7 +50,6 @@ public class CityMap implements SimulationWorld<SimEntity> {
         }
     }
 
-    @Override
     public ComponentRegistry getComponentRegistry() { return componentRegistry; }
     
     @Override
@@ -62,7 +62,8 @@ public class CityMap implements SimulationWorld<SimEntity> {
     public int getWidth() { return width; }
 
     public CityTile[][] getGrid() { return grid; }
-    public long getMoney() { return money; }
+    public long getMoney() { return money.get(); }
+    public void setMoney(long amount) { this.money.set(amount); }
     public int getTaxRate() { return taxRate; }
     public long getLastTickIncome() { return lastTickIncome; }
     public long getLastTickExpenses() { return lastTickExpenses; }
@@ -72,6 +73,10 @@ public class CityMap implements SimulationWorld<SimEntity> {
     public int getIndDemand() { return indDemand; }
     public int getTotalJobs() { return totalJobs; }
 
+    private int negativeBalanceTicks = 0;
+    private boolean bankrupt = false;
+
+    public int getPopulation() { return population; }
     public void setPopulation(int population) { this.population = population; }
     public void setTotalJobs(int totalJobs) { this.totalJobs = totalJobs; }
     public void setResDemand(int resDemand) { this.resDemand = resDemand; }
@@ -80,19 +85,40 @@ public class CityMap implements SimulationWorld<SimEntity> {
     public void setLastTickIncome(long income) { this.lastTickIncome = income; }
     public void setLastTickExpenses(long expenses) { this.lastTickExpenses = expenses; }
     public void addAlert(String alert) { alerts.add(alert); }
-    public boolean isBankrupt() { return money < 0; }
-    public void addMoney(long amount) { this.money += amount; }
+    public boolean isBankrupt() { return bankrupt; }
+    public void addMoney(long amount) { this.money.addAndGet(amount); }
     
     @Override
     public void onEntityAdded(SimEntity entity) {}
     @Override
     public void onEntityRemoved(SimEntity entity) {}
     @Override
-    public void tick(int tickCount) {}
+    public void tick(int tickCount) {
+        if (money.get() < 0) {
+            negativeBalanceTicks++;
+            if (negativeBalanceTicks >= 5) {
+                if (!bankrupt) {
+                    bankrupt = true;
+                    addAlert("CITY BANKRUPT!");
+                }
+            }
+        } else {
+            negativeBalanceTicks = 0;
+            bankrupt = false;
+        }
+    }
     @Override
     public void initialize() {}
     @Override
-    public Collection<? extends WorkUnit<SimEntity>> getParallelWorkUnits() { return List.of(); }
+    public Collection<? extends WorkUnit<SimEntity>> getParallelWorkUnits() {
+        List<CityTile> allTiles = new ArrayList<>();
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                allTiles.add(grid[x][y]);
+            }
+        }
+        return List.of(new DefaultWorkUnit<>(allTiles));
+    }
     @Override
     public Optional<SimulationNode<SimEntity>> getNode(SimulationNode<SimEntity> current, int dx, int dy) { return Optional.empty(); }
     @Override

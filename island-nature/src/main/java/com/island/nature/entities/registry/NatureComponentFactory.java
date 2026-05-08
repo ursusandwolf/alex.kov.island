@@ -31,7 +31,7 @@ public class NatureComponentFactory {
         
         components.add(new ReproductionComponent(type.getReproductionChance(), type.getMaxOffspring()));
         
-        components.add(ConsumableComponent.<SimulationNode<Organism>>builder()
+        components.add(ConsumableComponent.builder()
                 .isAnimal(true)
                 .consumeAction((requested, context) -> {
                     if (animal.isAlive()) {
@@ -53,13 +53,10 @@ public class NatureComponentFactory {
         
         components.add(new GrowthComponent(biomass.getConfig().getPlantGrowthRateBP(), biomass.getMaxBiomass()));
         
-        components.add(ConsumableComponent.<SimulationNode<Organism>>builder()
+        components.add(ConsumableComponent.builder()
                 .isAnimal(false)
                 .consumeAction((requested, context) -> {
-                    if (context instanceof Cell cell) {
-                        return biomass.consumeBiomass(requested, cell);
-                    }
-                    return 0L;
+                    return biomass.consumeBiomass(requested, context);
                 })
                 .build());
                 

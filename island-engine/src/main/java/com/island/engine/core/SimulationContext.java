@@ -10,6 +10,7 @@ import com.island.util.common.RandomProvider;
  *
  * @param <T> The base type of entities in the simulation.
  */
+@EngineAPI
 public record SimulationContext<T extends Mortal>(
         SimulationWorld<T> world,
         GameLoop<T> gameLoop,

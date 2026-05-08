@@ -78,13 +78,26 @@ The `Configuration` class uses reflection to load parameters from `species.prope
 
 ---
 
-## 6. Architecture Evolution Plan (v7)
+## 6. Architecture Evolution Plan (Completed)
 
-The project is currently evolving from a monolith to a library-ready, multi-module architecture.
+The project has fully transitioned from a monolith to a library-ready, multi-module architecture.
 
-### 6.1 Roadmap
-1. **Module Separation**: Split into `island-engine`, `island-nature`, `island-simcity` and `island-app`.
-2. **Domain Isolation**: Move `util/interaction` logic into `nature` domain.
-3. **API Contracts**: Introduce `module-info.java`, `@EngineAPI` and `@InternalEngine` annotations.
-4. **Clean Domain**: Remove engine-package dependency on domain events (e.g., EntityBornEvent).
-5. **Scheduler Integration**: Fully integrate `SystemExecutionGraph` into `PhaseScheduler`.
+### 6.1 Final Module Structure
+1. **island-engine**: Pure simulation infrastructure. Zero knowledge of "animals" or "cities".
+   - Defines `SimulationWorld<T>`, `SimulationNode<T>`, `Entity`, `Component`.
+   - Orchestrates execution via `GameLoop` and `PhaseScheduler`.
+   - Exports stable API via `module-info.java`.
+2. **island-nature**: Island ecosystem plugin.
+   - Implements `Organism` (Animal/Biomass) hierarchy.
+   - Provides specialized ECS systems for hunger, movement, and growth.
+3. **island-simcity**: Urban simulation plugin.
+   - Demonstrates "Pure ECS" usage without class inheritance.
+   - Uses `SimEntity` with `PopulationComponent`, `BuildingComponent`.
+4. **island-app**: Launchers and integration tests.
+   - Orchestrates plugin assembly.
+   - Hosts `ArchitectureTest` for project-wide constraint enforcement.
+
+### 6.2 API Contracts & Stability
+- **@EngineAPI**: Classes marked with this are stable and intended for plugin developers.
+- **@InternalEngine**: Classes marked with this are implementation details and may change.
+- **JPMS (Java Module System)**: The engine module strictly controls its exports to prevent accidental usage of internal schedulers or parallel dispatchers.

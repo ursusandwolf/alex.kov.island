@@ -12,9 +12,12 @@ import java.util.Queue;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
 public class ConnectivityService extends AbstractSimCityService {
     private final CityMap map;
+
+    public ConnectivityService(CityMap map) {
+        this.map = map;
+    }
 
     @Override
     public List<Class<? extends Component>> readComponents() {

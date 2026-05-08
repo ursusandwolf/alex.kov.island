@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @Setter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class BuildingComponent implements Component {
@@ -21,4 +20,25 @@ public class BuildingComponent implements Component {
     }
 
     private Type type;
+
+    public Type getType() {
+        return type;
+    }
+
+    public static BuildingComponentBuilder builder() {
+        return new BuildingComponentBuilder();
+    }
+
+    public static class BuildingComponentBuilder {
+        private Type type;
+
+        public BuildingComponentBuilder type(Type type) {
+            this.type = type;
+            return this;
+        }
+
+        public BuildingComponent build() {
+            return new BuildingComponent(type);
+        }
+    }
 }

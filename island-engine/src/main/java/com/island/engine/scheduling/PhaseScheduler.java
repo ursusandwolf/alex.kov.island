@@ -6,6 +6,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
+import com.island.engine.core.InternalEngine;
 import com.island.engine.core.SimulationWorld;
 import com.island.engine.ecs.SystemExecutionGraph;
 import com.island.engine.model.Mortal;
@@ -17,6 +18,7 @@ import com.island.engine.parallel.ParallelTask;
  *
  * @param <T> The base type of entities.
  */
+@InternalEngine
 @Slf4j
 public class PhaseScheduler<T extends Mortal> {
     private static final Comparator<ScheduledTask> PRIORITY_COMPARATOR = 
@@ -27,7 +29,7 @@ public class PhaseScheduler<T extends Mortal> {
     private final List<ParallelTask<T>> parallelGroup = new ArrayList<>();
     
     // Cache for optimized execution graph
-    private List<ScheduledTask> lastProcessedTasks = null;
+    private int lastTasksHash = 0;
     private final Map<Phase, List<List<ParallelTask<T>>>> cachedSchedules = new EnumMap<>(Phase.class);
 
     public PhaseScheduler(ParallelDispatcher<T> dispatcher) {
@@ -38,11 +40,15 @@ public class PhaseScheduler<T extends Mortal> {
     }
 
     public void execute(SimulationWorld<T> world, List<ScheduledTask> tasks, int tickCount) {
-        boolean tasksChanged = lastProcessedTasks == null || !lastProcessedTasks.equals(tasks);
+        int currentHash = System.identityHashCode(tasks);
+        if (tasks instanceof java.util.ArrayList) {
+            // More robust check for list structural changes if it's a managed list
+            currentHash = tasks.hashCode();
+        }
         
-        if (tasksChanged) {
+        if (lastTasksHash != currentHash) {
             rebuildSchedule(tasks);
-            lastProcessedTasks = new ArrayList<>(tasks);
+            lastTasksHash = currentHash;
         }
 
         // Execute phases in order

@@ -14,6 +14,7 @@ import com.island.engine.model.WorldSnapshot;
  *
  * @param <T> The base type of entities in this world.
  */
+@EngineAPI
 public interface SimulationWorld<T extends Mortal> extends Tickable {
     /**
      * Returns "work units" (e.g. chunks) of nodes for parallel processing.

@@ -1,5 +1,7 @@
 package com.island.nature.entities.components;
 
+import com.island.nature.model.Cell;
+
 /**
  * Functional interface for consumption logic.
  *

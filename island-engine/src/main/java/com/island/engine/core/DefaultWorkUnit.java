@@ -1,15 +1,15 @@
 package com.island.engine.core;
 
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import com.island.engine.model.Mortal;
 
 /**
  * Default implementation of WorkUnit for simple use cases.
  */
-public class DefaultWorkUnit<T extends Mortal> implements WorkUnit<T> {
+public class DefaultWorkUnit<T extends Mortal> extends AbstractList<SimulationNode<T>> implements WorkUnit<T> {
     private final List<SimulationNode<T>> nodes;
     private long lastExecutionTimeNanos;
 
@@ -27,35 +27,14 @@ public class DefaultWorkUnit<T extends Mortal> implements WorkUnit<T> {
         return lastExecutionTimeNanos;
     }
 
-    // Collection implementation delegating to nodes
+    @Override
+    public SimulationNode<T> get(int index) {
+        return nodes.get(index);
+    }
+
     @Override
     public int size() {
         return nodes.size();
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return nodes.isEmpty();
-    }
-
-    @Override
-    public boolean contains(Object o) {
-        return nodes.contains(o);
-    }
-
-    @Override
-    public Iterator<SimulationNode<T>> iterator() {
-        return nodes.iterator();
-    }
-
-    @Override
-    public Object[] toArray() {
-        return nodes.toArray();
-    }
-
-    @Override
-    public <U> U[] toArray(U[] a) {
-        return nodes.toArray(a);
     }
 
     @Override
@@ -64,32 +43,12 @@ public class DefaultWorkUnit<T extends Mortal> implements WorkUnit<T> {
     }
 
     @Override
-    public boolean remove(Object o) {
-        return nodes.remove(o);
+    public SimulationNode<T> set(int index, SimulationNode<T> element) {
+        return nodes.set(index, element);
     }
 
     @Override
-    public boolean containsAll(Collection<?> c) {
-        return nodes.containsAll(c);
-    }
-
-    @Override
-    public boolean addAll(Collection<? extends SimulationNode<T>> c) {
-        return nodes.addAll(c);
-    }
-
-    @Override
-    public boolean removeAll(Collection<?> c) {
-        return nodes.removeAll(c);
-    }
-
-    @Override
-    public boolean retainAll(Collection<?> c) {
-        return nodes.retainAll(c);
-    }
-
-    @Override
-    public void clear() {
-        nodes.clear();
+    public SimulationNode<T> remove(int index) {
+        return nodes.remove(index);
     }
 }

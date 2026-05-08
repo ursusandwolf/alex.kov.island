@@ -122,8 +122,7 @@ public class AnimalFeedingSystem extends NatureEntitySystem {
             attempts++;
             Organism preyCandidate = huntingStrategy.selectPackPrey(pack, packPreyProvider);
             if (preyCandidate != null) {
-                @SuppressWarnings("unchecked")
-                ConsumableComponent<SimulationNode<Organism>> consumable = (ConsumableComponent<SimulationNode<Organism>>) preyCandidate.getComponent(ConsumableComponent.class);
+                ConsumableComponent consumable = preyCandidate.getComponent(ConsumableComponent.class);
                 if (consumable != null && consumable.isAnimal()) {
                     // Safe cast as it's an animal consumable
                     Animal actualPrey = findActualPrey(node, preyCandidate.getSpeciesKey(), pack.get(0));
@@ -177,8 +176,7 @@ public class AnimalFeedingSystem extends NatureEntitySystem {
                 break;
             }
             
-            @SuppressWarnings("unchecked")
-            ConsumableComponent<SimulationNode<Organism>> consumable = (ConsumableComponent<SimulationNode<Organism>>) preyCandidate.getComponent(ConsumableComponent.class);
+            ConsumableComponent consumable = preyCandidate.getComponent(ConsumableComponent.class);
             if (consumable == null) {
                 continue;
             }

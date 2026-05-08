@@ -41,6 +41,6 @@ public class CityTile implements SimulationNode<SimEntity> {
 @Override public boolean addEntity(SimEntity entity) { return entities.add(entity); }
 @Override public boolean removeEntity(SimEntity entity) { return entities.remove(entity); }
 @Override public void cleanupDeadEntities(Consumer<SimEntity> onEntityRemoved) { entities.removeIf(e -> !e.isAlive()); }
-@Override public int getX() { return x; }
-@Override public int getY() { return y; }
+    public int getX() { return x; }
+    public int getY() { return y; }
 }

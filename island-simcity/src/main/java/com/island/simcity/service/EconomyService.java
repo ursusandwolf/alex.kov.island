@@ -10,9 +10,12 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
 public class EconomyService extends AbstractSimCityService {
     private final CityMap map;
+
+    public EconomyService(CityMap map) {
+        this.map = map;
+    }
     private final AtomicLong tickIncome = new AtomicLong();
     private final AtomicLong tickExpenses = new AtomicLong();
 

@@ -14,6 +14,7 @@ import com.island.util.common.RandomProvider;
 /**
  * Orchestrator that bootstraps a simulation using a plugin.
  */
+@EngineAPI
 public class SimulationEngine<T extends Mortal> {
 
     /**

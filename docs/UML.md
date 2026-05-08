@@ -3,20 +3,21 @@
 ## Class Diagram Concepts
 
 ### Engine Layer
-- `SimulationWorld` (Island): Central hub. Manages spatial entities and acts as the **single source of truth** for lifecycle events (`onEntityAdded`, `onEntityRemoved`).
-- `SimulationNode` (Cell): Spatial unit. Uses fine-grained thread safety and template methods for lifecycle hooks.
-- `GameLoop`: Orchestrates the simulation lifecycle. Uses constructor injection for `ExecutorService` and `PhaseScheduler`.
-- `PhaseScheduler`: Groups and sorts tasks by `Phase` and priority. Uses an abstract `ParallelTask` visitor-like dispatching to avoid domain leaks.
-- `ParallelDispatcher`: Manages `CellProcessor` pool for parallel execution of `ParallelTask` groups.
-- `ParallelTask`: Abstract interface for per-cell parallel execution.
-- `CellService`: Simplified domain interface for simulation logic.
+- `SimulationWorld` (Island): Central hub. Manages spatial entities and acts as the **single source of truth** for lifecycle events.
+- `SimulationNode` (Cell): Spatial unit. Uses fine-grained thread safety.
+- `GameLoop`: Orchestrates the simulation lifecycle.
+- `PhaseScheduler`: Groups and sorts tasks by `Phase` and priority. Uses `SystemExecutionGraph` for Batching.
+- `ParallelDispatcher`: Manages `CellProcessor` pool for parallel execution.
+- **API Markers**: `@EngineAPI` (Public Contract) and `@InternalEngine` (Implementation detail).
 
 ### Domain Layer (Lombok Powered)
-- `SpeciesRegistry`: Centralized, non-static registry for species metadata and unique `SpeciesKey` interning.
-- `ClimateService`: Global system for managing environmental state (Seasons, Temperature).
-- `Organism`: Base for all life in Nature domain. Standardized on `long` energy (fixed-point). Optimized for memory with volatile ECS components and minimized locking.
-- `SimEntity`: Pure ECS entity for SimCity domain. A generic container that implements the `Entity` interface.
-- `EntityContainer`: Memory-optimized O(1) management using indexed buckets.
+- `SpeciesRegistry`: Centralized, non-static registry for species metadata.
+- `ClimateService`: Global system for managing environmental state.
+- `Organism`: Base for all life in Nature domain. Optimized with volatile ECS components.
+- `SimEntity`: Pure ECS entity for SimCity domain. A generic container.
+- **ECS Components**:
+    - `ConsumableComponent`: Typed resource consumption with `ConsumeAction<Cell>`.
+    - `PopulationComponent`, `BuildingComponent`, `EconomyComponent`: SimCity state containers.
 
 ### Services (The Logic)
 - **Specialized ECS Systems**:

@@ -32,7 +32,7 @@ public class NatureLauncher {
         SimulationEngine<Organism> engine = new SimulationEngine<>();
         
         log.info("Starting Island Simulation...");
-        log.info("Time limit: {} ms. Stop condition: extinction of any species.", config.getMaxSimulationDurationMs());
+        log.info("Time limit: {} ms. Stop condition: extinction of all animals.", config.getMaxSimulationDurationMs());
         
         SimulationContext<Organism> context = engine.start(plugin, config.getTickDurationMs(), 4);
 

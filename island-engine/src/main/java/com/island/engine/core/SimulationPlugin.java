@@ -9,6 +9,7 @@ import com.island.engine.scheduling.GameLoop;
  *
  * @param <T> The base type of entities in the simulation.
  */
+@EngineAPI
 public interface SimulationPlugin<T extends Mortal> {
     /**
      * Creates and initializes the simulation world.

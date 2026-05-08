@@ -91,10 +91,12 @@ public class GameLoop<T extends Mortal> {
     }
 
     public void stop() {
-        if (!running) {
-            return;
+        synchronized (this) {
+            if (!running) {
+                return;
+            }
+            running = false;
         }
-        running = false;
         if (loopThread != null && Thread.currentThread() != loopThread) {
             loopThread.interrupt();
             try {

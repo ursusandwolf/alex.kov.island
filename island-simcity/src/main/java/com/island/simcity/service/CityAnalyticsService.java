@@ -10,9 +10,12 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
 public class CityAnalyticsService extends AbstractSimCityService {
     private final CityMap map;
+
+    public CityAnalyticsService(CityMap map) {
+        this.map = map;
+    }
     private final AtomicInteger pop = new AtomicInteger();
     private final AtomicInteger jobs = new AtomicInteger();
 

@@ -7,6 +7,7 @@ import com.island.engine.model.Mortal;
  * Represents a unit of work that can be processed in parallel.
  * Supports execution time monitoring for load balancing.
  */
+@EngineAPI
 public interface WorkUnit<T extends Mortal> extends Collection<SimulationNode<T>> {
     /**
      * Records the time taken to process this work unit.

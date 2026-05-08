@@ -7,6 +7,8 @@ import com.island.simcity.model.CityMap;
 import com.island.simcity.model.CityTile;
 import java.util.List;
 
+import com.island.simcity.entities.SimEntity;
+
 /**
  * ECS System for managing city population dynamics.
  */
@@ -21,7 +23,7 @@ public class PopulationSystem extends AbstractSimCitySystem {
     }
 
     @Override
-    public void process(Entity entity, CityTile tile, int tickCount) {
+    public void process(SimEntity entity, CityTile tile, int tickCount) {
         PopulationComponent pop = entity.getComponent(PopulationComponent.class);
         if (pop == null) return;
 

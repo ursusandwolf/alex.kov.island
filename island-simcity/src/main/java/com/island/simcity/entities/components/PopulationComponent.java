@@ -19,6 +19,29 @@ public class PopulationComponent implements Component {
     private int age;
     private int happiness;
 
+    public static PopulationComponentBuilder builder() {
+        return new PopulationComponentBuilder();
+    }
+
+    public static class PopulationComponentBuilder {
+        private int age;
+        private int happiness;
+
+        public PopulationComponentBuilder age(int age) {
+            this.age = age;
+            return this;
+        }
+
+        public PopulationComponentBuilder happiness(int happiness) {
+            this.happiness = happiness;
+            return this;
+        }
+
+        public PopulationComponent build() {
+            return new PopulationComponent(age, happiness);
+        }
+    }
+
     public int getAge() { return age; }
     public int getHappiness() { return happiness; }
 

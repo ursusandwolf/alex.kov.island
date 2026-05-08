@@ -14,6 +14,8 @@ import com.island.engine.core.WorkUnit;
 import com.island.engine.model.Mortal;
 import com.island.engine.scheduling.GameLoop;
 
+import com.island.engine.core.InternalEngine;
+
 /**
  * Handles parallel execution of CellServices across world work units.
  * <p>
@@ -22,6 +24,7 @@ import com.island.engine.scheduling.GameLoop;
  *
  * @param <T> The base type of entities.
  */
+@InternalEngine
 @Slf4j
 @RequiredArgsConstructor
 public class ParallelDispatcher<T extends Mortal> {

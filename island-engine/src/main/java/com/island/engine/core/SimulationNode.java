@@ -12,6 +12,7 @@ import com.island.engine.model.Mortal;
  *
  * @param <T> The base type of entities that can inhabit this node.
  */
+@EngineAPI
 public interface SimulationNode<T extends Mortal> {
     /**
      * Gets the synchronization lock for this node (usually the write lock).

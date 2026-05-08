@@ -7,9 +7,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.island.engine.core.InternalEngine;
+
 /**
  * Builds an execution schedule grouping independent systems into parallel phases.
  */
+@InternalEngine
 public class SystemExecutionGraph {
 
     /**

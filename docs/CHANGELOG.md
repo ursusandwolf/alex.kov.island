@@ -1,13 +1,30 @@
 # Changelog
 
-## [1.30.0] - 2026-05-08
+## [1.31.0] - 2026-05-08
+
+### Added
+- **API Stability**: Introduced `@EngineAPI` and `@InternalEngine` annotations to clearly demarcate the public engine contract from internal implementation details.
+- **JPMS Support**: Added `module-info.java` to `island-engine` to enforce module boundaries and proper encapsulation.
+- **Cross-Module Architecture Test**: Expanded `ArchitectureTest` in `island-app` to enforce strict isolation between engine, util, and domain modules.
 
 ### Changed
-- **Test Suite Consolidation**: Optimized the test suite by merging redundant and secondary tests. Reduced total test count from 82 to 75 while maintaining full coverage of critical logic:
-    - Merged `CellTest`, `EntityContainerTest`, and `CellIterationTest` into `CellUnitTests.java`.
-    - Merged `DeterminismTest` and `GridUtils` checks into `UtilUnitTests.java`.
-    - Integrated ECS logic checks from `ArchitectureEvolutionTest` into `ArchitectureTest.java`.
-    - Removed outdated `RefactoringVerificationTest.java` and `SimCityRunnerTest.java`.
+- **Modularization Finalized**: Successfully transitioned to a full multi-module Maven structure. Deleted the redundant root `src` tree and organized development scripts into `scripts/`.
+- **Engine Purity**: Removed domain-specific events (`EntityBornEvent`, `EntityDiedEvent`) from the core engine package to ensure zero domain knowledge in the infrastructure layer.
+- **SimCity ECS Stabilization**: 
+    - Fixed numerous compilation and logic errors in the `island-simcity` module following its ECS migration.
+    - Improved thread-safety in `CityMap` using `AtomicLong` for financial state.
+    - Implemented bankruptcy threshold logic (5 ticks of negative balance).
+- **Nature Domain Refinement**: Refactored `ConsumableComponent` and `ConsumeAction` to use a typed `Cell` context, eliminating the last remaining `instanceof` check in the feeding system.
+- **Engine Optimization**:
+    - Refactored `DefaultWorkUnit` to extend `AbstractList`, removing 60+ lines of redundant delegation code.
+    - Improved `PhaseScheduler` cache invalidation logic using `identityHashCode` and structural list checks.
+
+### Fixed
+- **Thread Safety**: Resolved a TOCTOU (Time-of-Check to Time-of-Use) race condition in `GameLoop.stop()`.
+- **Log Semantics**: Updated `NatureLauncher` stop condition logs to accurately reflect current simulation logic (total animal extinction).
+- **Test Alignment**: Moved `GameLoopOptimizationTest` to the correct module (`island-engine`).
+
+## [1.30.0] - 2026-05-08
 
 ## [1.29.0] - 2026-05-08
 
