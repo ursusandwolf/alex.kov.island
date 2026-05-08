@@ -24,7 +24,7 @@ import com.island.nature.entities.strategy.HuntingStrategy;
 import com.island.util.common.DefaultRandomProvider;
 import com.island.util.common.RandomProvider;
 import com.island.util.common.RandomUtils;
-import com.island.util.interaction.InteractionMatrix;
+import com.island.nature.model.InteractionMatrix;
 
 class ReproducibilityTest {
 

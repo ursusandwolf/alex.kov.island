@@ -1,6 +1,7 @@
 package com.island.simcity.service;
 
-import com.island.simcity.entities.Building;
+import com.island.simcity.entities.SimEntity;
+import com.island.simcity.entities.components.BuildingComponent;
 import com.island.simcity.model.CityMap;
 import com.island.simcity.model.CityTile;
 import lombok.RequiredArgsConstructor;
@@ -9,15 +10,16 @@ import lombok.RequiredArgsConstructor;
 public class BuildingService {
     private final CityMap map;
 
-    public boolean build(int x, int y, Building.Type type) {
+    public boolean build(int x, int y, BuildingComponent.Type type) {
         if (x < 0 || x >= map.getWidth() || y < 0 || y >= map.getHeight()) {
             return false;
         }
 
         CityTile tile = map.getGrid()[x][y];
-        
+
         // Cannot build on top of another building (simplified)
-        boolean hasBuilding = tile.getEntities().stream().anyMatch(e -> e instanceof Building);
+        boolean hasBuilding = tile.getEntities().stream()
+                .anyMatch(e -> e.hasComponent(BuildingComponent.class));
         if (hasBuilding) {
             return false;
         }
@@ -28,11 +30,13 @@ public class BuildingService {
         }
 
         map.addMoney(-cost);
-        tile.addEntity(new Building(type));
+        SimEntity building = new SimEntity(map.getComponentRegistry());
+        building.addComponent(new BuildingComponent(type));
+        tile.addEntity(building);
         return true;
     }
 
-    private long getCost(Building.Type type) {
+    private long getCost(BuildingComponent.Type type) {
         return switch (type) {
             case ROAD -> 50;
             case RESIDENTIAL -> 200;

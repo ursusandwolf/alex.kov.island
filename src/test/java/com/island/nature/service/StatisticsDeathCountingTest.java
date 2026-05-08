@@ -24,8 +24,8 @@ import com.island.nature.entities.registry.SpeciesRegistry;
 import com.island.nature.entities.strategy.DefaultHuntingStrategy;
 import com.island.util.common.DefaultRandomProvider;
 import com.island.util.common.RandomProvider;
-import com.island.util.interaction.InteractionMatrix;
-import com.island.util.interaction.InteractionProvider;
+import com.island.nature.model.InteractionMatrix;
+import com.island.nature.model.InteractionProvider;
 
 class StatisticsDeathCountingTest {
     private Island island;

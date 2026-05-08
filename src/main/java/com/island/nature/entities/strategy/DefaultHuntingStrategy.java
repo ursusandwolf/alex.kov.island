@@ -4,7 +4,7 @@ import com.island.nature.config.Configuration;
 import java.util.List;
 import com.island.nature.entities.core.Animal;
 import com.island.nature.entities.core.Organism;
-import com.island.util.interaction.InteractionProvider;
+import com.island.nature.model.InteractionProvider;
 
 public class DefaultHuntingStrategy implements HuntingStrategy {
     private final InteractionProvider interactionMatrix;

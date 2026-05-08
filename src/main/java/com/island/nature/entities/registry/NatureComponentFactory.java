@@ -1,5 +1,6 @@
 package com.island.nature.entities.registry;
 
+import com.island.engine.core.SimulationNode;
 import com.island.engine.ecs.Component;
 import com.island.nature.entities.components.ConsumableComponent;
 import com.island.nature.entities.components.GrowthComponent;
@@ -10,6 +11,7 @@ import com.island.nature.entities.core.Animal;
 import com.island.nature.entities.core.AnimalType;
 import com.island.nature.entities.core.Biomass;
 import com.island.nature.entities.core.DeathCause;
+import com.island.nature.entities.core.Organism;
 import com.island.nature.model.Cell;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +31,7 @@ public class NatureComponentFactory {
         
         components.add(new ReproductionComponent(type.getReproductionChance(), type.getMaxOffspring()));
         
-        components.add(ConsumableComponent.builder()
+        components.add(ConsumableComponent.<SimulationNode<Organism>>builder()
                 .isAnimal(true)
                 .consumeAction((requested, context) -> {
                     if (animal.isAlive()) {
@@ -51,7 +53,7 @@ public class NatureComponentFactory {
         
         components.add(new GrowthComponent(biomass.getConfig().getPlantGrowthRateBP(), biomass.getMaxBiomass()));
         
-        components.add(ConsumableComponent.builder()
+        components.add(ConsumableComponent.<SimulationNode<Organism>>builder()
                 .isAnimal(false)
                 .consumeAction((requested, context) -> {
                     if (context instanceof Cell cell) {

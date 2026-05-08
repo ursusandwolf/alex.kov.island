@@ -13,7 +13,7 @@ import com.island.nature.entities.registry.AnimalFactory;
 import com.island.nature.entities.registry.BiomassManager;
 import com.island.nature.entities.registry.SpeciesRegistry;
 import com.island.util.common.RandomProvider;
-import com.island.util.interaction.InteractionProvider;
+import com.island.nature.model.InteractionProvider;
 
 /**
  * Encapsulates domain-specific components for the nature simulation.

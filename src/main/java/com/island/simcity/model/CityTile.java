@@ -1,7 +1,7 @@
 package com.island.simcity.model;
 
-import com.island.simcity.entities.Resident;
 import com.island.simcity.entities.SimEntity;
+import com.island.simcity.entities.components.PopulationComponent;
 import com.island.simcity.event.ResidentBornEvent;
 import com.island.simcity.event.ResidentDiedEvent;
 import java.util.ArrayList;
@@ -84,8 +84,8 @@ public class CityTile implements SimulationNode<SimEntity> {
         try {
             if (entities.add(entity)) {
                 world.onEntityAdded(entity);
-                if (entity instanceof Resident resident) {
-                    world.getEventBus().publish(new ResidentBornEvent(resident));
+                if (entity.hasComponent(PopulationComponent.class)) {
+                    world.getEventBus().publish(new ResidentBornEvent(entity));
                 }
                 return true;
             }
@@ -101,8 +101,8 @@ public class CityTile implements SimulationNode<SimEntity> {
         try {
             if (entities.remove(entity)) {
                 world.onEntityRemoved(entity);
-                if (entity instanceof Resident resident) {
-                    world.getEventBus().publish(new ResidentDiedEvent(resident));
+                if (entity.hasComponent(PopulationComponent.class)) {
+                    world.getEventBus().publish(new ResidentDiedEvent(entity));
                 }
                 return true;
             }
@@ -119,8 +119,8 @@ public class CityTile implements SimulationNode<SimEntity> {
             entities.removeIf(e -> {
                 if (!e.isAlive()) {
                     world.onEntityRemoved(e);
-                    if (e instanceof Resident resident) {
-                        world.getEventBus().publish(new ResidentDiedEvent(resident));
+                    if (e.hasComponent(PopulationComponent.class)) {
+                        world.getEventBus().publish(new ResidentDiedEvent(e));
                     }
                     onEntityRemoved.accept(e);
                     return true;

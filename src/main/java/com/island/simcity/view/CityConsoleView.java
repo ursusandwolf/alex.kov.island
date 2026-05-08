@@ -1,8 +1,8 @@
 package com.island.simcity.view;
 
-import com.island.simcity.entities.Building;
-import com.island.simcity.entities.Resident;
 import com.island.simcity.entities.SimEntity;
+import com.island.simcity.entities.components.BuildingComponent;
+import com.island.simcity.entities.components.PopulationComponent;
 import com.island.simcity.model.CityMap;
 import com.island.simcity.model.CityTile;
 
@@ -36,9 +36,9 @@ public class CityConsoleView {
             return "x"; // Disconnected
         }
         
-        Building building = tile.getEntities().stream()
-                .filter(e -> e instanceof Building)
-                .map(e -> (Building) e)
+        BuildingComponent building = tile.getEntities().stream()
+                .map(e -> e.getComponent(BuildingComponent.class))
+                .filter(b -> b != null)
                 .findFirst()
                 .orElse(null);
 
@@ -59,7 +59,7 @@ public class CityConsoleView {
         for (int x = 0; x < map.getWidth(); x++) {
             for (int y = 0; y < map.getHeight(); y++) {
                 total += (int) map.getGrid()[x][y].getEntities().stream()
-                        .filter(e -> e instanceof Resident)
+                        .filter(e -> e.hasComponent(PopulationComponent.class))
                         .count();
             }
         }

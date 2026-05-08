@@ -15,7 +15,7 @@ import com.island.nature.service.DefaultProtectionService;
 import com.island.nature.service.StatisticsService;
 import com.island.util.common.DefaultRandomProvider;
 import com.island.util.common.RandomProvider;
-import com.island.util.interaction.InteractionMatrix;
+import com.island.nature.model.InteractionMatrix;
 
 /**
  * Factory for creating NatureDomainContext instances.

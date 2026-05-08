@@ -12,19 +12,20 @@
 - `CellService`: Simplified domain interface for simulation logic.
 
 ### Domain Layer (Lombok Powered)
-- `SpeciesRegistry`: Centralized, non-static registry for species metadata and unique `SpeciesKey interning.
+- `SpeciesRegistry`: Centralized, non-static registry for species metadata and unique `SpeciesKey` interning.
 - `ClimateService`: Global system for managing environmental state (Seasons, Temperature).
-- `Organism`: Base for all life. Standardized on `long` energy (fixed-point). Optimized for memory with volatile ECS components and minimized locking.
-- `Animal` (Herbivore/Predator): LOD 0 entities with individual logic and components.
-- `Biomass`: LOD 1 entities (Plants, Insects) using mass-based aggregation.
+- `Organism`: Base for all life in Nature domain. Standardized on `long` energy (fixed-point). Optimized for memory with volatile ECS components and minimized locking.
+- `SimEntity`: Pure ECS entity for SimCity domain. A generic container that implements the `Entity` interface.
 - `EntityContainer`: Memory-optimized O(1) management using indexed buckets.
 
 ### Services (The Logic)
 - **Specialized ECS Systems**:
     - `AnimalHealthSystem` / `BiomassGrowthSystem`: Handle lifecycle logic (metabolism, growth, aging) influenced by Climate factors.
     - `AnimalMovementSystem` / `BiomassMovementSystem`: Coordinate spatial transitions using `MovementComponent` data.
-    - `AnimalFeedingSystem`: Optimized hunting/grazing with pre-calculated interaction matrices. Supports pack hunting and ECS components.
-    - `AnimalReproductionSystem`: Population growth with LOD scaling and `ReproductionComponent` support.
+    - AnimalFeedingSystem: Optimized hunting/grazing with type-safe ConsumableComponent<T> and ConsumeAction<T>.
+    - AnimalReproductionSystem: Population growth with LOD scaling and ReproductionComponent support.
+    - PopulationService / EconomyService: SimCity systems operating on PopulationComponent, BuildingComponent, and EconomyComponent.
+
 - `CleanupService`: O(1) removal and pool-based recycling of dead entities.
 - `StatisticsService`: Zero-scan reporting using pre-aggregated metrics via `EventBus` with specialized `AnimalBornEvent` and `AnimalDiedEvent` support.
 

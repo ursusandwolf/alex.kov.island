@@ -1,19 +1,35 @@
 package com.island.simcity.service;
 
-import com.island.simcity.entities.Building;
-import com.island.simcity.entities.Resident;
+import com.island.engine.ecs.Component;
+import com.island.engine.ecs.ComponentRegistry;
 import com.island.simcity.entities.SimEntity;
+import com.island.simcity.entities.components.BuildingComponent;
+import com.island.simcity.entities.components.PopulationComponent;
 import com.island.simcity.model.CityMap;
 import com.island.simcity.model.CityTile;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import com.island.engine.core.SimulationNode;
 
 public class PopulationService extends AbstractSimCityService {
     private final CityMap map;
+    private final ComponentRegistry registry;
     private final AtomicInteger totalPopulation = new AtomicInteger(0);
 
-    public PopulationService(CityMap map) {
+    public PopulationService(CityMap map, ComponentRegistry registry) {
         this.map = map;
+        this.registry = registry;
+    }
+
+    @Override
+    public List<Class<? extends Component>> readComponents() {
+        return List.of(BuildingComponent.class);
+    }
+
+    @Override
+    public List<Class<? extends Component>> writeComponents() {
+        return List.of(PopulationComponent.class);
     }
 
     @Override
@@ -32,10 +48,11 @@ public class PopulationService extends AbstractSimCityService {
         for (SimulationNode<SimEntity> neighborNode : tile.getNeighbors()) {
             CityTile neighbor = (CityTile) neighborNode;
             for (SimEntity entity : neighbor.getEntities()) {
-                if (entity instanceof Building building) {
-                    if (building.getType() == Building.Type.INDUSTRIAL) {
+                BuildingComponent building = entity.getComponent(BuildingComponent.class);
+                if (building != null) {
+                    if (building.getType() == BuildingComponent.Type.INDUSTRIAL) {
                         neighborIndustrial++;
-                    } else if (building.getType() == Building.Type.COMMERCIAL) {
+                    } else if (building.getType() == BuildingComponent.Type.COMMERCIAL) {
                         neighborCommercial++;
                     }
                 }
@@ -44,10 +61,11 @@ public class PopulationService extends AbstractSimCityService {
 
         if (!tile.isConnected()) {
             for (SimEntity entity : tile.getEntities()) {
-                if (entity instanceof Resident resident) {
-                    resident.updateHappiness(-30);
-                    if (resident.getHappiness() < 10) {
-                        resident.die();
+                PopulationComponent pop = entity.getComponent(PopulationComponent.class);
+                if (pop != null) {
+                    pop.updateHappiness(-30);
+                    if (pop.getHappiness() < 10) {
+                        entity.die();
                     }
                 }
             }
@@ -56,9 +74,12 @@ public class PopulationService extends AbstractSimCityService {
         }
 
         for (SimEntity entity : tile.getEntities()) {
-            if (entity instanceof Resident resident) {
+            PopulationComponent pop = entity.getComponent(PopulationComponent.class);
+            BuildingComponent building = entity.getComponent(BuildingComponent.class);
+            
+            if (pop != null) {
                 cellPopulation++;
-                resident.setAge(resident.getAge() + 1);
+                pop.setAge(pop.getAge() + 1);
                 
                 // Happiness factors
                 int happinessDelta = 2; // Base connected bonus
@@ -75,19 +96,19 @@ public class PopulationService extends AbstractSimCityService {
                     happinessDelta -= 20;
                 }
 
-                resident.updateHappiness(happinessDelta);
+                pop.updateHappiness(happinessDelta);
                 
                 // Migration out
-                if (resident.getHappiness() < 20 && tickCount % 2 == 0) {
-                    resident.die(); // Leaves the city
+                if (pop.getHappiness() < 20 && tickCount % 2 == 0) {
+                    entity.die(); // Leaves the city
                     map.addAlert("Residents leaving: Low Happiness");
                 }
                 
-                if (resident.getAge() > 100) {
-                    resident.die();
+                if (pop.getAge() > 100) {
+                    entity.die();
                 }
-            } else if (entity instanceof Building building) {
-                if (building.getType() == Building.Type.RESIDENTIAL) {
+            } else if (building != null) {
+                if (building.getType() == BuildingComponent.Type.RESIDENTIAL) {
                     hasResidential = true;
                 }
             }
@@ -97,13 +118,15 @@ public class PopulationService extends AbstractSimCityService {
         if (hasResidential && cellPopulation < 5 && !map.isBankrupt()) {
             // Check if city is attractive and there is demand
             boolean attractive = tile.getEntities().stream()
-                    .filter(e -> e instanceof Resident)
-                    .map(e -> (Resident) e)
-                    .mapToInt(Resident::getHappiness)
+                    .map(e -> e.getComponent(PopulationComponent.class))
+                    .filter(Objects::nonNull)
+                    .mapToInt(PopulationComponent::getHappiness)
                     .average().orElse(100.0) > 40;
                 
             if (attractive && map.getResDemand() > 0) {
-                tile.addEntity(new Resident());
+                SimEntity resident = new SimEntity(registry);
+                resident.addComponent(new PopulationComponent(0, 100));
+                tile.addEntity(resident);
             }
         } else if (hasResidential && cellPopulation < 5 && map.isBankrupt()) {
             map.addAlert("No growth: Bankruptcy");

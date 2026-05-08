@@ -1,10 +1,12 @@
 package com.island.simcity.service;
 
-import com.island.simcity.entities.Building;
-import com.island.simcity.entities.Resident;
+import com.island.engine.ecs.Component;
 import com.island.simcity.entities.SimEntity;
+import com.island.simcity.entities.components.BuildingComponent;
+import com.island.simcity.entities.components.PopulationComponent;
 import com.island.simcity.model.CityMap;
 import com.island.simcity.model.CityTile;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.RequiredArgsConstructor;
 
@@ -15,6 +17,11 @@ public class CityAnalyticsService extends AbstractSimCityService {
     private final AtomicInteger jobs = new AtomicInteger();
 
     @Override
+    public List<Class<? extends Component>> readComponents() {
+        return List.of(PopulationComponent.class, BuildingComponent.class);
+    }
+
+    @Override
     public void beforeTick(int tickCount) {
         pop.set(0);
         jobs.set(0);
@@ -23,10 +30,13 @@ public class CityAnalyticsService extends AbstractSimCityService {
     @Override
     protected void doProcessTile(CityTile tile, int tickCount) {
         for (SimEntity entity : tile.getEntities()) {
-            if (entity instanceof Resident) {
+            PopulationComponent popComp = entity.getComponent(PopulationComponent.class);
+            BuildingComponent building = entity.getComponent(BuildingComponent.class);
+            
+            if (popComp != null) {
                 pop.incrementAndGet();
-            } else if (entity instanceof Building b) {
-                int jobCount = switch (b.getType()) {
+            } else if (building != null) {
+                int jobCount = switch (building.getType()) {
                     case INDUSTRIAL -> 10;
                     case COMMERCIAL -> 5;
                     default -> 0;

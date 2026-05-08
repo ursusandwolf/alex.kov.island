@@ -1,5 +1,6 @@
 package com.island.simcity.model;
 
+import com.island.engine.ecs.ComponentRegistry;
 import com.island.engine.event.EventBus;
 import com.island.simcity.entities.SimEntity;
 import java.util.ArrayList;
@@ -37,22 +38,28 @@ public class CityMap implements SimulationWorld<SimEntity> {
     private final List<String> alerts = new CopyOnWriteArrayList<>();
     private volatile List<List<CityTile>> cachedChunks;
     private final EventBus eventBus;
+    private final ComponentRegistry componentRegistry;
 
     @Override
     public EventBus getEventBus() {
         return eventBus;
     }
 
-    public CityMap(int width, int height, EventBus eventBus) {
+    public CityMap(int width, int height, EventBus eventBus, ComponentRegistry registry) {
         this.width = width;
         this.height = height;
         this.eventBus = eventBus;
+        this.componentRegistry = registry;
         this.grid = new CityTile[width][height];
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 grid[x][y] = new CityTile(x, y, this);
             }
         }
+    }
+
+    public ComponentRegistry getComponentRegistry() {
+        return componentRegistry;
     }
 
     @Override

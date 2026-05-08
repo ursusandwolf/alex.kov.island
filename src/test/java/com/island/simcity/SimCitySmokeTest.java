@@ -1,8 +1,10 @@
 package com.island.simcity;
 
+import com.island.engine.ecs.ComponentRegistry;
 import com.island.engine.event.DefaultEventBus;
-import com.island.simcity.entities.Building;
 import com.island.simcity.entities.SimEntity;
+import com.island.simcity.entities.components.BuildingComponent;
+import com.island.simcity.entities.components.PopulationComponent;
 import com.island.simcity.model.CityMap;
 import com.island.simcity.service.EconomyService;
 import com.island.simcity.service.PopulationService;
@@ -20,11 +22,12 @@ public class SimCitySmokeTest {
     @Test
     void testCityGrowthAndEconomy() {
         // 1. Setup
-        CityMap map = new CityMap(5, 5, new DefaultEventBus());
+        ComponentRegistry registry = new ComponentRegistry();
+        CityMap map = new CityMap(5, 5, new DefaultEventBus(), registry);
         map.initialize();
         map.setResDemand(50); // Ensure demand for growth
         
-        PopulationService popService = new PopulationService(map);
+        PopulationService popService = new PopulationService(map, registry);
         EconomyService economyService = new EconomyService(map);
 
         ExecutorService executor = Executors.newFixedThreadPool(1);
@@ -36,7 +39,9 @@ public class SimCitySmokeTest {
         gameLoop.addRecurringTask(economyService);
 
         // Add one residential building and mark as connected for simplicity
-        map.getGrid()[0][0].addEntity(new Building(Building.Type.RESIDENTIAL));
+        SimEntity building = new SimEntity(registry);
+        building.addComponent(new BuildingComponent(BuildingComponent.Type.RESIDENTIAL));
+        map.getGrid()[0][0].addEntity(building);
         map.getGrid()[0][0].setConnected(true);
         
         long initialMoney = map.getMoney();
@@ -51,7 +56,7 @@ public class SimCitySmokeTest {
         for (int x = 0; x < map.getWidth(); x++) {
             for (int y = 0; y < map.getHeight(); y++) {
                 population += (int) map.getGrid()[x][y].getEntities().stream()
-                        .filter(e -> e.getTypeName().equals("Resident"))
+                        .filter(e -> e.hasComponent(PopulationComponent.class))
                         .count();
             }
         }

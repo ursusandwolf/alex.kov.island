@@ -30,8 +30,8 @@ import com.island.nature.entities.registry.SpeciesRegistry;
 import com.island.nature.entities.strategy.DefaultHuntingStrategy;
 import com.island.nature.entities.strategy.HuntingStrategy;
 import com.island.util.common.RandomProvider;
-import com.island.util.interaction.InteractionMatrix;
-import com.island.util.interaction.InteractionProvider;
+import com.island.nature.model.InteractionMatrix;
+import com.island.nature.model.InteractionProvider;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)

@@ -1,10 +1,12 @@
 package com.island.simcity.service;
 
-import com.island.simcity.entities.Building;
-import com.island.simcity.entities.Resident;
+import com.island.engine.ecs.Component;
 import com.island.simcity.entities.SimEntity;
+import com.island.simcity.entities.components.BuildingComponent;
+import com.island.simcity.entities.components.PopulationComponent;
 import com.island.simcity.model.CityMap;
 import com.island.simcity.model.CityTile;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import lombok.RequiredArgsConstructor;
 
@@ -13,6 +15,11 @@ public class EconomyService extends AbstractSimCityService {
     private final CityMap map;
     private final AtomicLong tickIncome = new AtomicLong();
     private final AtomicLong tickExpenses = new AtomicLong();
+
+    @Override
+    public List<Class<? extends Component>> readComponents() {
+        return List.of(BuildingComponent.class, PopulationComponent.class);
+    }
 
     @Override
     public void beforeTick(int tickCount) {
@@ -25,21 +32,24 @@ public class EconomyService extends AbstractSimCityService {
         long cellIncome = 0;
         long cellExpenses = 0;
         for (SimEntity entity : tile.getEntities()) {
-            if (entity instanceof Building b) {
-                cellExpenses += switch (b.getType()) {
+            BuildingComponent building = entity.getComponent(BuildingComponent.class);
+            PopulationComponent pop = entity.getComponent(PopulationComponent.class);
+            
+            if (building != null) {
+                cellExpenses += switch (building.getType()) {
                     case ROAD -> 2;
                     case RESIDENTIAL -> 5;
                     case COMMERCIAL -> 20;
                     case INDUSTRIAL -> 50;
                 };
                 if (tile.isConnected()) {
-                    cellIncome += switch (b.getType()) {
+                    cellIncome += switch (building.getType()) {
                         case COMMERCIAL -> 100;
                         case INDUSTRIAL -> 200;
                         default -> 0;
                     };
                 }
-            } else if (entity instanceof Resident && tile.isConnected()) {
+            } else if (pop != null && tile.isConnected()) {
                 cellIncome += map.getTaxRate();
             }
         }

@@ -1,5 +1,6 @@
 package com.island.nature.service;
 
+import com.island.engine.core.SimulationNode;
 import com.island.engine.ecs.Component;
 import com.island.nature.entities.components.ConsumableComponent;
 import com.island.nature.entities.components.HealthComponent;
@@ -17,7 +18,7 @@ import com.island.nature.entities.strategy.HuntingStrategy;
 import com.island.nature.entities.strategy.PreyProvider;
 import com.island.nature.model.Cell;
 import com.island.util.common.RandomProvider;
-import com.island.util.interaction.InteractionProvider;
+import com.island.nature.model.InteractionProvider;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -121,7 +122,8 @@ public class AnimalFeedingSystem extends NatureEntitySystem {
             attempts++;
             Organism preyCandidate = huntingStrategy.selectPackPrey(pack, packPreyProvider);
             if (preyCandidate != null) {
-                ConsumableComponent consumable = preyCandidate.getComponent(ConsumableComponent.class);
+                @SuppressWarnings("unchecked")
+                ConsumableComponent<SimulationNode<Organism>> consumable = (ConsumableComponent<SimulationNode<Organism>>) preyCandidate.getComponent(ConsumableComponent.class);
                 if (consumable != null && consumable.isAnimal()) {
                     // Safe cast as it's an animal consumable
                     Animal actualPrey = findActualPrey(node, preyCandidate.getSpeciesKey(), pack.get(0));
@@ -175,7 +177,8 @@ public class AnimalFeedingSystem extends NatureEntitySystem {
                 break;
             }
             
-            ConsumableComponent consumable = preyCandidate.getComponent(ConsumableComponent.class);
+            @SuppressWarnings("unchecked")
+            ConsumableComponent<SimulationNode<Organism>> consumable = (ConsumableComponent<SimulationNode<Organism>>) preyCandidate.getComponent(ConsumableComponent.class);
             if (consumable == null) {
                 continue;
             }

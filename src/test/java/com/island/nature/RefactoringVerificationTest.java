@@ -27,7 +27,7 @@ import com.island.nature.entities.registry.AnimalFactory;
 import com.island.nature.entities.registry.SpeciesLoader;
 import com.island.nature.entities.registry.SpeciesRegistry;
 import com.island.util.common.DefaultRandomProvider;
-import com.island.util.interaction.InteractionMatrix;
+import com.island.nature.model.InteractionMatrix;
 import com.island.util.math.GridUtils;
 import com.island.util.sampling.SamplingContext;
 

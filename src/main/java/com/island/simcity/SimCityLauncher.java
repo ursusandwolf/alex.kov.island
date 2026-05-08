@@ -1,8 +1,8 @@
 package com.island.simcity;
 
-import com.island.simcity.entities.Building;
-import com.island.simcity.entities.Resident;
 import com.island.simcity.entities.SimEntity;
+import com.island.simcity.entities.components.BuildingComponent;
+import com.island.simcity.entities.components.PopulationComponent;
 import com.island.simcity.model.CityMap;
 import com.island.simcity.service.BuildingService;
 import com.island.simcity.view.CityConsoleView;
@@ -24,24 +24,24 @@ public class SimCityLauncher {
 
         // Road from (0,0) to (5,0)
         for (int x = 0; x <= 5; x++) {
-            buildingService.build(x, 0, Building.Type.ROAD);
+            buildingService.build(x, 0, BuildingComponent.Type.ROAD);
         }
         
         // Road branch to (2,5)
         for (int y = 1; y <= 5; y++) {
-            buildingService.build(2, y, Building.Type.ROAD);
+            buildingService.build(2, y, BuildingComponent.Type.ROAD);
         }
 
         // Residential zones next to road
-        buildingService.build(0, 1, Building.Type.RESIDENTIAL);
-        buildingService.build(1, 1, Building.Type.RESIDENTIAL);
-        buildingService.build(3, 1, Building.Type.RESIDENTIAL);
+        buildingService.build(0, 1, BuildingComponent.Type.RESIDENTIAL);
+        buildingService.build(1, 1, BuildingComponent.Type.RESIDENTIAL);
+        buildingService.build(3, 1, BuildingComponent.Type.RESIDENTIAL);
         
         // Industrial zone next to road
-        buildingService.build(2, 6, Building.Type.INDUSTRIAL);
+        buildingService.build(2, 6, BuildingComponent.Type.INDUSTRIAL);
         
         // Isolated zone (no connectivity)
-        buildingService.build(9, 9, Building.Type.RESIDENTIAL);
+        buildingService.build(9, 9, BuildingComponent.Type.RESIDENTIAL);
 
         // 5. Run simulation
         for (int i = 0; i < 30; i++) {
@@ -54,8 +54,8 @@ public class SimCityLauncher {
                 System.out.println("PLAYER ACTION: Reducing taxes to 10%");
                 map.setTaxRate(10);
                 System.out.println("PLAYER ACTION: Building more residential...");
-                buildingService.build(4, 1, Building.Type.RESIDENTIAL);
-                buildingService.build(5, 1, Building.Type.RESIDENTIAL);
+                buildingService.build(4, 1, BuildingComponent.Type.RESIDENTIAL);
+                buildingService.build(5, 1, BuildingComponent.Type.RESIDENTIAL);
             }
 
             context.gameLoop().runTick();
@@ -72,8 +72,9 @@ public class SimCityLauncher {
         for (int x = 0; x < map.getWidth(); x++) {
             for (int y = 0; y < map.getHeight(); y++) {
                 for (SimEntity e : map.getGrid()[x][y].getEntities()) {
-                    if (e instanceof Resident r) {
-                        avgHappiness += r.getHappiness();
+                    PopulationComponent pop = e.getComponent(PopulationComponent.class);
+                    if (pop != null) {
+                        avgHappiness += pop.getHappiness();
                         count++;
                     }
                 }

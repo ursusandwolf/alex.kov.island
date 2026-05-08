@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.28.0] - 2026-05-08
+
+### Added
+- `ConsumeAction<T>` functional interface for type-safe resource consumption.
+- SimCity ECS Components: `PopulationComponent`, `BuildingComponent`, `EconomyComponent`.
+
+### Changed
+- `ConsumableComponent` refactored to use generics `ConsumableComponent<T>` for better type safety and to eliminate `instanceof` checks.
+- Migrated SimCity to "Pure ECS" architecture:
+    - Removed `Resident` and `Building` subclasses.
+    - `SimEntity` now implements `Entity` interface and uses `ComponentStore`.
+    - All SimCity services (`PopulationService`, `EconomyService`, etc.) migrated to `EntitySystem` and refactored to use components instead of `instanceof`.
+- Updated `SimCityPlugin` and `CityMap` to support the new ECS-based SimCity domain.
+
 ## [1.27.0] - 2026-05-08
 ### Changed
 - **Documentation Overhaul**: Centralized architectural and project information. Removed redundant documents (`codereview.md`, `TODO.md`), consolidated information into `PROJECT_CONTEXT.md` and `DOCUMENTATION.md` for better maintainability and clarity, and updated the roadmap for the upcoming multi-module architecture migration.

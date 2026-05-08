@@ -13,7 +13,7 @@ import com.island.nature.model.DefaultBiomassManager;
 import com.island.nature.model.Island;
 import com.island.nature.model.StaticChunkingStrategy;
 import com.island.util.common.DefaultRandomProvider;
-import com.island.util.interaction.InteractionMatrix;
+import com.island.nature.model.InteractionMatrix;
 import com.island.util.math.GridUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

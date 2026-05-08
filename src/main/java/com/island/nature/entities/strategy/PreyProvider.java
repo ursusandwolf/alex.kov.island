@@ -14,7 +14,7 @@ import com.island.nature.entities.core.Biomass;
 import com.island.nature.entities.core.Organism;
 import com.island.nature.entities.core.SpeciesKey;
 import com.island.util.common.RandomProvider;
-import com.island.util.interaction.InteractionProvider;
+import com.island.nature.model.InteractionProvider;
 
 /**
  * Provider for prey selection within a node using integer arithmetic.

@@ -1,9 +1,10 @@
 package com.island.simcity;
 
+import com.island.engine.ecs.ComponentRegistry;
 import com.island.engine.event.DefaultEventBus;
-import com.island.simcity.entities.Building;
-import com.island.simcity.entities.Resident;
 import com.island.simcity.entities.SimEntity;
+import com.island.simcity.entities.components.BuildingComponent;
+import com.island.simcity.entities.components.PopulationComponent;
 import com.island.simcity.model.CityMap;
 import com.island.simcity.service.BuildingService;
 import com.island.simcity.service.EconomyService;
@@ -27,12 +28,13 @@ class SimCityCoreLogicTest {
     @DisplayName("Should deduct money when building via BuildingService")
     void should_deduct_money_on_build() {
         // Given
-        CityMap map = new CityMap(5, 5, new DefaultEventBus());
+        ComponentRegistry registry = new ComponentRegistry();
+        CityMap map = new CityMap(5, 5, new DefaultEventBus(), registry);
         BuildingService buildingService = new BuildingService(map);
         long initialMoney = map.getMoney();
 
         // When
-        boolean success = buildingService.build(0, 0, Building.Type.RESIDENTIAL);
+        boolean success = buildingService.build(0, 0, BuildingComponent.Type.RESIDENTIAL);
 
         // Then
         assertTrue(success);
@@ -43,7 +45,7 @@ class SimCityCoreLogicTest {
     @DisplayName("Should trigger bankruptcy when money is negative for several ticks")
     void should_trigger_bankruptcy_logic() {
         // Given
-        CityMap map = new CityMap(5, 5, new DefaultEventBus());
+        CityMap map = new CityMap(5, 5, new DefaultEventBus(), new ComponentRegistry());
         map.addMoney(-20000); // Force negative balance
 
         // When & Then
@@ -61,14 +63,17 @@ class SimCityCoreLogicTest {
     @DisplayName("Residents should leave when happiness is low due to high taxes")
     void residents_should_leave_on_high_taxes() {
         // Given
-        CityMap map = new CityMap(5, 5, new DefaultEventBus());
+        ComponentRegistry registry = new ComponentRegistry();
+        CityMap map = new CityMap(5, 5, new DefaultEventBus(), registry);
         map.setTaxRate(50); // Very high tax
         map.getGrid()[0][0].setConnected(true);
-        Resident resident = new Resident();
-        resident.setHappiness(20);
+        
+        SimEntity resident = new SimEntity(registry);
+        PopulationComponent pop = new PopulationComponent(0, 20);
+        resident.addComponent(pop);
         map.getGrid()[0][0].addEntity(resident);
 
-        PopulationService popService = new PopulationService(map);
+        PopulationService popService = new PopulationService(map, registry);
         ExecutorService executor = Executors.newFixedThreadPool(1);
         ParallelDispatcher<SimEntity> dispatcher = new ParallelDispatcher<>(executor);
         PhaseScheduler<SimEntity> scheduler = new PhaseScheduler<>(dispatcher);
@@ -88,7 +93,7 @@ class SimCityCoreLogicTest {
     @DisplayName("Concurrency test: multiple threads updating money should be safe")
     void money_updates_should_be_thread_safe() throws InterruptedException {
         // Given
-        CityMap map = new CityMap(5, 5, new DefaultEventBus());
+        CityMap map = new CityMap(5, 5, new DefaultEventBus(), new ComponentRegistry());
         int threadCount = 10;
         int incrementsPerThread = 1000;
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);

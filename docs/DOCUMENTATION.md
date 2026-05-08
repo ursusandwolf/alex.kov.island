@@ -6,8 +6,8 @@ The project is a modular simulation engine designed to support multiple "domains
 
 ### High-Level Components
 - **Engine**: The core infrastructure (`com.island.engine`).
-- **Nature Domain**: The primary simulation implementation (`com.island.nature`).
-- **SimCity Domain**: A secondary simulation implementation for testing architectural flexibility (`com.island.simcity`).
+- **Nature Domain**: The primary simulation implementation (`com.island.nature`), using a hybrid ECS approach for organisms.
+- **SimCity Domain**: A secondary simulation implementation for testing architectural flexibility (`com.island.simcity`), using a pure ECS approach with generic entities and components.
 - **Utilities**: Shared helper classes (`com.island.util`).
 
 ---
@@ -30,9 +30,15 @@ Hunting logic is encapsulated in `HuntingStrategy`, allowing different behaviors
 To allow rendering or state analysis without locking the active simulation, the engine supports creating "Snapshots". Headless mode skips snapshot creation entirely to optimize performance.
 
 ### 2.6 System Execution Graph (ECS)
-The engine automatically resolves dependencies between `EntitySystem` instances by analyzing their `readComponents` and `writeComponents` sets. Systems with non-overlapping write sets (and no read/write conflicts) are grouped into parallel batches.
+The engine automatically resolves dependencies between `EntitySystem` instances by analyzing their `readComponents` and `writeComponents` sets. Systems with non-overlapping write sets (and no read/write conflicts) are grouped into parallel batches. This is used extensively in both Nature and SimCity domains.
 
-### 2.7 GC & Allocation Optimization
+### 2.7 SimCity Pure ECS
+Unlike the Nature domain which uses specialized `Animal`/`Biomass` classes, the SimCity domain uses a pure ECS approach:
+- **Generic Entity**: `SimEntity` is a generic container for components.
+- **Components**: Data is stored in `PopulationComponent`, `BuildingComponent`, and `EconomyComponent`.
+- **Stateless Systems**: Logic is implemented in `PopulationService`, `EconomyService`, and `CityAnalyticsService` which operate strictly on components.
+
+### 2.8 GC & Allocation Optimization
 To support high-frequency ticks in large-scale simulations, the engine employs several object reuse strategies:
 - **Schedule Caching**: `PhaseScheduler` caches the execution graph, avoiding re-calculating dependency batches if the task list hasn't changed.
 - **Set-Free Conflict Detection**: `SystemExecutionGraph` utilizes list-based intersection checks to avoid object churn from temporary `HashSet` creations in the hot path.
