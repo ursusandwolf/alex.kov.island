@@ -1,0 +1,138 @@
+package com.island.engine.parallel;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import com.island.engine.core.SimulationNode;
+import com.island.engine.core.SimulationWorld;
+import com.island.engine.core.WorkUnit;
+import com.island.engine.model.Mortal;
+import com.island.engine.scheduling.GameLoop;
+
+/**
+ * Handles parallel execution of CellServices across world work units.
+ * <p>
+ * NOTE: This class is NOT thread-safe for concurrent calls to {@link #dispatch}.
+ * The internal processor pool is optimized for single-threaded management from the GameLoop.
+ *
+ * @param <T> The base type of entities.
+ */
+@Slf4j
+@RequiredArgsConstructor
+public class ParallelDispatcher<T extends Mortal> {
+
+    private final List<CellProcessor<T>> processorPool = new ArrayList<>();
+    private final ExecutorService taskExecutor;
+
+    public void dispatch(SimulationWorld<T> world, List<ParallelTask<T>> services, int tickCount) {
+        if (world == null || taskExecutor.isShutdown()) {
+            return;
+        }
+
+        for (ParallelTask<T> service : services) {
+            try {
+                service.beforeTick(tickCount);
+            } catch (Exception e) {
+                log.error("Error in beforeTick for service {}: {}", service.getClass().getSimpleName(), e.getMessage(), e);
+            }
+        }
+
+        Collection<? extends WorkUnit<T>> workUnits = world.getParallelWorkUnits();
+        int unitCount = workUnits.size();
+        
+        if (unitCount > 0) {
+            // Ensure pool capacity and shrink if necessary
+            if (processorPool.size() < unitCount) {
+                while (processorPool.size() < unitCount) {
+                    processorPool.add(new CellProcessor<>());
+                }
+            } else if (processorPool.size() > unitCount) {
+                while (processorPool.size() > unitCount) {
+                    processorPool.remove(processorPool.size() - 1);
+                }
+            }
+
+            CountDownLatch latch = new CountDownLatch(unitCount);
+            int i = 0;
+            for (WorkUnit<T> unit : workUnits) {
+                CellProcessor<T> processor = processorPool.get(i++);
+                processor.update(unit, services, tickCount, latch);
+                try {
+                    taskExecutor.execute(processor);
+                } catch (RejectedExecutionException e) {
+                    log.error("Task execution rejected in parallel dispatcher: {}. Executing synchronously.", e.getMessage());
+                    processor.run(); // Fallback to synchronous execution
+                }
+            }
+
+            try {
+                latch.await();
+                // Check for critical errors
+                for (int j = 0; j < unitCount; j++) {
+                    Throwable error = processorPool.get(j).getError();
+                    if (error != null) {
+                        log.error("Critical error in parallel cell service execution: {}", error.getMessage(), error);
+                    }
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+
+        for (ParallelTask<T> service : services) {
+            try {
+                service.afterTick(tickCount);
+            } catch (Exception e) {
+                log.error("Error in afterTick for service {}: {}", service.getClass().getSimpleName(), e.getMessage(), e);
+            }
+        }
+    }
+
+    private static class CellProcessor<T extends Mortal> implements Runnable {
+        private volatile WorkUnit<T> unit;
+        private volatile List<ParallelTask<T>> services;
+        private volatile int tickCount;
+        private volatile CountDownLatch latch;
+        private volatile Throwable error;
+
+        void update(WorkUnit<T> unit, List<ParallelTask<T>> services, int tickCount, CountDownLatch latch) {
+            this.unit = unit;
+            this.services = services;
+            this.tickCount = tickCount;
+            this.latch = latch;
+            this.error = null;
+        }
+
+        public Throwable getError() {
+            return error;
+        }
+
+        @Override
+        public void run() {
+            long start = System.nanoTime();
+            try {
+                for (SimulationNode<T> node : unit) {
+                    for (ParallelTask<T> service : services) {
+                        try {
+                            service.processCell(node, tickCount);
+                        } catch (Exception e) {
+                            log.error("Error processing cell {} in service {}: {}", 
+                                    node.getCoordinates(), service.getClass().getSimpleName(), e.getMessage(), e);
+                        }
+                    }
+                }
+            } catch (Throwable t) {
+                this.error = t;
+            } finally {
+                long duration = System.nanoTime() - start;
+                unit.setLastExecutionTimeNanos(duration);
+                latch.countDown();
+            }
+        }
+    }
+}
