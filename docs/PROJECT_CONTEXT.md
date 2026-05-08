@@ -28,5 +28,5 @@
 
 ## Maintenance & Technical Debt
 - **Validation**: Continuous monitoring of ecosystem stability across seasonal extremes.
-- **Test Coverage**: Fixed `ClimateService` NPEs in test suite; maintained 100% pass rate. [DONE]
+- **Test Coverage**: Optimized suite to 75 high-signal tests (consolidated from 82); maintained 100% pass rate. [DONE]
 - **Clean Code**: Periodic review of generic type usage to ensure absolute type safety across domain boundaries.

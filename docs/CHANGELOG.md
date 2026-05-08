@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.30.0] - 2026-05-08
+
+### Changed
+- **Test Suite Consolidation**: Optimized the test suite by merging redundant and secondary tests. Reduced total test count from 82 to 75 while maintaining full coverage of critical logic:
+    - Merged `CellTest`, `EntityContainerTest`, and `CellIterationTest` into `CellUnitTests.java`.
+    - Merged `DeterminismTest` and `GridUtils` checks into `UtilUnitTests.java`.
+    - Integrated ECS logic checks from `ArchitectureEvolutionTest` into `ArchitectureTest.java`.
+    - Removed outdated `RefactoringVerificationTest.java` and `SimCityRunnerTest.java`.
+
 ## [1.29.0] - 2026-05-08
 
 ### Added
