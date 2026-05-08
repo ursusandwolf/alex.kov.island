@@ -72,6 +72,7 @@ The `Configuration` class uses reflection to load parameters from `species.prope
 - **AnimalFactory**: Uses the Factory pattern to create organisms based on `SpeciesKey`.
 - **SpeciesRegistry**: A centralized, non-static registry of all available species, their metadata (`AnimalType`), and unique `SpeciesKey` instances.
 - **Climate System**: A global service that updates environmental factors (Season, Temperature) during the `PREPARE` phase. These factors are consumed by ECS systems to modify organism behavior.
+- **Landscape & Rivers**: The `WorldInitializer` implements procedural terrain generation. A winding river of `WATER` terrain acts as a natural barrier. Movement accessibility is determined by the intersection of terrain properties and animal capabilities (swimming, flying, or high speed for jumping).
 - **ComponentRegistry**: An instance-based registry that maps ECS component classes to stable integer indices. This enables high-performance array-based storage in `ArrayComponentStore` while maintaining isolation between concurrent simulation instances.
 - **NatureDomainContext**: Uses the **Builder** pattern to aggregate all domain services (statistics, registry, etc.) for easier dependency injection into the `Island`.
 
