@@ -66,8 +66,7 @@ To support high-frequency ticks in large-scale simulations, the engine employs s
 3. **Locking Strategy**: 
    - **Cell-Level Locking**: `Cell` uses `ReentrantReadWriteLock`. 
    - **Deadlock Prevention**: All iteration methods (`forEachEntity`, `query`, etc.) follow a **"copy-under-read-lock, then execute"** pattern. This ensures the read lock is released before any action that might require a write lock (e.g., moving an entity) is executed, preventing read-to-write upgrade deadlocks.
-   - **Multi-Locking**: `GridUtils.executeWithDoubleLock` uses a global coordinate-based ordering to prevent deadlocks during inter-cell movement.
-4. **Configuration System**:
+   - **Multi-Locking**: `GridUtils.executeWithDoubleLock` uses `System.identityHashCode` ordering to prevent deadlocks during inter-cell movement, falling back to a try-lock loop on collisions.4. **Configuration System**:
 
 The `Configuration` class uses reflection to load parameters from `species.properties` or System properties.
 - Prefix: `island.`

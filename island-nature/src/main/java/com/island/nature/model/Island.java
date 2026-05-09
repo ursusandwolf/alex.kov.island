@@ -185,7 +185,7 @@ public class Island implements NatureWorld {
                 return moveOrganism(a, f, t);
             } else if (entity instanceof Biomass b) {
                 final boolean[] result = {false};
-                GridUtils.executeWithDoubleLock(f, t, f.getX(), f.getY(), t.getX(), t.getY(), () -> {
+                GridUtils.executeWithDoubleLock(f, t, () -> {
                     if (t.addEntity(b)) {
                         if (f.removeEntity(b)) {
                             result[0] = true;
@@ -208,7 +208,7 @@ public class Island implements NatureWorld {
         if (from == to || amount <= 0 || b.getBiomass() <= 0) {
             return;
         }
-        GridUtils.executeWithDoubleLock(from, to, from.getX(), from.getY(), to.getX(), to.getY(), () -> {
+        GridUtils.executeWithDoubleLock(from, to, () -> {
             long actualToMove = Math.min(b.getBiomass(), amount);
             if (to.addBiomass(b.getSpeciesKey(), actualToMove)) {
                 b.consumeBiomass(actualToMove, from);
@@ -261,7 +261,7 @@ public class Island implements NatureWorld {
             return true;
         }
         final boolean[] result = {false};
-        GridUtils.executeWithDoubleLock(from, to, from.getX(), from.getY(), to.getX(), to.getY(), () -> {
+        GridUtils.executeWithDoubleLock(from, to, () -> {
             if (to.canAccept(animal)) {
                 if (from.removeAnimal(animal)) {
                     if (to.addAnimal(animal)) {

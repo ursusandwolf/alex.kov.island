@@ -30,7 +30,7 @@ public class GridUtils {
         return neighbors;
     }
 
-    public static void executeWithDoubleLock(SimulationNode<?> n1, SimulationNode<?> n2, int x1, int y1, int x2, int y2, Runnable action) {
+    public static void executeWithDoubleLock(SimulationNode<?> n1, SimulationNode<?> n2, Runnable action) {
         if (n1 == n2) {
             n1.getLock().lock();
             try {
@@ -41,7 +41,31 @@ public class GridUtils {
             return;
         }
 
-        SimulationNode<?> first = (x1 < x2 || (x1 == x2 && y1 < y2)) ? n1 : n2;
+        int hash1 = System.identityHashCode(n1);
+        int hash2 = System.identityHashCode(n2);
+
+        if (hash1 == hash2) {
+            // Handle rare identityHashCode collision with tryLock backoff to prevent deadlock
+            Lock lock1 = n1.getLock();
+            Lock lock2 = n2.getLock();
+            while (true) {
+                lock1.lock();
+                if (lock2.tryLock()) {
+                    try {
+                        action.run();
+                        return;
+                    } finally {
+                        lock2.unlock();
+                        lock1.unlock();
+                    }
+                } else {
+                    lock1.unlock();
+                    Thread.yield();
+                }
+            }
+        }
+
+        SimulationNode<?> first = (hash1 < hash2) ? n1 : n2;
         SimulationNode<?> second = (first == n1) ? n2 : n1;
 
         Lock firstLock = first.getLock();

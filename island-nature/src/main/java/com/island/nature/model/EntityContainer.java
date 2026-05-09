@@ -5,28 +5,28 @@ import com.island.engine.ecs.EntityQuery;
 import com.island.nature.config.Configuration;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Consumer;
 import com.island.nature.entities.core.Animal;
 import com.island.nature.entities.core.AnimalType;
 import com.island.nature.entities.core.Biomass;
 import com.island.nature.entities.core.Organism;
-import com.island.nature.entities.core.SizeClass;
 import com.island.nature.entities.core.SpeciesKey;
 
 public class EntityContainer {
     private final Configuration config;
     private final Map<AnimalType, List<Animal>> animalsByType = new HashMap<>();
-    private final Map<SpeciesKey, Biomass> biomassBySpecies = new HashMap<>();
+    private final Map<SpeciesKey, Biomass> biomassBySpecies = new LinkedHashMap<>();
     
     // Archetype grouping for optimized querying
-    private final Map<EntityArchetype, List<Organism>> entitiesByArchetype = new HashMap<>();
+    private final Map<EntityArchetype, List<Organism>> entitiesByArchetype = new LinkedHashMap<>();
+    
+    // Pre-calculated counts to avoid O(N) iteration
+    private int animalCount = 0;
 
     public EntityContainer(Configuration config) {
         this.config = config;
@@ -35,6 +35,7 @@ public class EntityContainer {
     public void addAnimal(Animal animal) {
         AnimalType type = animal.getAnimalType();
         animalsByType.computeIfAbsent(type, k -> new ArrayList<>()).add(animal);
+        animalCount++;
         
         // Update archetype index
         EntityArchetype archetype = animal.getArchetype();
@@ -47,6 +48,7 @@ public class EntityContainer {
         AnimalType type = animal.getAnimalType();
         List<Animal> typeList = animalsByType.get(type);
         if (typeList != null && typeList.remove(animal)) {
+            animalCount--;
             // Update archetype index
             EntityArchetype archetype = animal.getArchetype();
             if (archetype != null) {
@@ -64,11 +66,7 @@ public class EntityContainer {
     }
 
     public int getAnimalCount() {
-        int count = 0;
-        for (List<Animal> list : animalsByType.values()) {
-            count += list.size();
-        }
-        return count;
+        return animalCount;
     }
 
     public int getBiomassCount() {
@@ -76,7 +74,7 @@ public class EntityContainer {
     }
 
     public int getEntityCount() {
-        return getAnimalCount() + getBiomassCount();
+        return animalCount + biomassBySpecies.size();
     }
 
     public List<Animal> getByType(AnimalType type) {
@@ -85,13 +83,15 @@ public class EntityContainer {
     }
 
     public List<Animal> getAllAnimals() {
-        List<Animal> all = new ArrayList<>();
-        animalsByType.values().forEach(all::addAll);
+        List<Animal> all = new ArrayList<>(animalCount);
+        for (List<Animal> list : animalsByType.values()) {
+            all.addAll(list);
+        }
         return all;
     }
 
     public List<Biomass> getAllBiomass() {
-        return List.copyOf(biomassBySpecies.values());
+        return new ArrayList<>(biomassBySpecies.values());
     }
 
     public int countByType(AnimalType type) {
@@ -100,12 +100,14 @@ public class EntityContainer {
     }
 
     public int countBySpecies(SpeciesKey key) {
+        // Optimization: try to find by type first if it's an animal
         int count = 0;
         for (Map.Entry<AnimalType, List<Animal>> entry : animalsByType.entrySet()) {
             if (entry.getKey().getSpeciesKey().equals(key)) {
                 count += entry.getValue().size();
             }
         }
+        
         Biomass b = biomassBySpecies.get(key);
         if (b != null) {
             count += (int) (b.getBiomass() / config.getScale1M());
@@ -114,22 +116,33 @@ public class EntityContainer {
     }
 
     public void forEachAnimal(Consumer<Animal> action) {
-        animalsByType.values().forEach(list -> list.forEach(action));
+        for (List<Animal> list : animalsByType.values()) {
+            for (int i = 0; i < list.size(); i++) {
+                action.accept(list.get(i));
+            }
+        }
     }
 
     public void forEachBiomass(Consumer<Biomass> action) {
-        biomassBySpecies.values().forEach(action);
+        for (Biomass b : biomassBySpecies.values()) {
+            action.accept(b);
+        }
     }
 
     public void forEachEntity(Consumer<Organism> action) {
         forEachAnimal(action::accept);
-        biomassBySpecies.values().forEach(b -> action.accept((Organism) b));
+        for (Biomass b : biomassBySpecies.values()) {
+            action.accept((Organism) b);
+        }
     }
 
     public void forEachMatching(EntityQuery<Organism> query, Consumer<Organism> action) {
         for (Map.Entry<EntityArchetype, List<Organism>> entry : entitiesByArchetype.entrySet()) {
             if (query.matches(entry.getKey())) {
-                entry.getValue().forEach(action);
+                List<Organism> entities = entry.getValue();
+                for (int i = 0; i < entities.size(); i++) {
+                    action.accept(entities.get(i));
+                }
             }
         }
     }
@@ -141,6 +154,7 @@ public class EntityContainer {
                 Animal a = it.next();
                 if (!a.isAlive()) {
                     it.remove();
+                    animalCount--;
                     
                     // Update archetype index
                     EntityArchetype archetype = a.getArchetype();

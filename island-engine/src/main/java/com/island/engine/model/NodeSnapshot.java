@@ -7,20 +7,23 @@ import com.island.engine.core.EngineAPI;
  */
 @EngineAPI
 public interface NodeSnapshot {
+    /**
+     * Gets the unique coordinates or identifier of the node.
+     */
     String getCoordinates();
 
     /**
-     * Code of the species with the highest biomass/presence in this node.
+     * Gets the code of the species with the highest biomass or presence in this node.
      */
     String getTopSpeciesCode();
 
     /**
-     * Whether the top species is a plant.
+     * Checks if the top species in this node is a plant.
      */
     boolean isTopSpeciesPlant();
 
     /**
-     * Whether the node has any organisms.
+     * Checks if the node currently contains any organisms.
      */
     boolean hasOrganisms();
 }

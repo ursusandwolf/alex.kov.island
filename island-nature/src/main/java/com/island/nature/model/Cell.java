@@ -7,8 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.StampedLock;
 import java.util.function.Consumer;
 import lombok.Getter;
 import lombok.Setter;
@@ -33,7 +32,7 @@ public class Cell implements SimulationNode<Organism> {
     private final Configuration config;
     @Setter private TerrainType terrainType = TerrainType.MEADOW;
     private final EntityContainer container;
-    private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
+    private final StampedLock lock = new StampedLock();
     private List<SimulationNode<Organism>> cachedNeighbors = Collections.emptyList();
 
     public Cell(int x, int y, SimulationWorld<Organism> world) {
@@ -51,7 +50,7 @@ public class Cell implements SimulationNode<Organism> {
 
     @Override
     public Lock getLock() {
-        return rwLock.writeLock();
+        return lock.asWriteLock();
     }
 
     @Override
@@ -61,22 +60,27 @@ public class Cell implements SimulationNode<Organism> {
 
     @Override
     public void setNeighbors(List<SimulationNode<Organism>> neighbors) {
-        rwLock.writeLock().lock();
+        long stamp = lock.writeLock();
         try {
             this.cachedNeighbors = List.copyOf(neighbors);
         } finally {
-            rwLock.writeLock().unlock();
+            lock.unlockWrite(stamp);
         }
     }
 
     @Override
     public List<SimulationNode<Organism>> getNeighbors() {
-        rwLock.readLock().lock();
-        try {
-            return cachedNeighbors;
-        } finally {
-            rwLock.readLock().unlock();
+        long stamp = lock.tryOptimisticRead();
+        List<SimulationNode<Organism>> neighbors = cachedNeighbors;
+        if (!lock.validate(stamp)) {
+            stamp = lock.readLock();
+            try {
+                neighbors = cachedNeighbors;
+            } finally {
+                lock.unlockRead(stamp);
+            }
         }
+        return neighbors;
     }
 
     /**
@@ -84,36 +88,40 @@ public class Cell implements SimulationNode<Organism> {
      */
     @SuppressWarnings("unchecked")
     public List<Cell> getCellNeighbors() {
-        rwLock.readLock().lock();
-        try {
-            // Safe as long as we only put Cells into Island grid
-            return (List<Cell>) (List<?>) cachedNeighbors;
-        } finally {
-            rwLock.readLock().unlock();
+        long stamp = lock.tryOptimisticRead();
+        List<Cell> neighbors = (List<Cell>) (List<?>) cachedNeighbors;
+        if (!lock.validate(stamp)) {
+            stamp = lock.readLock();
+            try {
+                neighbors = (List<Cell>) (List<?>) cachedNeighbors;
+            } finally {
+                lock.unlockRead(stamp);
+            }
         }
+        return neighbors;
     }
 
     @Override
     public List<Organism> getEntities() {
-        rwLock.readLock().lock();
+        long stamp = lock.readLock();
         try {
-            List<Organism> all = new ArrayList<>(getEntityCount());
+            List<Organism> all = new ArrayList<>(getEntityCountInternal());
             container.forEachEntity(all::add);
             return Collections.unmodifiableList(all);
         } finally {
-            rwLock.readLock().unlock();
+            lock.unlockRead(stamp);
         }
     }
 
     @Override
     public void forEachEntity(Consumer<Organism> action) {
         List<Organism> all;
-        rwLock.readLock().lock();
+        long stamp = lock.readLock();
         try {
             all = new ArrayList<>(container.getEntityCount());
             container.forEachEntity(all::add);
         } finally {
-            rwLock.readLock().unlock();
+            lock.unlockRead(stamp);
         }
         all.forEach(action);
     }
@@ -121,28 +129,37 @@ public class Cell implements SimulationNode<Organism> {
     @Override
     public void query(EntityQuery<Organism> query, Consumer<Organism> action) {
         List<Organism> matching = new ArrayList<>();
-        rwLock.readLock().lock();
+        long stamp = lock.readLock();
         try {
             container.forEachMatching(query, matching::add);
         } finally {
-            rwLock.readLock().unlock();
+            lock.unlockRead(stamp);
         }
         matching.forEach(action);
     }
 
     @Override
     public int getEntityCount() {
-        rwLock.readLock().lock();
-        try {
-            return container.getEntityCount();
-        } finally {
-            rwLock.readLock().unlock();
+        long stamp = lock.tryOptimisticRead();
+        int count = container.getEntityCount();
+        if (!lock.validate(stamp)) {
+            stamp = lock.readLock();
+            try {
+                count = container.getEntityCount();
+            } finally {
+                lock.unlockRead(stamp);
+            }
         }
+        return count;
+    }
+
+    private int getEntityCountInternal() {
+        return container.getEntityCount();
     }
 
     @Override
     public boolean canAccept(Organism organism) {
-        rwLock.readLock().lock();
+        long stamp = lock.readLock();
         try {
             if (organism instanceof Animal animal) {
                 if (!animal.getAnimalType().isTerrainAccessible(terrainType)) {
@@ -152,7 +169,7 @@ public class Cell implements SimulationNode<Organism> {
             }
             return true; 
         } finally {
-            rwLock.readLock().unlock();
+            lock.unlockRead(stamp);
         }
     }
 
@@ -178,7 +195,7 @@ public class Cell implements SimulationNode<Organism> {
     }
 
     public boolean addAnimal(Animal animal, boolean fireEvents) {
-        rwLock.writeLock().lock();
+        long stamp = lock.writeLock();
         try {
             if (container.countByType(animal.getAnimalType()) >= animal.getMaxPerCell()) {
                 return false;
@@ -191,12 +208,12 @@ public class Cell implements SimulationNode<Organism> {
             }
             return true;
         } finally {
-            rwLock.writeLock().unlock();
+            lock.unlockWrite(stamp);
         }
     }
 
     public boolean removeAnimal(Animal animal) {
-        rwLock.writeLock().lock();
+        long stamp = lock.writeLock();
         try { 
             if (container.removeAnimal(animal)) {
                 world.onEntityRemoved(animal);
@@ -204,21 +221,21 @@ public class Cell implements SimulationNode<Organism> {
             }
             return false;
         } finally {
-            rwLock.writeLock().unlock();
+            lock.unlockWrite(stamp);
         }
     }
 
     public List<Animal> getAnimals() {
-        rwLock.readLock().lock();
+        long stamp = lock.readLock();
         try {
             return new ArrayList<>(container.getAllAnimals());
         } finally {
-            rwLock.readLock().unlock();
+            lock.unlockRead(stamp);
         }
     }
 
     public List<Animal> getPredators() {
-        rwLock.readLock().lock();
+        long stamp = lock.readLock();
         try {
             List<Animal> predators = new ArrayList<>();
             container.forEachAnimal(a -> {
@@ -228,12 +245,12 @@ public class Cell implements SimulationNode<Organism> {
             });
             return predators;
         } finally {
-            rwLock.readLock().unlock();
+            lock.unlockRead(stamp);
         }
     }
 
     public List<Animal> getHerbivores() {
-        rwLock.readLock().lock();
+        long stamp = lock.readLock();
         try {
             List<Animal> herbivores = new ArrayList<>();
             container.forEachAnimal(a -> {
@@ -243,35 +260,35 @@ public class Cell implements SimulationNode<Organism> {
             });
             return herbivores;
         } finally {
-            rwLock.readLock().unlock();
+            lock.unlockRead(stamp);
         }
     }
 
     public void forEachAnimal(Consumer<Animal> action) {
         List<Animal> all;
-        rwLock.readLock().lock();
+        long stamp = lock.readLock();
         try {
             all = container.getAllAnimals();
         } finally {
-            rwLock.readLock().unlock();
+            lock.unlockRead(stamp);
         }
         all.forEach(action);
     }
 
     public void forEachAnimalSampled(SamplingContext context, Consumer<Animal> action) {
         List<Animal> all;
-        rwLock.readLock().lock();
+        long stamp = lock.readLock();
         try {
             all = container.getAllAnimals();
         } finally {
-            rwLock.readLock().unlock();
+            lock.unlockRead(stamp);
         }
         SamplingUtils.forEachSampled(all, context, action);
     }
 
     public void forEachPredator(Consumer<Animal> action) {
         List<Animal> predators;
-        rwLock.readLock().lock();
+        long stamp = lock.readLock();
         try {
             predators = new ArrayList<>();
             container.forEachAnimal(a -> {
@@ -280,14 +297,14 @@ public class Cell implements SimulationNode<Organism> {
                 }
             });
         } finally {
-            rwLock.readLock().unlock();
+            lock.unlockRead(stamp);
         }
         predators.forEach(action);
     }
 
     public void forEachHerbivoreSampled(int limit, RandomProvider random, Consumer<Animal> action) {
         List<Animal> herbivores;
-        rwLock.readLock().lock();
+        long stamp = lock.readLock();
         try {
             herbivores = new ArrayList<>();
             container.forEachAnimal(a -> {
@@ -296,13 +313,13 @@ public class Cell implements SimulationNode<Organism> {
                 }
             });
         } finally {
-            rwLock.readLock().unlock();
+            lock.unlockRead(stamp);
         }
         SamplingUtils.forEachSampled(herbivores, limit, random, action);
     }
 
     public Animal getRandomAnimalByType(AnimalType type, RandomProvider random) {
-        rwLock.readLock().lock();
+        long stamp = lock.readLock();
         try {
             List<Animal> list = container.getByType(type);
             if (list.isEmpty()) {
@@ -310,48 +327,68 @@ public class Cell implements SimulationNode<Organism> {
             }
             return list.get(random.nextInt(list.size()));
         } finally {
-            rwLock.readLock().unlock();
+            lock.unlockRead(stamp);
         }
     }
 
     public int countAnimalsByType(AnimalType type) {
-        rwLock.readLock().lock();
-        try {
-            return container.countByType(type);
-        } finally {
-            rwLock.readLock().unlock();
+        long stamp = lock.tryOptimisticRead();
+        int count = container.countByType(type);
+        if (!lock.validate(stamp)) {
+            stamp = lock.readLock();
+            try {
+                count = container.countByType(type);
+            } finally {
+                lock.unlockRead(stamp);
+            }
         }
+        return count;
     }
 
     public int getOrganismCount(SpeciesKey key) {
-        rwLock.readLock().lock();
-        try {
-            return container.countBySpecies(key);
-        } finally {
-            rwLock.readLock().unlock();
+        long stamp = lock.tryOptimisticRead();
+        int count = container.countBySpecies(key);
+        if (!lock.validate(stamp)) {
+            stamp = lock.readLock();
+            try {
+                count = container.countBySpecies(key);
+            } finally {
+                lock.unlockRead(stamp);
+            }
         }
+        return count;
     }
 
     public int getAnimalCount() {
-        rwLock.readLock().lock();
-        try {
-            return container.getAnimalCount();
-        } finally {
-            rwLock.readLock().unlock();
+        long stamp = lock.tryOptimisticRead();
+        int count = container.getAnimalCount();
+        if (!lock.validate(stamp)) {
+            stamp = lock.readLock();
+            try {
+                count = container.getAnimalCount();
+            } finally {
+                lock.unlockRead(stamp);
+            }
         }
+        return count;
     }
 
     public int getBiomassCount() {
-        rwLock.readLock().lock();
-        try {
-            return container.getBiomassCount();
-        } finally {
-            rwLock.readLock().unlock();
+        long stamp = lock.tryOptimisticRead();
+        int count = container.getBiomassCount();
+        if (!lock.validate(stamp)) {
+            stamp = lock.readLock();
+            try {
+                count = container.getBiomassCount();
+            } finally {
+                lock.unlockRead(stamp);
+            }
         }
+        return count;
     }
 
     public boolean addBiomass(Biomass b) {
-        rwLock.writeLock().lock();
+        long stamp = lock.writeLock();
         try {
             Biomass existing = container.getBiomass(b.getSpeciesKey());
             if (existing != null) {
@@ -361,12 +398,12 @@ public class Cell implements SimulationNode<Organism> {
             container.addBiomass(b);
             return true;
         } finally {
-            rwLock.writeLock().unlock();
+            lock.unlockWrite(stamp);
         }
     }
 
     public boolean addBiomass(SpeciesKey key, long amount) {
-        rwLock.writeLock().lock();
+        long stamp = lock.writeLock();
         try {
             Biomass existing = container.getBiomass(key);
             if (existing != null) {
@@ -375,30 +412,30 @@ public class Cell implements SimulationNode<Organism> {
             }
             return false;
         } finally {
-            rwLock.writeLock().unlock();
+            lock.unlockWrite(stamp);
         }
     }
 
     public List<Biomass> getBiomassContainers() {
-        rwLock.readLock().lock();
+        long stamp = lock.readLock();
         try {
             return new ArrayList<>(container.getAllBiomass());
         } finally {
-            rwLock.readLock().unlock();
+            lock.unlockRead(stamp);
         }
     }
 
     public Biomass getBiomass(SpeciesKey key) {
-        rwLock.readLock().lock();
+        long stamp = lock.readLock();
         try {
             return container.getBiomass(key);
         } finally {
-            rwLock.readLock().unlock();
+            lock.unlockRead(stamp);
         }
     }
 
     public int getPlantCount() { 
-        rwLock.readLock().lock();
+        long stamp = lock.readLock();
         try {
             long total = 0;
             for (Biomass b : container.getAllBiomass()) {
@@ -406,20 +443,20 @@ public class Cell implements SimulationNode<Organism> {
             }
             return (int) (total / config.getScale1M());
         } finally {
-            rwLock.readLock().unlock();
+            lock.unlockRead(stamp);
         }
     }
 
     @Override
     public void cleanupDeadEntities(Consumer<Organism> onOrganismRemoved) {
-        rwLock.writeLock().lock();
+        long stamp = lock.writeLock();
         try {
             container.removeDeadAnimals(a -> {
                 world.onEntityRemoved(a);
                 onOrganismRemoved.accept((Organism) a);
             });
         } finally {
-            rwLock.writeLock().unlock();
+            lock.unlockWrite(stamp);
         }
     }
 }

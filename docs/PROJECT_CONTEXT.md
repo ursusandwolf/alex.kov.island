@@ -38,8 +38,9 @@
     - **Landscape & Terrain**: Implemented dynamic river generation as a natural movement barrier. [DONE]
 
 ## Next Steps
-- **Performance**:
-    - Further optimize `SystemExecutionGraph` for large-scale simulations.
+    - **Performance**:
+        - Optimized `GridUtils` locking mechanism using `System.identityHashCode` and `tryLock` fallback to prevent deadlocks and eliminate coordinate coupling. [DONE]
+        - Further optimize `SystemExecutionGraph` for large-scale simulations.
     - Investigate native memory usage for high-density entity stores.
 
 ## Maintenance & Technical Debt

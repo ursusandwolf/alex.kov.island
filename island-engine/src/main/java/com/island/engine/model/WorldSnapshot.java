@@ -8,14 +8,23 @@ import java.util.Map;
  */
 @EngineAPI
 public interface WorldSnapshot {
+    /**
+     * Gets the current tick count of the simulation when the snapshot was taken.
+     */
     int getTickCount();
 
+    /**
+     * Gets the width of the world.
+     */
     int getWidth();
 
+    /**
+     * Gets the height of the world.
+     */
     int getHeight();
 
     /**
-     * Total number of entities in the world.
+     * Gets the total number of entities currently in the world.
      */
     int getTotalEntityCount();
 
@@ -25,7 +34,7 @@ public interface WorldSnapshot {
     Map<String, Number> getMetrics();
 
     /**
-     * Gets snapshot of a specific node.
+     * Gets a snapshot of a specific node at the given coordinates.
      */
     NodeSnapshot getNodeSnapshot(int x, int y);
 }

@@ -3,6 +3,8 @@
 ## [1.35.0] - 2026-05-09
 ### Changed
 - **Engine Quality & Performance**:
+    - **Cell & EntityContainer**: Migrated `Cell` from `ReentrantReadWriteLock` to `StampedLock` with optimistic reads to significantly reduce lock contention overhead. Eliminated O(N) iteration overheads in `EntityContainer` by replacing some inner collections with pre-calculated counters and `LinkedHashMap` indexing.
+    - **GridUtils**: Replaced explicit coordinate-based locking with `System.identityHashCode` ordering and a `tryLock` fallback to prevent deadlocks without spatial coupling.
     - **SystemExecutionGraph**: Optimized conflict detection by avoiding `HashSet` allocations and using direct list iteration. This reduces garbage collection pressure during task scheduling.
     - **DefaultEventBus**: Optimized type hierarchy traversal by replacing `LinkedList` with `ArrayDeque` for improved queue performance.
     - **Verification**: Verified module-path compilation and packaging for all engine and domain modules.
