@@ -50,6 +50,7 @@ public class CityConsoleView {
             case RESIDENTIAL -> "R";
             case COMMERCIAL -> "C";
             case INDUSTRIAL -> "I";
+            case AGRICULTURAL -> "A";
             case ROAD -> "#";
         };
     }

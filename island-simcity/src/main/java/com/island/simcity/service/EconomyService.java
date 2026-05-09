@@ -44,11 +44,13 @@ public class EconomyService extends AbstractSimCityService {
                     case RESIDENTIAL -> 5;
                     case COMMERCIAL -> 20;
                     case INDUSTRIAL -> 50;
+                    case AGRICULTURAL -> 1;
                 };
                 if (tile.isConnected()) {
                     cellIncome += switch (building.getType()) {
                         case COMMERCIAL -> 100;
                         case INDUSTRIAL -> 200;
+                        case AGRICULTURAL -> 10;
                         default -> 0;
                     };
                 }

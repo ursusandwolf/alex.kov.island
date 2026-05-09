@@ -42,6 +42,7 @@ public class BuildingService {
             case RESIDENTIAL -> 200;
             case COMMERCIAL -> 500;
             case INDUSTRIAL -> 1000;
+            case AGRICULTURAL -> 100;
         };
     }
 }

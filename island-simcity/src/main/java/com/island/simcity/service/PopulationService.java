@@ -43,6 +43,7 @@ public class PopulationService extends AbstractSimCityService {
         boolean hasResidential = false;
         int neighborIndustrial = 0;
         int neighborCommercial = 0;
+        int neighborAgricultural = 0;
 
         // Calculate environmental factors from neighbors
         for (SimulationNode<SimEntity> neighborNode : tile.getNeighbors()) {
@@ -54,6 +55,8 @@ public class PopulationService extends AbstractSimCityService {
                         neighborIndustrial++;
                     } else if (building.getType() == BuildingComponent.Type.COMMERCIAL) {
                         neighborCommercial++;
+                    } else if (building.getType() == BuildingComponent.Type.AGRICULTURAL) {
+                        neighborAgricultural++;
                     }
                 }
             }
@@ -85,6 +88,7 @@ public class PopulationService extends AbstractSimCityService {
                 int happinessDelta = 2; // Base connected bonus
                 happinessDelta -= neighborIndustrial * 10; // Pollution penalty
                 happinessDelta += neighborCommercial * 15; // Amenities bonus
+                happinessDelta += neighborAgricultural * 5; // Nature bonus
                 
                 // Tax penalty
                 if (map.getTaxRate() > 20) {

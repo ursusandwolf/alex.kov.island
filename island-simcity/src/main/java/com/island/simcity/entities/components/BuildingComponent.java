@@ -16,6 +16,7 @@ public class BuildingComponent implements Component {
         RESIDENTIAL,
         COMMERCIAL,
         INDUSTRIAL,
+        AGRICULTURAL,
         ROAD
     }
 

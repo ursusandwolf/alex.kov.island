@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.33.0] - 2026-05-09
+
+### Added
+- **SimCity Expansion**:
+    - Introduced **Agricultural Zone** (`AGRICULTURAL`) to the SimCity plugin with dedicated costs, income, and maintenance profiles.
+    - Updated `PopulationService` to include a "Nature Bonus" for residents living near agricultural zones.
+    - Added visualization support for Agricultural zones ("A") in `CityConsoleView`.
+- **Comprehensive Boundary Testing**:
+    - Implemented `SimCityBoundaryTest` covering:
+        - **Economic Boundaries**: Exact zero-balance building and cost-minus-one failure cases.
+        - **Spatial Boundaries**: Corner validation (0,0 and max coordinates) and out-of-bounds failure checks.
+        - **Density Boundaries**: Prevention of building overlap (collision detection).
+        - **Social/Logic Boundaries**: Happiness impact of 100% tax rates and revenue loss at 0% tax.
+
+### Changed
+- **SimCity Service Refinement**: 
+    - Updated `EconomyService` to handle agricultural production and maintenance.
+    - Refactored `PopulationService` happiness calculation to support new environmental factors.
+
 ## [1.32.0] - 2026-05-09
 
 ### Added
