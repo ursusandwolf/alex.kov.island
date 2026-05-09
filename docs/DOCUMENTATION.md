@@ -35,10 +35,14 @@ The engine automatically resolves dependencies between `EntitySystem` instances 
 ### 2.7 SimCity Pure ECS
 Unlike the Nature domain which uses specialized `Animal`/`Biomass` classes, the SimCity domain uses a pure ECS approach:
 - **Generic Entity**: `SimEntity` is a generic container for components.
-- **Components**: Data is stored in `PopulationComponent`, `BuildingComponent` (Residential, Commercial, Industrial, Agricultural, Road), and `EconomyComponent`.
+- **Components**: Data is stored in `PopulationComponent`, `BuildingComponent` (Residential, Commercial, Industrial, Agricultural, Road, Railway, Metro, Water Pipe), and `EconomyComponent`.
 - **Stateless Systems**: Logic is implemented in `PopulationService`, `EconomyService`, and `CityAnalyticsService` which operate strictly on components.
 - **Agricultural Expansion**: Introduced Agricultural zones that provide a "Nature Bonus" to nearby residential happiness and have a low-cost, low-maintenance economic profile.
-- **Boundary Validation**: The domain includes a rigorous boundary test suite verifying economic limits (zero balance), spatial limits (grid corners/overflow), density (building collisions), and social logic (tax extremes).
+- **Communication Infrastructure**: Implemented multiple independent networks:
+    - **Roads**: Basic connectivity required for all services.
+    - **Water Supply**: Mandatory for residential happiness and growth.
+    - **Railways & Metro**: High-capacity transport providing significant happiness bonuses to nearby residents.
+- **Boundary Validation**: The domain includes a rigorous boundary test suite verifying economic limits (zero balance), spatial limits (grid corners/overflow), density (building collisions), and social logic (tax extremes and infrastructure lack).
 
 ### 2.8 GC & Allocation Optimization
 To support high-frequency ticks in large-scale simulations, the engine employs several object reuse strategies:

@@ -122,7 +122,15 @@ class SimCityBoundaryTest {
         CityMap map = (CityMap) context.world();
         map.setTaxRate(100);
         
-        map.getGrid()[0][0].setConnected(true);
+        // Add infrastructure
+        SimEntity road = new SimEntity(map.getComponentRegistry());
+        road.addComponent(new BuildingComponent(BuildingComponent.Type.ROAD));
+        map.getGrid()[0][0].addEntity(road);
+
+        SimEntity pipe = new SimEntity(map.getComponentRegistry());
+        pipe.addComponent(new BuildingComponent(BuildingComponent.Type.WATER_PIPE));
+        map.getGrid()[0][0].addEntity(pipe);
+        
         SimEntity resident = new SimEntity(map.getComponentRegistry());
         PopulationComponent pop = new PopulationComponent(0, 100);
         resident.addComponent(pop);
@@ -134,6 +142,61 @@ class SimCityBoundaryTest {
         }
         
         assertTrue(pop.getHappiness() < 50, "Happiness should drop significantly at 100% tax");
+        context.gameLoop().stop();
+    }
+
+    @Test
+    @DisplayName("Communication: Residents should be unhappy without water")
+    void residents_unhappy_without_water() {
+        SimulationEngine<SimEntity> engine = new SimulationEngine<>();
+        SimulationContext<SimEntity> context = engine.build(new SimCityPlugin(5, 5), 0, 1);
+        CityMap map = (CityMap) context.world();
+        
+        // Add road but no water
+        SimEntity road = new SimEntity(map.getComponentRegistry());
+        road.addComponent(new BuildingComponent(BuildingComponent.Type.ROAD));
+        map.getGrid()[0][0].addEntity(road);
+        
+        SimEntity resident = new SimEntity(map.getComponentRegistry());
+        PopulationComponent pop = new PopulationComponent(0, 100);
+        resident.addComponent(pop);
+        map.getGrid()[0][0].addEntity(resident);
+        
+        context.gameLoop().runTick();
+        
+        assertTrue(pop.getHappiness() < 100, "Happiness should drop without water");
+        context.gameLoop().stop();
+    }
+
+    @Test
+    @DisplayName("Communication: Metro should provide significant happiness bonus")
+    void metro_happiness_bonus() {
+        SimulationEngine<SimEntity> engine = new SimulationEngine<>();
+        SimulationContext<SimEntity> context = engine.build(new SimCityPlugin(5, 5), 0, 1);
+        CityMap map = (CityMap) context.world();
+        
+        // Add road, water and metro
+        SimEntity road = new SimEntity(map.getComponentRegistry());
+        road.addComponent(new BuildingComponent(BuildingComponent.Type.ROAD));
+        map.getGrid()[0][0].addEntity(road);
+
+        SimEntity pipe = new SimEntity(map.getComponentRegistry());
+        pipe.addComponent(new BuildingComponent(BuildingComponent.Type.WATER_PIPE));
+        map.getGrid()[0][0].addEntity(pipe);
+
+        SimEntity metro = new SimEntity(map.getComponentRegistry());
+        metro.addComponent(new BuildingComponent(BuildingComponent.Type.METRO));
+        map.getGrid()[0][0].addEntity(metro);
+
+        SimEntity resident = new SimEntity(map.getComponentRegistry());
+        PopulationComponent pop = new PopulationComponent(0, 50);
+        resident.addComponent(pop);
+        map.getGrid()[0][0].addEntity(resident);
+        
+        context.gameLoop().runTick();
+        
+        // Base bonus (2) + water (5) + metro (20) = 27. 50 + 27 = 77
+        assertEquals(77, pop.getHappiness(), "Happiness should increase significantly with Metro");
         context.gameLoop().stop();
     }
 }

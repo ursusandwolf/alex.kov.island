@@ -5,14 +5,16 @@
 ### Added
 - **SimCity Expansion**:
     - Introduced **Agricultural Zone** (`AGRICULTURAL`) to the SimCity plugin with dedicated costs, income, and maintenance profiles.
-    - Updated `PopulationService` to include a "Nature Bonus" for residents living near agricultural zones.
-    - Added visualization support for Agricultural zones ("A") in `CityConsoleView`.
+    - Expanded **Infrastructure Systems**: Added **Railways**, **Metro**, and **Water Supply** (`WATER_PIPE`) with independent connectivity logic.
+    - Updated `PopulationService`: Residents now require water to maintain happiness; proximity to Metro and Railways provides significant happiness bonuses.
+    - Updated `EconomyService`: Added tiered maintenance costs for all new infrastructure types.
+    - Added visualization support for all new types (`A` for Agricultural, `=` for Rail, `M` for Metro, `w` for Water) in `CityConsoleView`.
 - **Comprehensive Boundary Testing**:
     - Implemented `SimCityBoundaryTest` covering:
         - **Economic Boundaries**: Exact zero-balance building and cost-minus-one failure cases.
         - **Spatial Boundaries**: Corner validation (0,0 and max coordinates) and out-of-bounds failure checks.
         - **Density Boundaries**: Prevention of building overlap (collision detection).
-        - **Social/Logic Boundaries**: Happiness impact of 100% tax rates and revenue loss at 0% tax.
+        - **Social/Logic Boundaries**: Happiness impact of 100% tax rates, revenue loss at 0% tax, and impact of infrastructure availability (Water/Metro).
 
 ### Changed
 - **SimCity Service Refinement**: 

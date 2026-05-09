@@ -20,9 +20,21 @@ public class CityTile implements SimulationNode<SimEntity> {
     
     @Getter @Setter private List<SimulationNode<SimEntity>> neighbors = new ArrayList<>();
     private boolean connected = false;
+    private boolean watered = false;
+    private boolean railed = false;
+    private boolean metroConnected = false;
 
     public void setConnected(boolean connected) { this.connected = connected; }
     public boolean isConnected() { return connected; }
+    
+    public void setWatered(boolean watered) { this.watered = watered; }
+    public boolean isWatered() { return watered; }
+    
+    public void setRailed(boolean railed) { this.railed = railed; }
+    public boolean isRailed() { return railed; }
+
+    public void setMetroConnected(boolean metroConnected) { this.metroConnected = metroConnected; }
+    public boolean isMetroConnected() { return metroConnected; }
 
     public CityTile(int x, int y, SimulationWorld<SimEntity> world) {
         this.x = x;

@@ -28,35 +28,47 @@ public class ConnectivityService extends AbstractSimCityService {
     public void beforeTick(int tickCount) {
         for (int x = 0; x < map.getWidth(); x++) {
             for (int y = 0; y < map.getHeight(); y++) {
-                map.getGrid()[x][y].setConnected(false);
+                CityTile tile = map.getGrid()[x][y];
+                tile.setConnected(false);
+                tile.setWatered(false);
+                tile.setRailed(false);
+                tile.setMetroConnected(false);
             }
         }
 
+        propagateNetwork(BuildingComponent.Type.ROAD, CityTile::setConnected);
+        propagateNetwork(BuildingComponent.Type.WATER_PIPE, CityTile::setWatered);
+        propagateNetwork(BuildingComponent.Type.RAILWAY, CityTile::setRailed);
+        propagateNetwork(BuildingComponent.Type.METRO, CityTile::setMetroConnected);
+    }
+
+    private void propagateNetwork(BuildingComponent.Type type, java.util.function.BiConsumer<CityTile, Boolean> setter) {
         Queue<CityTile> queue = new ArrayDeque<>();
         Set<CityTile> visited = new HashSet<>();
+        
+        // Start from (0,0) as the city entrance/source for all networks for simplicity
         CityTile start = map.getGrid()[0][0];
-        if (hasRoad(start)) {
+        if (hasInfrastructure(start, type)) {
             queue.add(start);
             visited.add(start);
         }
 
         while (!queue.isEmpty()) {
             CityTile current = queue.poll();
-            current.setConnected(true);
+            setter.accept(current, true);
             for (int dx = -1; dx <= 1; dx++) {
                 for (int dy = -1; dy <= 1; dy++) {
-                    if (Math.abs(dx) + Math.abs(dy) != 1) { // Only orthogonal for roads
-                        continue;
-                    }
+                    if (Math.abs(dx) + Math.abs(dy) != 1) continue;
+                    
                     int nx = current.getX() + dx;
                     int ny = current.getY() + dy;
                     if (nx >= 0 && nx < map.getWidth() && ny >= 0 && ny < map.getHeight()) {
                         CityTile neighbor = map.getGrid()[nx][ny];
-                        if (hasRoad(neighbor) && visited.add(neighbor)) {
+                        if (hasInfrastructure(neighbor, type) && visited.add(neighbor)) {
                             queue.add(neighbor);
                         } else {
-                            // Non-road tile connected to road is still connected
-                            neighbor.setConnected(true);
+                            // Any tile adjacent to the infrastructure is "connected" to it
+                            setter.accept(neighbor, true);
                         }
                     }
                 }
@@ -64,12 +76,16 @@ public class ConnectivityService extends AbstractSimCityService {
         }
     }
 
-    private boolean hasRoad(CityTile tile) {
+    private boolean hasInfrastructure(CityTile tile, BuildingComponent.Type type) {
         return tile.getEntities().stream()
                 .anyMatch(e -> {
                     BuildingComponent b = e.getComponent(BuildingComponent.class);
-                    return b != null && b.getType() == BuildingComponent.Type.ROAD;
+                    return b != null && b.getType() == type;
                 });
+    }
+
+    private boolean hasRoad(CityTile tile) {
+        return hasInfrastructure(tile, BuildingComponent.Type.ROAD);
     }
 
     @Override

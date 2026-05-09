@@ -52,6 +52,9 @@ public class CityConsoleView {
             case INDUSTRIAL -> "I";
             case AGRICULTURAL -> "A";
             case ROAD -> "#";
+            case RAILWAY -> "=";
+            case METRO -> "M";
+            case WATER_PIPE -> "w";
         };
     }
 

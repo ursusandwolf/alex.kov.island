@@ -17,7 +17,10 @@ public class BuildingComponent implements Component {
         COMMERCIAL,
         INDUSTRIAL,
         AGRICULTURAL,
-        ROAD
+        ROAD,
+        RAILWAY,
+        METRO,
+        WATER_PIPE
     }
 
     private Type type;

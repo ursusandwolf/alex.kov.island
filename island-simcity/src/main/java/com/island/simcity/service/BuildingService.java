@@ -43,6 +43,9 @@ public class BuildingService {
             case COMMERCIAL -> 500;
             case INDUSTRIAL -> 1000;
             case AGRICULTURAL -> 100;
+            case RAILWAY -> 300;
+            case METRO -> 2000;
+            case WATER_PIPE -> 80;
         };
     }
 }

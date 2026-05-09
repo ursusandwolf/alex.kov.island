@@ -45,6 +45,9 @@ public class EconomyService extends AbstractSimCityService {
                     case COMMERCIAL -> 20;
                     case INDUSTRIAL -> 50;
                     case AGRICULTURAL -> 1;
+                    case RAILWAY -> 15;
+                    case METRO -> 100;
+                    case WATER_PIPE -> 3;
                 };
                 if (tile.isConnected()) {
                     cellIncome += switch (building.getType()) {

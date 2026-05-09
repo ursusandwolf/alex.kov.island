@@ -90,6 +90,13 @@ public class PopulationService extends AbstractSimCityService {
                 happinessDelta += neighborCommercial * 15; // Amenities bonus
                 happinessDelta += neighborAgricultural * 5; // Nature bonus
                 
+                // New infrastructure bonuses
+                if (tile.isWatered()) happinessDelta += 5;
+                else happinessDelta -= 20; // Residents hate no water
+                
+                if (tile.isRailed()) happinessDelta += 10;
+                if (tile.isMetroConnected()) happinessDelta += 20;
+                
                 // Tax penalty
                 if (map.getTaxRate() > 20) {
                     happinessDelta -= (map.getTaxRate() - 20);
