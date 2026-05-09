@@ -5,6 +5,7 @@ import com.island.engine.scheduling.GameLoop;
 /**
  * Defines how a task should be executed by the GameLoop.
  */
+@EngineAPI
 public enum ExecutionMode {
     /**
      * Executed sequentially in the main loop thread.

@@ -1,5 +1,6 @@
 package com.island.engine.ecs;
 
+import com.island.engine.core.EngineAPI;
 import java.util.BitSet;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -7,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Default implementation of ComponentStore using a ConcurrentHashMap.
  */
+@EngineAPI
 public class DefaultComponentStore implements ComponentStore {
     private final ComponentRegistry registry;
     private final Map<Class<? extends Component>, Component> components = new ConcurrentHashMap<>();

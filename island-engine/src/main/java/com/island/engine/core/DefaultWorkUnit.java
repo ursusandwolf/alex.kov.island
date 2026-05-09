@@ -9,6 +9,7 @@ import com.island.engine.model.Mortal;
 /**
  * Default implementation of WorkUnit for simple use cases.
  */
+@EngineAPI
 public class DefaultWorkUnit<T extends Mortal> extends AbstractList<SimulationNode<T>> implements WorkUnit<T> {
     private final List<SimulationNode<T>> nodes;
     private long lastExecutionTimeNanos;

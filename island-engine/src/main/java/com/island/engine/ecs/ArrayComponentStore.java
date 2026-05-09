@@ -1,5 +1,6 @@
 package com.island.engine.ecs;
 
+import com.island.engine.core.EngineAPI;
 import java.util.Arrays;
 import java.util.BitSet;
 
@@ -8,6 +9,7 @@ import java.util.BitSet;
  * Best for entities with a fixed set of components.
  * Automatically grows the internal array if needed.
  */
+@EngineAPI
 public class ArrayComponentStore implements ComponentStore {
     private static final Component[] EMPTY_COMPONENTS = new Component[0];
     private final ComponentRegistry registry;
