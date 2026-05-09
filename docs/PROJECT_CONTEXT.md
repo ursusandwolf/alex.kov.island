@@ -49,10 +49,12 @@
             - Integrated SoA stores into `NatureDomainContext`. [DONE]
         - Migrated `Organism` logic to use SoA stores for component data. Stripped state from `HealthComponent` and `AgeComponent`, converting them into empty marker components for ECS parallel scheduling. [DONE]
         - Fixed `StampedLock` non-reentrant deadlock in `Cell` movement logic using lock-free internal methods. [DONE]
-        - Further optimize `SystemExecutionGraph` for large-scale simulations.
-        - Reviewed `ObjectPool` usage in `AnimalFactory` and `Organism` poolable implementation; current implementation is performant and thread-safe. [DONE]    - Investigate native memory usage for high-density entity stores.
 
-## Maintenance & Technical Debt
-- **Validation**: Continuous monitoring of ecosystem stability across seasonal extremes.
-- **Test Coverage**: Optimized suite to 75 high-signal tests (consolidated from 82); maintained 100% pass rate. [DONE]
-- **Clean Code**: Periodic review of generic type usage to ensure absolute type safety across domain boundaries.
+## Next Steps
+    - **Performance**:
+        - Further optimize `SystemExecutionGraph` for large-scale simulations using more granular dependency groups.
+        - Investigate native memory usage (off-heap) for high-density entity stores to minimize GC impact further.
+        - Refactor `MovementComponent` to SoA storage to complete the primitive data migration.
+    - **Maintenance & Technical Debt**:
+        - Periodically review `ObjectPool` fragmentation under extreme stress tests.
+        - Expand `EcosystemBalanceTest` with edge-case climate scenarios (volcanic winter, heat waves).
