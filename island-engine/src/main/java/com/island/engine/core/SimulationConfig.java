@@ -14,7 +14,7 @@ public class SimulationConfig {
         return SimulationConfig.builder()
                 .tickDurationMs(100)
                 .threadCount(threadCount)
-                .executionMode(threadCount > 0 ? ExecutionMode.SEQUENTIAL : ExecutionMode.PARALLEL)
+                .executionMode(threadCount > 0 ? ExecutionMode.PARALLEL : ExecutionMode.SEQUENTIAL)
                 .build();
     }
 }

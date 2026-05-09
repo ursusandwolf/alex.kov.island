@@ -18,10 +18,13 @@
     - **Architecture Cleanup**: 
         - Deleted redundant root `src` directory and organized scripts. [DONE]
         - Moved `ArchitectureTest` to `island-app` and expanded with cross-module isolation rules and internal API usage checks. [DONE]
+        - Fixed JPMS isolation: eliminated internal engine exports and replaced with public storage interfaces (`EntityIdProvider`, `HealthStorage`, `AgeStorage`). [DONE]
         - Moved `GameLoopOptimizationTest` to `island-engine`. [DONE]
         - Relocated `WorldInitializationTest` to `island-nature` (integration package) and fixed its package declaration to align with module boundaries. [DONE]
         - Refactored `DefaultWorkUnit` to use `AbstractList`. [DONE]
         - Fixed thread-safety (TOCTOU) in `GameLoop` and `CityMap`. [DONE]
+        - Resolved `EconomySystem` placeholder crashes and fixed `SimulationConfig` execution mode logic. [DONE]
+    - **Automation**: Added GitHub Actions CI workflow for automated build and architecture verification. [DONE]
     - **API Misuse Fixes**: Refactored `SimCitySmokeTest` and `SimCityCoreLogicTest` to use the public `SimulationEngine` API instead of manually assembling internal components like `ParallelDispatcher` or `PhaseScheduler`. [DONE]
     - **ECS Optimization**: 
         - Integrated `SystemExecutionGraph` into `PhaseScheduler` for automated parallel scheduling. [DONE]

@@ -1,5 +1,6 @@
 package com.island.engine.internal;
 
+import com.island.engine.core.HealthStorage;
 import com.island.engine.core.InternalEngine;
 
 /**
@@ -7,7 +8,7 @@ import com.island.engine.core.InternalEngine;
  * Designed to minimize GC pressure and improve cache locality for mass entities.
  */
 @InternalEngine
-public class HealthSoAStore {
+public class HealthSoAStore implements HealthStorage {
     private long[] currentEnergy;
     private long[] maxEnergy;
     private boolean[] alive;
@@ -20,6 +21,7 @@ public class HealthSoAStore {
         this.alive = new boolean[initialCapacity];
     }
 
+    @Override
     public void set(int entityId, long currentEnergy, long maxEnergy, boolean alive) {
         ensureCapacity(entityId);
         this.currentEnergy[entityId] = currentEnergy;

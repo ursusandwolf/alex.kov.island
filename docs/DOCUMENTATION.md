@@ -105,7 +105,7 @@ The project has fully transitioned from a monolith to a library-ready, multi-mod
    - Hosts `ArchitectureTest` for project-wide constraint enforcement.
 
 ### 6.2 API Contracts & Stability
-- **@EngineAPI**: Classes marked with this are stable and intended for plugin developers. Includes `SimulationEngine`, `GameLoop`, `EventBus`, `SimulationWorld`, `Entity`, and core ECS interfaces.
+- **@EngineAPI**: Classes marked with this are stable and intended for plugin developers. Includes `SimulationEngine`, `GameLoop`, `EventBus`, `SimulationWorld`, `Entity`, core ECS interfaces, and storage providers (`EntityIdProvider`, `HealthStorage`, `AgeStorage`).
 - **@InternalEngine**: Classes marked with this are implementation details and may change. Plugins are strictly forbidden from using these (enforced by ArchUnit and JPMS). Includes `ParallelDispatcher`, `PhaseScheduler`, and internal ECS storage implementations.
 - **JPMS (Java Module System)**: The engine module strictly controls its exports. Specifically, `com.island.engine.parallel` is NOT exported to any other module, ensuring that internal threading and dispatching logic remains encapsulated.
 - **Architecture Enforcement**: `ArchitectureTest` in `island-app` uses ArchUnit to verify that no classes in `nature` or `simcity` packages depend on classes marked as `@InternalEngine`.

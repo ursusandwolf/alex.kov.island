@@ -1,9 +1,9 @@
 package com.island.nature.entities.domain;
 
 import com.island.engine.ecs.ComponentRegistry;
-import com.island.engine.internal.AgeSoAStore;
-import com.island.engine.internal.EntityIdManager;
-import com.island.engine.internal.HealthSoAStore;
+import com.island.engine.core.AgeStorage;
+import com.island.engine.core.EntityIdProvider;
+import com.island.engine.core.HealthStorage;
 import com.island.nature.config.Configuration;
 import com.island.nature.entities.registry.AnimalFactory;
 import com.island.nature.entities.registry.SpeciesLoader;
@@ -40,9 +40,9 @@ public class NatureDomainContextFactory {
         
         return NatureDomainContext.builder()
                 .config(config)
-                .entityIdManager(new EntityIdManager())
-                .healthSoAStore(new HealthSoAStore(capacity))
-                .ageSoAStore(new AgeSoAStore(capacity))
+                .entityIdProvider(EntityIdProvider.create())
+                .healthStorage(HealthStorage.create(capacity))
+                .ageStorage(AgeStorage.create(capacity))
                 .speciesRegistry(speciesRegistry)
                 .interactionProvider(InteractionMatrix.buildFrom(speciesRegistry))
                 .statisticsService(statisticsService)

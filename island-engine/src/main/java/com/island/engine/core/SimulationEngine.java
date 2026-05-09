@@ -61,6 +61,17 @@ public class SimulationEngine<T extends Mortal> {
     }
 
     /**
+     * Convenient overload for building a simulation context.
+     */
+    public SimulationContext<T> build(SimulationPlugin<T> plugin, int tickDurationMs, int threadCount) {
+        return build(plugin, SimulationConfig.builder()
+                .tickDurationMs(tickDurationMs)
+                .threadCount(threadCount)
+                .executionMode(threadCount > 0 ? ExecutionMode.PARALLEL : ExecutionMode.SEQUENTIAL)
+                .build());
+    }
+
+    /**
      * Stops the simulation and notifies the plugin.
      *
      * @param context The simulation context to stop.

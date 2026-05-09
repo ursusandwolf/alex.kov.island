@@ -11,5 +11,4 @@ module com.island.engine {
     exports com.island.util.common;
     exports com.island.util.math;
     exports com.island.util.sampling;
-    exports com.island.engine.internal;
 }

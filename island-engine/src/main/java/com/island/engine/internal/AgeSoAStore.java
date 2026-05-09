@@ -1,12 +1,13 @@
 package com.island.engine.internal;
 
+import com.island.engine.core.AgeStorage;
 import com.island.engine.core.InternalEngine;
 
 /**
  * High-performance, primitive-based store for AgeComponent data.
  */
 @InternalEngine
-public class AgeSoAStore {
+public class AgeSoAStore implements AgeStorage {
     private int[] age;
     private int[] maxLifespan;
     private int capacity;
@@ -17,6 +18,7 @@ public class AgeSoAStore {
         this.maxLifespan = new int[initialCapacity];
     }
 
+    @Override
     public void set(int entityId, int age, int maxLifespan) {
         ensureCapacity(entityId);
         this.age[entityId] = age;

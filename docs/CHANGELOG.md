@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.36.0] - 2026-05-09
+### Fixed
+- **JPMS & API Isolation**: Resolved critical architectural violations where internal engine packages were exported and used by the nature module. 
+    - Introduced `@EngineAPI` interfaces: `EntityIdProvider`, `HealthStorage`, and `AgeStorage` in `com.island.engine.core`.
+    - Removed `exports com.island.engine.internal` from `island-engine/module-info.java`.
+    - Refactored `NatureDomainContext` and `NatureDomainContextFactory` to use the new public storage interfaces instead of internal engine classes, satisfying ArchUnit rules in `ArchitectureTest`.
+- **SimulationConfig Logic**: Fixed inverted logic in `SimulationConfig.defaultFor(threadCount)` where `threadCount > 0` incorrectly resulted in `SEQUENTIAL` execution mode.
+- **EconomySystem Stability**: Replaced the `UnsupportedOperationException` in the placeholder `EconomySystem.process()` with a TODO comment to prevent crashes during SimCity execution.
+
+### Added
+- **Engine Convenience API**: Re-introduced a convenient 3-argument `build` overload in `SimulationEngine` to support existing tests while maintaining compatibility with the new `SimulationConfig` model.
+- **Continuous Integration**: Added `.github/workflows/ci.yml` to automate Maven builds and ArchUnit architecture verification on every push and pull request.
+
 ## [1.35.0] - 2026-05-09
 ### Changed
 - **Engine Quality & Performance**:
