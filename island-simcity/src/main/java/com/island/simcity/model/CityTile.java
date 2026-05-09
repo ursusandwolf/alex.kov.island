@@ -24,6 +24,8 @@ public class CityTile implements SimulationNode<SimEntity> {
     private boolean railed = false;
     private boolean metroConnected = false;
     private boolean powered = false;
+    @Getter @Setter private int airPollution = 0;
+    @Getter @Setter private int waterPollution = 0;
 
     public void setConnected(boolean connected) { this.connected = connected; }
     public boolean isConnected() { return connected; }

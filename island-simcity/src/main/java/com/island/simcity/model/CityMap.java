@@ -48,6 +48,24 @@ public class CityMap implements SimulationWorld<SimEntity> {
                 grid[x][y] = new CityTile(x, y, this);
             }
         }
+        
+        // Initialize neighbors
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                List<com.island.engine.core.SimulationNode<SimEntity>> neighbors = new ArrayList<>();
+                for (int dx = -1; dx <= 1; dx++) {
+                    for (int dy = -1; dy <= 1; dy++) {
+                        if (dx == 0 && dy == 0) continue;
+                        int nx = x + dx;
+                        int ny = y + dy;
+                        if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                            neighbors.add(grid[nx][ny]);
+                        }
+                    }
+                }
+                grid[x][y].setNeighbors(neighbors);
+            }
+        }
     }
 
     public ComponentRegistry getComponentRegistry() { return componentRegistry; }

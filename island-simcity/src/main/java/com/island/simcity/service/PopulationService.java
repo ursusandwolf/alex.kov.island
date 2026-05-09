@@ -100,6 +100,14 @@ public class PopulationService extends AbstractSimCityService {
                 if (tile.isRailed()) happinessDelta += 10;
                 if (tile.isMetroConnected()) happinessDelta += 20;
                 
+                // Pollution impact
+                if (tile.getAirPollution() > 50) {
+                    happinessDelta -= (tile.getAirPollution() - 50) / 10;
+                }
+                if (tile.getWaterPollution() > 30) {
+                    happinessDelta -= (tile.getWaterPollution() - 30) / 5;
+                }
+                
                 // Tax penalty
                 if (map.getTaxRate() > 20) {
                     happinessDelta -= (map.getTaxRate() - 20);

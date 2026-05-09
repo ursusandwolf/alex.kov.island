@@ -327,4 +327,38 @@ class SimCityBoundaryTest {
         assertTrue(map.getGrid()[2][0].isPowered());
         context.gameLoop().stop();
     }
+
+    @Test
+    @DisplayName("Pollution: Industrial zones should drop nearby happiness")
+    void pollution_drops_happiness() {
+        SimulationEngine<SimEntity> engine = new SimulationEngine<>();
+        SimulationContext<SimEntity> context = engine.build(new SimCityPlugin(5, 5), 0, 1);
+        CityMap map = (CityMap) context.world();
+        
+        // Setup infrastructure for resident
+        map.getGrid()[0][0].setConnected(true);
+        map.getGrid()[0][0].setWatered(true);
+        map.getGrid()[0][0].setPowered(true);
+        
+        SimEntity resident = new SimEntity(map.getComponentRegistry());
+        PopulationComponent pop = new PopulationComponent(0, 100);
+        resident.addComponent(pop);
+        map.getGrid()[0][0].addEntity(resident);
+
+        // Place polluting industry at (0,1)
+        SimEntity industry = new SimEntity(map.getComponentRegistry());
+        industry.addComponent(new BuildingComponent(BuildingComponent.Type.INDUSTRIAL));
+        map.getGrid()[0][1].addEntity(industry);
+
+        // Run many ticks to accumulate pollution
+        for (int i = 0; i < 10; i++) {
+            context.gameLoop().runTick();
+        }
+
+        assertTrue(map.getGrid()[0][1].getAirPollution() > 0, "Industry should generate air pollution");
+        assertTrue(map.getGrid()[0][0].getAirPollution() > 0, "Pollution should spread to neighbor");
+        assertTrue(pop.getHappiness() < 100, "Resident happiness should drop due to pollution");
+        
+        context.gameLoop().stop();
+    }
 }
