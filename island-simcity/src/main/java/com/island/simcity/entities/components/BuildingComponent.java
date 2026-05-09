@@ -20,7 +20,9 @@ public class BuildingComponent implements Component {
         ROAD,
         RAILWAY,
         METRO,
-        WATER_PIPE
+        WATER_PIPE,
+        POWER_PLANT,
+        POWER_LINE
     }
 
     private Type type;

@@ -46,6 +46,8 @@ public class BuildingService {
             case RAILWAY -> 300;
             case METRO -> 2000;
             case WATER_PIPE -> 80;
+            case POWER_PLANT -> 5000;
+            case POWER_LINE -> 200;
         };
     }
 }

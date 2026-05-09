@@ -130,6 +130,10 @@ class SimCityBoundaryTest {
         SimEntity pipe = new SimEntity(map.getComponentRegistry());
         pipe.addComponent(new BuildingComponent(BuildingComponent.Type.WATER_PIPE));
         map.getGrid()[0][0].addEntity(pipe);
+
+        SimEntity plant = new SimEntity(map.getComponentRegistry());
+        plant.addComponent(new BuildingComponent(BuildingComponent.Type.POWER_PLANT));
+        map.getGrid()[0][0].addEntity(plant);
         
         SimEntity resident = new SimEntity(map.getComponentRegistry());
         PopulationComponent pop = new PopulationComponent(0, 100);
@@ -152,10 +156,14 @@ class SimCityBoundaryTest {
         SimulationContext<SimEntity> context = engine.build(new SimCityPlugin(5, 5), 0, 1);
         CityMap map = (CityMap) context.world();
         
-        // Add road but no water
+        // Add road and power but no water
         SimEntity road = new SimEntity(map.getComponentRegistry());
         road.addComponent(new BuildingComponent(BuildingComponent.Type.ROAD));
         map.getGrid()[0][0].addEntity(road);
+
+        SimEntity plant = new SimEntity(map.getComponentRegistry());
+        plant.addComponent(new BuildingComponent(BuildingComponent.Type.POWER_PLANT));
+        map.getGrid()[0][0].addEntity(plant);
         
         SimEntity resident = new SimEntity(map.getComponentRegistry());
         PopulationComponent pop = new PopulationComponent(0, 100);
@@ -175,7 +183,7 @@ class SimCityBoundaryTest {
         SimulationContext<SimEntity> context = engine.build(new SimCityPlugin(5, 5), 0, 1);
         CityMap map = (CityMap) context.world();
         
-        // Add road, water and metro
+        // Add road, water, power and metro
         SimEntity road = new SimEntity(map.getComponentRegistry());
         road.addComponent(new BuildingComponent(BuildingComponent.Type.ROAD));
         map.getGrid()[0][0].addEntity(road);
@@ -183,6 +191,10 @@ class SimCityBoundaryTest {
         SimEntity pipe = new SimEntity(map.getComponentRegistry());
         pipe.addComponent(new BuildingComponent(BuildingComponent.Type.WATER_PIPE));
         map.getGrid()[0][0].addEntity(pipe);
+
+        SimEntity plant = new SimEntity(map.getComponentRegistry());
+        plant.addComponent(new BuildingComponent(BuildingComponent.Type.POWER_PLANT));
+        map.getGrid()[0][0].addEntity(plant);
 
         SimEntity metro = new SimEntity(map.getComponentRegistry());
         metro.addComponent(new BuildingComponent(BuildingComponent.Type.METRO));
@@ -195,8 +207,124 @@ class SimCityBoundaryTest {
         
         context.gameLoop().runTick();
         
-        // Base bonus (2) + water (5) + metro (20) = 27. 50 + 27 = 77
-        assertEquals(77, pop.getHappiness(), "Happiness should increase significantly with Metro");
+        // Base bonus (2) + water (5) + power (10) + metro (20) = 37. 50 + 37 = 87
+        assertEquals(87, pop.getHappiness(), "Happiness should increase significantly with Metro and Power");
+        context.gameLoop().stop();
+    }
+
+    @Test
+    @DisplayName("Electricity: Power should spread through continuous buildings")
+    void power_spread_through_buildings() {
+        SimulationEngine<SimEntity> engine = new SimulationEngine<>();
+        SimulationContext<SimEntity> context = engine.build(new SimCityPlugin(5, 5), 0, 1);
+        CityMap map = (CityMap) context.world();
+        
+        // (0,0) Power Plant
+        SimEntity plant = new SimEntity(map.getComponentRegistry());
+        plant.addComponent(new BuildingComponent(BuildingComponent.Type.POWER_PLANT));
+        map.getGrid()[0][0].addEntity(plant);
+
+        // (1,0) Residential
+        SimEntity res1 = new SimEntity(map.getComponentRegistry());
+        res1.addComponent(new BuildingComponent(BuildingComponent.Type.RESIDENTIAL));
+        map.getGrid()[1][0].addEntity(res1);
+
+        // (2,0) Residential
+        SimEntity res2 = new SimEntity(map.getComponentRegistry());
+        res2.addComponent(new BuildingComponent(BuildingComponent.Type.RESIDENTIAL));
+        map.getGrid()[2][0].addEntity(res2);
+
+        context.gameLoop().runTick();
+
+        assertTrue(map.getGrid()[0][0].isPowered());
+        assertTrue(map.getGrid()[1][0].isPowered());
+        assertTrue(map.getGrid()[2][0].isPowered());
+        context.gameLoop().stop();
+    }
+
+    @Test
+    @DisplayName("Electricity: Power should NOT spread through empty space")
+    void power_not_spread_through_empty() {
+        SimulationEngine<SimEntity> engine = new SimulationEngine<>();
+        SimulationContext<SimEntity> context = engine.build(new SimCityPlugin(5, 5), 0, 1);
+        CityMap map = (CityMap) context.world();
+        
+        // (0,0) Power Plant
+        SimEntity plant = new SimEntity(map.getComponentRegistry());
+        plant.addComponent(new BuildingComponent(BuildingComponent.Type.POWER_PLANT));
+        map.getGrid()[0][0].addEntity(plant);
+
+        // (1,0) EMPTY
+
+        // (2,0) Residential
+        SimEntity res = new SimEntity(map.getComponentRegistry());
+        res.addComponent(new BuildingComponent(BuildingComponent.Type.RESIDENTIAL));
+        map.getGrid()[2][0].addEntity(res);
+
+        context.gameLoop().runTick();
+
+        assertTrue(map.getGrid()[0][0].isPowered());
+        assertFalse(map.getGrid()[2][0].isPowered(), "Power should not jump over empty tile");
+        context.gameLoop().stop();
+    }
+
+    @Test
+    @DisplayName("Electricity: Power should NOT spread through roads")
+    void power_not_spread_through_roads() {
+        SimulationEngine<SimEntity> engine = new SimulationEngine<>();
+        SimulationContext<SimEntity> context = engine.build(new SimCityPlugin(5, 5), 0, 1);
+        CityMap map = (CityMap) context.world();
+        
+        // (0,0) Power Plant
+        SimEntity plant = new SimEntity(map.getComponentRegistry());
+        plant.addComponent(new BuildingComponent(BuildingComponent.Type.POWER_PLANT));
+        map.getGrid()[0][0].addEntity(plant);
+
+        // (1,0) Road
+        SimEntity road = new SimEntity(map.getComponentRegistry());
+        road.addComponent(new BuildingComponent(BuildingComponent.Type.ROAD));
+        map.getGrid()[1][0].addEntity(road);
+
+        // (2,0) Residential
+        SimEntity res = new SimEntity(map.getComponentRegistry());
+        res.addComponent(new BuildingComponent(BuildingComponent.Type.RESIDENTIAL));
+        map.getGrid()[2][0].addEntity(res);
+
+        context.gameLoop().runTick();
+
+        assertTrue(map.getGrid()[0][0].isPowered());
+        assertFalse(map.getGrid()[1][0].isPowered(), "Roads are not conductive");
+        assertFalse(map.getGrid()[2][0].isPowered(), "Power should not spread through roads");
+        context.gameLoop().stop();
+    }
+
+    @Test
+    @DisplayName("Electricity: Power should spread through Power Lines")
+    void power_spread_through_lines() {
+        SimulationEngine<SimEntity> engine = new SimulationEngine<>();
+        SimulationContext<SimEntity> context = engine.build(new SimCityPlugin(5, 5), 0, 1);
+        CityMap map = (CityMap) context.world();
+        
+        // (0,0) Power Plant
+        SimEntity plant = new SimEntity(map.getComponentRegistry());
+        plant.addComponent(new BuildingComponent(BuildingComponent.Type.POWER_PLANT));
+        map.getGrid()[0][0].addEntity(plant);
+
+        // (1,0) Power Line
+        SimEntity line = new SimEntity(map.getComponentRegistry());
+        line.addComponent(new BuildingComponent(BuildingComponent.Type.POWER_LINE));
+        map.getGrid()[1][0].addEntity(line);
+
+        // (2,0) Residential
+        SimEntity res = new SimEntity(map.getComponentRegistry());
+        res.addComponent(new BuildingComponent(BuildingComponent.Type.RESIDENTIAL));
+        map.getGrid()[2][0].addEntity(res);
+
+        context.gameLoop().runTick();
+
+        assertTrue(map.getGrid()[0][0].isPowered());
+        assertTrue(map.getGrid()[1][0].isPowered());
+        assertTrue(map.getGrid()[2][0].isPowered());
         context.gameLoop().stop();
     }
 }

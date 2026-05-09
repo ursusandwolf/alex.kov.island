@@ -48,12 +48,22 @@ public class EconomyService extends AbstractSimCityService {
                     case RAILWAY -> 15;
                     case METRO -> 100;
                     case WATER_PIPE -> 3;
+                    case POWER_PLANT -> 200;
+                    case POWER_LINE -> 10;
                 };
-                if (tile.isConnected()) {
+                if (tile.isConnected() && tile.isPowered()) {
                     cellIncome += switch (building.getType()) {
                         case COMMERCIAL -> 100;
                         case INDUSTRIAL -> 200;
                         case AGRICULTURAL -> 10;
+                        default -> 0;
+                    };
+                } else if (tile.isConnected()) {
+                    // Half income if no power
+                    cellIncome += switch (building.getType()) {
+                        case COMMERCIAL -> 50;
+                        case INDUSTRIAL -> 100;
+                        case AGRICULTURAL -> 5;
                         default -> 0;
                     };
                 }

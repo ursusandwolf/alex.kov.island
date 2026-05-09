@@ -23,6 +23,7 @@ public class CityTile implements SimulationNode<SimEntity> {
     private boolean watered = false;
     private boolean railed = false;
     private boolean metroConnected = false;
+    private boolean powered = false;
 
     public void setConnected(boolean connected) { this.connected = connected; }
     public boolean isConnected() { return connected; }
@@ -35,6 +36,9 @@ public class CityTile implements SimulationNode<SimEntity> {
 
     public void setMetroConnected(boolean metroConnected) { this.metroConnected = metroConnected; }
     public boolean isMetroConnected() { return metroConnected; }
+    
+    public void setPowered(boolean powered) { this.powered = powered; }
+    public boolean isPowered() { return powered; }
 
     public CityTile(int x, int y, SimulationWorld<SimEntity> world) {
         this.x = x;

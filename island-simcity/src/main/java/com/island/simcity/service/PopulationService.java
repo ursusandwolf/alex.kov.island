@@ -94,6 +94,9 @@ public class PopulationService extends AbstractSimCityService {
                 if (tile.isWatered()) happinessDelta += 5;
                 else happinessDelta -= 20; // Residents hate no water
                 
+                if (tile.isPowered()) happinessDelta += 10;
+                else happinessDelta -= 30; // Residents REALLY hate no power
+                
                 if (tile.isRailed()) happinessDelta += 10;
                 if (tile.isMetroConnected()) happinessDelta += 20;
                 

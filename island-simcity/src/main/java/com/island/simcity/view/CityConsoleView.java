@@ -55,6 +55,8 @@ public class CityConsoleView {
             case RAILWAY -> "=";
             case METRO -> "M";
             case WATER_PIPE -> "w";
+            case POWER_PLANT -> "P";
+            case POWER_LINE -> "z";
         };
     }
 

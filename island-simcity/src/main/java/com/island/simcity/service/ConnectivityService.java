@@ -33,6 +33,7 @@ public class ConnectivityService extends AbstractSimCityService {
                 tile.setWatered(false);
                 tile.setRailed(false);
                 tile.setMetroConnected(false);
+                tile.setPowered(false);
             }
         }
 
@@ -40,6 +41,55 @@ public class ConnectivityService extends AbstractSimCityService {
         propagateNetwork(BuildingComponent.Type.WATER_PIPE, CityTile::setWatered);
         propagateNetwork(BuildingComponent.Type.RAILWAY, CityTile::setRailed);
         propagateNetwork(BuildingComponent.Type.METRO, CityTile::setMetroConnected);
+        propagateElectricity();
+    }
+
+    private void propagateElectricity() {
+        Queue<CityTile> queue = new ArrayDeque<>();
+        Set<CityTile> visited = new HashSet<>();
+
+        // Find all power plants as sources
+        for (int x = 0; x < map.getWidth(); x++) {
+            for (int y = 0; y < map.getHeight(); y++) {
+                CityTile tile = map.getGrid()[x][y];
+                if (hasInfrastructure(tile, BuildingComponent.Type.POWER_PLANT)) {
+                    queue.add(tile);
+                    visited.add(tile);
+                }
+            }
+        }
+
+        while (!queue.isEmpty()) {
+            CityTile current = queue.poll();
+            current.setPowered(true);
+
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dy = -1; dy <= 1; dy++) {
+                    if (Math.abs(dx) + Math.abs(dy) != 1) continue;
+
+                    int nx = current.getX() + dx;
+                    int ny = current.getY() + dy;
+                    if (nx >= 0 && nx < map.getWidth() && ny >= 0 && ny < map.getHeight()) {
+                        CityTile neighbor = map.getGrid()[nx][ny];
+                        if (isConductive(neighbor) && visited.add(neighbor)) {
+                            queue.add(neighbor);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean isConductive(CityTile tile) {
+        return tile.getEntities().stream()
+                .anyMatch(e -> {
+                    BuildingComponent b = e.getComponent(BuildingComponent.class);
+                    if (b == null) return false;
+                    return switch (b.getType()) {
+                        case ROAD, RAILWAY, METRO, WATER_PIPE -> false;
+                        default -> true; // All other buildings conduct power
+                    };
+                });
     }
 
     private void propagateNetwork(BuildingComponent.Type type, java.util.function.BiConsumer<CityTile, Boolean> setter) {

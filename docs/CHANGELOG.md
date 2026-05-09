@@ -5,16 +5,18 @@
 ### Added
 - **SimCity Expansion**:
     - Introduced **Agricultural Zone** (`AGRICULTURAL`) to the SimCity plugin with dedicated costs, income, and maintenance profiles.
-    - Expanded **Infrastructure Systems**: Added **Railways**, **Metro**, and **Water Supply** (`WATER_PIPE`) with independent connectivity logic.
-    - Updated `PopulationService`: Residents now require water to maintain happiness; proximity to Metro and Railways provides significant happiness bonuses.
-    - Updated `EconomyService`: Added tiered maintenance costs for all new infrastructure types.
-    - Added visualization support for all new types (`A` for Agricultural, `=` for Rail, `M` for Metro, `w` for Water) in `CityConsoleView`.
+    - Expanded **Infrastructure Systems**: Added **Railways**, **Metro**, **Water Supply** (`WATER_PIPE`), and **Electricity** (`POWER_PLANT`, `POWER_LINE`).
+    - Implemented **Electricity Propagation**: Power spreads through continuous construction (adjacent buildings) or dedicated power lines. Infrastructure (roads/pipes) does not conduct electricity.
+    - Updated `PopulationService`: Residents now require both water and power; lack of power causes severe happiness penalties (-30).
+    - Updated `EconomyService`: Commercial and Industrial zones generate 50% less income if not powered. Added maintenance for power infrastructure.
+    - Added visualization support for all new types (`A` for Agricultural, `=` for Rail, `M` for Metro, `w` for Water, `P` for Power Plant, `z` for Power Line) in `CityConsoleView`.
 - **Comprehensive Boundary Testing**:
     - Implemented `SimCityBoundaryTest` covering:
         - **Economic Boundaries**: Exact zero-balance building and cost-minus-one failure cases.
         - **Spatial Boundaries**: Corner validation (0,0 and max coordinates) and out-of-bounds failure checks.
         - **Density Boundaries**: Prevention of building overlap (collision detection).
-        - **Social/Logic Boundaries**: Happiness impact of 100% tax rates, revenue loss at 0% tax, and impact of infrastructure availability (Water/Metro).
+        - **Social/Logic Boundaries**: Happiness impact of 100% tax rates, revenue loss at 0% tax, and impact of infrastructure availability (Water/Metro/Power).
+        - **Electricity Logic**: Verification of power spread through buildings/lines and blockage by empty space or roads.
 
 ### Changed
 - **SimCity Service Refinement**: 

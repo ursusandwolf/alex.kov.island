@@ -42,7 +42,8 @@ Unlike the Nature domain which uses specialized `Animal`/`Biomass` classes, the 
     - **Roads**: Basic connectivity required for all services.
     - **Water Supply**: Mandatory for residential happiness and growth.
     - **Railways & Metro**: High-capacity transport providing significant happiness bonuses to nearby residents.
-- **Boundary Validation**: The domain includes a rigorous boundary test suite verifying economic limits (zero balance), spatial limits (grid corners/overflow), density (building collisions), and social logic (tax extremes and infrastructure lack).
+    - **Electricity**: Propagates through continuous construction (buildings) or dedicated **Power Lines**. Power plants are required as sources. Lack of power halves industrial/commercial income and severely impacts happiness.
+- **Boundary Validation**: The domain includes a rigorous boundary test suite verifying economic limits (zero balance), spatial limits (grid corners/overflow), density (building collisions), social logic, and **electricity propagation rules**.
 
 ### 2.8 GC & Allocation Optimization
 To support high-frequency ticks in large-scale simulations, the engine employs several object reuse strategies:

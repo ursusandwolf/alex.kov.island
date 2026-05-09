@@ -19,7 +19,7 @@
         - **SimCity ECS**: Migrated SimCity to a pure ECS architecture, removing `Resident` and `Building` subclasses. Fixed logic and thread-safety in tests. [DONE]
         - **Clean Nature ECS**: Eliminated `instanceof` in `ConsumableComponent` by using specific `Cell` context. Verified `StatisticsService` uses typed events. [DONE]
         - **Utility Independence**: Verified `util/interaction` is correctly located in `nature.model`. [DONE]
-        - **SimCity Expansion**: Added Agricultural zones and expanded infrastructure to include Railways, Metro, and Water Supply. Implemented comprehensive boundary condition testing (economic, spatial, density, and social logic). [DONE]
+        - **SimCity Expansion**: Added Agricultural zones and expanded infrastructure to include Railways, Metro, Water Supply, and Electricity (propagation through buildings). Implemented comprehensive boundary condition testing (economic, spatial, density, social, and power logic). [DONE]
 
 - **Phase 3: Global Systems & Performance Tuning (May 2026)**:
     - **Climate System**: Implemented `ClimateService` managing seasonal transitions. [DONE]
