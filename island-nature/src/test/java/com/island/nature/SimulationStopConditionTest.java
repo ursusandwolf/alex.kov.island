@@ -1,18 +1,20 @@
-import com.island.nature.config.Configuration;
-import com.island.nature.model.Cell;
-import com.island.nature.model.Island;
-import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+package com.island.nature;
+
+import com.island.engine.core.SimulationConfig;
 import com.island.engine.core.SimulationContext;
 import com.island.engine.core.SimulationEngine;
 import com.island.engine.scheduling.GameLoop;
+import com.island.nature.config.Configuration;
 import com.island.nature.entities.core.Animal;
 import com.island.nature.entities.core.DeathCause;
 import com.island.nature.entities.core.Organism;
-import com.island.nature.NaturePlugin;
+import com.island.nature.model.Cell;
+import com.island.nature.model.Island;
+import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class SimulationStopConditionTest {
 
@@ -22,7 +24,8 @@ class SimulationStopConditionTest {
         NaturePlugin plugin = new NaturePlugin(config);
         SimulationEngine<Organism> engine = new SimulationEngine<>();
 
-        SimulationContext<Organism> context = engine.build(plugin, 2, 2);
+        SimulationConfig simConfig = SimulationConfig.defaultFor(2);
+        SimulationContext<Organism> context = engine.build(plugin, simConfig);
         Island island = (Island) context.world();
 
         // Manually kill all animals
@@ -45,5 +48,6 @@ class SimulationStopConditionTest {
         Thread.sleep(500);
 
         assertFalse(gameLoop.isRunning(), "GameLoop should have stopped due to extinction.");
+        context.close();
     }
 }

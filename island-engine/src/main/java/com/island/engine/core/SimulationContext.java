@@ -5,6 +5,8 @@ import com.island.engine.model.Mortal;
 import com.island.engine.scheduling.GameLoop;
 import com.island.util.common.RandomProvider;
 
+import java.util.concurrent.ExecutorService;
+
 /**
  * Context that holds all major components of a running simulation.
  *
@@ -15,6 +17,12 @@ public record SimulationContext<T extends Mortal>(
         SimulationWorld<T> world,
         GameLoop<T> gameLoop,
         RandomProvider random,
-        EventBus eventBus
-) {
+        EventBus eventBus,
+        ExecutorService executor
+) implements AutoCloseable {
+    @Override
+    public void close() {
+        gameLoop.stop();
+        executor.shutdown();
+    }
 }

@@ -39,9 +39,14 @@
 
 ## Next Steps
     - **Performance**:
-        - Optimized `GridUtils` locking mechanism using `System.identityHashCode` and `tryLock` fallback to prevent deadlocks and eliminate coordinate coupling. [DONE]
+        - Optimized `GridUtils` locking mechanism [DONE].
+        - Established foundation for Structure of Arrays (SoA) memory optimization:
+            - Implemented `EntityIdManager` for unique entity tracking.
+            - Created `HealthSoAStore` and `AgeSoAStore` for high-density primitive storage.
+            - Integrated SoA stores into `NatureDomainContext`. [DONE]
+        - Next: Migrate `Organism` logic to use SoA stores for component data.
         - Further optimize `SystemExecutionGraph` for large-scale simulations.
-    - Investigate native memory usage for high-density entity stores.
+        - Reviewed `ObjectPool` usage in `AnimalFactory` and `Organism` poolable implementation; current implementation is performant and thread-safe. [DONE]    - Investigate native memory usage for high-density entity stores.
 
 ## Maintenance & Technical Debt
 - **Validation**: Continuous monitoring of ecosystem stability across seasonal extremes.

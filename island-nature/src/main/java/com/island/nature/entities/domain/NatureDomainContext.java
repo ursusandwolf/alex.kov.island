@@ -1,5 +1,8 @@
 package com.island.nature.entities.domain;
 
+import com.island.engine.internal.AgeSoAStore;
+import com.island.engine.internal.EntityIdManager;
+import com.island.engine.internal.HealthSoAStore;
 import com.island.nature.config.Configuration;
 import com.island.nature.service.AlertService;
 import com.island.nature.service.ClimateService;
@@ -23,6 +26,9 @@ import com.island.nature.model.InteractionProvider;
 @Builder
 public class NatureDomainContext {
     private final Configuration config;
+    private final EntityIdManager entityIdManager;
+    private final HealthSoAStore healthSoAStore;
+    private final AgeSoAStore ageSoAStore;
     private final SpeciesRegistry speciesRegistry;
     private final InteractionProvider interactionProvider;
     private final AnimalFactory animalFactory;

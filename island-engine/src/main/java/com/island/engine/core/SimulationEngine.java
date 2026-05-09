@@ -1,14 +1,15 @@
 package com.island.engine.core;
 
 import com.island.engine.event.EventBus;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import com.island.engine.model.Mortal;
 import com.island.engine.internal.ParallelDispatcher;
-import com.island.engine.scheduling.GameLoop;
 import com.island.engine.internal.PhaseScheduler;
+import com.island.engine.model.Mortal;
+import com.island.engine.scheduling.GameLoop;
 import com.island.util.common.DefaultRandomProvider;
 import com.island.util.common.RandomProvider;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Orchestrator that bootstraps a simulation using a plugin.
@@ -20,12 +21,11 @@ public class SimulationEngine<T extends Mortal> {
      * Starts a simulation using the provided plugin and parameters.
      *
      * @param plugin         The plugin defining the simulation domain.
-     * @param tickDurationMs Target duration for each tick.
-     * @param threads        Number of threads for parallel execution.
+     * @param config         Simulation configuration.
      * @return The created simulation context.
      */
-    public SimulationContext<T> start(SimulationPlugin<T> plugin, int tickDurationMs, int threads) {
-        SimulationContext<T> context = build(plugin, tickDurationMs, threads);
+    public SimulationContext<T> start(SimulationPlugin<T> plugin, SimulationConfig config) {
+        SimulationContext<T> context = build(plugin, config);
         context.gameLoop().start();
         return context;
     }
@@ -33,26 +33,26 @@ public class SimulationEngine<T extends Mortal> {
     /**
      * Builds a simulation context using the provided plugin but DOES NOT start the loop.
      */
-    public SimulationContext<T> build(SimulationPlugin<T> plugin, int tickDurationMs, int threads) {
+    public SimulationContext<T> build(SimulationPlugin<T> plugin, SimulationConfig config) {
         EventBus eventBus = EventBus.create();
 
         SimulationWorld<T> world = plugin.createWorld(eventBus);
         world.initialize();
 
-        ExecutorService executor = (threads > 0)
-                ? Executors.newFixedThreadPool(threads)
+        ExecutorService executor = (config.getThreadCount() > 0)
+                ? Executors.newFixedThreadPool(config.getThreadCount())
                 : Executors.newVirtualThreadPerTaskExecutor();
         
         ParallelDispatcher<T> dispatcher = new ParallelDispatcher<>(executor);
         PhaseScheduler<T> scheduler = new PhaseScheduler<>(dispatcher);
 
-        GameLoop<T> gameLoop = new GameLoop<>(tickDurationMs, executor, scheduler);
+        GameLoop<T> gameLoop = new GameLoop<>(config.getTickDurationMs(), executor, scheduler);
         gameLoop.setWorld(world);
 
         plugin.registerTasks(gameLoop, world, eventBus);
 
         RandomProvider random = new DefaultRandomProvider();
-        SimulationContext<T> context = new SimulationContext<>(world, gameLoop, random, eventBus);
+        SimulationContext<T> context = new SimulationContext<>(world, gameLoop, random, eventBus, executor);
         gameLoop.setStopCondition(() -> plugin.shouldStop(context));
         gameLoop.setOnStopCallback(() -> stop(context, plugin));
 
@@ -67,7 +67,7 @@ public class SimulationEngine<T extends Mortal> {
      * @param plugin  The plugin that defined the simulation.
      */
     public void stop(SimulationContext<T> context, SimulationPlugin<T> plugin) {
-        context.gameLoop().stop();
+        context.close();
         plugin.onSimulationStopped(context);
     }
 }

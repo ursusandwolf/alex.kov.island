@@ -1,6 +1,9 @@
 package com.island.nature.entities.domain;
 
 import com.island.engine.ecs.ComponentRegistry;
+import com.island.engine.internal.AgeSoAStore;
+import com.island.engine.internal.EntityIdManager;
+import com.island.engine.internal.HealthSoAStore;
 import com.island.nature.config.Configuration;
 import com.island.nature.entities.registry.AnimalFactory;
 import com.island.nature.entities.registry.SpeciesLoader;
@@ -33,8 +36,13 @@ public class NatureDomainContextFactory {
                 ? new DynamicChunkingStrategy(config)
                 : new StaticChunkingStrategy(config);
         
+        int capacity = config.getIslandWidth() * config.getIslandHeight() * 10;
+        
         return NatureDomainContext.builder()
                 .config(config)
+                .entityIdManager(new EntityIdManager())
+                .healthSoAStore(new HealthSoAStore(capacity))
+                .ageSoAStore(new AgeSoAStore(capacity))
                 .speciesRegistry(speciesRegistry)
                 .interactionProvider(InteractionMatrix.buildFrom(speciesRegistry))
                 .statisticsService(statisticsService)

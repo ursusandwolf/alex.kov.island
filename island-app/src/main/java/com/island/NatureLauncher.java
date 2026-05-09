@@ -2,14 +2,12 @@ package com.island;
 
 import com.island.nature.NaturePlugin;
 import com.island.nature.config.Configuration;
-import com.island.nature.view.SimulationView;
-import com.island.nature.view.ConsoleView;
-import com.island.nature.view.HeadlessView;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
+import com.island.engine.core.SimulationConfig;
 import com.island.engine.core.SimulationContext;
 import com.island.engine.core.SimulationEngine;
 import com.island.engine.scheduling.GameLoop;
@@ -34,7 +32,8 @@ public class NatureLauncher {
         log.info("Starting Island Simulation...");
         log.info("Time limit: {} ms. Stop condition: extinction of all animals.", config.getMaxSimulationDurationMs());
         
-        SimulationContext<Organism> context = engine.start(plugin, config.getTickDurationMs(), 4);
+        SimulationConfig simConfig = SimulationConfig.defaultFor(4);
+        SimulationContext<Organism> context = engine.start(plugin, simConfig);
 
         CountDownLatch latch = new CountDownLatch(1);
         ScheduledExecutorService monitorService = Executors.newSingleThreadScheduledExecutor();

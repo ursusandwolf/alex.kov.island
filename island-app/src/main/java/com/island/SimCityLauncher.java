@@ -7,6 +7,7 @@ import com.island.simcity.entities.components.PopulationComponent;
 import com.island.simcity.model.CityMap;
 import com.island.simcity.service.BuildingService;
 import com.island.simcity.view.CityConsoleView;
+import com.island.engine.core.SimulationConfig;
 import com.island.engine.core.SimulationContext;
 import com.island.engine.core.SimulationEngine;
 
@@ -18,7 +19,9 @@ public class SimCityLauncher {
         SimulationEngine<SimEntity> engine = new SimulationEngine<>();
         
         // Build engine (which calls initialize and registerTasks)
-        SimulationContext<SimEntity> context = engine.build(plugin, 100, 4);
+        SimulationConfig simConfig = SimulationConfig.defaultFor(4);
+        SimulationContext<SimEntity> context = engine.build(plugin, simConfig);
+        
         CityMap map = (CityMap) context.world();
         BuildingService buildingService = new BuildingService(map);
         CityConsoleView view = new CityConsoleView();

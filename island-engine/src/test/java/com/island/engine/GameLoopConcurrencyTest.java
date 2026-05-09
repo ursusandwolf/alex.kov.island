@@ -129,4 +129,23 @@ public class GameLoopConcurrencyTest {
             gameLoop.stop();
         }
     }
+
+    @Test
+    void shouldMaintainIntegrityUnderHighTaskContention() throws InterruptedException {
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+        ParallelDispatcher<Mortal> dispatcher = new ParallelDispatcher<>(executor);
+        PhaseScheduler<Mortal> scheduler = new PhaseScheduler<>(dispatcher);
+        GameLoop<Mortal> gameLoop = new GameLoop<>(10, executor, scheduler);
+        
+        int taskCount = 1000;
+        CountDownLatch latch = new CountDownLatch(taskCount);
+        
+        for (int i = 0; i < taskCount; i++) {
+            gameLoop.addRecurringTask((Tickable) tc -> latch.countDown());
+        }
+        
+        gameLoop.runTick();
+        assertTrue(latch.await(2, TimeUnit.SECONDS), "All tasks should have executed in a single tick");
+        executor.shutdown();
+    }
 }

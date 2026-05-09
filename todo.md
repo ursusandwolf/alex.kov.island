@@ -31,17 +31,17 @@
 - [x] **Vector 3: Dynamic Load Balancing**
     - [x] Implement `DynamicChunkingStrategy`.
     - [x] Add monitoring for thread load per chunk.
-- [ ] **Performance Tuning**
-    - [ ] Profiling GC and Object Pools using `java-performance` skill.
+- [x] **Performance Tuning**
+    - [x] Profiling GC and Object Pools using `java-performance` skill.
     - [x] Optimize `GridUtils` locking mechanisms.
 
 ## 🌍 Phase 3: Global Systems & Integration
 - [x] **Vector 4: Climate & Global Systems**
     - [x] Implement `ClimateService`.
     - [x] Add river generation as a natural movement barrier.
-- [ ] **Vector 5: Headless & API**
+- [x] **Vector 5: Headless & API** (Supported by current Engine API)
 
 ## 🛠 Maintenance
-- [ ] Increase test coverage for concurrent scenarios.
-- [ ] Update `GEMINI.md` with new architectural rules.
+- [x] Increase test coverage for concurrent scenarios.
+- [x] Update `GEMINI.md` with new architectural rules.
 - [x] Review shouldStop semantic change.
