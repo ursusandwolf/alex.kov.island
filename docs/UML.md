@@ -1,4 +1,4 @@
-# Island Simulator Architecture (v1.7)
+# Island Simulator Architecture (v1.8)
 
 ## Class Diagram Concepts
 
@@ -26,6 +26,8 @@
     - `AnimalFeedingSystem`: Optimized hunting/grazing with type-safe `ConsumableComponent<T>` and `ConsumeAction<T>`.
     - `AnimalReproductionSystem`: Population growth with LOD scaling and `ReproductionComponent` support.
     - `PopulationService` / `EconomyService`: SimCity systems operating on `PopulationComponent`, `BuildingComponent`, and `EconomyComponent`.
+    - `ConnectivityService`: Manages multiple independent networks (Road, Water, Rail, Metro).
+    - `PollutionService`: Simulates air and water pollution generation, diffusion, and dissipation.
 
 - `CleanupService`: O(1) removal and pool-based recycling of dead entities.
 - `StatisticsService`: Zero-scan reporting using pre-aggregated metrics via `EventBus` with specialized `AnimalBornEvent` and `AnimalDiedEvent` support.
@@ -48,7 +50,13 @@ Deterministic results using fixed-point arithmetic:
 - **Thread-Safe Components**: Organism components use `volatile` fields and `ConcurrentHashMap`.
 - **Robust EventBus**: Iterative type resolution and subscriber exception isolation.
 
-## 4. Visual Architecture (Pseudo-UML)
+## 4. SimCity 4 Mechanics (SC4 Roadmap)
+The SimCity plugin follows a structured roadmap (`docs/simcity_todo.md`) to implement advanced mechanics:
+- **Phase 1 (Environmental)**: Pollution and Desirability [COMPLETED].
+- **Phase 2 (Density & Wealth)**: Residential/Commercial/Industrial wealth tiers and density levels.
+- **Phase 3 (Services)**: Education (EQ) and Healthcare.
+
+## 5. Visual Architecture (Pseudo-UML)
 
 ```text
 +-----------------------+          +-------------------------+
