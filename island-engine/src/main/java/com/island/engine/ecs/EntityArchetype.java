@@ -18,8 +18,11 @@ public record EntityArchetype(BitSet bitSet) {
      * Checks if this archetype contains all components required by another bitset.
      */
     public boolean containsAll(BitSet required) {
-        BitSet temp = (BitSet) bitSet.clone();
-        temp.and(required);
-        return temp.equals(required);
+        for (int i = required.nextSetBit(0); i >= 0; i = required.nextSetBit(i + 1)) {
+            if (!bitSet.get(i)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

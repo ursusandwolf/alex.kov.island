@@ -1,6 +1,13 @@
 # Changelog
 
-## [1.33.0] - 2026-05-09
+## [1.34.0] - 2026-05-09
+### Changed
+- **Engine Quality & Performance**:
+    - **GameLoop Robustness**: Refactored `GameLoop` with `AtomicBoolean` for robust thread-safe `start/stop` operations. Fixed potential deadlocks during thread joining.
+    - **Scheduling Optimization**: Updated `PhaseScheduler` to use `tasksVersion` counter for change detection, eliminating expensive $O(N)$ hash calculations every tick.
+    - **SystemExecutionGraph**: Optimized conflict detection using `HashSet` for $O(1)$ component lookups and added support for custom task-level concurrency control.
+    - **ECS Optimization**: Optimized `EntityArchetype.containsAll` to avoid $O(N)$ `BitSet` cloning during entity queries.
+    - **ParallelTask Flexibility**: Extended `ParallelTask` with `conflictsWith` method, allowing non-ECS tasks to define their own conflict logic for better parallelization.
 
 ### Added
 - **SimCity Expansion**:

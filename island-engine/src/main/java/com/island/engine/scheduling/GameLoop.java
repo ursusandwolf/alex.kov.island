@@ -44,10 +44,10 @@ public class GameLoop<T extends Mortal> {
     @Setter
     private Runnable onStopCallback;
 
-    @Getter
-    private volatile boolean running = false;
+    private final java.util.concurrent.atomic.AtomicBoolean running = new java.util.concurrent.atomic.AtomicBoolean(false);
     @Getter
     private int tickCount = 0;
+    private long tasksVersion = 0;
     
     private volatile Thread loopThread;
 
@@ -84,30 +84,30 @@ public class GameLoop<T extends Mortal> {
     }
 
     public void start() {
-        if (running) {
-            return;
+        if (running.compareAndSet(false, true)) {
+            loopThread = new Thread(this::run, "GameLoopThread");
+            loopThread.start();
+            log.info("GameLoop started.");
         }
-        running = true;
-        loopThread = new Thread(this::run, "GameLoopThread");
-        loopThread.start();
     }
 
     public void stop() {
-        synchronized (this) {
-            if (!running) {
-                return;
+        if (running.compareAndSet(true, false)) {
+            log.info("Stopping GameLoop...");
+            if (loopThread != null && Thread.currentThread() != loopThread) {
+                loopThread.interrupt();
+                try {
+                    loopThread.join(2000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
             }
-            running = false;
+            taskExecutor.shutdownNow();
         }
-        if (loopThread != null && Thread.currentThread() != loopThread) {
-            loopThread.interrupt();
-            try {
-                loopThread.join(2000);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }
-        taskExecutor.shutdownNow();
+    }
+
+    public boolean isRunning() {
+        return running.get();
     }
 
     public void runTick() {
@@ -115,8 +115,14 @@ public class GameLoop<T extends Mortal> {
         
         // Drain pending tasks into the main list
         ScheduledTask pending;
+        boolean tasksChanged = false;
         while ((pending = pendingTasks.poll()) != null) {
             recurringTasks.add(pending);
+            tasksChanged = true;
+        }
+        
+        if (tasksChanged) {
+            tasksVersion++;
         }
 
         if (world != null) {
@@ -128,20 +134,20 @@ public class GameLoop<T extends Mortal> {
         }
 
         try {
-            scheduler.execute(world, recurringTasks, tickCount);
+            scheduler.execute(world, recurringTasks, tickCount, tasksVersion);
         } catch (Exception e) {
             log.error("Error during simulation tick at step {}: {}", tickCount, e.getMessage(), e);
         }
     }
 
     private void run() {
-        while (running) {
+        while (running.get()) {
             long startTime = System.nanoTime();
             try {
                 runTick();
                 if (stopCondition != null && stopCondition.get()) {
                     log.info("Stop condition met. Stopping GameLoop.");
-                    running = false;
+                    running.set(false);
                     if (onStopCallback != null) {
                         onStopCallback.run();
                     }

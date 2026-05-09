@@ -29,7 +29,7 @@ public class PhaseScheduler<T extends Mortal> {
     private final List<ParallelTask<T>> parallelGroup = new ArrayList<>();
     
     // Cache for optimized execution graph
-    private int lastTasksHash = 0;
+    private long lastTasksVersion = -1;
     private final Map<Phase, List<List<ParallelTask<T>>>> cachedSchedules = new EnumMap<>(Phase.class);
 
     public PhaseScheduler(ParallelDispatcher<T> dispatcher) {
@@ -39,16 +39,10 @@ public class PhaseScheduler<T extends Mortal> {
         }
     }
 
-    public void execute(SimulationWorld<T> world, List<ScheduledTask> tasks, int tickCount) {
-        int currentHash = System.identityHashCode(tasks);
-        if (tasks instanceof java.util.ArrayList) {
-            // More robust check for list structural changes if it's a managed list
-            currentHash = tasks.hashCode();
-        }
-        
-        if (lastTasksHash != currentHash) {
+    public void execute(SimulationWorld<T> world, List<ScheduledTask> tasks, int tickCount, long tasksVersion) {
+        if (lastTasksVersion != tasksVersion) {
             rebuildSchedule(tasks);
-            lastTasksHash = currentHash;
+            lastTasksVersion = tasksVersion;
         }
 
         // Execute phases in order

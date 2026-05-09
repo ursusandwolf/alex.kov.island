@@ -26,4 +26,12 @@ public interface ParallelTask<T extends Mortal> extends ScheduledTask {
      * Optional cleanup phase called once per tick after parallel processing finishes.
      */
     void afterTick(int tickCount);
-}
+
+    /**
+     * Checks if this task conflicts with another task.
+     * If two tasks conflict, they cannot be executed in the same parallel batch.
+     */
+    default boolean conflictsWith(ParallelTask<T> other) {
+        return true;
+    }
+    }

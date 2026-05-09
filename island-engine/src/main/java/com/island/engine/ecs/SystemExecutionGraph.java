@@ -65,37 +65,30 @@ public class SystemExecutionGraph {
     }
 
     private static <T extends Mortal> boolean conflicts(ParallelTask<T> a, ParallelTask<T> b) {
-        if (!(a instanceof EntitySystem) || !(b instanceof EntitySystem)) {
-            return true;
-        }
-        
-        EntitySystem<?> sysA = (EntitySystem<?>) a;
-        EntitySystem<?> sysB = (EntitySystem<?>) b;
+        if (a instanceof EntitySystem<?> sysA && b instanceof EntitySystem<?> sysB) {
+            Set<Class<? extends Component>> aRead = new HashSet<>(sysA.readComponents());
+            Set<Class<? extends Component>> aWrite = new HashSet<>(sysA.writeComponents());
+            Set<Class<? extends Component>> bRead = new HashSet<>(sysB.readComponents());
+            Set<Class<? extends Component>> bWrite = new HashSet<>(sysB.writeComponents());
 
-        List<Class<? extends Component>> aRead = sysA.readComponents();
-        List<Class<? extends Component>> aWrite = sysA.writeComponents();
-        List<Class<? extends Component>> bRead = sysB.readComponents();
-        List<Class<? extends Component>> bWrite = sysB.writeComponents();
-
-        // Conflict occurs if:
-        // A writes and B reads/writes
-        // B writes and A reads/writes
-        if (!aWrite.isEmpty()) {
+            // Conflict occurs if:
+            // A writes and B reads/writes
+            // B writes and A reads/writes
             for (Class<? extends Component> c : aWrite) {
                 if (bRead.contains(c) || bWrite.contains(c)) {
                     return true;
                 }
             }
-        }
-        
-        if (!bWrite.isEmpty()) {
+            
             for (Class<? extends Component> c : bWrite) {
-                if (aRead.contains(c)) {
+                if (aRead.contains(c) || aWrite.contains(c)) {
                     return true;
                 }
             }
+            
+            return false;
         }
         
-        return false;
+        return a.conflictsWith(b) || b.conflictsWith(a);
     }
 }

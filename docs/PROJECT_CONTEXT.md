@@ -3,6 +3,10 @@
 ## Current State
 - **Phase 4: Modularization & API Stabilization (May 2026)**:
     - **Engine Isolation**: Transitioned from monolith to multi-module Maven structure. Defined public API via `module-info.java`, `@EngineAPI` and `@InternalEngine` annotations. Restricted `com.island.engine.parallel` package from exports to ensure implementation encapsulation. [DONE]
+    - **Engine Quality & Performance**:
+        - Refactored `GameLoop` for robust thread-safety and optimized `PhaseScheduler` with version-based task tracking. [DONE]
+        - Optimized ECS `SystemExecutionGraph` conflict detection and `EntityArchetype` querying. [DONE]
+        - Enhanced `ParallelTask` flexibility with custom conflict detection. [DONE]
     - **Plugin Isolation**: Added `module-info.java` to `island-nature` and `island-simcity` with refined exports, achieving full JPMS isolation for all core modules. [DONE]
     - **Architecture Cleanup**: 
         - Deleted redundant root `src` directory and organized scripts. [DONE]
