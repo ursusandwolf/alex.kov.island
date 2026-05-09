@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.35.0] - 2026-05-09
+### Changed
+- **Engine Quality & Performance**:
+    - **SystemExecutionGraph**: Optimized conflict detection by avoiding `HashSet` allocations and using direct list iteration. This reduces garbage collection pressure during task scheduling.
+    - **DefaultEventBus**: Optimized type hierarchy traversal by replacing `LinkedList` with `ArrayDeque` for improved queue performance.
+    - **Verification**: Verified module-path compilation and packaging for all engine and domain modules.
+
 ## [1.34.0] - 2026-05-09
 ### Changed
 - **Engine Quality & Performance**:

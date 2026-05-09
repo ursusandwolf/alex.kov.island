@@ -20,4 +20,4 @@
 
 ## 4. Verification
 - [x] Run `ArchitectureTest` to ensure no internal leaks.
-- [ ] Build JAR and verify imports in a dummy project.
+- [x] Build JAR and verify module-path compilation.

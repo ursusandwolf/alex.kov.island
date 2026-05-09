@@ -5,7 +5,6 @@ import com.island.engine.core.ParallelTask;
 import com.island.engine.ecs.Component;
 import com.island.engine.ecs.EntitySystem;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -68,10 +67,10 @@ public class SystemExecutionGraph {
 
     private static <T extends Mortal> boolean conflicts(ParallelTask<T> a, ParallelTask<T> b) {
         if (a instanceof EntitySystem<?> sysA && b instanceof EntitySystem<?> sysB) {
-            Set<Class<? extends Component>> aRead = new HashSet<>(sysA.readComponents());
-            Set<Class<? extends Component>> aWrite = new HashSet<>(sysA.writeComponents());
-            Set<Class<? extends Component>> bRead = new HashSet<>(sysB.readComponents());
-            Set<Class<? extends Component>> bWrite = new HashSet<>(sysB.writeComponents());
+            List<Class<? extends Component>> aRead = sysA.readComponents();
+            List<Class<? extends Component>> aWrite = sysA.writeComponents();
+            List<Class<? extends Component>> bRead = sysB.readComponents();
+            List<Class<? extends Component>> bWrite = sysB.writeComponents();
 
             // Conflict occurs if:
             // A writes and B reads/writes

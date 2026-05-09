@@ -54,7 +54,7 @@ public class DefaultEventBus implements EventBus {
 
     private Set<Class<?>> getTypeHierarchy(Class<?> type) {
         Set<Class<?>> hierarchy = new HashSet<>();
-        java.util.Queue<Class<?>> queue = new java.util.LinkedList<>();
+        java.util.Deque<Class<?>> queue = new java.util.ArrayDeque<>();
         queue.add(type);
         
         while (!queue.isEmpty()) {

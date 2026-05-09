@@ -1,4 +1,4 @@
-# Island Simulator Architecture (v1.8)
+# Island Simulator Architecture (v1.8.1)
 
 ## Class Diagram Concepts
 
@@ -7,6 +7,7 @@
 - `SimulationNode` (Cell): Spatial unit. Uses fine-grained thread safety.
 - `GameLoop`: Orchestrates the simulation lifecycle.
 - `PhaseScheduler`: Groups and sorts tasks by `Phase` and priority. Uses `SystemExecutionGraph` for Batching.
+- `SystemExecutionGraph`: Optimized static dependency resolver with garbage-free conflict detection.
 - `ParallelDispatcher`: Manages `CellProcessor` pool for parallel execution.
 - **API Markers**: `@EngineAPI` (Public Contract) and `@InternalEngine` (Implementation detail).
 

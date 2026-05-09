@@ -3,9 +3,16 @@
 ## Current State
 - **Phase 4: Modularization & API Stabilization (May 2026)**:
     - **Engine Isolation**: Transitioned from monolith to multi-module Maven structure. Defined public API via `module-info.java`, `@EngineAPI` and `@InternalEngine` annotations. Restricted `com.island.engine.parallel` package from exports to ensure implementation encapsulation. [DONE]
+    - **Engine Library Readiness**:
+        - Refactored package structure to isolate implementation details in `.internal` packages. [DONE]
+        - Fixed JPMS leaks by moving `ParallelTask` to exported `core` package. [DONE]
+        - Implemented static factory methods in `EventBus` and `ComponentStore` to decouple domains from concrete implementations. [DONE]
+        - Updated `ArchitectureTest` to enforce strictly encapsulated library boundaries. [DONE]
     - **Engine Quality & Performance**:
         - Refactored `GameLoop` for robust thread-safety and optimized `PhaseScheduler` with version-based task tracking. [DONE]
-        - Optimized ECS `SystemExecutionGraph` conflict detection and `EntityArchetype` querying. [DONE]
+        - Optimized ECS `SystemExecutionGraph` conflict detection by avoiding `HashSet` allocations and using direct list iteration. [DONE]
+        - Optimized `DefaultEventBus` hierarchy traversal using `ArrayDeque`. [DONE]
+        - Optimized `EntityArchetype` querying and ECS implementation details. [DONE]
         - Enhanced `ParallelTask` flexibility with custom conflict detection. [DONE]
     - **Plugin Isolation**: Added `module-info.java` to `island-nature` and `island-simcity` with refined exports, achieving full JPMS isolation for all core modules. [DONE]
     - **Architecture Cleanup**: 
@@ -31,10 +38,6 @@
     - **Landscape & Terrain**: Implemented dynamic river generation as a natural movement barrier. [DONE]
 
 ## Next Steps
-- **Genetic Evolution**: 
-    - **Trait System**: Define a set of inheritable traits (speed, vision range, metabolism efficiency, temperature resistance).
-    - **Mutation & Crossover**: Implement logic for trait inheritance with mutation during reproduction.
-    - **Natural Selection**: Allow environmental factors (climate, food availability) to drive evolution via trait-based survival.
 - **Performance**:
     - Further optimize `SystemExecutionGraph` for large-scale simulations.
     - Investigate native memory usage for high-density entity stores.
