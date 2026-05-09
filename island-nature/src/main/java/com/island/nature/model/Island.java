@@ -262,12 +262,12 @@ public class Island implements NatureWorld {
         }
         final boolean[] result = {false};
         GridUtils.executeWithDoubleLock(from, to, () -> {
-            if (to.canAccept(animal)) {
-                if (from.removeAnimal(animal)) {
-                    if (to.addAnimal(animal)) {
+            if (to.canAcceptInternal(animal)) {
+                if (from.removeAnimalInternal(animal)) {
+                    if (to.addAnimalInternal(animal, true)) {
                         result[0] = true;
                     } else {
-                        from.addAnimal(animal);
+                        from.addAnimalInternal(animal, true);
                     }
                 }
             }

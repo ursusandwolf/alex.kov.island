@@ -48,6 +48,7 @@ Unlike the Nature domain which uses specialized `Animal`/`Biomass` classes, the 
 
 ### 2.8 GC & Allocation Optimization
 To support high-frequency ticks in large-scale simulations, the engine employs several object reuse strategies:
+- **Structure of Arrays (SoA)**: Primitive state for high-volume entities (like `Organism` health and age) is stored in specialized SoA arrays (`HealthSoAStore`, `AgeSoAStore`) mapped by `EntityId`. Traditional ECS components (`HealthComponent`, `AgeComponent`) are kept purely as empty marker classes to preserve parallel conflict detection in the `SystemExecutionGraph` without adding per-entity heap overhead.
 - **Schedule Caching**: `PhaseScheduler` caches the execution graph, avoiding re-calculating dependency batches if the task list hasn't changed.
 - **Set-Free Conflict Detection**: `SystemExecutionGraph` utilizes list-based intersection checks to avoid object churn from temporary `HashSet` creations in the hot path.
 - **Collection Pooling**: Core scheduler structures like `EnumMap` and `ArrayList` are retained as fields and cleared between ticks.

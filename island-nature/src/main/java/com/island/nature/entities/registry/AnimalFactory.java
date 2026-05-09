@@ -1,5 +1,8 @@
 package com.island.nature.entities.registry;
 
+import com.island.engine.core.AgeStorage;
+import com.island.engine.core.EntityIdProvider;
+import com.island.engine.core.HealthStorage;
 import com.island.engine.ecs.ComponentRegistry;
 import com.island.nature.entities.predators.Bear;
 import com.island.nature.entities.predators.Chameleon;
@@ -23,13 +26,24 @@ public final class AnimalFactory {
     private final SpeciesRegistry speciesRegistry;
     private final RandomProvider random;
     private final ComponentRegistry registry;
+    private final EntityIdProvider idProvider;
+    private final HealthStorage healthStorage;
+    private final AgeStorage ageStorage;
     private final Map<SpeciesKey, Function<AnimalType, Animal>> creators = new HashMap<>();
     private final Map<SpeciesKey, ObjectPool<Animal>> pools = new HashMap<>();
 
     public AnimalFactory(SpeciesRegistry speciesRegistry, RandomProvider random, ComponentRegistry registry) {
+        this(speciesRegistry, random, registry, null, null, null);
+    }
+
+    public AnimalFactory(SpeciesRegistry speciesRegistry, RandomProvider random, ComponentRegistry registry,
+                         EntityIdProvider idProvider, HealthStorage healthStorage, AgeStorage ageStorage) {
         this.speciesRegistry = speciesRegistry;
         this.random = random;
         this.registry = registry;
+        this.idProvider = idProvider;
+        this.healthStorage = healthStorage;
+        this.ageStorage = ageStorage;
         
         speciesRegistry.getKey("bear").ifPresent(k -> creators.put(k, type -> new Bear(type, registry)));
         speciesRegistry.getKey("chameleon").ifPresent(k -> creators.put(k, type -> new Chameleon(type, random, registry)));
@@ -67,6 +81,8 @@ public final class AnimalFactory {
         }
 
         Animal animal = pool.acquire();
+        int entityId = (idProvider != null) ? idProvider.acquireId() : -1;
+        animal.bindStorage(entityId, healthStorage, ageStorage);
         animal.init(type, energyPercent);
         
         for (int i = 0; i < initialAge; i++) {
@@ -80,6 +96,9 @@ public final class AnimalFactory {
 
     public void releaseAnimal(Animal animal) {
         if (animal != null) {
+            if (idProvider != null && animal.getEntityId() != -1) {
+                idProvider.releaseId(animal.getEntityId());
+            }
             ObjectPool<Animal> pool = pools.get(animal.getSpeciesKey());
             if (pool != null) {
                 pool.release(animal);

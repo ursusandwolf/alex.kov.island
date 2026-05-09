@@ -157,17 +157,21 @@ public class Cell implements SimulationNode<Organism> {
         return container.getEntityCount();
     }
 
+    public boolean canAcceptInternal(Organism organism) {
+        if (organism instanceof Animal animal) {
+            if (!animal.getAnimalType().isTerrainAccessible(terrainType)) {
+                return false;
+            }
+            return container.countByType(animal.getAnimalType()) < animal.getMaxPerCell();
+        }
+        return true; 
+    }
+
     @Override
     public boolean canAccept(Organism organism) {
         long stamp = lock.readLock();
         try {
-            if (organism instanceof Animal animal) {
-                if (!animal.getAnimalType().isTerrainAccessible(terrainType)) {
-                    return false;
-                }
-                return container.countByType(animal.getAnimalType()) < animal.getMaxPerCell();
-            }
-            return true; 
+            return canAcceptInternal(organism);
         } finally {
             lock.unlockRead(stamp);
         }
@@ -194,32 +198,40 @@ public class Cell implements SimulationNode<Organism> {
         return addAnimal(animal, true);
     }
 
+    public boolean addAnimalInternal(Animal animal, boolean fireEvents) {
+        if (container.countByType(animal.getAnimalType()) >= animal.getMaxPerCell()) {
+            return false;
+        }
+        container.addAnimal(animal);
+        if (fireEvents) {
+            world.onEntityAdded(animal);
+        } else {
+            ((NatureWorld) world).getStatisticsService().registerBirth(animal.getSpeciesKey());
+        }
+        return true;
+    }
+
     public boolean addAnimal(Animal animal, boolean fireEvents) {
         long stamp = lock.writeLock();
         try {
-            if (container.countByType(animal.getAnimalType()) >= animal.getMaxPerCell()) {
-                return false;
-            }
-            container.addAnimal(animal);
-            if (fireEvents) {
-                world.onEntityAdded(animal);
-            } else {
-                ((NatureWorld) world).getStatisticsService().registerBirth(animal.getSpeciesKey());
-            }
-            return true;
+            return addAnimalInternal(animal, fireEvents);
         } finally {
             lock.unlockWrite(stamp);
         }
     }
 
+    public boolean removeAnimalInternal(Animal animal) {
+        if (container.removeAnimal(animal)) {
+            world.onEntityRemoved(animal);
+            return true;
+        }
+        return false;
+    }
+
     public boolean removeAnimal(Animal animal) {
         long stamp = lock.writeLock();
         try { 
-            if (container.removeAnimal(animal)) {
-                world.onEntityRemoved(animal);
-                return true;
-            }
-            return false;
+            return removeAnimalInternal(animal);
         } finally {
             lock.unlockWrite(stamp);
         }

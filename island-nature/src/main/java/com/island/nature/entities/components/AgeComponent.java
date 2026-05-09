@@ -1,16 +1,9 @@
 package com.island.nature.entities.components;
 
 import com.island.engine.ecs.Component;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@Builder
+/**
+ * Marker component for age. State is stored in SoA structures.
+ */
 public class AgeComponent implements Component {
-    private volatile int age;
-    private volatile int maxLifespan;
 }

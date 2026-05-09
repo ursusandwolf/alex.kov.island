@@ -40,6 +40,10 @@ public class NaturePlugin implements SimulationPlugin<Organism> {
         this.domainContext = NatureDomainContextFactory.create(config);
     }
 
+    public NatureDomainContext getDomainContext() {
+        return domainContext;
+    }
+
     @Override
     public SimulationWorld<Organism> createWorld(EventBus eventBus) {
         Island island = new Island(domainContext, config.getIslandWidth(), config.getIslandHeight(), eventBus);

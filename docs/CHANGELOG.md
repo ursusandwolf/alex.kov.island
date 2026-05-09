@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.37.0] - 2026-05-09
+### Fixed
+- **Movement Deadlock**: Fixed a critical deadlock in `Island.moveOrganism` caused by nested acquisitions of non-reentrant `StampedLock` write locks. Introduced lock-free internal methods (`canAcceptInternal`, `addAnimalInternal`, `removeAnimalInternal`) in `Cell` for safe execution within `GridUtils.executeWithDoubleLock`.
+
+### Changed
+- **Structure of Arrays (SoA) Optimization**:
+    - Fully migrated `Organism` component state (`HealthComponent`, `AgeComponent`) to high-density SoA storage (`HealthSoAStore`, `AgeSoAStore`).
+    - Stripped heap-allocated state from `HealthComponent` and `AgeComponent`, reducing them to empty marker classes. This maintains ECS query compatibility and `SystemExecutionGraph` parallel conflict detection while drastically reducing GC pressure for millions of entities.
+    - Added primitive fallback fields directly in `Organism` to support isolated tests and unbound initialization.
+
 ## [1.36.0] - 2026-05-09
 ### Fixed
 - **JPMS & API Isolation**: Resolved critical architectural violations where internal engine packages were exported and used by the nature module. 

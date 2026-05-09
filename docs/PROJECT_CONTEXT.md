@@ -47,7 +47,8 @@
             - Implemented `EntityIdManager` for unique entity tracking.
             - Created `HealthSoAStore` and `AgeSoAStore` for high-density primitive storage.
             - Integrated SoA stores into `NatureDomainContext`. [DONE]
-        - Next: Migrate `Organism` logic to use SoA stores for component data.
+        - Migrated `Organism` logic to use SoA stores for component data. Stripped state from `HealthComponent` and `AgeComponent`, converting them into empty marker components for ECS parallel scheduling. [DONE]
+        - Fixed `StampedLock` non-reentrant deadlock in `Cell` movement logic using lock-free internal methods. [DONE]
         - Further optimize `SystemExecutionGraph` for large-scale simulations.
         - Reviewed `ObjectPool` usage in `AnimalFactory` and `Organism` poolable implementation; current implementation is performant and thread-safe. [DONE]    - Investigate native memory usage for high-density entity stores.
 

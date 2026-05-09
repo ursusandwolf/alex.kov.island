@@ -38,17 +38,24 @@ public class NatureDomainContextFactory {
         
         int capacity = config.getIslandWidth() * config.getIslandHeight() * 10;
         
+        EntityIdProvider idProvider = EntityIdProvider.create();
+        HealthStorage healthStorage = HealthStorage.create(capacity);
+        AgeStorage ageStorage = AgeStorage.create(capacity);
+        
+        AnimalFactory animalFactory = new AnimalFactory(speciesRegistry, randomProvider, componentRegistry,
+                                                        idProvider, healthStorage, ageStorage);
+        
         return NatureDomainContext.builder()
                 .config(config)
-                .entityIdProvider(EntityIdProvider.create())
-                .healthStorage(HealthStorage.create(capacity))
-                .ageStorage(AgeStorage.create(capacity))
+                .entityIdProvider(idProvider)
+                .healthStorage(healthStorage)
+                .ageStorage(ageStorage)
                 .speciesRegistry(speciesRegistry)
                 .interactionProvider(InteractionMatrix.buildFrom(speciesRegistry))
                 .statisticsService(statisticsService)
                 .alertService(new AlertService())
                 .climateService(new DefaultClimateService(config, randomProvider))
-                .animalFactory(new AnimalFactory(speciesRegistry, randomProvider, componentRegistry))
+                .animalFactory(animalFactory)
                 .protectionService(new DefaultProtectionService(config, speciesRegistry, statisticsService, 
                                      config.getIslandWidth() * config.getIslandHeight()))
                 .biomassManager(new DefaultBiomassManager())

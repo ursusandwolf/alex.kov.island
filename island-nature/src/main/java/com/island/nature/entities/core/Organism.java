@@ -1,5 +1,8 @@
 package com.island.nature.entities.core;
 
+import com.island.engine.core.AgeStorage;
+import com.island.engine.core.EntityIdProvider;
+import com.island.engine.core.HealthStorage;
 import com.island.engine.ecs.Component;
 import com.island.engine.ecs.ComponentRegistry;
 import com.island.engine.ecs.ComponentStore;
@@ -21,10 +24,17 @@ public abstract class Organism implements Poolable, Entity {
     private final ComponentRegistry componentRegistry;
     private final ComponentStore componentStore;
     private volatile EntityArchetype archetype;
+
+    private int entityId = -1;
+    private HealthStorage healthStorage;
+    private AgeStorage ageStorage;
     
-    // Hot components optimization: direct fields to avoid Map lookup overhead
-    private HealthComponent healthComponent;
-    private AgeComponent ageComponent;
+    // Fallback state when not bound to SoA (e.g. tests or pre-initialization)
+    private volatile long fallbackCurrentEnergy;
+    private volatile long fallbackMaxEnergy;
+    private volatile boolean fallbackAlive;
+    private volatile int fallbackAge;
+    private volatile int fallbackMaxLifespan;
     
     @Setter private volatile DeathCause lastDeathCause;
 
@@ -36,17 +46,37 @@ public abstract class Organism implements Poolable, Entity {
         this.config = config;
         this.componentRegistry = registry;
         this.componentStore = ComponentStore.createArray(registry);
-        long currentEnergy = (maxEnergy * initialEnergyPercent) / 100;
-        addComponent(new HealthComponent(currentEnergy, maxEnergy, true));
-        addComponent(new AgeComponent(0, maxLifespan));
+        
+        this.fallbackMaxEnergy = maxEnergy;
+        this.fallbackCurrentEnergy = (maxEnergy * initialEnergyPercent) / 100;
+        this.fallbackAlive = true;
+        this.fallbackAge = 0;
+        this.fallbackMaxLifespan = maxLifespan;
+        
+        // Add markers to maintain ECS compatibility
+        addComponent(new HealthComponent());
+        addComponent(new AgeComponent());
+    }
+
+    public void bindStorage(int entityId, HealthStorage healthStorage, AgeStorage ageStorage) {
+        this.entityId = entityId;
+        this.healthStorage = healthStorage;
+        this.ageStorage = ageStorage;
+        syncToStorage();
+    }
+
+    private void syncToStorage() {
+        if (entityId != -1) {
+            if (healthStorage != null) {
+                healthStorage.set(entityId, fallbackCurrentEnergy, fallbackMaxEnergy, fallbackAlive);
+            }
+            if (ageStorage != null) {
+                ageStorage.set(entityId, fallbackAge, fallbackMaxLifespan);
+            }
+        }
     }
 
     public <C extends Component> void addComponent(C component) {
-        if (component instanceof HealthComponent hc) {
-            this.healthComponent = hc;
-        } else if (component instanceof AgeComponent ac) {
-            this.ageComponent = ac;
-        }
         componentStore.add(component);
         updateArchetype();
     }
@@ -60,47 +90,41 @@ public abstract class Organism implements Poolable, Entity {
         return archetype;
     }
 
-    @SuppressWarnings("unchecked")
     public <C extends Component> C getComponent(Class<C> type) {
-        if (type == HealthComponent.class) {
-            return (C) healthComponent;
-        }
-        if (type == AgeComponent.class) {
-            return (C) ageComponent;
-        }
         return componentStore.get(type);
     }
 
     @Override
     public void reset() {
-        if (healthComponent != null) {
-            healthComponent.setAlive(false);
-            healthComponent.setCurrentEnergy(0);
-            healthComponent.setMaxEnergy(0);
-        }
-        if (ageComponent != null) {
-            ageComponent.setAge(0);
-            ageComponent.setMaxLifespan(0);
-        }
+        this.fallbackAlive = false;
+        this.fallbackCurrentEnergy = 0;
+        this.fallbackMaxEnergy = 0;
+        this.fallbackAge = 0;
+        this.fallbackMaxLifespan = 0;
+        
         this.archetype = null;
+        this.entityId = -1;
+        this.healthStorage = null;
+        this.ageStorage = null;
     }
 
     public void init(long maxEnergy, int maxLifespan, int initialEnergyPercent) {
-        if (healthComponent != null) {
-            healthComponent.setMaxEnergy(maxEnergy);
-            healthComponent.setCurrentEnergy((maxEnergy * initialEnergyPercent) / 100);
-            healthComponent.setAlive(true);
-        }
-        if (ageComponent != null) {
-            ageComponent.setAge(0);
-            ageComponent.setMaxLifespan(maxLifespan);
-        }
+        this.fallbackMaxEnergy = maxEnergy;
+        this.fallbackCurrentEnergy = (maxEnergy * initialEnergyPercent) / 100;
+        this.fallbackAlive = true;
+        this.fallbackAge = 0;
+        this.fallbackMaxLifespan = maxLifespan;
+        
         this.lastDeathCause = null;
         updateArchetype();
+        syncToStorage();
     }
 
     public boolean isAlive() {
-        return healthComponent != null && healthComponent.isAlive();
+        if (entityId != -1 && healthStorage != null) {
+            return healthStorage.isAlive(entityId);
+        }
+        return fallbackAlive;
     }
 
     public void die() {
@@ -108,8 +132,9 @@ public abstract class Organism implements Poolable, Entity {
     }
 
     public void die(DeathCause cause) {
-        if (healthComponent != null) {
-            healthComponent.setAlive(false);
+        this.fallbackAlive = false;
+        if (entityId != -1 && healthStorage != null) {
+            healthStorage.setAlive(entityId, false);
         }
         this.lastDeathCause = cause;
     }
@@ -117,7 +142,9 @@ public abstract class Organism implements Poolable, Entity {
     public abstract String getTypeName();
 
     public int getEnergyPercentage() {
-        return (healthComponent != null) ? healthComponent.getEnergyPercentage() : 0;
+        long current = getCurrentEnergy();
+        long max = getMaxEnergy();
+        return (max > 0) ? (int) ((current * 100) / max) : 0;
     }
 
     public boolean canPerformAction() {
@@ -125,9 +152,11 @@ public abstract class Organism implements Poolable, Entity {
     }
 
     public boolean tryConsumeEnergy(long amount) {
-        if (healthComponent != null && healthComponent.isAlive()) {
-            healthComponent.setCurrentEnergy(Math.max(0, healthComponent.getCurrentEnergy() - amount));
-            if (healthComponent.getCurrentEnergy() == 0) {
+        if (isAlive()) {
+            long current = getCurrentEnergy();
+            long next = Math.max(0, current - amount);
+            setEnergy(next);
+            if (next == 0) {
                 die(DeathCause.HUNGER);
             }
         }
@@ -139,27 +168,34 @@ public abstract class Organism implements Poolable, Entity {
     }
 
     public void setEnergy(long energy) {
-        if (healthComponent != null) {
-            healthComponent.setCurrentEnergy(Math.min(energy, healthComponent.getMaxEnergy()));
-            if (healthComponent.getCurrentEnergy() == 0 && healthComponent.isAlive()) {
-                healthComponent.setAlive(false);
-            }
+        long max = getMaxEnergy();
+        long val = Math.min(energy, max);
+        
+        this.fallbackCurrentEnergy = val;
+        if (entityId != -1 && healthStorage != null) {
+            healthStorage.setCurrentEnergy(entityId, val);
+        }
+        
+        if (val == 0 && isAlive()) {
+            die(DeathCause.HUNGER);
         }
     }
 
     public void addEnergy(long amount) {
-        if (healthComponent != null) {
-            healthComponent.setCurrentEnergy(Math.min(healthComponent.getMaxEnergy(), healthComponent.getCurrentEnergy() + amount));
-        }
+        setEnergy(getCurrentEnergy() + amount);
     }
 
     public boolean checkAgeDeath() {
-        if (ageComponent != null) {
-            ageComponent.setAge(ageComponent.getAge() + 1);
-            if (ageComponent.getMaxLifespan() > 0 && ageComponent.getAge() >= ageComponent.getMaxLifespan() && isAlive()) {
-                die(DeathCause.AGE);
-                return true;
-            }
+        int nextAge = getAge() + 1;
+        
+        this.fallbackAge = nextAge;
+        if (entityId != -1 && ageStorage != null) {
+            ageStorage.setAge(entityId, nextAge);
+        }
+        
+        if (getMaxLifespan() > 0 && nextAge >= getMaxLifespan() && isAlive()) {
+            die(DeathCause.AGE);
+            return true;
         }
         return false;
     }
@@ -173,11 +209,12 @@ public abstract class Organism implements Poolable, Entity {
     }
 
     public long getDynamicMetabolismRate() {
-        if (healthComponent == null) {
+        long maxEnergy = getMaxEnergy();
+        if (maxEnergy == 0) {
             return 0;
         }
         SizeClass sizeClass = SizeClass.fromWeight((double) getWeight() / config.getScale1M());
-        long baseMetabolism = (healthComponent.getMaxEnergy() * config.getBaseMetabolismBP()) / config.getScale10K();
+        long baseMetabolism = (maxEnergy * config.getBaseMetabolismBP()) / config.getScale10K();
         return (baseMetabolism * sizeClass.getMetabolismModifierBP() / config.getScale10K())
                 * getSpecialMetabolismModifierBP() / config.getScale10K();
     }
@@ -193,18 +230,30 @@ public abstract class Organism implements Poolable, Entity {
     public abstract SpeciesKey getSpeciesKey();
 
     public long getCurrentEnergy() {
-        return (healthComponent != null) ? healthComponent.getCurrentEnergy() : 0;
+        if (entityId != -1 && healthStorage != null) {
+            return healthStorage.getCurrentEnergy(entityId);
+        }
+        return fallbackCurrentEnergy;
     }
 
     public long getMaxEnergy() {
-        return (healthComponent != null) ? healthComponent.getMaxEnergy() : 0;
+        if (entityId != -1 && healthStorage != null) {
+            return healthStorage.getMaxEnergy(entityId);
+        }
+        return fallbackMaxEnergy;
     }
 
     public int getAge() {
-        return (ageComponent != null) ? ageComponent.getAge() : 0;
+        if (entityId != -1 && ageStorage != null) {
+            return ageStorage.getAge(entityId);
+        }
+        return fallbackAge;
     }
 
     public int getMaxLifespan() {
-        return (ageComponent != null) ? ageComponent.getMaxLifespan() : 0;
+        if (entityId != -1 && ageStorage != null) {
+            return ageStorage.getMaxLifespan(entityId);
+        }
+        return fallbackMaxLifespan;
     }
 }
