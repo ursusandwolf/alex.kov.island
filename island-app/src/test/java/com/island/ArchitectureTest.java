@@ -38,4 +38,24 @@ public class ArchitectureTest {
             .resideInAnyPackage("com.island.nature..")
             .check(classes);
     }
+
+    @Test
+    void pluginsShouldNotUseEngineInternals() {
+        noClasses().that().resideInAnyPackage("com.island.nature..", "com.island.simcity..")
+            .should().dependOnClassesThat()
+            .resideInAnyPackage("com.island.engine.parallel..")
+            .check(classes);
+
+        noClasses().that().resideInAnyPackage("com.island.nature..", "com.island.simcity..")
+            .should().dependOnClassesThat()
+            .haveSimpleName("PhaseScheduler")
+            .orShould().haveSimpleName("CellProcessor")
+            .check(classes);
+            
+        // Check for InternalEngine annotation (requires RetentionPolicy.CLASS)
+        noClasses().that().resideInAnyPackage("com.island.nature..", "com.island.simcity..")
+            .should().dependOnClassesThat()
+            .areAnnotatedWith("com.island.engine.core.InternalEngine")
+            .check(classes);
+    }
 }

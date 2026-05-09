@@ -1,8 +1,11 @@
 package com.island.engine.model;
 
+import com.island.engine.core.EngineAPI;
+
 /**
  * Domain-agnostic snapshot of a simulation node state.
  */
+@EngineAPI
 public interface NodeSnapshot {
     String getCoordinates();
 

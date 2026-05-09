@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.32.0] - 2026-05-09
+
+### Added
+- **ArchUnit Enforcement**: Added strict rules to `ArchitectureTest` to prevent plugins from accessing internal engine classes (marked with `@InternalEngine` or residing in `engine.parallel`).
+- **Engine API Marking**: Applied `@EngineAPI` and `@InternalEngine` to all core engine classes and interfaces.
+
+### Changed
+- **JPMS Hardening**: Updated `island-engine/module-info.java` to stop exporting the `com.island.engine.parallel` package, completing the encapsulation of internal threading logic.
+- **Annotation Retention**: Changed `@EngineAPI` and `@InternalEngine` retention policy to `CLASS` to allow ArchUnit to verify architectural constraints via bytecode analysis.
+- **Test Alignment**:
+    - Relocated `WorldInitializationTest` to `com.island.nature.integration` package within the `island-nature` module, resolving a package-level architectural violation.
+    - Refactored `SimCitySmokeTest` and `SimCityCoreLogicTest` to use the public `SimulationEngine.build()` API, eliminating dependency on internal engine schedulers.
+- **Economy System**: Added explicit `UnsupportedOperationException` to the placeholder `EconomySystem.process()` method to prevent silent logic gaps.
+
+### Fixed
+- **SimCity Growth Logic**: Fixed a regression in `SimCitySmokeTest` where the introduction of `ConnectivityService` and `CityAnalyticsService` prevented population growth due to missing infrastructure (roads/industrial demand).
+
 ## [1.31.0] - 2026-05-08
 
 ### Added

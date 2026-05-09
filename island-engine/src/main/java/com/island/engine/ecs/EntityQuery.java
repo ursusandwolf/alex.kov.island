@@ -1,5 +1,6 @@
 package com.island.engine.ecs;
 
+import com.island.engine.core.EngineAPI;
 import java.util.BitSet;
 import java.util.List;
 import com.island.engine.model.Mortal;
@@ -7,6 +8,7 @@ import com.island.engine.model.Mortal;
 /**
  * Filter for entities based on their required components.
  */
+@EngineAPI
 public class EntityQuery<T extends Mortal> {
     private final List<Class<? extends Component>> requiredComponents;
     private BitSet requiredBitSet;

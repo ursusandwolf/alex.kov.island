@@ -1,10 +1,12 @@
 package com.island.engine.event;
 
+import com.island.engine.core.EngineAPI;
 import java.util.function.Consumer;
 
 /**
  * A thread-safe event bus for decoupled communication between simulation components.
  */
+@EngineAPI
 public interface EventBus {
     /**
      * Publishes an event to all registered subscribers.

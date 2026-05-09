@@ -1,5 +1,6 @@
 package com.island.engine.ecs;
 
+import com.island.engine.core.EngineAPI;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Map;
@@ -10,6 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Registry to map component classes to stable indices for ArrayComponentStore.
  * Now an instance-based class to avoid global static state.
  */
+@EngineAPI
 public final class ComponentRegistry {
     private final Map<Class<? extends Component>, Integer> indices = new ConcurrentHashMap<>();
     private final Map<BitSet, EntityArchetype> archetypeCache = new ConcurrentHashMap<>();

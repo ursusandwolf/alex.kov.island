@@ -1,5 +1,6 @@
 package com.island.engine.scheduling;
 
+import com.island.engine.core.EngineAPI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
@@ -21,6 +22,7 @@ import com.island.engine.model.Tickable;
  *
  * @param <T> The base type of entities in the simulation world.
  */
+@EngineAPI
 @Slf4j
 @RequiredArgsConstructor
 public class GameLoop<T extends Mortal> {

@@ -1,54 +1,60 @@
 package com.island.simcity;
 
-import com.island.engine.ecs.ComponentRegistry;
-import com.island.engine.event.DefaultEventBus;
+import com.island.engine.core.SimulationContext;
+import com.island.engine.core.SimulationEngine;
 import com.island.simcity.entities.SimEntity;
 import com.island.simcity.entities.components.BuildingComponent;
 import com.island.simcity.entities.components.PopulationComponent;
 import com.island.simcity.model.CityMap;
-import com.island.simcity.service.EconomyService;
-import com.island.simcity.service.PopulationService;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import com.island.engine.parallel.ParallelDispatcher;
-import com.island.engine.scheduling.GameLoop;
-import com.island.engine.scheduling.PhaseScheduler;
 
 public class SimCitySmokeTest {
 
     @Test
     void testCityGrowthAndEconomy() {
-        // 1. Setup
-        ComponentRegistry registry = new ComponentRegistry();
-        CityMap map = new CityMap(5, 5, new DefaultEventBus(), registry);
-        map.initialize();
-        map.setResDemand(50); // Ensure demand for growth
+        // 1. Setup using the public SimulationEngine API
+        SimulationEngine<SimEntity> engine = new SimulationEngine<>();
+        SimulationContext<SimEntity> context = engine.build(new SimCityPlugin(5, 5), 0, 1);
         
-        PopulationService popService = new PopulationService(map, registry);
-        EconomyService economyService = new EconomyService(map);
-
-        ExecutorService executor = Executors.newFixedThreadPool(1);
-        ParallelDispatcher<SimEntity> dispatcher = new ParallelDispatcher<>(executor);
-        PhaseScheduler<SimEntity> scheduler = new PhaseScheduler<>(dispatcher);
-        GameLoop<SimEntity> gameLoop = new GameLoop<>(0, executor, scheduler);
-        gameLoop.setWorld(map);
-        gameLoop.addRecurringTask(popService);
-        gameLoop.addRecurringTask(economyService);
-
-        // Add one residential building and mark as connected for simplicity
-        SimEntity building = new SimEntity(registry);
-        building.addComponent(new BuildingComponent(BuildingComponent.Type.RESIDENTIAL));
-        map.getGrid()[0][0].addEntity(building);
-        map.getGrid()[0][0].setConnected(true);
+        CityMap map = (CityMap) context.world();
+        map.setResDemand(50); // Ensure demand for growth
         
         long initialMoney = map.getMoney();
 
+        // Add one residential building and a road to ensure connectivity
+        SimEntity building = new SimEntity(map.getComponentRegistry());
+        building.addComponent(new BuildingComponent(BuildingComponent.Type.RESIDENTIAL));
+        
+        SimEntity road = new SimEntity(map.getComponentRegistry());
+        road.addComponent(new BuildingComponent(BuildingComponent.Type.ROAD));
+        
+        map.getGrid()[0][0].addEntity(building);
+        map.getGrid()[0][0].addEntity(road);
+
+        // Add an industrial building to create demand for residents
+        SimEntity factory = new SimEntity(map.getComponentRegistry());
+        factory.addComponent(new BuildingComponent(BuildingComponent.Type.INDUSTRIAL));
+        map.getGrid()[1][1].addEntity(factory);
+        // (1,1) also needs to be connected or ConnectivityService will ignore it
+        SimEntity road2 = new SimEntity(map.getComponentRegistry());
+        road2.addComponent(new BuildingComponent(BuildingComponent.Type.ROAD));
+        map.getGrid()[0][1].addEntity(road2);
+        map.getGrid()[1][1].addEntity(road2); // Wait, same road entity or just same type?
+        
+        // Let's just put the factory next to the road at (0,1)
+        map.getGrid()[0][1].removeEntity(road2); // Cleanup
+        SimEntity road01 = new SimEntity(map.getComponentRegistry());
+        road01.addComponent(new BuildingComponent(BuildingComponent.Type.ROAD));
+        map.getGrid()[0][1].addEntity(road01);
+        
+        map.getGrid()[1][1].addEntity(factory);
+        // factory at (1,1) is connected because it's adjacent to road at (0,1)
+        
         // 2. Run simulation for 10 ticks
         for (int i = 0; i < 10; i++) {
-            gameLoop.runTick();
+            context.gameLoop().runTick();
         }
 
         // 3. Verify
@@ -66,5 +72,6 @@ public class SimCitySmokeTest {
         assertTrue(map.getMoney() > initialMoney, "Money should increase due to taxes");
         
         System.out.println("Smoke test passed: Population=" + population + ", Money=" + map.getMoney());
+        context.gameLoop().stop();
     }
 }

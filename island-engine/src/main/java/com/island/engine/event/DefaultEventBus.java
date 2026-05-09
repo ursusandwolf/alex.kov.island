@@ -1,5 +1,6 @@
 package com.island.engine.event;
 
+import com.island.engine.core.EngineAPI;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -9,6 +10,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import lombok.extern.slf4j.Slf4j;
 
+@EngineAPI
 @Slf4j
 public class DefaultEventBus implements EventBus {
     private final Map<Class<?>, List<Consumer<?>>> subscribers = new ConcurrentHashMap<>();

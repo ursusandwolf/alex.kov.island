@@ -1,4 +1,4 @@
-package com.island.engine;
+package com.island.nature.integration;
 
 import com.island.engine.ecs.ComponentRegistry;
 import com.island.engine.event.DefaultEventBus;

@@ -1,5 +1,6 @@
 package com.island.engine.parallel;
 
+import com.island.engine.core.InternalEngine;
 import com.island.engine.core.SimulationNode;
 import com.island.engine.model.Mortal;
 import com.island.engine.scheduling.ScheduledTask;
@@ -9,6 +10,7 @@ import com.island.engine.scheduling.ScheduledTask;
  *
  * @param <T> The base type of entities.
  */
+@InternalEngine
 public interface ParallelTask<T extends Mortal> extends ScheduledTask {
     /**
      * Optional setup phase called once per tick before parallel processing starts.

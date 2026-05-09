@@ -26,6 +26,7 @@ public class EconomySystem extends AbstractSimCitySystem {
 
     @Override
     protected void process(SimEntity entity, CityTile tile, int tickCount) {
-        // Logic will iterate over relevant entities and update shared state
+        // TODO(MVP): implement economy logic
+        throw new UnsupportedOperationException("EconomySystem logic not yet implemented");
     }
 }

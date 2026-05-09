@@ -1,10 +1,12 @@
 package com.island.engine.model;
 
+import com.island.engine.core.EngineAPI;
 import java.util.Map;
 
 /**
  * Domain-agnostic snapshot of the simulation world state.
  */
+@EngineAPI
 public interface WorldSnapshot {
     int getTickCount();
 

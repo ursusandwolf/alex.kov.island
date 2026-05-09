@@ -6,7 +6,6 @@ module com.island.engine {
     exports com.island.engine.ecs;
     exports com.island.engine.event;
     exports com.island.engine.model;
-    exports com.island.engine.parallel;
     exports com.island.engine.scheduling;
     exports com.island.engine.service;
     exports com.island.util.common;

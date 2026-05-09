@@ -1,10 +1,12 @@
 package com.island.engine.ecs;
 
+import com.island.engine.core.EngineAPI;
 import com.island.engine.model.Mortal;
 
 /**
  * Base interface for an entity in the Entity-Component-System architecture.
  */
+@EngineAPI
 public interface Entity extends Mortal {
     ComponentStore getComponentStore();
 

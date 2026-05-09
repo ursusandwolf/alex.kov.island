@@ -1,14 +1,16 @@
 # Project Context
 
 ## Current State
-- **Phase 4: Modularization (May 2026)**:
-    - **Engine Isolation**: Transitioned from monolith to multi-module Maven structure. Defined public API via `module-info.java`, `@EngineAPI` and `@InternalEngine` annotations. [DONE]
+- **Phase 4: Modularization & API Stabilization (May 2026)**:
+    - **Engine Isolation**: Transitioned from monolith to multi-module Maven structure. Defined public API via `module-info.java`, `@EngineAPI` and `@InternalEngine` annotations. Restricted `com.island.engine.parallel` package from exports to ensure implementation encapsulation. [DONE]
     - **Architecture Cleanup**: 
         - Deleted redundant root `src` directory and organized scripts. [DONE]
-        - Moved `ArchitectureTest` to `island-app` and expanded with cross-module isolation rules. [DONE]
+        - Moved `ArchitectureTest` to `island-app` and expanded with cross-module isolation rules and internal API usage checks. [DONE]
         - Moved `GameLoopOptimizationTest` to `island-engine`. [DONE]
+        - Relocated `WorldInitializationTest` to `island-nature` (integration package) and fixed its package declaration to align with module boundaries. [DONE]
         - Refactored `DefaultWorkUnit` to use `AbstractList`. [DONE]
         - Fixed thread-safety (TOCTOU) in `GameLoop` and `CityMap`. [DONE]
+    - **API Misuse Fixes**: Refactored `SimCitySmokeTest` and `SimCityCoreLogicTest` to use the public `SimulationEngine` API instead of manually assembling internal components like `ParallelDispatcher` or `PhaseScheduler`. [DONE]
     - **ECS Optimization**: 
         - Integrated `SystemExecutionGraph` into `PhaseScheduler` for automated parallel scheduling. [DONE]
         - Implemented 6 split ECS systems in Nature domain. [DONE]

@@ -1,10 +1,12 @@
 package com.island.engine.scheduling;
 
+import com.island.engine.core.EngineAPI;
 import com.island.engine.core.ExecutionMode;
 import com.island.engine.model.Mortal;
 import com.island.engine.model.Tickable;
 import com.island.engine.parallel.ParallelTask;
 
+@EngineAPI
 public interface ScheduledTask extends Tickable {
     Phase phase();
 

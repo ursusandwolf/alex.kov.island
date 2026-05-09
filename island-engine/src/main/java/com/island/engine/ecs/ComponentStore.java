@@ -1,10 +1,12 @@
 package com.island.engine.ecs;
 
+import com.island.engine.core.EngineAPI;
 import java.util.BitSet;
 
 /**
  * Interface for typed component storage.
  */
+@EngineAPI
 public interface ComponentStore {
     <C extends Component> void add(C component);
 
