@@ -1,5 +1,12 @@
-package com.island.engine.parallel;
+package com.island.engine.internal;
 
+import com.island.engine.core.InternalEngine;
+import com.island.engine.core.ParallelTask;
+import com.island.engine.core.SimulationNode;
+import com.island.engine.core.SimulationWorld;
+import com.island.engine.core.WorkUnit;
+import com.island.engine.model.Mortal;
+import com.island.engine.scheduling.GameLoop;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -8,13 +15,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import com.island.engine.core.SimulationNode;
-import com.island.engine.core.SimulationWorld;
-import com.island.engine.core.WorkUnit;
-import com.island.engine.model.Mortal;
-import com.island.engine.scheduling.GameLoop;
-
-import com.island.engine.core.InternalEngine;
 
 /**
  * Handles parallel execution of CellServices across world work units.

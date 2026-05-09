@@ -9,6 +9,14 @@ import java.util.function.Consumer;
 @EngineAPI
 public interface EventBus {
     /**
+     * Creates a new instance of the default event bus implementation.
+     * @return A new EventBus.
+     */
+    static EventBus create() {
+        return new com.island.engine.internal.DefaultEventBus();
+    }
+
+    /**
      * Publishes an event to all registered subscribers.
      * @param event The event object to publish.
      */

@@ -13,10 +13,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.island.engine.core.ExecutionMode;
 import com.island.engine.model.Mortal;
 import com.island.engine.model.Tickable;
-import com.island.engine.parallel.ParallelDispatcher;
+import com.island.engine.internal.ParallelDispatcher;
 import com.island.engine.scheduling.GameLoop;
 import com.island.engine.scheduling.Phase;
-import com.island.engine.scheduling.PhaseScheduler;
+import com.island.engine.internal.PhaseScheduler;
 import com.island.engine.scheduling.ScheduledTask;
 
 public class GameLoopConcurrencyTest {

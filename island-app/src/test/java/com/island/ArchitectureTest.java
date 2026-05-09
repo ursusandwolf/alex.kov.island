@@ -43,13 +43,12 @@ public class ArchitectureTest {
     void pluginsShouldNotUseEngineInternals() {
         noClasses().that().resideInAnyPackage("com.island.nature..", "com.island.simcity..")
             .should().dependOnClassesThat()
-            .resideInAnyPackage("com.island.engine.parallel..")
+            .resideInAnyPackage("com.island.engine.internal..")
             .check(classes);
 
         noClasses().that().resideInAnyPackage("com.island.nature..", "com.island.simcity..")
             .should().dependOnClassesThat()
-            .haveSimpleName("PhaseScheduler")
-            .orShould().haveSimpleName("CellProcessor")
+            .haveSimpleName("CellProcessor")
             .check(classes);
             
         // Check for InternalEngine annotation (requires RetentionPolicy.CLASS)

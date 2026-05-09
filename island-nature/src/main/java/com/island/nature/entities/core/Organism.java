@@ -3,7 +3,6 @@ package com.island.nature.entities.core;
 import com.island.engine.ecs.Component;
 import com.island.engine.ecs.ComponentRegistry;
 import com.island.engine.ecs.ComponentStore;
-import com.island.engine.ecs.ArrayComponentStore;
 import com.island.engine.ecs.EntityArchetype;
 import com.island.nature.config.Configuration;
 import com.island.nature.config.EnergyPolicy;
@@ -36,7 +35,7 @@ public abstract class Organism implements Poolable, Entity {
     protected Organism(Configuration config, ComponentRegistry registry, long maxEnergy, int maxLifespan, int initialEnergyPercent) {
         this.config = config;
         this.componentRegistry = registry;
-        this.componentStore = new ArrayComponentStore(registry);
+        this.componentStore = ComponentStore.createArray(registry);
         long currentEnergy = (maxEnergy * initialEnergyPercent) / 100;
         addComponent(new HealthComponent(currentEnergy, maxEnergy, true));
         addComponent(new AgeComponent(0, maxLifespan));

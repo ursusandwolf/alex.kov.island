@@ -1,13 +1,12 @@
 package com.island.engine.core;
 
-import com.island.engine.event.DefaultEventBus;
 import com.island.engine.event.EventBus;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import com.island.engine.model.Mortal;
-import com.island.engine.parallel.ParallelDispatcher;
+import com.island.engine.internal.ParallelDispatcher;
 import com.island.engine.scheduling.GameLoop;
-import com.island.engine.scheduling.PhaseScheduler;
+import com.island.engine.internal.PhaseScheduler;
 import com.island.util.common.DefaultRandomProvider;
 import com.island.util.common.RandomProvider;
 
@@ -35,7 +34,7 @@ public class SimulationEngine<T extends Mortal> {
      * Builds a simulation context using the provided plugin but DOES NOT start the loop.
      */
     public SimulationContext<T> build(SimulationPlugin<T> plugin, int tickDurationMs, int threads) {
-        EventBus eventBus = new DefaultEventBus();
+        EventBus eventBus = EventBus.create();
 
         SimulationWorld<T> world = plugin.createWorld(eventBus);
         world.initialize();

@@ -1,6 +1,6 @@
 package com.island.nature.service;
+import com.island.engine.event.EventBus;
 
-import com.island.engine.event.DefaultEventBus;
 import com.island.nature.config.Configuration;
 import com.island.nature.entities.core.Animal;
 import com.island.nature.entities.core.SpeciesKey;
@@ -25,7 +25,7 @@ import java.util.concurrent.Executors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.island.engine.ecs.ComponentRegistry;
-import com.island.engine.event.DefaultEventBus;
+
 
 class AnimalMovementSystemTest {
     private AnimalMovementSystem movementSystem;
@@ -56,7 +56,7 @@ class AnimalMovementSystemTest {
                 .componentRegistry(componentRegistry)
                 .build();
 
-        island = new Island(domainContext, 2, 2, new DefaultEventBus());
+        island = new Island(domainContext, 2, 2, EventBus.create());
         movementSystem = new AnimalMovementSystem(island, executor, random);
 
         

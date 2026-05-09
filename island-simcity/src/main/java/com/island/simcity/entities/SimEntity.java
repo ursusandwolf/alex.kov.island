@@ -1,6 +1,5 @@
 package com.island.simcity.entities;
 
-import com.island.engine.ecs.ArrayComponentStore;
 import com.island.engine.ecs.Component;
 import com.island.engine.ecs.ComponentRegistry;
 import com.island.engine.ecs.ComponentStore;
@@ -16,7 +15,7 @@ public class SimEntity implements Entity {
 
     public SimEntity(ComponentRegistry registry) {
         this.componentRegistry = registry;
-        this.componentStore = new ArrayComponentStore(registry);
+        this.componentStore = ComponentStore.createArray(registry);
     }
 
     public void addComponent(Component component) {

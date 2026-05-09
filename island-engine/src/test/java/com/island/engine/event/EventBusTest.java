@@ -1,5 +1,6 @@
 package com.island.engine.event;
 
+
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -8,7 +9,7 @@ class EventBusTest {
 
     @Test
     void shouldPublishToDirectSubscribers() {
-        EventBus bus = new DefaultEventBus();
+        EventBus bus = EventBus.create();
         AtomicInteger count = new AtomicInteger(0);
         bus.subscribe(String.class, s -> count.incrementAndGet());
 
@@ -18,7 +19,7 @@ class EventBusTest {
 
     @Test
     void shouldPublishToHierarchicalSubscribers() {
-        EventBus bus = new DefaultEventBus();
+        EventBus bus = EventBus.create();
         AtomicInteger count = new AtomicInteger(0);
         bus.subscribe(Object.class, o -> count.incrementAndGet());
         bus.subscribe(CharSequence.class, cs -> count.incrementAndGet());
@@ -30,7 +31,7 @@ class EventBusTest {
 
     @Test
     void shouldUnsubscribeCorrectly() {
-        EventBus bus = new DefaultEventBus();
+        EventBus bus = EventBus.create();
         AtomicInteger count = new AtomicInteger(0);
         java.util.function.Consumer<String> subscriber = s -> count.incrementAndGet();
         
@@ -45,7 +46,7 @@ class EventBusTest {
 
     @Test
     void shouldHandleSubscribersThrowingExceptions() {
-        EventBus bus = new DefaultEventBus();
+        EventBus bus = EventBus.create();
         AtomicInteger count = new AtomicInteger(0);
         
         bus.subscribe(String.class, s -> { throw new RuntimeException("Fail"); });

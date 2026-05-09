@@ -1,6 +1,6 @@
 package com.island.nature.model;
+import com.island.engine.event.EventBus;
 
-import com.island.engine.event.DefaultEventBus;
 import com.island.nature.config.Configuration;
 import com.island.nature.entities.core.Animal;
 import com.island.nature.entities.core.SpeciesKey;
@@ -31,7 +31,7 @@ class DynamicChunkingTest {
         config.setDynamicChunkingMinSize(1);
         
         NatureDomainContext context = NatureDomainContextFactory.create(config);
-        island = new Island(context, 10, 10, new DefaultEventBus());
+        island = new Island(context, 10, 10, EventBus.create());
         animalFactory = context.getAnimalFactory();
     }
 

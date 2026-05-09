@@ -4,7 +4,7 @@ import com.island.engine.core.ExecutionMode;
 import com.island.engine.core.SimulationNode;
 import com.island.engine.model.Mortal;
 import com.island.engine.model.Tickable;
-import com.island.engine.parallel.ParallelTask;
+import com.island.engine.core.ParallelTask;
 import com.island.engine.scheduling.GameLoop;
 import com.island.engine.scheduling.Phase;
 

@@ -1,6 +1,6 @@
 package com.island.nature.service;
+import com.island.engine.event.EventBus;
 
-import com.island.engine.event.DefaultEventBus;
 import com.island.nature.config.Configuration;
 import com.island.nature.entities.core.Animal;
 import com.island.nature.entities.core.SpeciesKey;
@@ -27,7 +27,7 @@ import java.util.concurrent.Executors;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.island.engine.ecs.ComponentRegistry;
-import com.island.engine.event.DefaultEventBus;
+
 
 class AnimalHealthSystemTest {
     private AnimalHealthSystem healthSystem;
@@ -60,7 +60,7 @@ class AnimalHealthSystemTest {
                 .componentRegistry(componentRegistry)
                 .build();
 
-        island = new Island(domainContext, 1, 1, new DefaultEventBus());
+        island = new Island(domainContext, 1, 1, EventBus.create());
         cell = island.getCell(0, 0);
         healthSystem = new AnimalHealthSystem(island, executor, random);
     }

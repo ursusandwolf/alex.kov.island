@@ -1,7 +1,7 @@
 package com.island.nature.service;
-
+import com.island.engine.event.EventBus;
 import com.island.engine.ecs.ComponentRegistry;
-import com.island.engine.event.DefaultEventBus;
+
 import com.island.engine.event.EventBus;
 import com.island.nature.config.Configuration;
 import com.island.nature.model.Cell;
@@ -44,7 +44,7 @@ class StatisticsDeathCountingTest {
         random = new DefaultRandomProvider();
         registry = new SpeciesLoader(config).load();
         statisticsService = new StatisticsService(config);
-        eventBus = new DefaultEventBus();
+        eventBus = EventBus.create();
         statisticsService.subscribe(eventBus);
 
         ComponentRegistry componentRegistry = new ComponentRegistry();

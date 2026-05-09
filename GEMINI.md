@@ -1,5 +1,12 @@
 # Project Guidelines: Island Ecosystem Simulator
 
+## Engine Library Architecture
+- **API Isolation**: All implementation details MUST be in `com.island.engine.internal` or other non-exported packages.
+- **Public API**: Use `@EngineAPI` for stable interfaces and `@InternalEngine` for public classes that are nonetheless implementation details.
+- **Factories**: Always prefer static factory methods in interfaces (e.g., `EventBus.create()`) over direct instantiation of `Default*` classes.
+- **JPMS**: Strictly follow `module-info.java` exports. Never export `.internal` packages.
+- **Dependencies**: The engine module should have minimal external dependencies to facilitate its use as a JAR library.
+
 ## Java Coding Standards
 - **Imports**: Never use Fully Qualified Names (FQNs) in the code body. Always use explicit imports at the top of the file.
 - **Lombok**: Use Lombok annotations (`@Getter`, `@Setter`, `@Builder`, `@Slf4j`) to minimize boilerplate code.

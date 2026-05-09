@@ -4,7 +4,7 @@ import com.island.engine.core.EngineAPI;
 import com.island.engine.core.ExecutionMode;
 import com.island.engine.model.Mortal;
 import com.island.engine.model.Tickable;
-import com.island.engine.parallel.ParallelTask;
+import com.island.engine.core.ParallelTask;
 
 @EngineAPI
 public interface ScheduledTask extends Tickable {

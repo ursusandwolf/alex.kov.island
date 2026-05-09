@@ -1,0 +1,23 @@
+# Island Engine: Library Readiness TODO
+
+## 1. JPMS & Package Refactoring
+- [x] Move `ParallelTask` from `com.island.engine.parallel` to `com.island.engine.core` (exported).
+- [x] Create `com.island.engine.internal` package (DO NOT export in `module-info.java`).
+- [x] Move `ParallelDispatcher` to `com.island.engine.internal`.
+- [x] Move `PhaseScheduler` to `com.island.engine.internal`.
+- [x] Move `SystemExecutionGraph` to `com.island.engine.internal`.
+- [x] Move `DefaultEventBus` to `com.island.engine.internal`.
+- [x] Move `ArrayComponentStore` and `DefaultComponentStore` to `com.island.engine.internal`.
+
+## 2. API Hardening (Factories)
+- [x] Add `static EventBus create()` to `EventBus` interface.
+- [x] Add factory methods to `ComponentStore` or `Entity` to avoid `new ArrayComponentStore`.
+- [x] Update `SimulationEngine` to use internal implementations via factories/constructors without exposing them.
+
+## 3. Documentation
+- [x] Add Javadoc to all `@EngineAPI` interfaces.
+- [x] Update `GEMINI.md` with rules for engine library development.
+
+## 4. Verification
+- [x] Run `ArchitectureTest` to ensure no internal leaks.
+- [ ] Build JAR and verify imports in a dummy project.

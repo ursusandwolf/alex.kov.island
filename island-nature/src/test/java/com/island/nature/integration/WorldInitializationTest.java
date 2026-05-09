@@ -1,7 +1,7 @@
 package com.island.nature.integration;
-
+import com.island.engine.event.EventBus;
 import com.island.engine.ecs.ComponentRegistry;
-import com.island.engine.event.DefaultEventBus;
+
 import com.island.nature.config.Configuration;
 import com.island.nature.model.DefaultBiomassManager;
 import com.island.nature.model.Island;
@@ -44,7 +44,7 @@ public class WorldInitializationTest {
                 .chunkingStrategy(new StaticChunkingStrategy(config))
                 .build();
 
-        Island island = new Island(context, 16, 16, new DefaultEventBus());
+        Island island = new Island(context, 16, 16, EventBus.create());
         ExecutorService executor = Executors.newSingleThreadExecutor();
         
         WorldInitializer initializer = new WorldInitializer();

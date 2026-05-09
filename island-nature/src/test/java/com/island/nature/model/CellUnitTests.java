@@ -1,7 +1,7 @@
 package com.island.nature.model;
-
+import com.island.engine.event.EventBus;
 import com.island.engine.ecs.ComponentRegistry;
-import com.island.engine.event.DefaultEventBus;
+
 import com.island.nature.config.Configuration;
 import com.island.nature.service.DefaultProtectionService;
 import com.island.nature.service.StatisticsService;
@@ -52,7 +52,7 @@ class CellUnitTests {
                 .componentRegistry(componentRegistry)
                 .build();
 
-        Island island = new Island(context, 1, 1, new DefaultEventBus());
+        Island island = new Island(context, 1, 1, EventBus.create());
         cell = new Cell(0, 0, island);
         container = cell.getContainer();
     }

@@ -1,7 +1,9 @@
-package com.island.engine.ecs;
+package com.island.engine.internal;
 
 import com.island.engine.model.Mortal;
-import com.island.engine.parallel.ParallelTask;
+import com.island.engine.core.ParallelTask;
+import com.island.engine.ecs.Component;
+import com.island.engine.ecs.EntitySystem;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;

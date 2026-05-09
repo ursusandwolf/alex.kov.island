@@ -1,4 +1,4 @@
-package com.island.engine.scheduling;
+package com.island.engine.internal;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -8,10 +8,10 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import com.island.engine.core.InternalEngine;
 import com.island.engine.core.SimulationWorld;
-import com.island.engine.ecs.SystemExecutionGraph;
+import com.island.engine.core.ParallelTask;
 import com.island.engine.model.Mortal;
-import com.island.engine.parallel.ParallelDispatcher;
-import com.island.engine.parallel.ParallelTask;
+import com.island.engine.scheduling.Phase;
+import com.island.engine.scheduling.ScheduledTask;
 
 /**
  * Manages the scheduling and sorting of simulation tasks across phases.

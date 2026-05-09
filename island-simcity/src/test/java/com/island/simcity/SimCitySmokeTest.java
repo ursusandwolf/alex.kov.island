@@ -23,37 +23,40 @@ public class SimCitySmokeTest {
         
         long initialMoney = map.getMoney();
 
-        // Add one residential building and a road to ensure connectivity
+        // Add one residential building and basic infrastructure at (0,0)
+        // ConnectivityService starts all networks from (0,0)
         SimEntity building = new SimEntity(map.getComponentRegistry());
         building.addComponent(new BuildingComponent(BuildingComponent.Type.RESIDENTIAL));
         
-        SimEntity road = new SimEntity(map.getComponentRegistry());
-        road.addComponent(new BuildingComponent(BuildingComponent.Type.ROAD));
+        SimEntity road00 = new SimEntity(map.getComponentRegistry());
+        road00.addComponent(new BuildingComponent(BuildingComponent.Type.ROAD));
+
+        SimEntity powerPlant = new SimEntity(map.getComponentRegistry());
+        powerPlant.addComponent(new BuildingComponent(BuildingComponent.Type.POWER_PLANT));
+
+        SimEntity waterPipe = new SimEntity(map.getComponentRegistry());
+        waterPipe.addComponent(new BuildingComponent(BuildingComponent.Type.WATER_PIPE));
         
         map.getGrid()[0][0].addEntity(building);
-        map.getGrid()[0][0].addEntity(road);
+        map.getGrid()[0][0].addEntity(road00);
+        map.getGrid()[0][0].addEntity(powerPlant);
+        map.getGrid()[0][0].addEntity(waterPipe);
 
         // Add an industrial building to create demand for residents
         SimEntity factory = new SimEntity(map.getComponentRegistry());
         factory.addComponent(new BuildingComponent(BuildingComponent.Type.INDUSTRIAL));
         map.getGrid()[1][1].addEntity(factory);
-        // (1,1) also needs to be connected or ConnectivityService will ignore it
-        SimEntity road2 = new SimEntity(map.getComponentRegistry());
-        road2.addComponent(new BuildingComponent(BuildingComponent.Type.ROAD));
-        map.getGrid()[0][1].addEntity(road2);
-        map.getGrid()[1][1].addEntity(road2); // Wait, same road entity or just same type?
+        SimEntity road11 = new SimEntity(map.getComponentRegistry());
+        road11.addComponent(new BuildingComponent(BuildingComponent.Type.ROAD));
+        map.getGrid()[1][1].addEntity(road11);
         
-        // Let's just put the factory next to the road at (0,1)
-        map.getGrid()[0][1].removeEntity(road2); // Cleanup
+        // Connectivity between (0,0) and (1,1) via (0,1) or (1,0)
         SimEntity road01 = new SimEntity(map.getComponentRegistry());
         road01.addComponent(new BuildingComponent(BuildingComponent.Type.ROAD));
         map.getGrid()[0][1].addEntity(road01);
         
-        map.getGrid()[1][1].addEntity(factory);
-        // factory at (1,1) is connected because it's adjacent to road at (0,1)
-        
-        // 2. Run simulation for 10 ticks
-        for (int i = 0; i < 10; i++) {
+        // 2. Run simulation for 20 ticks
+        for (int i = 0; i < 20; i++) {
             context.gameLoop().runTick();
         }
 

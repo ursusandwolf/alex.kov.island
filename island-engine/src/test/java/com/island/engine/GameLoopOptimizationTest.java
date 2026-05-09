@@ -16,10 +16,12 @@ import com.island.engine.core.SimulationWorld;
 import com.island.engine.core.WorkUnit;
 import com.island.engine.core.DefaultWorkUnit;
 import com.island.engine.model.Mortal;
-import com.island.engine.parallel.ParallelDispatcher;
+import com.island.engine.internal.ParallelDispatcher;
 import com.island.engine.scheduling.GameLoop;
 import com.island.engine.scheduling.Phase;
-import com.island.engine.scheduling.PhaseScheduler;
+import com.island.engine.internal.PhaseScheduler;
+import com.island.engine.scheduling.ScheduledTask;
+
 import com.island.engine.service.CellService;
 
 class GameLoopOptimizationTest {

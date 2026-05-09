@@ -1,7 +1,7 @@
 package com.island.nature.service;
-
+import com.island.engine.event.EventBus;
 import com.island.engine.ecs.ComponentRegistry;
-import com.island.engine.event.DefaultEventBus;
+
 import com.island.nature.config.Configuration;
 import com.island.nature.model.Cell;
 import com.island.nature.model.DefaultBiomassManager;
@@ -46,7 +46,7 @@ class AnimalReproductionSystemTest {
                 .componentRegistry(componentRegistry)
                 .build();
 
-        Island island = new Island(context, 1, 1, new DefaultEventBus());
+        Island island = new Island(context, 1, 1, EventBus.create());
         island.setRedBookProtectionEnabled(false);
         Cell cell = island.getCell(0, 0);
         
@@ -97,7 +97,7 @@ class AnimalReproductionSystemTest {
                 .componentRegistry(componentRegistry)
                 .build();
 
-        Island island = new Island(context, 1, 1, new DefaultEventBus());
+        Island island = new Island(context, 1, 1, EventBus.create());
         island.setRedBookProtectionEnabled(false);
         Cell cell = island.getCell(0, 0);
 

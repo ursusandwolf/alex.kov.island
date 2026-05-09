@@ -13,6 +13,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import com.island.engine.core.ExecutionMode;
 import com.island.engine.core.SimulationWorld;
+import com.island.engine.internal.PhaseScheduler;
 import com.island.engine.model.Mortal;
 import com.island.engine.model.Tickable;
 
