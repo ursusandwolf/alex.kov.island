@@ -1,21 +1,23 @@
 package com.island.engine.scheduling;
 
 import com.island.engine.core.EngineAPI;
+import com.island.engine.core.ExecutionMode;
+import com.island.engine.core.SimulationWorld;
+import com.island.engine.internal.PhaseScheduler;
+import com.island.engine.model.Mortal;
+import com.island.engine.model.Tickable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BooleanSupplier;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import com.island.engine.core.ExecutionMode;
-import com.island.engine.core.SimulationWorld;
-import com.island.engine.internal.PhaseScheduler;
-import com.island.engine.model.Mortal;
-import com.island.engine.model.Tickable;
 
 /**
  * Orchestrates the simulation ticks.
@@ -37,47 +39,27 @@ public class GameLoop<T extends Mortal> {
     private final PhaseScheduler<T> scheduler;
 
     @Getter @Setter
-    private SimulationWorld<T> world;
+    private volatile SimulationWorld<T> world;
     
     @Getter @Setter
-    private java.util.function.Supplier<Boolean> stopCondition;
+    private volatile BooleanSupplier stopCondition;
 
     @Setter
-    private Runnable onStopCallback;
+    private volatile Runnable onStopCallback;
 
-    private final java.util.concurrent.atomic.AtomicBoolean running = new java.util.concurrent.atomic.AtomicBoolean(false);
+    private final AtomicBoolean running = new AtomicBoolean(false);
     @Getter
     private int tickCount = 0;
     private long tasksVersion = 0;
     
     private volatile Thread loopThread;
 
+    public void addRecurringTask(ScheduledTask task) {
+        pendingTasks.add(task);
+    }
+
     public void addRecurringTask(Tickable task) {
-        if (task instanceof ScheduledTask st) {
-            pendingTasks.add(st);
-        } else {
-            pendingTasks.add(new ScheduledTask() {
-                @Override
-                public Phase phase() {
-                    return Phase.SIMULATION;
-                }
-
-                @Override
-                public int priority() {
-                    return 50;
-                }
-
-                @Override
-                public ExecutionMode executionMode() {
-                    return ExecutionMode.SEQUENTIAL;
-                }
-
-                @Override
-                public void tick(int tickCount) {
-                    task.tick(tickCount);
-                }
-            });
-        }
+        addRecurringTask(new TickableTaskWrapper(task));
     }
 
     public void addRecurringTask(Runnable runnable) {
@@ -103,7 +85,6 @@ public class GameLoop<T extends Mortal> {
                     Thread.currentThread().interrupt();
                 }
             }
-            taskExecutor.shutdownNow();
         }
     }
 
@@ -146,7 +127,7 @@ public class GameLoop<T extends Mortal> {
             long startTime = System.nanoTime();
             try {
                 runTick();
-                if (stopCondition != null && stopCondition.get()) {
+                if (stopCondition != null && stopCondition.getAsBoolean()) {
                     log.info("Stop condition met. Stopping GameLoop.");
                     running.set(false);
                     if (onStopCallback != null) {
@@ -166,6 +147,28 @@ public class GameLoop<T extends Mortal> {
                     Thread.currentThread().interrupt();
                 }
             }
+        }
+    }
+
+    private record TickableTaskWrapper(Tickable delegate) implements ScheduledTask {
+        @Override
+        public Phase phase() {
+            return Phase.SIMULATION;
+        }
+
+        @Override
+        public int priority() {
+            return 50;
+        }
+
+        @Override
+        public ExecutionMode executionMode() {
+            return ExecutionMode.SEQUENTIAL;
+        }
+
+        @Override
+        public void tick(int tickCount) {
+            delegate.tick(tickCount);
         }
     }
 }

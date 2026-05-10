@@ -66,6 +66,7 @@ To support high-frequency ticks in large-scale simulations, the engine employs s
    - `CellService` tasks are executed in parallel across `WorkUnits` (chunks).
 3. **Locking Strategy**: 
    - **Cell-Level Locking**: `Cell` uses `ReentrantReadWriteLock`. 
+   - **Loop-Level Safety**: `GameLoop` uses `volatile` references for `SimulationWorld` and control callbacks (`stopCondition`, `onStopCallback`) to ensure safe publication across threads during dynamic simulation adjustment.
    - **Deadlock Prevention**: All iteration methods (`forEachEntity`, `query`, etc.) follow a **"copy-under-read-lock, then execute"** pattern. This ensures the read lock is released before any action that might require a write lock (e.g., moving an entity) is executed, preventing read-to-write upgrade deadlocks.
    - **Multi-Locking**: `GridUtils.executeWithDoubleLock` uses `System.identityHashCode` ordering to prevent deadlocks during inter-cell movement, falling back to a try-lock loop on collisions.4. **Configuration System**:
 

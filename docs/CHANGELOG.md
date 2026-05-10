@@ -7,6 +7,11 @@
 
 ### Changed
 - **Module Encapsulation**: Refined JPMS exports in `island-nature` and `island-simcity`. Internal packages (`model`, `service`, `entities.components`) are no longer exported, enforcing strict implementation hiding.
+- **GameLoop Hardening**: 
+    - Enhanced thread-safety of `GameLoop` by making `world`, `stopCondition`, and `onStopCallback` fields `volatile`.
+    - Eliminated unnecessary boxing and GC pressure in the main loop by switching from `Supplier<Boolean>` to `BooleanSupplier`.
+    - Refactored `addRecurringTask` to use method overloading and a `record` wrapper, removing `instanceof` branching and improving polymorphism.
+    - Improved resource management by delegating `ExecutorService` shutdown to the `SimulationContext` owner.
 - **Performance Optimization**: Optimized `AnimalHealthSystem` to access `HealthStorage` and `AgeStorage` directly by ID, reducing the overhead of object-oriented wrappers during energy consumption and age tracking.
 
 ### Added

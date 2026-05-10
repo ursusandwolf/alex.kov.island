@@ -6,6 +6,7 @@
     - **ID Management**: Optimized `EntityIdManager` using `ConcurrentLinkedQueue` for lock-free ID recycling. [DONE]
     - **Module Hardening**: Refined JPMS isolation by removing exports of internal `model`, `service`, and `component` packages in domain modules. [DONE]
     - **Build Standard**: Integrated professional Maven plugins (Enforcer, JaCoCo, Source, Javadoc, PITest, JMH) and updated GitHub Actions CI. [DONE]
+    - **Thread-Safety & Lifecycle**: Refactored `GameLoop` with `volatile` dependencies, `BooleanSupplier` for zero-boxing termination checks, and polymorphic task registration to eliminate `instanceof`. [DONE]
     - **API Contract**: Enhanced Javadoc for all `@EngineAPI` components and enabled `ServiceLoader` discovery for plugins. [DONE]
     - **Performance Hot-Path**: Refactored `AnimalHealthSystem` for direct SoA storage access, bypassing object wrappers in the main simulation tick. [DONE]
 
