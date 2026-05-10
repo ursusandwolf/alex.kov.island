@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BooleanSupplier;
@@ -52,7 +53,7 @@ public class GameLoop<T extends Mortal> {
     private int tickCount = 0;
     private long tasksVersion = 0;
     
-    private volatile Thread loopThread;
+    private volatile Future<?> loopTask;
 
     public void addRecurringTask(ScheduledTask task) {
         pendingTasks.add(task);
@@ -68,8 +69,7 @@ public class GameLoop<T extends Mortal> {
 
     public void start() {
         if (running.compareAndSet(false, true)) {
-            loopThread = new Thread(this::run, "GameLoopThread");
-            loopThread.start();
+            loopTask = taskExecutor.submit(this::run);
             log.info("GameLoop started.");
         }
     }
@@ -77,13 +77,8 @@ public class GameLoop<T extends Mortal> {
     public void stop() {
         if (running.compareAndSet(true, false)) {
             log.info("Stopping GameLoop...");
-            if (loopThread != null && Thread.currentThread() != loopThread) {
-                loopThread.interrupt();
-                try {
-                    loopThread.join(2000);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
+            if (loopTask != null) {
+                loopTask.cancel(true);
             }
         }
     }
@@ -145,6 +140,8 @@ public class GameLoop<T extends Mortal> {
                     TimeUnit.NANOSECONDS.sleep(sleepTimeNs);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
+                    // Exit loop gracefully on interruption
+                    break;
                 }
             }
         }

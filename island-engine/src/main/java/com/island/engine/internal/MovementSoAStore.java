@@ -10,7 +10,7 @@ import java.util.concurrent.locks.StampedLock;
  * Uses AtomicIntegerArray for thread-safe element access and StampedLock for safe resizing.
  */
 @InternalEngine
-public class MovementSoAStore implements MovementStorage {
+public final class MovementSoAStore implements MovementStorage {
     private volatile AtomicIntegerArray speeds;
     private volatile int capacity;
     private final StampedLock lock = new StampedLock();

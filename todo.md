@@ -27,6 +27,14 @@
 - [x] **Architecture: Test Organization**
 - [x] **Engine: EventBus Improvements**
 
+## 🛠 Code Review Fixes (May 2026)
+- [x] **Engine: Concurrency Modernization**
+    - [x] Refactor `ParallelDispatcher` to use `Callable` and `ExecutorService.invokeAll()` instead of `CountDownLatch`.
+    - [x] Update `GameLoop` to use `taskExecutor.submit()` instead of `new Thread()`.
+- [x] **Code Quality: Checkstyle & Best Practices**
+    - [x] Resolve Checkstyle violations (662 errors) or adjust `checkstyle.xml` to match project conventions.
+    - [x] Mark internal engine classes (e.g., `EntityIdManager`, `PhaseScheduler`) as `final` where applicable.
+
 ## 📈 Phase 2: Optimization & Scalability
 - [x] **Vector 3: Dynamic Load Balancing**
     - [x] Implement `DynamicChunkingStrategy`.
@@ -45,3 +53,12 @@
 - [x] Increase test coverage for concurrent scenarios.
 - [x] Update `GEMINI.md` with new architectural rules.
 - [x] Review shouldStop semantic change.
+
+## 🖥 Phase 4: User Interface, Controls & Persistence
+- [ ] **Vector 6: Visualization & App Layer**
+    - [ ] Enhance existing terminal-based pseudographics (ASCII/ANSI) to render `WorldSnapshot` as rich as possible in CLI.
+    - [ ] Build a Web-based (Spring Boot + React) dashboard in the `island-app` module for full graphical visualization.
+- [ ] **Vector 7: Real-Time Interaction**
+    - [ ] Allow dynamic pausing, speed adjustments (tick rate scaling), and manual entity spawning via UI (CLI and Web).
+- [ ] **Vector 8: Serialization & Save States**
+    - [ ] Implement serialization to save and load `WorldSnapshot` (JSON or binary formats).

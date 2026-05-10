@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Uses ConcurrentLinkedQueue for efficient ID recycling without global locks.
  */
 @InternalEngine
-public class EntityIdManager implements EntityIdProvider {
+public final class EntityIdManager implements EntityIdProvider {
     private final AtomicInteger nextId = new AtomicInteger(0);
     private final ConcurrentLinkedQueue<Integer> recycledIds = new ConcurrentLinkedQueue<>();
 

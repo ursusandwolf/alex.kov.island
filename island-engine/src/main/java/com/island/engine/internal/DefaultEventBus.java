@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @InternalEngine
 @Slf4j
-public class DefaultEventBus implements EventBus {
+public final class DefaultEventBus implements EventBus {
     private final Map<Class<?>, List<Consumer<?>>> subscribers = new ConcurrentHashMap<>();
     private final Map<Class<?>, Set<Class<?>>> typeHierarchyCache = new ConcurrentHashMap<>();
 

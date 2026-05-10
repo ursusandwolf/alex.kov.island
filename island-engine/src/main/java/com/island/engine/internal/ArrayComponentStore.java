@@ -13,7 +13,7 @@ import java.util.BitSet;
  * Automatically grows the internal array if needed.
  */
 @InternalEngine
-public class ArrayComponentStore implements ComponentStore {
+public final class ArrayComponentStore implements ComponentStore {
     private static final Component[] EMPTY_COMPONENTS = new Component[0];
     private final ComponentRegistry registry;
     private Component[] components;

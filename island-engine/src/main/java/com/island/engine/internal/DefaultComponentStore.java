@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Default implementation of ComponentStore using a ConcurrentHashMap.
  */
 @InternalEngine
-public class DefaultComponentStore implements ComponentStore {
+public final class DefaultComponentStore implements ComponentStore {
     private final ComponentRegistry registry;
     private final Map<Class<? extends Component>, Component> components = new ConcurrentHashMap<>();
 

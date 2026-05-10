@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicIntegerArray;
  * Uses Atomic arrays for thread-safe element access.
  */
 @InternalEngine
-public class HealthSoAStore implements HealthStorage {
+public final class HealthSoAStore implements HealthStorage {
     private volatile AtomicLongArray currentEnergy;
     private volatile AtomicLongArray maxEnergy;
     private volatile AtomicIntegerArray alive;

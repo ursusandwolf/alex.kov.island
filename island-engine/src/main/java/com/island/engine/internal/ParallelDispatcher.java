@@ -6,12 +6,13 @@ import com.island.engine.core.SimulationNode;
 import com.island.engine.core.SimulationWorld;
 import com.island.engine.core.WorkUnit;
 import com.island.engine.model.Mortal;
-import com.island.engine.scheduling.GameLoop;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 @InternalEngine
 @Slf4j
 @RequiredArgsConstructor
-public class ParallelDispatcher<T extends Mortal> {
+public final class ParallelDispatcher<T extends Mortal> {
 
     private final List<CellProcessor<T>> processorPool = new ArrayList<>();
     private final ExecutorService taskExecutor;
@@ -60,30 +61,32 @@ public class ParallelDispatcher<T extends Mortal> {
                 }
             }
 
-            CountDownLatch latch = new CountDownLatch(unitCount);
+            List<CellProcessor<T>> activeProcessors = new ArrayList<>(unitCount);
             int i = 0;
             for (WorkUnit<T> unit : workUnits) {
                 CellProcessor<T> processor = processorPool.get(i++);
-                processor.update(unit, services, tickCount, latch);
-                try {
-                    taskExecutor.execute(processor);
-                } catch (RejectedExecutionException e) {
-                    log.error("Task execution rejected in parallel dispatcher: {}. Executing synchronously.", e.getMessage());
-                    processor.run(); // Fallback to synchronous execution
-                }
+                processor.update(unit, services, tickCount);
+                activeProcessors.add(processor);
             }
 
             try {
-                latch.await();
-                // Check for critical errors
-                for (int j = 0; j < unitCount; j++) {
-                    Throwable error = processorPool.get(j).getError();
-                    if (error != null) {
-                        log.error("Critical error in parallel cell service execution: {}", error.getMessage(), error);
-                    }
+                List<Future<Void>> futures = taskExecutor.invokeAll(activeProcessors);
+                for (Future<Void> future : futures) {
+                    future.get();
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+            } catch (ExecutionException e) {
+                log.error("Critical error in parallel cell service execution: {}", e.getCause().getMessage(), e.getCause());
+            } catch (RejectedExecutionException e) {
+                log.error("Task execution rejected in parallel dispatcher: {}. Executing synchronously.", e.getMessage());
+                for (CellProcessor<T> processor : activeProcessors) {
+                    try {
+                        processor.call();
+                    } catch (Exception syncEx) {
+                        log.error("Critical error in synchronous fallback execution: {}", syncEx.getMessage(), syncEx);
+                    }
+                }
             }
         }
 
@@ -96,27 +99,19 @@ public class ParallelDispatcher<T extends Mortal> {
         }
     }
 
-    private static class CellProcessor<T extends Mortal> implements Runnable {
+    private static class CellProcessor<T extends Mortal> implements Callable<Void> {
         private volatile WorkUnit<T> unit;
         private volatile List<ParallelTask<T>> services;
         private volatile int tickCount;
-        private volatile CountDownLatch latch;
-        private volatile Throwable error;
 
-        void update(WorkUnit<T> unit, List<ParallelTask<T>> services, int tickCount, CountDownLatch latch) {
+        void update(WorkUnit<T> unit, List<ParallelTask<T>> services, int tickCount) {
             this.unit = unit;
             this.services = services;
             this.tickCount = tickCount;
-            this.latch = latch;
-            this.error = null;
-        }
-
-        public Throwable getError() {
-            return error;
         }
 
         @Override
-        public void run() {
+        public Void call() throws Exception {
             long start = System.nanoTime();
             try {
                 for (SimulationNode<T> node : unit) {
@@ -129,12 +124,10 @@ public class ParallelDispatcher<T extends Mortal> {
                         }
                     }
                 }
-            } catch (Throwable t) {
-                this.error = t;
+                return null;
             } finally {
                 long duration = System.nanoTime() - start;
                 unit.setLastExecutionTimeNanos(duration);
-                latch.countDown();
             }
         }
     }

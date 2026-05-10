@@ -20,7 +20,7 @@ import com.island.engine.scheduling.ScheduledTask;
  */
 @InternalEngine
 @Slf4j
-public class PhaseScheduler<T extends Mortal> {
+public final class PhaseScheduler<T extends Mortal> {
     private static final Comparator<ScheduledTask> PRIORITY_COMPARATOR = 
             Comparator.comparingInt(ScheduledTask::priority).reversed();
 

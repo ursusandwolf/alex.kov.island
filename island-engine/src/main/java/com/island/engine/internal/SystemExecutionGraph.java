@@ -14,7 +14,7 @@ import com.island.engine.core.InternalEngine;
  * Builds an execution schedule grouping independent systems into parallel phases.
  */
 @InternalEngine
-public class SystemExecutionGraph {
+public final class SystemExecutionGraph {
 
     /**
      * Splits a list of parallel tasks into ordered batches.

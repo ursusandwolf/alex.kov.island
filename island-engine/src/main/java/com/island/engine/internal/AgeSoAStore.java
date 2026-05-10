@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicIntegerArray;
  * Uses AtomicIntegerArray for thread-safe element access.
  */
 @InternalEngine
-public class AgeSoAStore implements AgeStorage {
+public final class AgeSoAStore implements AgeStorage {
     private volatile AtomicIntegerArray age;
     private volatile AtomicIntegerArray maxLifespan;
     private volatile int capacity;
