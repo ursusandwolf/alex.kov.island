@@ -51,7 +51,7 @@ To support high-frequency ticks in large-scale simulations, the engine employs s
 - **Structure of Arrays (SoA)**: Primitive state for high-volume entities (like `Organism` health and age) is stored in specialized SoA arrays (`HealthSoAStore`, `AgeSoAStore`) mapped by `EntityId`. Traditional ECS components (`HealthComponent`, `AgeComponent`) are kept purely as empty marker classes to preserve parallel conflict detection in the `SystemExecutionGraph` without adding per-entity heap overhead.
 - **Schedule Caching**: `PhaseScheduler` caches the execution graph, avoiding re-calculating dependency batches if the task list hasn't changed.
 - **Set-Free Conflict Detection**: `SystemExecutionGraph` utilizes list-based intersection checks to avoid object churn from temporary `HashSet` creations in the hot path.
-- **Collection Pooling**: Core scheduler structures like `EnumMap` and `ArrayList` are retained as fields and cleared between ticks.
+- **Collection Pooling**: Core scheduler structures and high-frequency service components (like `ConnectivityService` propagation queues and `BitSet` visited maps) are retained as fields and cleared/reused between ticks to minimize object churn.
 
 ---
 

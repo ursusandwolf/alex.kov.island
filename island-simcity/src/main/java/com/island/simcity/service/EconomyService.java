@@ -10,12 +10,9 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public class EconomyService extends AbstractSimCityService {
     private final CityMap map;
-
-    public EconomyService(CityMap map) {
-        this.map = map;
-    }
     private final AtomicLong tickIncome = new AtomicLong();
     private final AtomicLong tickExpenses = new AtomicLong();
 
@@ -34,6 +31,8 @@ public class EconomyService extends AbstractSimCityService {
     protected void doProcessTile(CityTile tile, int tickCount) {
         long cellIncome = 0;
         long cellExpenses = 0;
+        
+        // TODO: Migrate magic numbers to Configuration or BuildingProfile enum
         for (SimEntity entity : tile.getEntities()) {
             BuildingComponent building = entity.getComponent(BuildingComponent.class);
             PopulationComponent pop = entity.getComponent(PopulationComponent.class);
@@ -51,19 +50,13 @@ public class EconomyService extends AbstractSimCityService {
                     case POWER_PLANT -> 200;
                     case POWER_LINE -> 10;
                 };
-                if (tile.isConnected() && tile.isPowered()) {
+                
+                if (tile.isConnected()) {
+                    long incomeMultiplier = tile.isPowered() ? 1 : 2; // Full income if powered, half if not
                     cellIncome += switch (building.getType()) {
-                        case COMMERCIAL -> 100;
-                        case INDUSTRIAL -> 200;
-                        case AGRICULTURAL -> 10;
-                        default -> 0;
-                    };
-                } else if (tile.isConnected()) {
-                    // Half income if no power
-                    cellIncome += switch (building.getType()) {
-                        case COMMERCIAL -> 50;
-                        case INDUSTRIAL -> 100;
-                        case AGRICULTURAL -> 5;
+                        case COMMERCIAL -> 100 / incomeMultiplier;
+                        case INDUSTRIAL -> 200 / incomeMultiplier;
+                        case AGRICULTURAL -> 10 / incomeMultiplier;
                         default -> 0;
                     };
                 }

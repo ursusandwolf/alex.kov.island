@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.42.0] - 2026-05-10
+### Fixed
+- **CRITICAL: MovementSoA Thread-Safety**: Replaced the `volatile` array in `MovementSoAStore` with `AtomicIntegerArray`. This completes the thread-safety hardening of the Structure of Arrays (SoA) engine components, ensuring reliable visibility for entity speeds across parallel threads.
+
+### Changed
+- **SimCity Performance Optimization**: 
+    - Refactored `ConnectivityService` to eliminate high-frequency object allocations. Replaced `HashSet<CityTile>` with a pre-allocated `BitSet` and implemented a reusable `ArrayDeque` for network propagation.
+    - Removed `Stream API` usage in `ConnectivityService` hot-path methods (`hasInfrastructure`, `isConductive`), replacing them with efficient indexed loops. This significantly reduces GC pressure in large city simulations.
+- **Service Refinement**: 
+    - Applied Lombok `@RequiredArgsConstructor` to `ConnectivityService` and `EconomyService` to remove boilerplate.
+    - Simplified income calculation in `EconomyService` using a unified `incomeMultiplier` for powered vs. unpowered states.
+    - Added TODO markers for the upcoming migration of economic magic numbers to the central `Configuration` system.
+
 ## [1.41.0] - 2026-05-10
 ### Fixed
 - **CRITICAL: SoA Thread-Safety**: Replaced incorrectly implemented `volatile` array fields in `HealthSoAStore` and `AgeSoAStore` with `AtomicLongArray` and `AtomicIntegerArray`. This guarantees visibility and atomicity for individual element updates, resolving a high-severity race condition.

@@ -11,7 +11,7 @@
     - **API Contract**: Enhanced Javadoc for all `@EngineAPI` components and enabled `ServiceLoader` discovery for plugins. [DONE]
     - **Performance Hot-Path**: Refactored `AnimalHealthSystem` for direct SoA storage access, bypassing object wrappers in the main simulation tick. [DONE]
     - **Developer Onboarding**: Added Quick Start guide to `README.md`. [DONE]
-    - **Codebase Code Review**: Applied Java Code Reviewer suggestions across the project. Optimized `PopulationService` to eliminate Stream API allocations in hot paths, removed magic numbers, split God methods, and added `@RequiredArgsConstructor`. Fixed regression in SimCity test suite. [DONE]
+    - **Codebase Code Review**: Applied Java Code Reviewer suggestions across the project. Optimized `PopulationService` and `ConnectivityService` to eliminate Stream API allocations in hot paths. Hardened `MovementSoAStore` with `AtomicIntegerArray` to match other SoA stores. Removed magic numbers, split God methods, and added `@RequiredArgsConstructor`. Fixed regression in SimCity test suite. [DONE]
 
 - **Phase 4: Modularization & API Stabilization (May 2026)**:
     - **Engine Isolation**: Transitioned from monolith to multi-module Maven structure. Defined public API via `module-info.java`, `@EngineAPI` and `@InternalEngine` annotations. Restricted `com.island.engine.parallel` package from exports to ensure implementation encapsulation. [DONE]

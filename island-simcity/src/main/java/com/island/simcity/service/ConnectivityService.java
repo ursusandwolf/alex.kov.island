@@ -12,12 +12,22 @@ import java.util.Queue;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
+import com.island.engine.ecs.Component;
+import com.island.simcity.entities.SimEntity;
+import com.island.simcity.entities.components.BuildingComponent;
+import com.island.simcity.model.CityMap;
+import com.island.simcity.model.CityTile;
+import java.util.ArrayDeque;
+import java.util.BitSet;
+import java.util.List;
+import java.util.Queue;
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
 public class ConnectivityService extends AbstractSimCityService {
     private final CityMap map;
-
-    public ConnectivityService(CityMap map) {
-        this.map = map;
-    }
+    private final Queue<CityTile> queue = new ArrayDeque<>();
+    private BitSet visited;
 
     @Override
     public List<Class<? extends Component>> readComponents() {
@@ -26,8 +36,16 @@ public class ConnectivityService extends AbstractSimCityService {
 
     @Override
     public void beforeTick(int tickCount) {
-        for (int x = 0; x < map.getWidth(); x++) {
-            for (int y = 0; y < map.getHeight(); y++) {
+        int width = map.getWidth();
+        int height = map.getHeight();
+        int totalTiles = width * height;
+        
+        if (visited == null || visited.size() < totalTiles) {
+            visited = new BitSet(totalTiles);
+        }
+
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
                 CityTile tile = map.getGrid()[x][y];
                 tile.setConnected(false);
                 tile.setWatered(false);
@@ -45,16 +63,19 @@ public class ConnectivityService extends AbstractSimCityService {
     }
 
     private void propagateElectricity() {
-        Queue<CityTile> queue = new ArrayDeque<>();
-        Set<CityTile> visited = new HashSet<>();
+        queue.clear();
+        visited.clear();
+
+        int width = map.getWidth();
+        int height = map.getHeight();
 
         // Find all power plants as sources
-        for (int x = 0; x < map.getWidth(); x++) {
-            for (int y = 0; y < map.getHeight(); y++) {
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
                 CityTile tile = map.getGrid()[x][y];
                 if (hasInfrastructure(tile, BuildingComponent.Type.POWER_PLANT)) {
                     queue.add(tile);
-                    visited.add(tile);
+                    visited.set(tile.getY() * width + tile.getX());
                 }
             }
         }
@@ -69,9 +90,11 @@ public class ConnectivityService extends AbstractSimCityService {
 
                     int nx = current.getX() + dx;
                     int ny = current.getY() + dy;
-                    if (nx >= 0 && nx < map.getWidth() && ny >= 0 && ny < map.getHeight()) {
+                    if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
                         CityTile neighbor = map.getGrid()[nx][ny];
-                        if (isConductive(neighbor) && visited.add(neighbor)) {
+                        int idx = ny * width + nx;
+                        if (!visited.get(idx) && isConductive(neighbor)) {
+                            visited.set(idx);
                             queue.add(neighbor);
                         }
                     }
@@ -81,26 +104,29 @@ public class ConnectivityService extends AbstractSimCityService {
     }
 
     private boolean isConductive(CityTile tile) {
-        return tile.getEntities().stream()
-                .anyMatch(e -> {
-                    BuildingComponent b = e.getComponent(BuildingComponent.class);
-                    if (b == null) return false;
-                    return switch (b.getType()) {
-                        case ROAD, RAILWAY, METRO, WATER_PIPE -> false;
-                        default -> true; // All other buildings conduct power
-                    };
-                });
+        List<SimEntity> entities = tile.getEntities();
+        for (int i = 0; i < entities.size(); i++) {
+            BuildingComponent b = entities.get(i).getComponent(BuildingComponent.class);
+            if (b == null) continue;
+            return switch (b.getType()) {
+                case ROAD, RAILWAY, METRO, WATER_PIPE -> false;
+                default -> true;
+            };
+        }
+        return false;
     }
 
     private void propagateNetwork(BuildingComponent.Type type, java.util.function.BiConsumer<CityTile, Boolean> setter) {
-        Queue<CityTile> queue = new ArrayDeque<>();
-        Set<CityTile> visited = new HashSet<>();
+        queue.clear();
+        visited.clear();
         
-        // Start from (0,0) as the city entrance/source for all networks for simplicity
+        int width = map.getWidth();
+        int height = map.getHeight();
+
         CityTile start = map.getGrid()[0][0];
         if (hasInfrastructure(start, type)) {
             queue.add(start);
-            visited.add(start);
+            visited.set(0); // 0 * width + 0
         }
 
         while (!queue.isEmpty()) {
@@ -112,13 +138,16 @@ public class ConnectivityService extends AbstractSimCityService {
                     
                     int nx = current.getX() + dx;
                     int ny = current.getY() + dy;
-                    if (nx >= 0 && nx < map.getWidth() && ny >= 0 && ny < map.getHeight()) {
+                    if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
                         CityTile neighbor = map.getGrid()[nx][ny];
-                        if (hasInfrastructure(neighbor, type) && visited.add(neighbor)) {
-                            queue.add(neighbor);
-                        } else {
-                            // Any tile adjacent to the infrastructure is "connected" to it
-                            setter.accept(neighbor, true);
+                        int idx = ny * width + nx;
+                        if (!visited.get(idx)) {
+                            if (hasInfrastructure(neighbor, type)) {
+                                visited.set(idx);
+                                queue.add(neighbor);
+                            } else {
+                                setter.accept(neighbor, true);
+                            }
                         }
                     }
                 }
@@ -127,15 +156,12 @@ public class ConnectivityService extends AbstractSimCityService {
     }
 
     private boolean hasInfrastructure(CityTile tile, BuildingComponent.Type type) {
-        return tile.getEntities().stream()
-                .anyMatch(e -> {
-                    BuildingComponent b = e.getComponent(BuildingComponent.class);
-                    return b != null && b.getType() == type;
-                });
-    }
-
-    private boolean hasRoad(CityTile tile) {
-        return hasInfrastructure(tile, BuildingComponent.Type.ROAD);
+        List<SimEntity> entities = tile.getEntities();
+        for (int i = 0; i < entities.size(); i++) {
+            BuildingComponent b = entities.get(i).getComponent(BuildingComponent.class);
+            if (b != null && b.getType() == type) return true;
+        }
+        return false;
     }
 
     @Override
