@@ -4,6 +4,7 @@ import com.island.engine.ecs.ComponentRegistry;
 import com.island.engine.core.AgeStorage;
 import com.island.engine.core.EntityIdProvider;
 import com.island.engine.core.HealthStorage;
+import com.island.engine.core.MovementStorage;
 import com.island.nature.config.Configuration;
 import com.island.nature.entities.registry.AnimalFactory;
 import com.island.nature.entities.registry.SpeciesLoader;
@@ -41,15 +42,17 @@ public class NatureDomainContextFactory {
         EntityIdProvider idProvider = EntityIdProvider.create();
         HealthStorage healthStorage = HealthStorage.create(capacity);
         AgeStorage ageStorage = AgeStorage.create(capacity);
+        MovementStorage movementStorage = MovementStorage.create(capacity);
         
         AnimalFactory animalFactory = new AnimalFactory(speciesRegistry, randomProvider, componentRegistry,
-                                                        idProvider, healthStorage, ageStorage);
+                                                        idProvider, healthStorage, ageStorage, movementStorage);
         
         return NatureDomainContext.builder()
                 .config(config)
                 .entityIdProvider(idProvider)
                 .healthStorage(healthStorage)
                 .ageStorage(ageStorage)
+                .movementStorage(movementStorage)
                 .speciesRegistry(speciesRegistry)
                 .interactionProvider(InteractionMatrix.buildFrom(speciesRegistry))
                 .statisticsService(statisticsService)

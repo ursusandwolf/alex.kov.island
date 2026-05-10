@@ -60,8 +60,7 @@ public class AnimalMovementSystem extends NatureEntitySystem {
         }
 
         if (shouldAct(animal, AnimalType.Action.MOVE, tickCount)) {
-            MovementComponent move = animal.getComponent(MovementComponent.class);
-            int speed = (move != null) ? move.getSpeed() : 0;
+            int speed = animal.getSpeed();
             
             if (protectionMap != null && protectionMap.containsKey(animal.getSpeciesKey())) {
                 speed += config.getEndangeredSpeedBonus();

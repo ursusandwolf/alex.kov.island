@@ -20,7 +20,6 @@ public abstract class Biomass extends Organism {
     @Setter
     protected long biomass;
     protected final long maxBiomass;
-    protected final int speed;
 
     protected Biomass(Configuration config, ComponentRegistry registry, String typeName, SpeciesKey speciesKey, long maxBiomass, int speed) {
         super(config, registry, 1L, 0, config.getPlantInitialBiomassBP() / 100); 
@@ -28,7 +27,7 @@ public abstract class Biomass extends Organism {
         this.speciesKey = speciesKey;
         this.maxBiomass = maxBiomass;
         this.biomass = (maxBiomass * config.getPlantInitialBiomassBP()) / config.getScale10K(); 
-        this.speed = speed;
+        setSpeed(speed);
         
         // Use factory for all nature-specific components
         new NatureComponentFactory().createBiomassComponents(this).forEach(this::addComponent);

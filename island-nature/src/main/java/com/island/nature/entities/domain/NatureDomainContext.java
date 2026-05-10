@@ -3,6 +3,7 @@ package com.island.nature.entities.domain;
 import com.island.engine.core.AgeStorage;
 import com.island.engine.core.EntityIdProvider;
 import com.island.engine.core.HealthStorage;
+import com.island.engine.core.MovementStorage;
 import com.island.nature.config.Configuration;
 import com.island.nature.service.AlertService;
 import com.island.nature.service.ClimateService;
@@ -29,6 +30,7 @@ public class NatureDomainContext {
     private final EntityIdProvider entityIdProvider;
     private final HealthStorage healthStorage;
     private final AgeStorage ageStorage;
+    private final MovementStorage movementStorage;
     private final SpeciesRegistry speciesRegistry;
     private final InteractionProvider interactionProvider;
     private final AnimalFactory animalFactory;

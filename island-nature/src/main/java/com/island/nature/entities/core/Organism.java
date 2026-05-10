@@ -3,6 +3,7 @@ package com.island.nature.entities.core;
 import com.island.engine.core.AgeStorage;
 import com.island.engine.core.EntityIdProvider;
 import com.island.engine.core.HealthStorage;
+import com.island.engine.core.MovementStorage;
 import com.island.engine.ecs.Component;
 import com.island.engine.ecs.ComponentRegistry;
 import com.island.engine.ecs.ComponentStore;
@@ -28,6 +29,7 @@ public abstract class Organism implements Poolable, Entity {
     private int entityId = -1;
     private HealthStorage healthStorage;
     private AgeStorage ageStorage;
+    private MovementStorage movementStorage;
     
     // Fallback state when not bound to SoA (e.g. tests or pre-initialization)
     private volatile long fallbackCurrentEnergy;
@@ -35,6 +37,7 @@ public abstract class Organism implements Poolable, Entity {
     private volatile boolean fallbackAlive;
     private volatile int fallbackAge;
     private volatile int fallbackMaxLifespan;
+    private volatile int fallbackSpeed;
     
     @Setter private volatile DeathCause lastDeathCause;
 
@@ -58,10 +61,11 @@ public abstract class Organism implements Poolable, Entity {
         addComponent(new AgeComponent());
     }
 
-    public void bindStorage(int entityId, HealthStorage healthStorage, AgeStorage ageStorage) {
+    public void bindStorage(int entityId, HealthStorage healthStorage, AgeStorage ageStorage, MovementStorage movementStorage) {
         this.entityId = entityId;
         this.healthStorage = healthStorage;
         this.ageStorage = ageStorage;
+        this.movementStorage = movementStorage;
         syncToStorage();
     }
 
@@ -72,6 +76,9 @@ public abstract class Organism implements Poolable, Entity {
             }
             if (ageStorage != null) {
                 ageStorage.set(entityId, fallbackAge, fallbackMaxLifespan);
+            }
+            if (movementStorage != null) {
+                movementStorage.set(entityId, fallbackSpeed);
             }
         }
     }
@@ -101,19 +108,26 @@ public abstract class Organism implements Poolable, Entity {
         this.fallbackMaxEnergy = 0;
         this.fallbackAge = 0;
         this.fallbackMaxLifespan = 0;
+        this.fallbackSpeed = 0;
         
         this.archetype = null;
         this.entityId = -1;
         this.healthStorage = null;
         this.ageStorage = null;
+        this.movementStorage = null;
     }
 
     public void init(long maxEnergy, int maxLifespan, int initialEnergyPercent) {
+        init(maxEnergy, maxLifespan, initialEnergyPercent, 0);
+    }
+
+    public void init(long maxEnergy, int maxLifespan, int initialEnergyPercent, int speed) {
         this.fallbackMaxEnergy = maxEnergy;
         this.fallbackCurrentEnergy = (maxEnergy * initialEnergyPercent) / 100;
         this.fallbackAlive = true;
         this.fallbackAge = 0;
         this.fallbackMaxLifespan = maxLifespan;
+        this.fallbackSpeed = speed;
         
         this.lastDeathCause = null;
         updateArchetype();
@@ -255,5 +269,19 @@ public abstract class Organism implements Poolable, Entity {
             return ageStorage.getMaxLifespan(entityId);
         }
         return fallbackMaxLifespan;
+    }
+
+    public int getSpeed() {
+        if (entityId != -1 && movementStorage != null) {
+            return movementStorage.getSpeed(entityId);
+        }
+        return fallbackSpeed;
+    }
+
+    public void setSpeed(int speed) {
+        this.fallbackSpeed = speed;
+        if (entityId != -1 && movementStorage != null) {
+            movementStorage.setSpeed(entityId, speed);
+        }
     }
 }

@@ -23,7 +23,7 @@ public class NatureComponentFactory {
 
     public List<Component> createAnimalComponents(AnimalType type, Animal animal) {
         List<Component> components = new ArrayList<>();
-        components.add(new MovementComponent(type.getSpeed()));
+        components.add(new MovementComponent());
         
         // Base metabolism calculation moved to component initialization
         long baseMetabolism = (type.getMaxEnergy() * animal.getConfig().getBaseMetabolismBP()) / animal.getConfig().getScale10K();
@@ -48,7 +48,7 @@ public class NatureComponentFactory {
     public List<Component> createBiomassComponents(Biomass biomass) {
         List<Component> components = new ArrayList<>();
         if (biomass.getSpeed() > 0) {
-            components.add(new MovementComponent(biomass.getSpeed()));
+            components.add(new MovementComponent());
         }
         
         components.add(new GrowthComponent(biomass.getConfig().getPlantGrowthRateBP(), biomass.getMaxBiomass()));

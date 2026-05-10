@@ -1,5 +1,8 @@
 package com.island.nature.entities;
 
+import com.island.engine.core.AgeStorage;
+import com.island.engine.core.HealthStorage;
+import com.island.engine.core.MovementStorage;
 import com.island.engine.ecs.ComponentRegistry;
 import com.island.nature.config.Configuration;
 import org.junit.jupiter.api.DisplayName;
@@ -65,5 +68,25 @@ class OrganismTest {
         Organism organism = new TestOrganism(config, new ComponentRegistry(), 100 * config.getScale1M(), 10);
         organism.addEnergy(50 * config.getScale1M()); 
         assertEquals(100 * config.getScale1M(), organism.getCurrentEnergy());
+    }
+
+    @Test
+    @DisplayName("Organism should bind to SoA storage and sync speed correctly")
+    void testStorageBinding() {
+        Organism organism = new TestOrganism(config, new ComponentRegistry(), 100 * config.getScale1M(), 10);
+        organism.setSpeed(5);
+        
+        HealthStorage healthStorage = HealthStorage.create(10);
+        AgeStorage ageStorage = AgeStorage.create(10);
+        MovementStorage movementStorage = MovementStorage.create(10);
+        
+        organism.bindStorage(1, healthStorage, ageStorage, movementStorage);
+        
+        assertEquals(5, movementStorage.getSpeed(1));
+        assertEquals(5, organism.getSpeed());
+        
+        organism.setSpeed(7);
+        assertEquals(7, movementStorage.getSpeed(1));
+        assertEquals(7, organism.getSpeed());
     }
 }

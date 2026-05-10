@@ -13,6 +13,7 @@
     - Refactored `addRecurringTask` to use method overloading and a `record` wrapper, removing `instanceof` branching and improving polymorphism.
     - Improved resource management by delegating `ExecutorService` shutdown to the `SimulationContext` owner.
 - **Performance Optimization**: Optimized `AnimalHealthSystem` to access `HealthStorage` and `AgeStorage` directly by ID, reducing the overhead of object-oriented wrappers during energy consumption and age tracking.
+- **MovementComponent SoA Migration**: Refactored `MovementComponent` to use high-performance SoA storage (`MovementSoAStore`), mirroring the memory optimization strategy used for health and age components. This further reduces GC pressure for high-density simulations.
 
 ### Added
 - **Build Infrastructure**: 
