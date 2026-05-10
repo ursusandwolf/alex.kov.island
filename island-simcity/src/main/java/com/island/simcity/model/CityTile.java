@@ -26,6 +26,7 @@ public class CityTile implements SimulationNode<SimEntity> {
     private boolean powered = false;
     @Getter @Setter private int airPollution = 0;
     @Getter @Setter private int waterPollution = 0;
+    @Getter @Setter private int desirability = 0;
 
     public void setConnected(boolean connected) { this.connected = connected; }
     public boolean isConnected() { return connected; }
@@ -51,14 +52,62 @@ public class CityTile implements SimulationNode<SimEntity> {
 @Override public void setNeighbors(List<SimulationNode<SimEntity>> neighbors) { this.neighbors = neighbors; }
 @Override public Lock getLock() { return lock; }
 @Override public SimulationWorld<SimEntity> getWorld() { return world; }
-@Override public List<SimEntity> getEntities() { return new ArrayList<>(entities); }
+@Override public List<SimEntity> getEntities() {
+    lock.lock();
+    try {
+        return new ArrayList<>(entities);
+    } finally {
+        lock.unlock();
+    }
+}
 @Override public String getCoordinates() { return x + "," + y; }
-@Override public void forEachEntity(Consumer<SimEntity> action) { entities.forEach(action); }
-@Override public int getEntityCount() { return entities.size(); }
+@Override public void forEachEntity(Consumer<SimEntity> action) {
+    lock.lock();
+    try {
+        entities.forEach(action);
+    } finally {
+        lock.unlock();
+    }
+}
+@Override public int getEntityCount() {
+    lock.lock();
+    try {
+        return entities.size();
+    } finally {
+        lock.unlock();
+    }
+}
 @Override public boolean canAccept(SimEntity entity) { return true; }
-@Override public boolean addEntity(SimEntity entity) { return entities.add(entity); }
-@Override public boolean removeEntity(SimEntity entity) { return entities.remove(entity); }
-@Override public void cleanupDeadEntities(Consumer<SimEntity> onEntityRemoved) { entities.removeIf(e -> !e.isAlive()); }
+@Override public boolean addEntity(SimEntity entity) {
+    lock.lock();
+    try {
+        return entities.add(entity);
+    } finally {
+        lock.unlock();
+    }
+}
+@Override public boolean removeEntity(SimEntity entity) {
+    lock.lock();
+    try {
+        return entities.remove(entity);
+    } finally {
+        lock.unlock();
+    }
+}
+@Override public void cleanupDeadEntities(Consumer<SimEntity> onEntityRemoved) {
+    lock.lock();
+    try {
+        entities.removeIf(e -> {
+            if (!e.isAlive()) {
+                onEntityRemoved.accept(e);
+                return true;
+            }
+            return false;
+        });
+    } finally {
+        lock.unlock();
+    }
+}
     public int getX() { return x; }
     public int getY() { return y; }
 }

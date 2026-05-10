@@ -103,7 +103,7 @@ class SimCityBoundaryTest {
         // Add a resident
         map.getGrid()[0][0].setConnected(true);
         SimEntity resident = new SimEntity(map.getComponentRegistry());
-        resident.addComponent(new PopulationComponent(0, 100));
+        resident.addComponent(PopulationComponent.builder().age(0).happiness(100).build());
         map.getGrid()[0][0].addEntity(resident);
         
         context.gameLoop().runTick();
@@ -124,19 +124,19 @@ class SimCityBoundaryTest {
         
         // Add infrastructure
         SimEntity road = new SimEntity(map.getComponentRegistry());
-        road.addComponent(new BuildingComponent(BuildingComponent.Type.ROAD));
+        road.addComponent(BuildingComponent.builder().type(BuildingComponent.Type.ROAD).build());
         map.getGrid()[0][0].addEntity(road);
 
         SimEntity pipe = new SimEntity(map.getComponentRegistry());
-        pipe.addComponent(new BuildingComponent(BuildingComponent.Type.WATER_PIPE));
+        pipe.addComponent(BuildingComponent.builder().type(BuildingComponent.Type.WATER_PIPE).build());
         map.getGrid()[0][0].addEntity(pipe);
 
         SimEntity plant = new SimEntity(map.getComponentRegistry());
-        plant.addComponent(new BuildingComponent(BuildingComponent.Type.POWER_PLANT));
+        plant.addComponent(BuildingComponent.builder().type(BuildingComponent.Type.POWER_PLANT).build());
         map.getGrid()[0][0].addEntity(plant);
         
         SimEntity resident = new SimEntity(map.getComponentRegistry());
-        PopulationComponent pop = new PopulationComponent(0, 100);
+        PopulationComponent pop = PopulationComponent.builder().age(0).happiness(100).build();
         resident.addComponent(pop);
         map.getGrid()[0][0].addEntity(resident);
         
@@ -158,15 +158,15 @@ class SimCityBoundaryTest {
         
         // Add road and power but no water
         SimEntity road = new SimEntity(map.getComponentRegistry());
-        road.addComponent(new BuildingComponent(BuildingComponent.Type.ROAD));
+        road.addComponent(BuildingComponent.builder().type(BuildingComponent.Type.ROAD).build());
         map.getGrid()[0][0].addEntity(road);
 
         SimEntity plant = new SimEntity(map.getComponentRegistry());
-        plant.addComponent(new BuildingComponent(BuildingComponent.Type.POWER_PLANT));
+        plant.addComponent(BuildingComponent.builder().type(BuildingComponent.Type.POWER_PLANT).build());
         map.getGrid()[0][0].addEntity(plant);
         
         SimEntity resident = new SimEntity(map.getComponentRegistry());
-        PopulationComponent pop = new PopulationComponent(0, 100);
+        PopulationComponent pop = PopulationComponent.builder().age(0).happiness(100).build();
         resident.addComponent(pop);
         map.getGrid()[0][0].addEntity(resident);
         
@@ -186,23 +186,23 @@ class SimCityBoundaryTest {
         
         // Add road, water, power and metro
         SimEntity road = new SimEntity(map.getComponentRegistry());
-        road.addComponent(new BuildingComponent(BuildingComponent.Type.ROAD));
+        road.addComponent(BuildingComponent.builder().type(BuildingComponent.Type.ROAD).build());
         map.getGrid()[0][0].addEntity(road);
 
         SimEntity pipe = new SimEntity(map.getComponentRegistry());
-        pipe.addComponent(new BuildingComponent(BuildingComponent.Type.WATER_PIPE));
+        pipe.addComponent(BuildingComponent.builder().type(BuildingComponent.Type.WATER_PIPE).build());
         map.getGrid()[0][0].addEntity(pipe);
 
         SimEntity plant = new SimEntity(map.getComponentRegistry());
-        plant.addComponent(new BuildingComponent(BuildingComponent.Type.POWER_PLANT));
+        plant.addComponent(BuildingComponent.builder().type(BuildingComponent.Type.POWER_PLANT).build());
         map.getGrid()[0][0].addEntity(plant);
 
         SimEntity metro = new SimEntity(map.getComponentRegistry());
-        metro.addComponent(new BuildingComponent(BuildingComponent.Type.METRO));
+        metro.addComponent(BuildingComponent.builder().type(BuildingComponent.Type.METRO).build());
         map.getGrid()[0][0].addEntity(metro);
 
         SimEntity resident = new SimEntity(map.getComponentRegistry());
-        PopulationComponent pop = new PopulationComponent(0, 70);
+        PopulationComponent pop = PopulationComponent.builder().age(0).happiness(70).build();
         resident.addComponent(pop);
         map.getGrid()[0][0].addEntity(resident);
         
@@ -226,17 +226,17 @@ class SimCityBoundaryTest {
         
         // (0,0) Power Plant
         SimEntity plant = new SimEntity(map.getComponentRegistry());
-        plant.addComponent(new BuildingComponent(BuildingComponent.Type.POWER_PLANT));
+        plant.addComponent(BuildingComponent.builder().type(BuildingComponent.Type.POWER_PLANT).build());
         map.getGrid()[0][0].addEntity(plant);
 
         // (1,0) Residential
         SimEntity res1 = new SimEntity(map.getComponentRegistry());
-        res1.addComponent(new BuildingComponent(BuildingComponent.Type.RESIDENTIAL));
+        res1.addComponent(BuildingComponent.builder().type(BuildingComponent.Type.RESIDENTIAL).build());
         map.getGrid()[1][0].addEntity(res1);
 
         // (2,0) Residential
         SimEntity res2 = new SimEntity(map.getComponentRegistry());
-        res2.addComponent(new BuildingComponent(BuildingComponent.Type.RESIDENTIAL));
+        res2.addComponent(BuildingComponent.builder().type(BuildingComponent.Type.RESIDENTIAL).build());
         map.getGrid()[2][0].addEntity(res2);
 
         context.gameLoop().runTick();
@@ -256,14 +256,14 @@ class SimCityBoundaryTest {
         
         // (0,0) Power Plant
         SimEntity plant = new SimEntity(map.getComponentRegistry());
-        plant.addComponent(new BuildingComponent(BuildingComponent.Type.POWER_PLANT));
+        plant.addComponent(BuildingComponent.builder().type(BuildingComponent.Type.POWER_PLANT).build());
         map.getGrid()[0][0].addEntity(plant);
 
         // (1,0) EMPTY
 
         // (2,0) Residential
         SimEntity res = new SimEntity(map.getComponentRegistry());
-        res.addComponent(new BuildingComponent(BuildingComponent.Type.RESIDENTIAL));
+        res.addComponent(BuildingComponent.builder().type(BuildingComponent.Type.RESIDENTIAL).build());
         map.getGrid()[2][0].addEntity(res);
 
         context.gameLoop().runTick();
@@ -282,17 +282,17 @@ class SimCityBoundaryTest {
         
         // (0,0) Power Plant
         SimEntity plant = new SimEntity(map.getComponentRegistry());
-        plant.addComponent(new BuildingComponent(BuildingComponent.Type.POWER_PLANT));
+        plant.addComponent(BuildingComponent.builder().type(BuildingComponent.Type.POWER_PLANT).build());
         map.getGrid()[0][0].addEntity(plant);
 
         // (1,0) Road
         SimEntity road = new SimEntity(map.getComponentRegistry());
-        road.addComponent(new BuildingComponent(BuildingComponent.Type.ROAD));
+        road.addComponent(BuildingComponent.builder().type(BuildingComponent.Type.ROAD).build());
         map.getGrid()[1][0].addEntity(road);
 
         // (2,0) Residential
         SimEntity res = new SimEntity(map.getComponentRegistry());
-        res.addComponent(new BuildingComponent(BuildingComponent.Type.RESIDENTIAL));
+        res.addComponent(BuildingComponent.builder().type(BuildingComponent.Type.RESIDENTIAL).build());
         map.getGrid()[2][0].addEntity(res);
 
         context.gameLoop().runTick();
@@ -312,17 +312,17 @@ class SimCityBoundaryTest {
         
         // (0,0) Power Plant
         SimEntity plant = new SimEntity(map.getComponentRegistry());
-        plant.addComponent(new BuildingComponent(BuildingComponent.Type.POWER_PLANT));
+        plant.addComponent(BuildingComponent.builder().type(BuildingComponent.Type.POWER_PLANT).build());
         map.getGrid()[0][0].addEntity(plant);
 
         // (1,0) Power Line
         SimEntity line = new SimEntity(map.getComponentRegistry());
-        line.addComponent(new BuildingComponent(BuildingComponent.Type.POWER_LINE));
+        line.addComponent(BuildingComponent.builder().type(BuildingComponent.Type.POWER_LINE).build());
         map.getGrid()[1][0].addEntity(line);
 
         // (2,0) Residential
         SimEntity res = new SimEntity(map.getComponentRegistry());
-        res.addComponent(new BuildingComponent(BuildingComponent.Type.RESIDENTIAL));
+        res.addComponent(BuildingComponent.builder().type(BuildingComponent.Type.RESIDENTIAL).build());
         map.getGrid()[2][0].addEntity(res);
 
         context.gameLoop().runTick();
@@ -344,13 +344,13 @@ class SimCityBoundaryTest {
         map.getGrid()[0][0].setConnected(true);
         
         SimEntity resident = new SimEntity(map.getComponentRegistry());
-        PopulationComponent pop = new PopulationComponent(0, 100);
+        PopulationComponent pop = PopulationComponent.builder().age(0).happiness(100).build();
         resident.addComponent(pop);
         map.getGrid()[0][0].addEntity(resident);
 
         // Place polluting industry at (0,1)
         SimEntity industry = new SimEntity(map.getComponentRegistry());
-        industry.addComponent(new BuildingComponent(BuildingComponent.Type.INDUSTRIAL));
+        industry.addComponent(BuildingComponent.builder().type(BuildingComponent.Type.INDUSTRIAL).build());
         map.getGrid()[0][1].addEntity(industry);
 
         // Run many ticks to accumulate pollution (50 ticks)

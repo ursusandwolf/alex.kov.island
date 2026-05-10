@@ -38,27 +38,33 @@ public class EconomyService extends AbstractSimCityService {
             PopulationComponent pop = entity.getComponent(PopulationComponent.class);
             
             if (building != null) {
-                cellExpenses += switch (building.getType()) {
-                    case ROAD -> 2;
-                    case RESIDENTIAL -> 5;
-                    case COMMERCIAL -> 20;
-                    case INDUSTRIAL -> 50;
-                    case AGRICULTURAL -> 1;
-                    case RAILWAY -> 15;
-                    case METRO -> 100;
-                    case WATER_PIPE -> 3;
-                    case POWER_PLANT -> 200;
-                    case POWER_LINE -> 10;
+                long densityMultiplier = switch (building.getDensity()) {
+                    case LOW -> 1;
+                    case MEDIUM -> 4;
+                    case HIGH -> 12;
                 };
+
+                cellExpenses += (switch (building.getType()) {
+                    case ROAD -> 1;
+                    case RESIDENTIAL -> 2;
+                    case COMMERCIAL -> 5;
+                    case INDUSTRIAL -> 10;
+                    case AGRICULTURAL -> 1;
+                    case RAILWAY -> 5;
+                    case METRO -> 20;
+                    case WATER_PIPE -> 1;
+                    case POWER_PLANT -> 50;
+                    case POWER_LINE -> 2;
+                }) * densityMultiplier;
                 
                 if (tile.isConnected()) {
-                    long incomeMultiplier = tile.isPowered() ? 1 : 2; // Full income if powered, half if not
-                    cellIncome += switch (building.getType()) {
-                        case COMMERCIAL -> 100 / incomeMultiplier;
-                        case INDUSTRIAL -> 200 / incomeMultiplier;
-                        case AGRICULTURAL -> 10 / incomeMultiplier;
+                    long incomePowerPenalty = tile.isPowered() ? 1 : 2; // Full income if powered, half if not
+                    cellIncome += (switch (building.getType()) {
+                        case COMMERCIAL -> 500;
+                        case INDUSTRIAL -> 1000;
+                        case AGRICULTURAL -> 100;
                         default -> 0;
-                    };
+                    } * densityMultiplier) / incomePowerPenalty;
                 }
             } else if (pop != null && tile.isConnected()) {
                 cellIncome += map.getTaxRate();

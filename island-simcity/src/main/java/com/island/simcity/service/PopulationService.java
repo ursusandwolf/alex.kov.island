@@ -166,7 +166,8 @@ public class PopulationService extends AbstractSimCityService {
     }
 
     private void processMigration(CityTile tile, TileState state) {
-        if (!state.hasResidential || state.cellPopulation >= MAX_CELL_POPULATION) {
+        int maxPop = calculateMaxPopulation(tile);
+        if (maxPop == 0 || state.cellPopulation >= maxPop) {
             return;
         }
 
@@ -182,7 +183,27 @@ public class PopulationService extends AbstractSimCityService {
         }
     }
 
+    private int calculateMaxPopulation(CityTile tile) {
+        int max = 0;
+        for (SimEntity entity : tile.getEntities()) {
+            BuildingComponent building = entity.getComponent(BuildingComponent.class);
+            if (building != null && building.getType() == BuildingComponent.Type.RESIDENTIAL) {
+                max += switch (building.getDensity()) {
+                    case LOW -> 5;
+                    case MEDIUM -> 20;
+                    case HIGH -> 100;
+                };
+            }
+        }
+        return max;
+    }
+
     private boolean isTileAttractive(CityTile tile) {
+        int desirability = tile.getDesirability();
+        if (desirability < MIN_ATTRACTIVENESS) {
+            return false;
+        }
+
         int totalHappiness = 0;
         int count = 0;
         for (SimEntity e : tile.getEntities()) {
@@ -192,7 +213,13 @@ public class PopulationService extends AbstractSimCityService {
                 count++;
             }
         }
-        return count == 0 || (totalHappiness / count) > MIN_ATTRACTIVENESS;
+        
+        if (count == 0) {
+            return desirability > MIN_ATTRACTIVENESS;
+        }
+        
+        int avgHappiness = totalHappiness / count;
+        return (avgHappiness + desirability) / 2 > MIN_ATTRACTIVENESS;
     }
 
     @Override

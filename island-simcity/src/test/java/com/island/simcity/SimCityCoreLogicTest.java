@@ -72,7 +72,7 @@ class SimCityCoreLogicTest {
         map.getGrid()[0][0].setConnected(true);
         
         SimEntity resident = new SimEntity(map.getComponentRegistry());
-        PopulationComponent pop = new PopulationComponent(0, 20);
+        PopulationComponent pop = PopulationComponent.builder().age(0).happiness(20).build();
         resident.addComponent(pop);
         map.getGrid()[0][0].addEntity(resident);
 

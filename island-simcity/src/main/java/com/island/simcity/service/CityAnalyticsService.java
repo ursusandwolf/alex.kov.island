@@ -40,8 +40,16 @@ public class CityAnalyticsService extends AbstractSimCityService {
                 pop.incrementAndGet();
             } else if (building != null) {
                 int jobCount = switch (building.getType()) {
-                    case INDUSTRIAL -> 10;
-                    case COMMERCIAL -> 5;
+                    case INDUSTRIAL -> switch (building.getDensity()) {
+                        case LOW -> 10;
+                        case MEDIUM -> 50;
+                        case HIGH -> 250;
+                    };
+                    case COMMERCIAL -> switch (building.getDensity()) {
+                        case LOW -> 5;
+                        case MEDIUM -> 30;
+                        case HIGH -> 150;
+                    };
                     default -> 0;
                 };
                 jobs.addAndGet(jobCount);

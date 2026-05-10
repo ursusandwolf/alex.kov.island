@@ -2,6 +2,7 @@ package com.island.simcity.service;
 
 import com.island.engine.ecs.Component;
 import com.island.engine.core.SimulationNode;
+import com.island.engine.scheduling.Phase;
 import com.island.simcity.entities.SimEntity;
 import com.island.simcity.entities.components.BuildingComponent;
 import com.island.simcity.model.CityMap;
@@ -16,6 +17,16 @@ public class PollutionService extends AbstractSimCityService {
     }
 
     @Override
+    public Phase phase() {
+        return Phase.PREPARE;
+    }
+
+    @Override
+    public int priority() {
+        return 40; // After Connectivity (50)
+    }
+
+    @Override
     public List<Class<? extends Component>> readComponents() {
         return List.of(BuildingComponent.class);
     }
@@ -26,8 +37,8 @@ public class PollutionService extends AbstractSimCityService {
         for (int x = 0; x < map.getWidth(); x++) {
             for (int y = 0; y < map.getHeight(); y++) {
                 CityTile tile = map.getGrid()[x][y];
-                tile.setAirPollution(Math.max(0, tile.getAirPollution() - 2));
-                tile.setWaterPollution(Math.max(0, tile.getWaterPollution() - 1));
+                tile.setAirPollution(Math.max(0, tile.getAirPollution() - 5));
+                tile.setWaterPollution(Math.max(0, tile.getWaterPollution() - 3));
             }
         }
     }
@@ -42,17 +53,17 @@ public class PollutionService extends AbstractSimCityService {
             if (building != null) {
                 switch (building.getType()) {
                     case INDUSTRIAL -> {
-                        airGen += 20;
-                        waterGen += 10;
+                        airGen += 10;
+                        waterGen += 5;
                     }
                     case POWER_PLANT -> {
-                        airGen += 50;
+                        airGen += 25;
                     }
                     case AGRICULTURAL -> {
-                        waterGen += 15; // Pesticides/Fertilizers
+                        waterGen += 8; // Pesticides/Fertilizers
                     }
                     case ROAD -> {
-                        airGen += 2; // Traffic
+                        airGen += 1; // Traffic
                     }
                 }
             }

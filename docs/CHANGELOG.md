@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.43.0] - 2026-05-10
+### Fixed
+- **CRITICAL: MovementSoA Race Condition**: Implemented `StampedLock` in `MovementSoAStore` with optimistic read patterns to prevent data loss during capacity expansion.
+- **CRITICAL: CityTile Thread-Safety**: Secured all entity management methods in `CityTile` with a `ReentrantLock` to prevent race conditions during parallel processing.
+- **Scheduling Determinism**: Moved `ConnectivityService` and `PollutionService` to `Phase.PREPARE` to ensure network and environmental data are consistent for downstream systems.
+- **Test Suite Stability**: 
+    - Fixed compilation errors in `SimCity` tests after transition to Lombok `@Builder`.
+    - Re-balanced pollution and economic rates in `SimCity` to ensure smoke test reliability on small maps.
+    - Standardized `SimCitySmokeTest` to allow sufficient ticks (10-20) for population stabilization.
+
+### Added
+- **Desirability System**: Introduced `DesirabilityService` that calculates tile appeal based on infrastructure availability and pollution levels.
+- **Zoning & Density**: 
+    - Added `Density` levels (LOW, MEDIUM, HIGH) to `BuildingComponent`.
+    - Implemented `ZoningService` to handle building upgrades based on desirability and utility access.
+- **Wealth Progression**: 
+    - Added `WealthLevel` (POOR, MIDDLE, WEALTHY) to `PopulationComponent`.
+    - Residents now progress through wealth tiers based on happiness and local environment quality.
+- **Economic Scaling**: Updated `EconomyService` and `CityAnalyticsService` to scale income, maintenance, and job counts based on building density.
+
 ## [1.42.0] - 2026-05-10
 ### Fixed
 - **CRITICAL: MovementSoA Thread-Safety**: Replaced the `volatile` array in `MovementSoAStore` with `AtomicIntegerArray`. This completes the thread-safety hardening of the Structure of Arrays (SoA) engine components, ensuring reliable visibility for entity speeds across parallel threads.

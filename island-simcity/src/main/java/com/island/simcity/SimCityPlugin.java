@@ -14,6 +14,8 @@ import com.island.simcity.service.ConnectivityService;
 import com.island.simcity.service.EconomyService;
 import com.island.simcity.service.PopulationService;
 import com.island.simcity.service.PollutionService;
+import com.island.simcity.service.DesirabilityService;
+import com.island.simcity.service.ZoningService;
 import com.island.engine.core.SimulationPlugin;
 import com.island.engine.core.SimulationWorld;
 import com.island.engine.scheduling.GameLoop;
@@ -56,12 +58,16 @@ public class SimCityPlugin implements SimulationPlugin<SimEntity> {
         PopulationService popService = new PopulationService(map, componentRegistry);
         EconomyService economyService = new EconomyService(map);
         PollutionService pollutionService = new PollutionService(map);
+        DesirabilityService desirabilityService = new DesirabilityService(map);
+        ZoningService zoningService = new ZoningService();
 
         gameLoop.addRecurringTask(connService);
         gameLoop.addRecurringTask(analyticsService);
         gameLoop.addRecurringTask(popService);
         gameLoop.addRecurringTask(economyService);
         gameLoop.addRecurringTask(pollutionService);
+        gameLoop.addRecurringTask(desirabilityService);
+        gameLoop.addRecurringTask(zoningService);
 
         // Cleanup task
         gameLoop.addRecurringTask(t -> {

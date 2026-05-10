@@ -30,6 +30,8 @@
     - `PopulationService` / `EconomyService`: SimCity systems operating on `PopulationComponent`, `BuildingComponent`, and `EconomyComponent`.
     - `ConnectivityService`: Manages multiple independent networks (Road, Water, Rail, Metro).
     - `PollutionService`: Simulates air and water pollution generation, diffusion, and dissipation.
+    - `DesirabilityService`: Calculates tile appeal scores.
+    - `ZoningService`: Manages density upgrades and wealth progression.
 
 - `CleanupService`: O(1) removal and pool-based recycling of dead entities.
 - `StatisticsService`: Zero-scan reporting using pre-aggregated metrics via `EventBus` with specialized `AnimalBornEvent` and `AnimalDiedEvent` support.

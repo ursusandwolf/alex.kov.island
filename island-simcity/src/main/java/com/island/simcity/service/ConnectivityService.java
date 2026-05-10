@@ -1,18 +1,7 @@
 package com.island.simcity.service;
 
 import com.island.engine.ecs.Component;
-import com.island.simcity.entities.SimEntity;
-import com.island.simcity.entities.components.BuildingComponent;
-import com.island.simcity.model.CityMap;
-import com.island.simcity.model.CityTile;
-import java.util.ArrayDeque;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Queue;
-import java.util.Set;
-import lombok.RequiredArgsConstructor;
-
-import com.island.engine.ecs.Component;
+import com.island.engine.scheduling.Phase;
 import com.island.simcity.entities.SimEntity;
 import com.island.simcity.entities.components.BuildingComponent;
 import com.island.simcity.model.CityMap;
@@ -28,6 +17,11 @@ public class ConnectivityService extends AbstractSimCityService {
     private final CityMap map;
     private final Queue<CityTile> queue = new ArrayDeque<>();
     private BitSet visited;
+
+    @Override
+    public Phase phase() {
+        return Phase.PREPARE;
+    }
 
     @Override
     public List<Class<? extends Component>> readComponents() {
