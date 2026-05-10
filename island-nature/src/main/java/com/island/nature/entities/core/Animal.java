@@ -34,23 +34,17 @@ public abstract class Animal extends Organism {
     }
 
     public void init(AnimalType type, int energyPercent) {
-        super.init(type.getMaxEnergy(), type.getMaxLifespan(), energyPercent);
+        super.init(type.getMaxEnergy(), type.getMaxLifespan(), energyPercent, type.getSpeed());
         this.hiding = false;
         this.weightOverride = 0;
         this.speedOverride = -1;
-        MovementComponent move = getComponent(MovementComponent.class);
-        if (move != null) {
-            move.setSpeed(type.getSpeed());
-        }
     }
 
     public void mutate(double weightFactor, int speedDelta) {
         this.weightOverride = (long) (getWeight() * weightFactor);
-        this.speedOverride = Math.max(0, getSpeed() + speedDelta);
-        MovementComponent move = getComponent(MovementComponent.class);
-        if (move != null) {
-            move.setSpeed(speedOverride >= 0 ? speedOverride : animalType.getSpeed());
-        }
+        int newSpeed = Math.max(0, getSpeed() + speedDelta);
+        this.speedOverride = newSpeed;
+        setSpeed(newSpeed);
     }
 
     public boolean canInitiateReproduction() {
@@ -68,11 +62,6 @@ public abstract class Animal extends Organism {
 
     public int getMaxPerCell() {
         return animalType.getMaxPerCell();
-    }
-
-    public int getSpeed() {
-        MovementComponent move = getComponent(MovementComponent.class);
-        return (move != null) ? move.getSpeed() : 0;
     }
 
     public long getFoodForSaturation() {
