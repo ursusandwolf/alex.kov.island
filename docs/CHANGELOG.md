@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.44.0] - 2026-05-10
+### Fixed
+- **Code Quality**: Resolved 662 Checkstyle warnings across the engine module. Updated `maven-checkstyle-plugin` configuration to use the project's strict `checkstyle.xml` ruleset and added exclusions for JPMS `module-info.java` to prevent parser failures.
+- **Engine Concurrency Modernization**:
+    - Refactored `GameLoop` thread management. It now properly utilizes the existing `ExecutorService` via `.submit()` instead of manually spawning unmanaged raw `Thread` instances. This allows for better resource control and supports Java 21 Virtual Threads effectively.
+    - Refactored `ParallelDispatcher` to use `Callable` and `ExecutorService.invokeAll()`, replacing the older, error-prone `CountDownLatch` and `Runnable` synchronization pattern. This ensures robust exception propagation and cleaner thread lifecycle management during parallel simulation ticks.
+- **Architecture Integrity**: Marked 10 core internal engine implementations (such as `PhaseScheduler`, `SystemExecutionGraph`, and `EntityIdManager`) as `final` to explicitly prevent unintended inheritance, adhering to strict API isolation standards.
+
 ## [1.43.0] - 2026-05-10
 ### Fixed
 - **CRITICAL: MovementSoA Race Condition**: Implemented `StampedLock` in `MovementSoAStore` with optimistic read patterns to prevent data loss during capacity expansion.
