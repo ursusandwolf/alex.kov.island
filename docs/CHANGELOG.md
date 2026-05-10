@@ -478,3 +478,15 @@
 
 ### Added
 - **Project Context**: Updated `docs/PROJECT_CONTEXT.md` to capture the status of the test audit and architectural hardening.
+
+## [1.40.0] - 2026-05-10
+### Changed
+- **Codebase Code Review Enhancements**: Applied Java Code Reviewer suggestions.
+  - Refactored `PopulationService` to eliminate Stream API object allocations in hot loops, preventing excessive GC pressure.
+  - Split God method `doProcessTile` in `PopulationService` into logical private methods.
+  - Replaced magic numbers with named constants in `PopulationService`.
+  - Added `@RequiredArgsConstructor` and cleaned up boilerplate constructors.
+  - Optimized resource management in `NaturePlugin` by using `try-with-resources` for `ExecutorService`.
+
+### Fixed
+- **SimCity Tests Regression**: Fixed assertions in `SimCityBoundaryTest` and `SimCitySmokeTest` that were broken by previous test alignment changes, correctly modeling power bonuses and preventing residents from dying to pollution too early in the smoke test.

@@ -53,13 +53,10 @@ public class NaturePlugin implements SimulationPlugin<Organism> {
         Island island = new Island(domainContext, config.getIslandWidth(), config.getIslandHeight(), eventBus);
         
         WorldInitializer initializer = new WorldInitializer();
-        ExecutorService initExecutor = Executors.newSingleThreadExecutor();
-        try {
+        try (ExecutorService initExecutor = Executors.newSingleThreadExecutor()) {
             initializer.initialize(island, domainContext.getSpeciesRegistry(), domainContext.getAnimalFactory(), 
                                    initExecutor, 
                                    domainContext.getRandomProvider());
-        } finally {
-            initExecutor.shutdown();
         }
         island.init();
         island.rebalance(); // Ensure partition reflects initial population

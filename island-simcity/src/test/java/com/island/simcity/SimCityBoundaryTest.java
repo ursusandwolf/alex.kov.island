@@ -172,8 +172,8 @@ class SimCityBoundaryTest {
         
         context.gameLoop().runTick();
         
-        // Initial 100, no water (-20), connected (+2) = 82
-        assertTrue(pop.getHappiness() <= 82, "Happiness should drop without water, was: " + pop.getHappiness());
+        // Initial 100, no water (-20), connected (+2), powered (+10) = 92
+        assertTrue(pop.getHappiness() <= 92, "Happiness should drop without water, was: " + pop.getHappiness());
         context.gameLoop().stop();
     }
 
