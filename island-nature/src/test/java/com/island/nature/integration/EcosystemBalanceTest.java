@@ -26,6 +26,7 @@ class EcosystemBalanceTest {
         config.setHeadless(true);
         config.setIslandWidth(10);
         config.setIslandHeight(10);
+        config.setRandomSeed(42L); // Fixed seed for reproducibility
         
         NaturePlugin plugin = new NaturePlugin(config);
         SimulationEngine<Organism> engine = new SimulationEngine<>();

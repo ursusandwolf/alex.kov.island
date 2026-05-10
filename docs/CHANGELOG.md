@@ -1,9 +1,25 @@
 # Changelog
 
-## [1.38.0] - 2026-05-10
+## [1.41.0] - 2026-05-10
 ### Fixed
-- **SoA Thread-Safety**: Fixed critical race conditions in `HealthSoAStore` and `AgeSoAStore` by making array fields `volatile` and synchronizing the `ensureCapacity` method.
-- **Entity ID Management**: Refactored `EntityIdManager` to use `ConcurrentLinkedQueue` for ID recycling, eliminating mixed synchronization and improving efficiency.
+- **CRITICAL: SoA Thread-Safety**: Replaced incorrectly implemented `volatile` array fields in `HealthSoAStore` and `AgeSoAStore` with `AtomicLongArray` and `AtomicIntegerArray`. This guarantees visibility and atomicity for individual element updates, resolving a high-severity race condition.
+- **Flaky Integration Tests**: Resolved sporadically failing `EcosystemBalanceTest` by introducing a deterministic `randomSeed` parameter in `Configuration` and using a fixed seed (42L) for CI verification.
+- **Configuration Duplicates**: Fixed a critical compilation failure in `island-nature` caused by duplicate field definitions in `Configuration.java` after a previous refactoring.
+- **Magic Numbers**: Eliminated hardcoded metabolism modifiers and temperature thresholds in `AnimalHealthSystem` by migrating them to the central `Configuration` system.
+
+### Changed
+- **Quality Gates & Coverage**: Significantly improved the test suite for `island-engine`, increasing JaCoCo coverage from 34% to 59%. Added targeted unit tests for `ECSTest`, `SimulationEngineTest`, `SoAStoreTest`, `CoreEngineTest`, and `SchedulingTest`.
+- **API Hardening**: Enhanced `HealthStorage` with an atomic `addEnergy(id, delta)` method to support efficient concurrent energy updates without external locks.
+- **Javadoc Standards**: Re-enabled `doclint` for `reference` and `syntax` in `maven-javadoc-plugin` to ensure high-quality, accurate public API documentation.
+- **JaCoCo Threshold**: Increased the project-wide coverage threshold to 58% in the parent `pom.xml`.
+
+### Added
+- **API Binary Compatibility**: Integrated `revapi-maven-plugin` into `island-engine` to automatically detect breaking API changes between releases.
+- **Developer Onboarding**: Added a **🚀 Quick Start** guide to `README.md` with clear instructions for cloning, building, and running the simulation.
+- **CI/CD Hardening**: Added a dedicated `mutation-testing` job using PITest to the GitHub Actions workflow to measure test suite effectiveness.
+- **Repository Hygiene**: Added `scripts/` to `.gitignore` to maintain a clean source tree.
+
+## [1.38.0] - 2026-05-10
 
 ### Changed
 - **Module Encapsulation**: Refined JPMS exports in `island-nature` and `island-simcity`. Internal packages (`model`, `service`, `entities.components`) are no longer exported, enforcing strict implementation hiding.

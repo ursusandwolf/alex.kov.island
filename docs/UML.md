@@ -14,7 +14,7 @@
 ### Domain Layer (Lombok Powered)
 - `SpeciesRegistry`: Centralized, non-static registry for species metadata.
 - `ClimateService`: Global system for managing environmental state.
-- `Organism`: Base for all life in Nature domain. Optimized with primitive fallbacks and bound to Structure of Arrays (SoA) high-density storage.
+- `Organism`: Base for all life in Nature domain. Optimized with primitive fallbacks and bound to Structure of Arrays (SoA) high-density storage using `AtomicLongArray` and `AtomicIntegerArray` for thread-safe concurrent access.
 - `SimEntity`: Pure ECS entity for SimCity domain. A generic container.
 - **ECS Components**:
     - `HealthComponent` / `AgeComponent`: Empty marker components (state managed by SoA stores).

@@ -11,6 +11,7 @@ public interface HealthStorage {
     boolean isAlive(int entityId);
     void setCurrentEnergy(int entityId, long energy);
     void setAlive(int entityId, boolean isAlive);
+    long addEnergy(int entityId, long delta);
 
     static HealthStorage create(int initialCapacity) {
         return new com.island.engine.internal.HealthSoAStore(initialCapacity);

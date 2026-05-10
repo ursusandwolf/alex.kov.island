@@ -125,7 +125,7 @@
                                         <limit>
                                             <counter>LINE</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.35</minimum> <!-- Realistic threshold for current state -->
+                                            <minimum>0.58</minimum>
                                         </limit>
                                     </limits>
                                 </rule>
@@ -152,7 +152,7 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>3.6.0</version>
                 <configuration>
-                    <doclint>none</doclint>
+                    <doclint>reference,syntax</doclint>
                     <quiet>true</quiet>
                 </configuration>
                 <executions>

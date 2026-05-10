@@ -42,6 +42,15 @@ public class Configuration {
     private int herbivoreMetabolismModifierBP = 5000;
     private int reptileMetabolismModifierBP = 4000;
     private int hibernationMetabolismModifierBP = 1000;
+    private int coldBloodedHeatStressBP = 12000;
+    private int warmBloodedColdStressBP = 15000;
+    private int warmBloodedHeatStressBP = 13000;
+    private int endangeredMetabolismReductionBP = 5000;
+
+    // Temperature Thresholds
+    private int hibernationTempThreshold = 10;
+    private int heatStressTempThreshold = 35;
+    private int coldStressTempThreshold = 0;
 
     // Hunting Logic (Basis Points and Percentages)
     private int huntStrikeCostPreyWeightBP = 1000;
@@ -106,6 +115,7 @@ public class Configuration {
     // Simulation monitoring
     private long maxSimulationDurationMs = 5 * 60 * 1000;
     private int monitoringIntervalMs = 2000;
+    private long randomSeed = -1; // -1 means use current time
 
     // View
     private boolean headless = false;

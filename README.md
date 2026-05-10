@@ -2,6 +2,22 @@
 
 Educational ecosystem simulator demonstrating OOP principles, design patterns (GOF/GRASP), and high-performance multithreading in Java 21.
 
+## 🚀 Quick Start
+
+Get the simulation running in 60 seconds:
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/alex-kov/alex.kov.island.git
+cd alex.kov.island
+
+# 2. Build and run tests
+mvn clean verify
+
+# 3. Launch the nature simulation
+mvn exec:java -pl island-app -Dexec.mainClass="com.island.NatureLauncher"
+```
+
 ## Architecture & Design Patterns
 
 ### Modern Architecture (Java 21)

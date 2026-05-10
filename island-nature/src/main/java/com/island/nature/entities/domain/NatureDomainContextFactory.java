@@ -30,7 +30,9 @@ public class NatureDomainContextFactory {
     public static NatureDomainContext create(Configuration config) {
         SpeciesRegistry speciesRegistry = new SpeciesLoader(config).load();
         StatisticsService statisticsService = new StatisticsService(config);
-        RandomProvider randomProvider = new DefaultRandomProvider();
+        RandomProvider randomProvider = config.getRandomSeed() != -1 
+                ? new DefaultRandomProvider(config.getRandomSeed()) 
+                : new DefaultRandomProvider();
         ComponentRegistry componentRegistry = new ComponentRegistry();
         
         ChunkingStrategy chunkingStrategy = config.isDynamicChunkingEnabled() 

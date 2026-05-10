@@ -2,13 +2,15 @@
 
 ## Current State
 - **Phase 5: Production Readiness & Quality Hardening (May 2026)**:
-    - **SoA Correctness**: Fixed critical race conditions in `HealthSoAStore` and `AgeSoAStore` by adding `volatile` array fields and `synchronized` resizing. [DONE]
+    - **SoA Correctness**: Replaced `volatile` arrays with `AtomicLongArray` and `AtomicIntegerArray` in `HealthSoAStore` and `AgeSoAStore` to ensure thread-safe element visibility. [DONE]
     - **ID Management**: Optimized `EntityIdManager` using `ConcurrentLinkedQueue` for lock-free ID recycling. [DONE]
-    - **Module Hardening**: Refined JPMS isolation by removing exports of internal `model`, `service`, and `component` packages in domain modules. [DONE]
-    - **Build Standard**: Integrated professional Maven plugins (Enforcer, JaCoCo, Source, Javadoc, PITest, JMH) and updated GitHub Actions CI. [DONE]
+    - **Module Hardening**: Refined JPMS isolation and integrated `revapi-maven-plugin` for binary compatibility monitoring. [DONE]
+    - **Build Standard**: Integrated professional Maven plugins (Enforcer, JaCoCo, Source, Javadoc, PITest, JMH) and achieved ~60% engine coverage. [DONE]
+    - **Determinism**: Introduced `randomSeed` in `Configuration` to ensure reproducible simulations and stable CI tests. [DONE]
     - **Thread-Safety & Lifecycle**: Refactored `GameLoop` with `volatile` dependencies, `BooleanSupplier` for zero-boxing termination checks, and polymorphic task registration to eliminate `instanceof`. [DONE]
     - **API Contract**: Enhanced Javadoc for all `@EngineAPI` components and enabled `ServiceLoader` discovery for plugins. [DONE]
     - **Performance Hot-Path**: Refactored `AnimalHealthSystem` for direct SoA storage access, bypassing object wrappers in the main simulation tick. [DONE]
+    - **Developer Onboarding**: Added Quick Start guide to `README.md`. [DONE]
     - **Codebase Code Review**: Applied Java Code Reviewer suggestions across the project. Optimized `PopulationService` to eliminate Stream API allocations in hot paths, removed magic numbers, split God methods, and added `@RequiredArgsConstructor`. Fixed regression in SimCity test suite. [DONE]
 
 - **Phase 4: Modularization & API Stabilization (May 2026)**:

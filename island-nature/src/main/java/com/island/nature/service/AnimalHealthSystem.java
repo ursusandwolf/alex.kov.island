@@ -64,19 +64,19 @@ public class AnimalHealthSystem extends NatureEntitySystem {
         
         // Temperature/Season effects
         if (a.getAnimalType().isColdBlooded()) {
-            if (temp < 10) {
+            if (temp < config.getHibernationTempThreshold()) {
                 // Hibernation-like slowdown for cold-blooded
                 metabolism = (metabolism * config.getHibernationMetabolismModifierBP()) / config.getScale10K();
-            } else if (temp > 35) {
+            } else if (temp > config.getHeatStressTempThreshold()) {
                 // Heat stress
-                metabolism = (metabolism * 12000) / config.getScale10K();
+                metabolism = (metabolism * config.getColdBloodedHeatStressBP()) / config.getScale10K();
             }
         } else {
             // Warm-blooded: homeostasis cost in cold
-            if (temp < 0) {
-                metabolism = (metabolism * 15000) / config.getScale10K();
-            } else if (temp > 35) {
-                metabolism = (metabolism * 13000) / config.getScale10K();
+            if (temp < config.getColdStressTempThreshold()) {
+                metabolism = (metabolism * config.getWarmBloodedColdStressBP()) / config.getScale10K();
+            } else if (temp > config.getHeatStressTempThreshold()) {
+                metabolism = (metabolism * config.getWarmBloodedHeatStressBP()) / config.getScale10K();
             }
         }
 
@@ -85,7 +85,7 @@ public class AnimalHealthSystem extends NatureEntitySystem {
 
         // Endangered protection: reduce metabolism if protected
         if (protectionMap != null && protectionMap.containsKey(a.getSpeciesKey())) {
-            metabolism = (metabolism * (config.getScale10K() - 5000)) / config.getScale10K();
+            metabolism = (metabolism * (config.getScale10K() - config.getEndangeredMetabolismReductionBP())) / config.getScale10K();
         }
 
         // Direct SoA Energy update
