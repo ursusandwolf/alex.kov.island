@@ -27,6 +27,10 @@ public class SimCityPlugin implements SimulationPlugin<SimEntity> {
     private final int height;
     private final ComponentRegistry componentRegistry = new ComponentRegistry();
 
+    public SimCityPlugin() {
+        this(10, 10);
+    }
+
     public SimCityPlugin(int width, int height) {
         this.width = width;
         this.height = height;

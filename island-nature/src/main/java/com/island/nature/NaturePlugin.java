@@ -30,6 +30,10 @@ public class NaturePlugin implements SimulationPlugin<Organism> {
     private final NatureDomainContext domainContext;
     private final SimulationView view;
 
+    public NaturePlugin() {
+        this(Configuration.load());
+    }
+
     public NaturePlugin(Configuration config) {
         this(config, config.isHeadless() ? new HeadlessView() : new ConsoleView());
     }

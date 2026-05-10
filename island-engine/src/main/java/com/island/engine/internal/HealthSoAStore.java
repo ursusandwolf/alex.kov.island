@@ -9,10 +9,10 @@ import com.island.engine.core.InternalEngine;
  */
 @InternalEngine
 public class HealthSoAStore implements HealthStorage {
-    private long[] currentEnergy;
-    private long[] maxEnergy;
-    private boolean[] alive;
-    private int capacity;
+    private volatile long[] currentEnergy;
+    private volatile long[] maxEnergy;
+    private volatile boolean[] alive;
+    private volatile int capacity;
 
     public HealthSoAStore(int initialCapacity) {
         this.capacity = initialCapacity;
@@ -36,7 +36,7 @@ public class HealthSoAStore implements HealthStorage {
     public void setCurrentEnergy(int entityId, long energy) { this.currentEnergy[entityId] = energy; }
     public void setAlive(int entityId, boolean isAlive) { this.alive[entityId] = isAlive; }
 
-    private void ensureCapacity(int entityId) {
+    private synchronized void ensureCapacity(int entityId) {
         if (entityId >= capacity) {
             int newCapacity = Math.max(entityId + 1, capacity * 2);
             currentEnergy = java.util.Arrays.copyOf(currentEnergy, newCapacity);

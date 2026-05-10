@@ -2,32 +2,28 @@ package com.island.engine.internal;
 
 import com.island.engine.core.EntityIdProvider;
 import com.island.engine.core.InternalEngine;
-import java.util.BitSet;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Manages unique entity IDs for SoA-based component stores.
+ * Uses ConcurrentLinkedQueue for efficient ID recycling without global locks.
  */
 @InternalEngine
 public class EntityIdManager implements EntityIdProvider {
     private final AtomicInteger nextId = new AtomicInteger(0);
-    private final BitSet recycledIds = new BitSet();
+    private final ConcurrentLinkedQueue<Integer> recycledIds = new ConcurrentLinkedQueue<>();
 
     @Override
     public int acquireId() {
-        synchronized (recycledIds) {
-            int firstSetBit = recycledIds.nextSetBit(0);
-            if (firstSetBit != -1) {
-                recycledIds.clear(firstSetBit);
-                return firstSetBit;
-            }
+        Integer id = recycledIds.poll();
+        if (id != null) {
+            return id;
         }
         return nextId.getAndIncrement();
     }
 
     public void releaseId(int id) {
-        synchronized (recycledIds) {
-            recycledIds.set(id);
-        }
+        recycledIds.offer(id);
     }
 }

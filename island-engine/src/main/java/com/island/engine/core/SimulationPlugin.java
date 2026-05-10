@@ -5,40 +5,58 @@ import com.island.engine.model.Mortal;
 import com.island.engine.scheduling.GameLoop;
 
 /**
- * Interface for simulation plugins that define specific worlds and tasks.
+ * SPI (Service Provider Interface) for simulation domains.
+ * Implementations define the world structure, entities, and execution logic (tasks).
  *
- * @param <T> The base type of entities in the simulation.
+ * <p>Plugins are the primary way to extend the engine with specific simulation logic,
+ * such as an island ecosystem or a city economy.</p>
+ *
+ * @param <T> The base type of entities (must implement {@link Mortal}).
+ * @since 1.0
  */
 @EngineAPI
 public interface SimulationPlugin<T extends Mortal> {
     /**
      * Creates and initializes the simulation world.
+     * This is called once during engine bootstrapping.
      *
-     * @param eventBus the event bus for decoupled communication.
+     * @param eventBus the event bus for decoupled communication within the domain.
+     * @return a fully initialized simulation world instance.
      */
     SimulationWorld<T> createWorld(EventBus eventBus);
 
     /**
-     * Registers recurring tasks (services) to the game loop.
+     * Registers recurring tasks (ECS systems or services) to the game loop.
+     * These tasks define the behavioral logic of the simulation.
      *
-     * @param gameLoop the game loop to register tasks to.
-     * @param world    the world created by this plugin.
+     * @param gameLoop the game loop where tasks should be registered.
+     * @param world    the world instance created by {@link #createWorld(EventBus)}.
      * @param eventBus the event bus for decoupled communication.
      */
     void registerTasks(GameLoop<T> gameLoop, SimulationWorld<T> world, EventBus eventBus);
 
     /**
-     * Optional hook called after the simulation context is created but before the loop starts.
+     * Hook called after the simulation context is fully built and ready to start.
+     * Use this for final initialization or to subscribe domain services to the event bus.
+     *
+     * @param context the complete simulation context.
      */
     default void onSimulationStarted(SimulationContext<T> context) { }
 
     /**
-     * Optional hook called after the simulation loop stops.
+     * Hook called after the simulation loop has terminated.
+     * Use this for cleanup or to finalize statistics.
+     *
+     * @param context the complete simulation context.
      */
     default void onSimulationStopped(SimulationContext<T> context) { }
 
     /**
-     * Optional hook to check if the simulation should stop based on its current state.
+     * Evaluates whether the simulation has reached a termination condition.
+     * This is checked at the end of every tick.
+     *
+     * @param context the complete simulation context.
+     * @return {@code true} if the simulation should stop, {@code false} otherwise.
      */
     default boolean shouldStop(SimulationContext<T> context) {
         return false;

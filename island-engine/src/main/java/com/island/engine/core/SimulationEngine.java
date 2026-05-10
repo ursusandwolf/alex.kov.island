@@ -12,17 +12,31 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Orchestrator that bootstraps a simulation using a plugin.
+ * Entry point for creating and managing simulation instances.
+ * Orchestrates the bootstrapping process using a plugin and configuration.
+ *
+ * <p>Usage:
+ * <pre>{@code
+ * SimulationConfig config = SimulationConfig.defaultFor(4);
+ * try (SimulationContext<Organism> ctx = new SimulationEngine<Organism>().build(plugin, config)) {
+ *     ctx.gameLoop().start();
+ *     // ...
+ * }
+ * }</pre>
+ *
+ * @param <T> the base entity type of the simulation
+ * @since 1.0
  */
 @EngineAPI
 public class SimulationEngine<T extends Mortal> {
 
     /**
      * Starts a simulation using the provided plugin and parameters.
+     * This method builds the context and immediately starts the game loop.
      *
-     * @param plugin         The plugin defining the simulation domain.
-     * @param config         Simulation configuration.
-     * @return The created simulation context.
+     * @param plugin The plugin defining the simulation domain.
+     * @param config Simulation configuration.
+     * @return The created and started simulation context.
      */
     public SimulationContext<T> start(SimulationPlugin<T> plugin, SimulationConfig config) {
         SimulationContext<T> context = build(plugin, config);
@@ -31,12 +45,21 @@ public class SimulationEngine<T extends Mortal> {
     }
 
     /**
-     * Builds a simulation context using the provided plugin but DOES NOT start the loop.
+     * Builds a simulation context from the given plugin and config.
+     * The returned context must be closed when no longer needed (e.g. via try-with-resources).
+     * This method does NOT start the game loop.
+     *
+     * @param plugin the simulation plugin providing world and tasks
+     * @param config execution configuration (tick rate, thread count)
+     * @return a ready-to-use simulation context
      */
     public SimulationContext<T> build(SimulationPlugin<T> plugin, SimulationConfig config) {
         EventBus eventBus = EventBus.create();
 
         SimulationWorld<T> world = plugin.createWorld(eventBus);
+        if (world == null) {
+            throw new IllegalArgumentException("Plugin created a null world");
+        }
         world.initialize();
 
         ExecutorService executor = (config.getThreadCount() > 0)
@@ -61,7 +84,12 @@ public class SimulationEngine<T extends Mortal> {
     }
 
     /**
-     * Convenient overload for building a simulation context.
+     * Convenient overload for building a simulation context with basic parameters.
+     *
+     * @param plugin         The plugin defining the simulation domain.
+     * @param tickDurationMs The duration of a single simulation tick in milliseconds.
+     * @param threadCount    The number of threads to use for parallel execution.
+     * @return a ready-to-use simulation context
      */
     public SimulationContext<T> build(SimulationPlugin<T> plugin, int tickDurationMs, int threadCount) {
         return build(plugin, SimulationConfig.builder()
@@ -73,6 +101,7 @@ public class SimulationEngine<T extends Mortal> {
 
     /**
      * Stops the simulation and notifies the plugin.
+     * Also closes the context, releasing associated resources (executor, etc.).
      *
      * @param context The simulation context to stop.
      * @param plugin  The plugin that defined the simulation.

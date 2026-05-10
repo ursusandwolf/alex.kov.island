@@ -1,5 +1,7 @@
 package com.island.nature.entities.domain;
 
+import com.island.engine.core.AgeStorage;
+import com.island.engine.core.HealthStorage;
 import com.island.engine.ecs.ComponentRegistry;
 import com.island.nature.config.Configuration;
 import com.island.engine.core.SimulationWorld;
@@ -20,6 +22,10 @@ public interface NatureWorld extends SimulationWorld<Organism>,
     Configuration getConfiguration();
 
     ComponentRegistry getComponentRegistry();
+
+    HealthStorage getHealthStorage();
+
+    AgeStorage getAgeStorage();
 
     /**
      * Gets a specific cell by relative coordinates from a current cell.

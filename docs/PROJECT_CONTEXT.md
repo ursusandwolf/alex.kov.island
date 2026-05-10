@@ -1,6 +1,14 @@
 # Project Context
 
 ## Current State
+- **Phase 5: Production Readiness & Quality Hardening (May 2026)**:
+    - **SoA Correctness**: Fixed critical race conditions in `HealthSoAStore` and `AgeSoAStore` by adding `volatile` array fields and `synchronized` resizing. [DONE]
+    - **ID Management**: Optimized `EntityIdManager` using `ConcurrentLinkedQueue` for lock-free ID recycling. [DONE]
+    - **Module Hardening**: Refined JPMS isolation by removing exports of internal `model`, `service`, and `component` packages in domain modules. [DONE]
+    - **Build Standard**: Integrated professional Maven plugins (Enforcer, JaCoCo, Source, Javadoc, PITest, JMH) and updated GitHub Actions CI. [DONE]
+    - **API Contract**: Enhanced Javadoc for all `@EngineAPI` components and enabled `ServiceLoader` discovery for plugins. [DONE]
+    - **Performance Hot-Path**: Refactored `AnimalHealthSystem` for direct SoA storage access, bypassing object wrappers in the main simulation tick. [DONE]
+
 - **Phase 4: Modularization & API Stabilization (May 2026)**:
     - **Engine Isolation**: Transitioned from monolith to multi-module Maven structure. Defined public API via `module-info.java`, `@EngineAPI` and `@InternalEngine` annotations. Restricted `com.island.engine.parallel` package from exports to ensure implementation encapsulation. [DONE]
     - **Engine Library Readiness**:
@@ -42,19 +50,11 @@
 
 ## Next Steps
     - **Performance**:
-        - Optimized `GridUtils` locking mechanism [DONE].
-        - Established foundation for Structure of Arrays (SoA) memory optimization:
-            - Implemented `EntityIdManager` for unique entity tracking.
-            - Created `HealthSoAStore` and `AgeSoAStore` for high-density primitive storage.
-            - Integrated SoA stores into `NatureDomainContext`. [DONE]
-        - Migrated `Organism` logic to use SoA stores for component data. Stripped state from `HealthComponent` and `AgeComponent`, converting them into empty marker components for ECS parallel scheduling. [DONE]
-        - Fixed `StampedLock` non-reentrant deadlock in `Cell` movement logic using lock-free internal methods. [DONE]
-
-## Next Steps
-    - **Performance**:
         - Further optimize `SystemExecutionGraph` for large-scale simulations using more granular dependency groups.
         - Investigate native memory usage (off-heap) for high-density entity stores to minimize GC impact further.
         - Refactor `MovementComponent` to SoA storage to complete the primitive data migration.
     - **Maintenance & Technical Debt**:
         - Periodically review `ObjectPool` fragmentation under extreme stress tests.
         - Expand `EcosystemBalanceTest` with edge-case climate scenarios (volcanic winter, heat waves).
+        - Improve JaCoCo coverage to reach 75% threshold (currently 60%).
+        - Implement JMH benchmarks for EventBus and ECS query performance.

@@ -1,5 +1,7 @@
 package com.island.nature.model;
 
+import com.island.engine.core.AgeStorage;
+import com.island.engine.core.HealthStorage;
 import com.island.engine.ecs.ComponentRegistry;
 import com.island.nature.event.AnimalBornEvent;
 import com.island.nature.event.AnimalDiedEvent;
@@ -94,6 +96,16 @@ public class Island implements NatureWorld {
     @Override
     public ComponentRegistry getComponentRegistry() {
         return componentRegistry;
+    }
+
+    @Override
+    public HealthStorage getHealthStorage() {
+        return domainContext.getHealthStorage();
+    }
+
+    @Override
+    public AgeStorage getAgeStorage() {
+        return domainContext.getAgeStorage();
     }
 
     @Override

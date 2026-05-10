@@ -8,9 +8,9 @@ import com.island.engine.core.InternalEngine;
  */
 @InternalEngine
 public class AgeSoAStore implements AgeStorage {
-    private int[] age;
-    private int[] maxLifespan;
-    private int capacity;
+    private volatile int[] age;
+    private volatile int[] maxLifespan;
+    private volatile int capacity;
 
     public AgeSoAStore(int initialCapacity) {
         this.capacity = initialCapacity;
@@ -31,7 +31,7 @@ public class AgeSoAStore implements AgeStorage {
     public void setAge(int entityId, int age) { this.age[entityId] = age; }
     public void setMaxLifespan(int entityId, int maxLifespan) { this.maxLifespan[entityId] = maxLifespan; }
 
-    private void ensureCapacity(int entityId) {
+    private synchronized void ensureCapacity(int entityId) {
         if (entityId >= capacity) {
             int newCapacity = Math.max(entityId + 1, capacity * 2);
             age = java.util.Arrays.copyOf(age, newCapacity);

@@ -6,7 +6,7 @@ module com.island.simcity {
     exports com.island.simcity;
     exports com.island.simcity.model;
     exports com.island.simcity.entities;
-    exports com.island.simcity.entities.components;
-    exports com.island.simcity.service;
     exports com.island.simcity.view;
+
+    provides com.island.engine.core.SimulationPlugin with com.island.simcity.SimCityPlugin;
 }

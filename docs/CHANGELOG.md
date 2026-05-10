@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.38.0] - 2026-05-10
+### Fixed
+- **SoA Thread-Safety**: Fixed critical race conditions in `HealthSoAStore` and `AgeSoAStore` by making array fields `volatile` and synchronizing the `ensureCapacity` method.
+- **Entity ID Management**: Refactored `EntityIdManager` to use `ConcurrentLinkedQueue` for ID recycling, eliminating mixed synchronization and improving efficiency.
+
+### Changed
+- **Module Encapsulation**: Refined JPMS exports in `island-nature` and `island-simcity`. Internal packages (`model`, `service`, `entities.components`) are no longer exported, enforcing strict implementation hiding.
+- **Performance Optimization**: Optimized `AnimalHealthSystem` to access `HealthStorage` and `AgeStorage` directly by ID, reducing the overhead of object-oriented wrappers during energy consumption and age tracking.
+
+### Added
+- **Build Infrastructure**: 
+    - Integrated `maven-enforcer-plugin` to guarantee build consistency.
+    - Added `jacoco-maven-plugin` for code coverage reporting (60% threshold).
+    - Added `maven-source-plugin` and `maven-javadoc-plugin` for release artifact generation.
+    - Integrated `PITest` for mutation testing and `JMH` for performance benchmarking in the engine module.
+- **Plugin Discovery**: Added `provides`/`uses` directives to `module-info.java` to support standard Java `ServiceLoader` for simulation plugins.
+- **Documentation**: Enhanced Javadocs for `@EngineAPI` classes (`SimulationEngine`, `SimulationPlugin`, `SimulationContext`) with usage examples and clear contracts.
+
 ## [1.37.0] - 2026-05-09
 ### Fixed
 - **Movement Deadlock**: Fixed a critical deadlock in `Island.moveOrganism` caused by nested acquisitions of non-reentrant `StampedLock` write locks. Introduced lock-free internal methods (`canAcceptInternal`, `addAnimalInternal`, `removeAnimalInternal`) in `Cell` for safe execution within `GridUtils.executeWithDoubleLock`.
