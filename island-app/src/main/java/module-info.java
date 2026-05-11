@@ -9,5 +9,21 @@ module com.island.app {
     requires org.slf4j;
     requires static lombok;
 
+    // Spring Boot
+    requires spring.boot;
+    requires spring.boot.autoconfigure;
+    requires spring.context;
+    requires spring.web;
+    requires spring.beans;
+    requires spring.core;
+    requires spring.messaging;
+    requires spring.websocket;
+    requires jakarta.annotation;
+
+    opens com.island to spring.core, spring.beans, spring.context;
+    opens com.island.config to spring.core, spring.beans, spring.context, com.fasterxml.jackson.databind, spring.messaging;
+    opens com.island.service to spring.core, spring.beans, spring.context, spring.messaging;
+    opens com.island.controller to spring.core, spring.beans, spring.context, spring.web, spring.messaging;
+    
     uses com.island.engine.core.SimulationPlugin;
 }

@@ -9,5 +9,7 @@ module com.island.nature {
     exports com.island.nature.entities.core;
     exports com.island.nature.model;
 
+    opens com.island.nature.model;
+
     provides com.island.engine.core.SimulationPlugin with com.island.nature.NaturePlugin;
 }

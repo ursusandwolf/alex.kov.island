@@ -71,10 +71,6 @@ public class GameLoop<T extends Mortal> {
     private final AtomicBoolean running = new AtomicBoolean(false);
     private final AtomicBoolean paused = new AtomicBoolean(false);
 
-    public enum SimulationStatus {
-        IDLE, RUNNING, PAUSED
-    }
-
     public SimulationStatus getStatus() {
         if (!running.get()) return SimulationStatus.IDLE;
         return paused.get() ? SimulationStatus.PAUSED : SimulationStatus.RUNNING;

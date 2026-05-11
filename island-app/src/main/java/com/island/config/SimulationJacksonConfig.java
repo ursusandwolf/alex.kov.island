@@ -2,31 +2,26 @@ package com.island.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.island.engine.model.WorldSnapshot;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 /**
- * Provides Jackson configuration for simulation snapshots.
+ * Spring configuration for simulation Jackson serialization.
  */
-public final class SimulationJacksonConfig {
-    
-    private SimulationJacksonConfig() {}
+@Configuration
+public class SimulationJacksonConfig {
 
     /**
-     * Configures the provided ObjectMapper with necessary mixins for simulation models.
+     * Provides a pre-configured ObjectMapper bean with necessary mixins for simulation models.
      * 
-     * @param mapper the ObjectMapper to configure
      * @return the configured ObjectMapper
      */
-    public static ObjectMapper configure(ObjectMapper mapper) {
+    @Bean
+    @Primary
+    public ObjectMapper objectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
         mapper.addMixIn(WorldSnapshot.class, WorldSnapshotMixin.class);
         return mapper;
-    }
-
-    /**
-     * Creates a new ObjectMapper pre-configured for simulation models.
-     * 
-     * @return a new pre-configured ObjectMapper
-     */
-    public static ObjectMapper createMapper() {
-        return configure(new ObjectMapper());
     }
 }

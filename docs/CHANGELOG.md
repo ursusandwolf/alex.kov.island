@@ -1,3 +1,17 @@
+## [1.52.0] - 2026-05-11
+### Added
+- **Spring Boot Integration**: Transformed `island-app` into a Spring Boot application, enabling modern web-based management.
+- **REST API**: Implemented `SimulationController` with `/api/v1/simulation` endpoints for remote lifecycle management (START, PAUSE, RESUME, STOP, STATUS).
+- **WebSocket Broadcasting**: Integrated STOMP-based WebSocket feed via `/topic/snapshot` for real-time visualization updates.
+- **Simulation Service**: Introduced `SimulationService` and `SnapshotBroadcaster` to orchestrate `SimulationEngine` lifecycle and world state broadcasting.
+- **Polymorphic Serialization**: Configured the Spring `ObjectMapper` with pre-defined Jackson Mixins to support `WorldSnapshot` serialization without engine-layer dependencies.
+
+### Changed
+- **Engine Refactoring**: Extracted `SimulationStatus` to a top-level enum in `com.island.engine.scheduling` to improve visibility and resolve reflection/JPMS issues with nested classes.
+- **JPMS Hardening**: Updated `module-info.java` across all modules to support Spring and Jackson reflection via qualified and unqualified `opens` directives.
+- **Compiler Configuration**: Enabled the `-parameters` flag in the `maven-compiler-plugin` to support Spring Boot 3.2+ parameter name discovery without explicit annotations.
+- **Logging Infrastructure**: Moved `slf4j-simple` to `dependencyManagement` and restricted its use to test scopes in engine and domain modules to prevent runtime conflicts with Spring Boot's Logback implementation.
+
 ## [1.51.0] - 2026-05-11
 ### Fixed
 - **JaCoCo Coverage**: Restored `island-engine` line coverage to **75%** by adding unit tests for `ObjectPool`, `RandomUtils`, `ViewUtils`, and `SimulationEngine`.

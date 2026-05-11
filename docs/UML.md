@@ -144,19 +144,21 @@ classDiagram
 graph LR
     subgraph App_Layer
         SC[SimulationController]
-        SB[SnapshotBroadcaster]
         SS[SimulationService]
+        JC[SimulationJacksonConfig]
     end
 
     subgraph Core_Layer
         SE[SimulationEngine]
         CX[SimulationContext]
+        GL[GameLoop]
     end
 
-    SC --> SS
-    SS --> SE
-    SS --> CX
-    SB --> CX
-    SB -- WebSocket --> Client[React Dashboard]
-    Client -- REST --> SC
+    SC -- REST API --> SS
+    SS -- Manages --> SE
+    SE -- Produces --> CX
+    CX -- Provides --> GL
+    JC -- Configures --> Mapper[Jackson ObjectMapper]
+    Mapper -- Serializes --> WS[WorldSnapshot]
+    WS -- Sent via REST/WS --> Client[React Dashboard]
 ```

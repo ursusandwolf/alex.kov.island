@@ -3,6 +3,7 @@ package com.island.engine;
 import com.island.engine.core.SimulationWorld;
 import com.island.engine.internal.PhaseScheduler;
 import com.island.engine.scheduling.GameLoop;
+import com.island.engine.scheduling.SimulationStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -25,14 +26,14 @@ class GameLoopControlTest {
         GameLoop loop = new GameLoop(10, executor, scheduler);
         loop.setWorld(world);
         
-        assertEquals(GameLoop.SimulationStatus.IDLE, loop.getStatus());
+        assertEquals(SimulationStatus.IDLE, loop.getStatus());
         
         loop.start();
         assertTrue(loop.isRunning());
-        assertEquals(GameLoop.SimulationStatus.RUNNING, loop.getStatus());
+        assertEquals(SimulationStatus.RUNNING, loop.getStatus());
         
         loop.pause();
-        assertEquals(GameLoop.SimulationStatus.PAUSED, loop.getStatus());
+        assertEquals(SimulationStatus.PAUSED, loop.getStatus());
         
         int countAfterPause = loop.getTickCount();
         Thread.sleep(50);
@@ -40,7 +41,7 @@ class GameLoopControlTest {
         assertTrue(loop.getTickCount() <= countAfterPause + 1);
         
         loop.resume();
-        assertEquals(GameLoop.SimulationStatus.RUNNING, loop.getStatus());
+        assertEquals(SimulationStatus.RUNNING, loop.getStatus());
         
         Thread.sleep(50);
         assertTrue(loop.getTickCount() > countAfterPause);

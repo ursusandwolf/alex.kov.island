@@ -10,5 +10,7 @@ module com.island.simcity {
     exports com.island.simcity.service;
     exports com.island.simcity.view;
 
+    opens com.island.simcity.model;
+
     provides com.island.engine.core.SimulationPlugin with com.island.simcity.SimCityPlugin;
 }
