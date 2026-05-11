@@ -42,6 +42,7 @@ public class GameLoop<T extends Mortal> {
     private final List<ScheduledTask> recurringTasks = new ArrayList<>();
     private final Queue<ScheduledTask> pendingTasks = new ConcurrentLinkedQueue<>();
     
+    @Getter
     private final long tickDurationMs;
     @Getter
     private final ExecutorService taskExecutor;

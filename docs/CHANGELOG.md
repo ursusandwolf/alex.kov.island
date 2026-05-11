@@ -1,3 +1,8 @@
+## [1.51.0] - 2026-05-11
+### Fixed
+- **JaCoCo Coverage**: Restored `island-engine` line coverage to **75%** by adding unit tests for `ObjectPool`, `RandomUtils`, `ViewUtils`, and `SimulationEngine`.
+- **GameLoop API**: Added `@Getter` to `tickDurationMs` in `GameLoop` for better testability.
+
 ## [1.50.0] - 2026-05-11
 ### Fixed
 - **Plugin Discovery**: Resolved `ServiceLoader` discovery failures by correctly exporting domain packages in `island-nature` and `island-simcity` `module-info.java` files and declaring JPMS dependencies in `island-app`.

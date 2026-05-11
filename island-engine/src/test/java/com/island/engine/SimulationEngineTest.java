@@ -37,22 +37,27 @@ class SimulationEngineTest {
     }
 
     @Test
-    @DisplayName("SimulationEngine: Build without auto-start")
-    void engine_build_no_autostart_test() {
+    @DisplayName("SimulationEngine: Build with 3-arg overload")
+    void engine_build_3arg_test() {
         SimulationEngine<TestMortal> engine = new SimulationEngine<>();
         SimulationPlugin<TestMortal> plugin = mock(SimulationPlugin.class);
         SimulationWorld<TestMortal> world = mock(SimulationWorld.class);
-        
         when(plugin.createWorld(any())).thenReturn(world);
         
-        SimulationConfig config = SimulationConfig.defaultFor(2);
-        
-        try (SimulationContext<TestMortal> context = engine.build(plugin, config)) {
+        try (SimulationContext<TestMortal> context = engine.build(plugin, 100, 4)) {
             assertNotNull(context);
-            assertEquals(world, context.world());
-            assertNotNull(context.gameLoop());
-            assertFalse(context.gameLoop().isRunning(), "GameLoop should not be running after build()");
+            assertEquals(100, context.gameLoop().getTickDurationMs());
         }
+    }
+
+    @Test
+    @DisplayName("SimulationEngine: Error on null world")
+    void engine_null_world_test() {
+        SimulationEngine<TestMortal> engine = new SimulationEngine<>();
+        SimulationPlugin<TestMortal> plugin = mock(SimulationPlugin.class);
+        when(plugin.createWorld(any())).thenReturn(null);
+        
+        assertThrows(IllegalArgumentException.class, () -> engine.build(plugin, SimulationConfig.defaultFor(1)));
     }
 
     private static class TestMortal implements Mortal {

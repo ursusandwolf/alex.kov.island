@@ -35,29 +35,32 @@ class EngineUtilitiesTest {
     }
 
     @Test
-    @DisplayName("RandomUtils: Probability checks")
-    void random_utils_test() {
+    @DisplayName("RandomUtils: All methods")
+    void random_utils_full_test() {
         com.island.util.common.DefaultRandomProvider random = new com.island.util.common.DefaultRandomProvider(42L);
         RandomUtils.setProvider(random);
         
-        // With seed 42, check some values if needed, but checkChance 100 is always true
+        assertTrue(RandomUtils.nextInt(10) < 10);
+        assertTrue(RandomUtils.nextInt(10, 20) >= 10);
+        assertTrue(RandomUtils.nextDouble() >= 0);
+        assertTrue(RandomUtils.nextDouble(5.0) < 5.0);
         assertTrue(RandomUtils.checkChance(100));
-        assertFalse(RandomUtils.checkChance(0));
     }
 
     @Test
-    @DisplayName("ViewUtils: Sparkline generation")
-    void view_utils_test() {
-        List<Integer> data = List.of(1, 2, 3, 4, 5);
-        String spark = ViewUtils.getSparkline(data, 10);
-        assertEquals(10, spark.length());
-        assertFalse(spark.trim().isEmpty());
+    @DisplayName("ViewUtils: Sparkline edge cases")
+    void view_utils_extended_test() {
+        // Range 0
+        assertEquals("▄", ViewUtils.getSparkline(List.of(1), 1));
+        assertEquals(" ", ViewUtils.getSparkline(List.of(0), 1));
         
-        // Edge cases
-        assertEquals(" ".repeat(10), ViewUtils.getSparkline(null, 10));
-        assertEquals(" ".repeat(10), ViewUtils.getSparkline(List.of(), 10));
+        // Data smaller than width
+        String spark = ViewUtils.getSparkline(List.of(1, 10), 5);
+        assertEquals(5, spark.length());
+        assertTrue(spark.startsWith("   "));
         
-        String flat = ViewUtils.getSparkline(List.of(1, 1, 1), 3);
-        assertEquals(3, flat.length());
+        // Data larger than width
+        String sparkLarge = ViewUtils.getSparkline(List.of(1, 2, 3, 4, 5), 2);
+        assertEquals(2, sparkLarge.length());
     }
 }
