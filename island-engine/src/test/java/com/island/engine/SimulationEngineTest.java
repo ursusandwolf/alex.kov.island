@@ -36,6 +36,25 @@ class SimulationEngineTest {
         }
     }
 
+    @Test
+    @DisplayName("SimulationEngine: Build without auto-start")
+    void engine_build_no_autostart_test() {
+        SimulationEngine<TestMortal> engine = new SimulationEngine<>();
+        SimulationPlugin<TestMortal> plugin = mock(SimulationPlugin.class);
+        SimulationWorld<TestMortal> world = mock(SimulationWorld.class);
+        
+        when(plugin.createWorld(any())).thenReturn(world);
+        
+        SimulationConfig config = SimulationConfig.defaultFor(2);
+        
+        try (SimulationContext<TestMortal> context = engine.build(plugin, config)) {
+            assertNotNull(context);
+            assertEquals(world, context.world());
+            assertNotNull(context.gameLoop());
+            assertFalse(context.gameLoop().isRunning(), "GameLoop should not be running after build()");
+        }
+    }
+
     private static class TestMortal implements Mortal {
         @Override
         public boolean isAlive() { return true; }

@@ -29,5 +29,5 @@
 - **Phase 4: User Interface, Controls & Persistence**:
     - Enhance existing terminal-based pseudographics (ASCII/ANSI) to render `WorldSnapshot` as rich as possible in CLI.
     - Build a Web-based (Spring Boot + React) dashboard in the `island-app` module for full graphical visualization.
-    - Allow dynamic pausing, speed adjustments (tick rate scaling), and manual entity spawning via UI.
+    - Implemented additional unit tests for `SimulationEngine` lifecycle methods (`build()` vs `start()`).
     - Implement serialization to save and load `WorldSnapshot` (JSON or binary formats).
