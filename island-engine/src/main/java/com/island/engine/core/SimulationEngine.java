@@ -60,7 +60,7 @@ public class SimulationEngine<T extends Mortal> {
      * <ol>
      *     <li>Creating the {@link EventBus}</li>
      *     <li>Instantiating the {@link SimulationWorld} via {@link SimulationPlugin#createWorld(EventBus)}</li>
-     *     <li>Initializing the {@link java.util.concurrent.ExecutorService} based on the thread count in {@link SimulationConfig}</li>
+     *     <li>Initializing the {@link ExecutorService} based on the thread count in {@link SimulationConfig}</li>
      *     <li>Setting up the {@link GameLoop} and registering tasks</li>
      *     <li>Notifying the plugin via {@link SimulationPlugin#onSimulationStarted(SimulationContext)}</li>
      * </ol>
@@ -80,9 +80,7 @@ public class SimulationEngine<T extends Mortal> {
         }
         world.initialize();
 
-        ExecutorService executor = (config.getThreadCount() > 0)
-                ? Executors.newFixedThreadPool(config.getThreadCount())
-                : Executors.newVirtualThreadPerTaskExecutor();
+        ExecutorService executor = createExecutor(config);
         
         ParallelDispatcher<T> dispatcher = new ParallelDispatcher<>(executor);
         PhaseScheduler<T> scheduler = new PhaseScheduler<>(dispatcher);
@@ -99,6 +97,12 @@ public class SimulationEngine<T extends Mortal> {
 
         plugin.onSimulationStarted(context);
         return context;
+    }
+
+    private ExecutorService createExecutor(SimulationConfig config) {
+        return (config.getThreadCount() > 0)
+                ? Executors.newFixedThreadPool(config.getThreadCount())
+                : Executors.newVirtualThreadPerTaskExecutor();
     }
 
     /**
