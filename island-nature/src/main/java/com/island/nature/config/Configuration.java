@@ -34,9 +34,9 @@ public class Configuration {
     private int scale10K = 10_000;
 
     // Movement and Hunting costs (Basis Points)
-    private int speedMoveCostStepBP = 50;
+    private int speedMoveCostStepBP = 20;
     private int preyRelativeSpeedHuntCostStepBP = 500;
-    private int baseMetabolismBP = 100;
+    private int baseMetabolismBP = 20;
 
     // Metabolism modifiers (Basis Points)
     private int herbivoreMetabolismModifierBP = 5000;
@@ -70,14 +70,14 @@ public class Configuration {
     private int huntFatigueCostModifierBP = 13000;
 
     // Performance / LOD limits
-    private int feedingLodLimit = 500;
-    private int reproductionLodLimit = 30;
-    private int movementLodLimit = 100;
+    private int feedingLodLimit = 3000;
+    private int reproductionLodLimit = 1000;
+    private int movementLodLimit = 1000;
 
     // Vital signs
     private long deathEnergyThreshold = 1L;
     private int hungerThresholdPercent = 30;
-    private int reproductionMinEnergyPercent = 50;
+    private int reproductionMinEnergyPercent = 35;
 
     // Endangered species protection
     private int endangeredPopulationThresholdBP = 500;
