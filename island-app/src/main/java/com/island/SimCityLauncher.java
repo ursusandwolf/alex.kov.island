@@ -51,20 +51,24 @@ public class SimCityLauncher {
         for (int i = 0; i < 30; i++) {
             // Dynamic player actions
             if (i == 10) {
-                System.out.println("PLAYER ACTION: Increasing taxes to 40%");
+                map.addAlert("PLAYER ACTION: Increasing taxes to 40%");
                 map.setTaxRate(40);
             }
             if (i == 20) {
-                System.out.println("PLAYER ACTION: Reducing taxes to 10%");
+                map.addAlert("PLAYER ACTION: Reducing taxes to 10%");
                 map.setTaxRate(10);
-                System.out.println("PLAYER ACTION: Building more residential...");
                 buildingService.build(4, 1, BuildingComponent.Type.RESIDENTIAL);
                 buildingService.build(5, 1, BuildingComponent.Type.RESIDENTIAL);
             }
 
             context.gameLoop().runTick();
-            view.render(map, i + 1);
-            printHappiness(map);
+            view.render(new com.island.simcity.model.CitySnapshot(map, i + 1));
+            
+            try {
+                Thread.sleep(200); // For visual smoothness
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
 
         System.out.println("SimCity Simulation Finished.");

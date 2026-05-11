@@ -9,10 +9,11 @@ import com.island.engine.model.WorldSnapshot;
 @RequiredArgsConstructor
 public class CitySnapshot implements WorldSnapshot {
     private final CityMap map;
+    private final int tickCount;
 
     @Override
     public int getTickCount() {
-        return 0;
+        return tickCount;
     }
 
     @Override
@@ -38,11 +39,13 @@ public class CitySnapshot implements WorldSnapshot {
         metrics.put("comDemand", map.getComDemand());
         metrics.put("indDemand", map.getIndDemand());
         metrics.put("totalJobs", map.getTotalJobs());
+        metrics.put("income", map.getLastTickIncome());
+        metrics.put("expenses", map.getLastTickExpenses());
         return metrics;
     }
 
     @Override
     public NodeSnapshot getNodeSnapshot(int x, int y) {
-        return null;
+        return new CityNodeSnapshot(map.getGrid()[x][y]);
     }
 }
