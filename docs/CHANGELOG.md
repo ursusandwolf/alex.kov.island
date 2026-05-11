@@ -1,3 +1,12 @@
+## [1.50.0] - 2026-05-11
+### Fixed
+- **Plugin Discovery**: Resolved `ServiceLoader` discovery failures by correctly exporting domain packages in `island-nature` and `island-simcity` `module-info.java` files and declaring JPMS dependencies in `island-app`.
+- **Parallel Dispatcher Reliability**: Enhanced `ParallelDispatcher` with fail-fast exception handling, ensuring `RuntimeException` is thrown immediately if parallel cell processing fails, preventing silent state corruption. Added future cancellation on interruption.
+- **Test Logging**: Added `slf4j-simple` test-scoped dependency to the parent POM to silence missing SLF4J provider warnings during Maven test execution.
+
+### Changed
+- **Performance Optimization**: Removed redundant `volatile` modifiers from internal `CellProcessor` task fields, improving performance in the hot loop by relying on the thread pool's memory barriers.
+
 ## [1.49.0] - 2026-05-11
 ### Added
 - **GameLoop Control**: Added `pause()`/`resume()` functionality to `GameLoop` along with a `SimulationStatus` enum for status monitoring, preparing the engine for REST API integration.
