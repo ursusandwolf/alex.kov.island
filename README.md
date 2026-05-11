@@ -2,6 +2,22 @@
 
 Educational ecosystem simulator demonstrating OOP principles, design patterns (GOF/GRASP), and high-performance multithreading in Java 21.
 
+## 🚀 Quick Start
+
+Get the simulation running in 60 seconds:
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/alex-kov/alex.kov.island.git
+cd alex.kov.island
+
+# 2. Build and run tests
+mvn clean verify
+
+# 3. Launch the nature simulation
+mvn exec:java -pl island-app -Dexec.mainClass="com.island.NatureLauncher"
+```
+
 ## Architecture & Design Patterns
 
 ### Modern Architecture (Java 21)
@@ -39,6 +55,20 @@ Educational ecosystem simulator demonstrating OOP principles, design patterns (G
 
 ## Development & Testing
 
+### Running the Application
+
+This is a multi-module Maven project. Use the following commands to launch specific parts of the simulator:
+
+- **Run Nature Simulation (Island):**
+  ```bash
+  mvn exec:java -pl island-app -Dexec.mainClass="com.island.NatureLauncher"
+  ```
+
+- **Run SimCity Simulation:**
+  ```bash
+  mvn exec:java -pl island-app -Dexec.mainClass="com.island.SimCityLauncher"
+  ```
+
 ### Running Tests
 ```bash
 # Run full suite
@@ -53,6 +83,32 @@ mvn test -Dtest=ReproducibilityTest,StabilityIntegrationTest
 # Checkstyle (Google Style Guide)
 mvn checkstyle:check
 ```
+
+## Technical Manual
+
+### Integer Arithmetic
+To prevent floating-point drift and ensure determinism, the simulator uses custom scaling:
+- **Mass & Energy**: `long` scaled by `SCALE_1M` (1,000,000). 1.0 unit = 1,000,000.
+- **Rates & Probabilities**: `int` scaled by `SCALE_10K` (basis points). 100% = 10,000; 1% = 100.
+- **Metabolism**: Calculated via Kleiber's Law using size-class modifiers in basis points.
+
+### Level of Detail (LOD)
+- **LOD 0 (Individuals)**: Predators and large herbivores are modeled as individual objects.
+- **LOD 1 (Swarm/Biomass)**: Plants, Butterflies, and Caterpillars are aggregated into `Biomass` containers. 
+- **Reproduction LOD**: Sampled populations scale birth rates by `(total / limit)` to maintain ecological consistency.
+
+### Concurrency & Performance
+- **Grid Locking**: Each `Cell` has a `ReentrantReadWriteLock`. 
+- **Deadlock Prevention**: Interactions involving multiple cells (e.g., Movement) must acquire locks in a consistent order (by X, then Y coordinates).
+- **O(1) Access**: `EntityContainer` uses indexed buckets (by Species, Role, Size) for constant-time lookups.
+- **Snapshot Iteration**: Services iterate over snapshots or use internal `forEach` abstractions to ensure thread safety without blocking the entire world.
+
+### Ecological Protection
+- **Red Book**: If a species population falls below 5% of its global capacity, it receives:
+    - Guaranteed reproduction success.
+    - +2 offspring bonus.
+    - 50% metabolism reduction.
+    - Automatic stealth (protection from predators).
 
 ## Emergency & Rollback Plan
 In case of critical regression or performance degradation:
