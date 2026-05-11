@@ -8,6 +8,9 @@
     - **Benchmarks**: Extracted JMH benchmarks to a dedicated `island-benchmarks` module.
     - **Engine Lifecycle Hardening**: Improved `SimulationContext.close()` to ensure clean thread termination.
 - **Phase 4: User Interface, Controls & Persistence (In Progress)**:
+    - **App Module & JPMS**: 
+        - Fixed `ServiceLoader` plugin discovery by providing proper `module-info.java` exports in domain modules.
+        - `island-app` successfully compiles and runs CLI visualizations for loaded domains.
     - **Spring Boot Readiness**: 
         - Implemented `pause()`/`resume()`/`getStatus()` in `GameLoop`.
         - Refactored `IslandSnapshot` for thread-safe immutability.
