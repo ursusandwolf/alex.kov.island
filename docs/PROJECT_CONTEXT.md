@@ -12,7 +12,7 @@
         - **Wealth Tiers**: `PopulationComponent` supports POOR, MIDDLE, and WEALTHY levels.
         - **Progression Logic**: `ZoningService` handles building upgrades and wealth progression based on environmental factors.
     - **Scheduling Improvements**: `ConnectivityService`, `PollutionService`, and `DesirabilityService` moved to `Phase.PREPARE` for better data consistency.
-    - **Documentation Hardening**: Established Documentation Governance. Completed all documentation layers: P1 (Onboarding), P2 (Development), and P3 (API). Created `DATA_MODEL.md`, `WEBSOCKET_API.md`, and `REST_API.md`. Updated `UML.md` with new Mermaid diagrams reflecting ECS/SoA architecture.
+    - **Documentation Hardening**: Established Documentation Governance. Completed all documentation layers (P1-P3). Cleaned up redundant TODO files and consolidated the SimCity roadmap into `docs/simcity/ROADMAP.md`.
     - **Performance**: Optimized `ConnectivityService` to use `BitSet` for pathfinding and reduced GC pressure in several services.
 
 ## Architecture
