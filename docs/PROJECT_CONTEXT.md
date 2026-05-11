@@ -2,12 +2,14 @@
 
 ## Current State
 - **Phase 5: Production Readiness & Quality Hardening (Completed)**:
-    - **GitHub Actions CI**: Automated pipeline established for all modules.
+    - **GitHub Actions CI**: Automated pipeline established for all modules with enforced JaCoCo coverage (100% checks met).
     - **Engine Concurrency Modernization**: Replaced unmanaged threads with robust `ExecutorService`.
     - **SoA Correctness**: Replaced `volatile` arrays with `AtomicLongArray` and `AtomicIntegerArray`.
     - **Engine Lifecycle Hardening**: Improved `SimulationContext.close()` to ensure clean thread termination.
     - **SimCity ECS Transition**: Migrated legacy `EconomyService` to `EconomySystem` (ECS).
     - **SimCity Refactoring**: Eliminated Lombok warnings and duplicate methods in `CityTile` and `CityMap`.
+    - **Ecosystem Balance**: Resolved mass starvation/extinction by scaling lifespans and widening LOD limits.
+    - **UI Enhancements**: Upgraded console sparklines and improved dashboard formatting for ecosystem monitoring.
 - **Phase 4: User Interface, Controls & Persistence (In Progress)**:
     - **Design**: ADR 004 drafted for Spring Boot integration (REST + WebSocket).
     - **Architecture**: Validated `SimulationEngine` for safe integration into Spring container.
