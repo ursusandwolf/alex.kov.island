@@ -27,5 +27,22 @@ We follow a tiered approach to documentation:
 - **Javadoc & Public API:** English only (standard for libraries).
 - **Internal Team Documentation (docs/*.md):** Russian (for better internal communication).
 
-## 7. Maintenance
+## 7. Public API Javadoc Requirements
+- Every class and method marked with `@EngineAPI` MUST have a comprehensive Javadoc.
+- Documentation must include usage examples (`{@code ...}`), parameter descriptions, and return value details.
+- This is mandatory for Maven Central publication and binary compatibility maintenance.
+
+## 8. Quality Gates (JaCoCo Thresholds)
+To maintain project health, the following minimum line coverage thresholds are enforced:
+- **island-engine (Public API):** 75%
+- **island-nature (Plugin):** 65%
+- **island-simcity (Plugin):** 60%
+- These thresholds are monitored by the CI pipeline.
+
+## 9. Changelog Standards
+- We follow the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format.
+- All entries must be grouped under one of the following headers: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
+- Entries must be human-readable and explain "why" the change was made, not just "what" changed.
+
+## 10. Maintenance
 - If a PR changes behavior, configuration, or public API, update the documentation in the same PR.

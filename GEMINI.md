@@ -13,6 +13,9 @@
 - **DoD**: Features are only complete when documentation is updated.
 - **ADR**: Major architectural changes must be recorded in `docs/adr/`.
 - **Glossary**: Code naming must strictly follow `docs/GLOSSARY.md`.
+- **Javadoc**: All `@EngineAPI` components must be fully documented.
+- **Coverage**: Engine: 75%+, Nature: 65%+, SimCity: 60%+.
+- **Changelog**: Strictly follow "Keep a Changelog" format.
 
 ## Java Coding Standards
 - **Imports**: Never use Fully Qualified Names (FQNs) in the code body. Always use explicit imports at the top of the file.
