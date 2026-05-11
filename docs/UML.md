@@ -138,27 +138,38 @@ classDiagram
     CityTile "1" *-- "many" SimEntity
 ```
 
-## Spring Boot Integration (Phase 4)
+## Spring Boot & React Integration (Phase 4)
 
 ```mermaid
 graph LR
-    subgraph App_Layer
+    subgraph UI_Layer [island-ui (React + Vite)]
+        RD[React Dashboard]
+        RC[HTML5 Canvas]
+        ZS[Zustand Store]
+        RD --- ZS
+        RD --- RC
+    end
+
+    subgraph App_Layer [island-app (Spring Boot)]
         SC[SimulationController]
         SS[SimulationService]
+        SB[SnapshotBroadcaster]
         JC[SimulationJacksonConfig]
     end
 
-    subgraph Core_Layer
+    subgraph Core_Layer [island-engine]
         SE[SimulationEngine]
         CX[SimulationContext]
         GL[GameLoop]
     end
 
-    SC -- REST API --> SS
+    RD -- REST API --> SC
+    ZS -- STOMP --> SB
+    SC -- Lifecycle --> SS
     SS -- Manages --> SE
     SE -- Produces --> CX
     CX -- Provides --> GL
-    JC -- Configures --> Mapper[Jackson ObjectMapper]
-    Mapper -- Serializes --> WS[WorldSnapshot]
-    WS -- Sent via REST/WS --> Client[React Dashboard]
+    GL -- Registers --> SB
+    SB -- Serializes --> WS[WorldSnapshot]
+    WS -- Broadcast --> ZS
 ```

@@ -27,7 +27,7 @@
 - **App**: Spring Boot-managed orchestrator for simulation control and visualization (Readiness achieved).
 
 ## Next Steps
-- **Web Dashboard**: Build a React-based dashboard for graphical visualization.
 - **Persistence**: Implement saving and loading world snapshots to JSON/Database.
-- **Frontend Integration**: Connect React dashboard to STOMP feed.
+- **UI Enhancements**: Add entity details on cell click in `WorldCanvas`.
+- **Configuration**: Allow custom simulation parameters (width, height, tick rate) from the dashboard.
 

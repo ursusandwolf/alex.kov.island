@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Island Simulator Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f0f0f0; }
+        .controls { margin-bottom: 20px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .world-container { background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: inline-block; }
+        .grid { display: grid; background: #ddd; gap: 1px; border: 1px solid #ccc; }
+        .cell { width: 12px; height: 12px; background: #fff; }
+        .status { margin-left: 20px; font-weight: bold; }
+        button { padding: 8px 15px; cursor: pointer; border-radius: 4px; border: 1px solid #ccc; background: #eee; }
+        button:hover { background: #ddd; }
+        .btn-start { background: #e1f5fe; border-color: #03a9f4; }
+        .btn-stop { background: #ffebee; border-color: #f44336; }
+    </style>
+</head>
+<body>
+    <h1>Island Ecosystem Simulator</h1>
+    
+    <div class="controls">
+        <button class="btn-start" onclick="start('nature')">Start Nature</button>
+        <button class="btn-start" onclick="start('simcity')">Start SimCity</button>
+        <button onclick="pause()">Pause</button>
+        <button onclick="resume()">Resume</button>
+        <button class="btn-stop" onclick="stop()">Stop</button>
+        <span id="status" class="status">IDLE</span>
+        <span id="tick" class="status">Tick: 0</span>
+    </div>
+
+    <div class="world-container">
+        <div id="grid" class="grid"></div>
+    </div>
+
+    <script>
+        let stompClient = null;
+        let worldWidth = 0;
+        let worldHeight = 0;
+
+        function connect() {
+            const socket = new SockJS('/ws-simulation');
+            stompClient = Stomp.over(socket);
+            stompClient.debug = null; // Disable logging
+            stompClient.connect({}, function (frame) {
+                console.log('Connected: ' + frame);
+                stompClient.subscribe('/topic/snapshot', function (snapshot) {
+                    showSnapshot(JSON.parse(snapshot.body));
+                });
+            });
+        }
+
+        function showSnapshot(snapshot) {
+            document.getElementById('tick').innerText = 'Tick: ' + snapshot.tick;
+            
+            const grid = document.getElementById('grid');
+            if (worldWidth !== snapshot.width || worldHeight !== snapshot.height) {
+                worldWidth = snapshot.width;
+                worldHeight = snapshot.height;
+                grid.style.gridTemplateColumns = `repeat(${worldWidth}, 1fr)`;
+                grid.innerHTML = '';
+                for (let i = 0; i < worldWidth * worldHeight; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.id = 'cell-' + i;
+                    grid.appendChild(cell);
+                }
+            }
+
+            snapshot.nodes.forEach((node, index) => {
+                const cell = document.getElementById('cell-' + index);
+                if (node.entities && node.entities.length > 0) {
+                    // Simple coloring based on entity type (first letter)
+                    const type = node.entities[0].type || 'Unknown';
+                    if (type.includes('Plant')) cell.style.background = '#4caf50';
+                    else if (type.includes('Herbivore')) cell.style.background = '#2196f3';
+                    else if (type.includes('Predator')) cell.style.background = '#f44336';
+                    else cell.style.background = '#9c27b0';
+                } else {
+                    cell.style.background = '#fff';
+                }
+            });
+        }
+
+        function start(type) {
+            fetch('/api/v1/simulation/start?type=' + type, { method: 'POST' })
+                .then(() => updateStatus());
+        }
+
+        function pause() {
+            fetch('/api/v1/simulation/pause', { method: 'POST' })
+                .then(() => updateStatus());
+        }
+
+        function resume() {
+            fetch('/api/v1/simulation/resume', { method: 'POST' })
+                .then(() => updateStatus());
+        }
+
+        function stop() {
+            fetch('/api/v1/simulation/stop', { method: 'POST' })
+                .then(() => updateStatus());
+        }
+
+        function updateStatus() {
+            fetch('/api/v1/simulation/status')
+                .then(response => response.text())
+                .then(status => {
+                    document.getElementById('status').innerText = status;
+                });
+        }
+
+        connect();
+        setInterval(updateStatus, 1000);
+    </script>
+</body>
+</html>

@@ -3,6 +3,7 @@
 - **Spring Boot Integration**: Transformed `island-app` into a Spring Boot application, enabling modern web-based management.
 - **REST API**: Implemented `SimulationController` with `/api/v1/simulation` endpoints for remote lifecycle management (START, PAUSE, RESUME, STOP, STATUS).
 - **WebSocket Broadcasting**: Integrated STOMP-based WebSocket feed via `/topic/snapshot` for real-time visualization updates.
+- **React Dashboard**: Launched `island-ui`, a standalone React 18 + TypeScript dashboard with HTML5 Canvas rendering for high-performance simulation visualization.
 - **Simulation Service**: Introduced `SimulationService` and `SnapshotBroadcaster` to orchestrate `SimulationEngine` lifecycle and world state broadcasting.
 - **Polymorphic Serialization**: Configured the Spring `ObjectMapper` with pre-defined Jackson Mixins to support `WorldSnapshot` serialization without engine-layer dependencies.
 
