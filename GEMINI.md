@@ -7,6 +7,13 @@
 - **JPMS**: Strictly follow `module-info.java` exports. Never export `.internal` packages.
 - **Dependencies**: The engine module should have minimal external dependencies to facilitate its use as a JAR library.
 
+## Documentation Governance
+- **Docs as Code**: All documentation resides in `docs/` as Markdown. Documentation updates are part of the PR process.
+- **Language**: Javadoc is English-only. Internal documentation (`docs/*.md`) is in Russian.
+- **DoD**: Features are only complete when documentation is updated.
+- **ADR**: Major architectural changes must be recorded in `docs/adr/`.
+- **Glossary**: Code naming must strictly follow `docs/GLOSSARY.md`.
+
 ## Java Coding Standards
 - **Imports**: Never use Fully Qualified Names (FQNs) in the code body. Always use explicit imports at the top of the file.
 - **Lombok**: Use Lombok annotations (`@Getter`, `@Setter`, `@Builder`, `@Slf4j`) to minimize boilerplate code.
