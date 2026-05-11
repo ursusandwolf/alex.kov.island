@@ -4,6 +4,12 @@
 - Increased population history depth from 10 to 20 ticks for better trend analysis.
 - Refined simulation dashboard layout in `ConsoleView` for more compact and informative stats display.
 
+### Fixed
+- **Ecosystem Balance**: Increased lifespan to 500 ticks, adjusted metabolism, and removed starvation LOD limits to prevent premature mass extinctions and improve stability.
+- **CI/CD Reliability**: Resolved JaCoCo test coverage failures in `island-engine` by adding comprehensive tests for `GridUtils` and `SamplingUtils`.
+- **Test Stability**: Fixed `AnimalHealthSystemTest` setup by properly wiring `HealthStorage`, `AgeStorage`, and `EntityIdProvider` into the testing context.
+
+
 ### Added
 - **ADR 004: Spring Boot Integration**: Drafted a new architectural decision record for transitioning `island-app` to a Spring Boot-based backend with REST and WebSocket APIs.
 - **Engine Shutdown Hardening**: Enhanced `SimulationContext.close()` with robust `ExecutorService` termination logic, including `awaitTermination` and `shutdownNow()` fallbacks, to ensure clean resource release during application shutdown.
