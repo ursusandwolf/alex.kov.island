@@ -2,6 +2,11 @@
 
 ## Current State
 - **Phase 5: Production Readiness & Quality Hardening (May 2026)**:
+    - **GitHub Actions CI**: Automated pipeline established for all modules.
+    - **SoA Memory Safety**: Readers hardened against race conditions and OOBE during expansion.
+    - **API Documentation**: 100% Javadoc coverage for `@EngineAPI` components.
+    - **Plugin discovery**: Transitioned to JPMS `ServiceLoader` for simulation plugins.
+    - **Performance Benchmarking**: Integrated JMH for continuous SoA vs Object performance monitoring.
     - **Engine Concurrency Modernization**: Replaced unmanaged threads and `CountDownLatch` in `GameLoop` and `ParallelDispatcher` with robust `ExecutorService.invokeAll()` and `submit()` calls. Internal engine classes locked down with `final`. Checked against 662 Checkstyle rules (now fully compliant).
     - **SoA Correctness**: Replaced `volatile` arrays with `AtomicLongArray` and `AtomicIntegerArray` in `HealthSoAStore` and `AgeSoAStore`.
     - **Movement SoA**: `MovementSoAStore` now uses `StampedLock` for thread-safe resizing and element access.
@@ -12,7 +17,7 @@
         - **Wealth Tiers**: `PopulationComponent` supports POOR, MIDDLE, and WEALTHY levels.
         - **Progression Logic**: `ZoningService` handles building upgrades and wealth progression based on environmental factors.
     - **Scheduling Improvements**: `ConnectivityService`, `PollutionService`, and `DesirabilityService` moved to `Phase.PREPARE` for better data consistency.
-    - **Documentation Hardening**: Established Documentation Governance. Completed all documentation layers (P1-P3). Cleaned up redundant TODO files and consolidated the SimCity roadmap into `docs/simcity/ROADMAP.md`.
+    - **Documentation Hardening**: Established Documentation Governance. Completed all documentation layers (P1-P4). Cleaned up redundant TODO files and consolidated the SimCity roadmap into `docs/simcity/ROADMAP.md`.
     - **Performance**: Optimized `ConnectivityService` to use `BitSet` for pathfinding and reduced GC pressure in several services.
 
 ## Architecture

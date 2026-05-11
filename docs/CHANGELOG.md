@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.45.0] - 2026-05-11
+### Added
+- **GitHub Actions CI**: Implemented automated CI pipeline in `.github/workflows/ci.yml` covering build, test, checkstyle, and coverage reporting.
+- **Plugin Discovery (ServiceLoader)**: Integrated JPMS `provides`/`uses` directives and updated `Main` application to use `java.util.ServiceLoader` for dynamic simulation plugin discovery.
+- **Performance Benchmarking**: Added a JMH benchmark suite (`SoABenchmark`) to `island-engine` to compare SoA storage performance against standard collections.
+- **Professional Quality Gates**: Established module-specific JaCoCo coverage thresholds (Engine: 75% goal/59% current, Nature: 65%, SimCity: 60%).
+
+### Fixed
+- **SoA Memory Safety**: Hardened `HealthSoAStore`, `AgeSoAStore`, and `MovementSoAStore` readers with capacity checks and local array buffering to prevent `IndexOutOfBoundsException` during concurrent expansion.
+- **Documentation Standards**: Integrated "Keep a Changelog" format and professional Javadoc requirements for all `@EngineAPI` components into `docs/DOCUMENTATION_STANDARDS.md` and `GEMINI.md`.
+- **Test Robustness**: Refactored `SchedulingTest` and `SimulationWorldTest` from brittle "white-box" mocks to robust "black-box" integration tests.
+- **Style Enforcement**: Eliminated all wildcard imports across the engine and app modules to align with project coding standards.
+
+### Changed
+- **API Documentation**: Completed 100% Javadoc coverage for all public `@EngineAPI` classes and methods in `island-engine`, including usage examples and threading contracts.
+- **Movement SoA Store**: Added critical warnings to `MovementSoAStore` regarding the non-reentrant nature of `StampedLock` to prevent future deadlocks.
+
 ## [1.44.0] - 2026-05-10
 ### Fixed
 - **Code Quality**: Resolved 662 Checkstyle warnings across the engine module. Updated `maven-checkstyle-plugin` configuration to use the project's strict `checkstyle.xml` ruleset and added exclusions for JPMS `module-info.java` to prevent parser failures.
