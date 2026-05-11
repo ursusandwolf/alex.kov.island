@@ -1,4 +1,9 @@
-## [1.47.0] - 2026-05-11
+## [1.48.0] - 2026-05-11
+### Added
+- Improved console sparkline visualization with new symbols for better readability in `ViewUtils`.
+- Increased population history depth from 10 to 20 ticks for better trend analysis.
+- Refined simulation dashboard layout in `ConsoleView` for more compact and informative stats display.
+
 ### Added
 - **ADR 004: Spring Boot Integration**: Drafted a new architectural decision record for transitioning `island-app` to a Spring Boot-based backend with REST and WebSocket APIs.
 - **Engine Shutdown Hardening**: Enhanced `SimulationContext.close()` with robust `ExecutorService` termination logic, including `awaitTermination` and `shutdownNow()` fallbacks, to ensure clean resource release during application shutdown.

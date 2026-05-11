@@ -169,7 +169,7 @@ public class AnimalFeedingSystem extends NatureEntitySystem {
         boolean strikeAttempted = false;
         int maxAttempts = consumer.getAnimalType().isPredator() ? 5 : 3;
 
-        while (!success && attempts < maxAttempts) {
+        while (consumer.getCurrentEnergy() < consumer.getFoodForSaturation() && attempts < maxAttempts) {
             attempts++;
             Organism preyCandidate = huntingStrategy.selectPrey(consumer, preyProvider);
             if (preyCandidate == null) {

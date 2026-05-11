@@ -15,7 +15,7 @@ public final class ViewUtils {
             return " ".repeat(width);
         }
 
-        char[] chars = {',', '.', '_', '▂', '▃', '▄', '-', '~', '=', '▅', '▆', '▇', '█'};
+        char[] chars = {' ', ' ', '▂', '▂', '▃', '▃', '▄', '▅', '▆', '▆', '▇', '▇', '█'};
         int max = data.stream().max(Integer::compare).orElse(0);
         int min = data.stream().min(Integer::compare).orElse(0);
         int range = max - min;

@@ -54,7 +54,7 @@ public class ConsoleView implements SimulationView {
     private boolean isSilent = false;
     private final LinkedList<Integer> totalPopulationHistory = new LinkedList<>();
     private final Map<String, LinkedList<Integer>> populationHistory = new HashMap<>();
-    private static final int HISTORY_SIZE = 10;
+    private static final int HISTORY_SIZE = 20;
     
     @Override
     public void setSilent(boolean silent) {
@@ -73,8 +73,8 @@ public class ConsoleView implements SimulationView {
         sb.append(CURSOR_HOME); 
         sb.append(CYAN).append("=== SIMULATION DASHBOARD ===").append(RESET).append(CLEAR_EOL).append("\n");
         
-        String totalGraph = ViewUtils.getSparkline(totalPopulationHistory, HISTORY_SIZE * 2);
-        sb.append(String.format("Tick: %d | Total Entities: %d %s", 
+        String totalGraph = ViewUtils.getSparkline(totalPopulationHistory, HISTORY_SIZE);
+        sb.append(String.format("Tick: %-6d | Population: %-5d %s", 
                 snapshot.getTickCount(), snapshot.getTotalEntityCount(), totalGraph)).append(CLEAR_EOL).append("\n");
         
         // Hunger Stats
@@ -94,14 +94,13 @@ public class ConsoleView implements SimulationView {
         int exhaustTotal = metrics.getOrDefault("deaths.MOVEMENT_EXHAUSTION", 0).intValue() +
                            metrics.getOrDefault("deaths.REPRODUCTION_EXHAUSTION", 0).intValue();
 
-        sb.append(String.format("Total Deaths: Hunger: %s%d%s | Old Age: %s%d%s | Exhausted: %s%d%s", 
+        sb.append(String.format("Deaths: Hunger: %s%d%s | Age: %s%d%s | Exhausted: %s%d%s | Hunts: %s%d%s", 
                 "\u001B[31m", hungerTotal, RESET, 
                 YELLOW, ageTotal, RESET,
-                "\u001B[35m", exhaustTotal, RESET)).append(CLEAR_EOL).append("\n"); 
-        sb.append(String.format("Total Hunts (Eaten Animals): %s%d%s", 
+                "\u001B[35m", exhaustTotal, RESET,
                 GREEN, eatenTotal, RESET)).append(CLEAR_EOL).append("\n");
 
-        sb.append("-".repeat(60)).append(CLEAR_EOL).append("\n");
+        sb.append("-".repeat(70)).append(CLEAR_EOL).append("\n");
 
         Map<String, Integer> currentCounts = new TreeMap<>();
         metrics.forEach((k, v) -> {
@@ -112,7 +111,7 @@ public class ConsoleView implements SimulationView {
 
         renderStatsWithGraphs(sb, currentCounts);
 
-        sb.append("-".repeat(60)).append(CLEAR_EOL).append("\n");
+        sb.append("-".repeat(70)).append(CLEAR_EOL).append("\n");
         sb.append(YELLOW).append("Map View:").append(RESET).append(CLEAR_EOL).append("\n");
         
         sb.append("╔").append("═══".repeat(snapshot.getWidth())).append("╗").append(CLEAR_EOL).append("\n");
