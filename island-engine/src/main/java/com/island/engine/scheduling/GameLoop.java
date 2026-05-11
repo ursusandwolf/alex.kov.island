@@ -21,10 +21,18 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Orchestrates the simulation ticks.
- * Coordinator that manages the main simulation loop and delegates task execution.
- *
+ * Orchestrates simulation ticks and manages task execution.
+ * 
+ * <p>The GameLoop is the "heartbeat" of the simulation. It maintains a constant tick rate 
+ * and executes both built-in world logic and registered {@link ScheduledTask}s 
+ * through several phases (PREPARE, SIMULATION, POSTPROCESS).</p>
+ * 
+ * <p>Thread Safety: This class is thread-safe. Tasks can be added from any thread 
+ * while the loop is running. Modifications to the task list take effect at the beginning 
+ * of the next tick.</p>
+ * 
  * @param <T> The base type of entities in the simulation world.
+ * @since 1.0
  */
 @EngineAPI
 @Slf4j
@@ -39,41 +47,86 @@ public class GameLoop<T extends Mortal> {
     private final ExecutorService taskExecutor;
     private final PhaseScheduler<T> scheduler;
 
+    /**
+     * The world instance to be ticked. 
+     * Must be set before calling {@link #start()}.
+     */
     @Getter @Setter
     private volatile SimulationWorld<T> world;
     
+    /**
+     * A predicate checked at the end of every tick. 
+     * If it returns {@code true}, the loop stops automatically.
+     */
     @Getter @Setter
     private volatile BooleanSupplier stopCondition;
 
+    /**
+     * An optional callback executed once the loop stops (either manually or via stopCondition).
+     */
     @Setter
     private volatile Runnable onStopCallback;
 
     private final AtomicBoolean running = new AtomicBoolean(false);
+
+    /**
+     * The total number of ticks executed since the loop started.
+     */
     @Getter
     private int tickCount = 0;
     private long tasksVersion = 0;
     
     private volatile Future<?> loopTask;
 
+    /**
+     * Adds a specialized task to the recurring execution list.
+     * 
+     * @param task the task to register.
+     */
     public void addRecurringTask(ScheduledTask task) {
         pendingTasks.add(task);
     }
 
+    /**
+     * Wraps a simple {@link Tickable} as a recurring simulation task.
+     * The task will run in the {@link Phase#SIMULATION} phase.
+     * 
+     * @param task the logic to execute every tick.
+     */
     public void addRecurringTask(Tickable task) {
         addRecurringTask(new TickableTaskWrapper(task));
     }
 
+    /**
+     * Wraps a {@link Runnable} as a recurring simulation task.
+     * The task will run in the {@link Phase#SIMULATION} phase.
+     * 
+     * @param runnable the logic to execute every tick.
+     */
     public void addRecurringTask(Runnable runnable) {
         addRecurringTask((Tickable) tc -> runnable.run());
     }
 
+    /**
+     * Starts the simulation loop in a background thread provided by the executor.
+     * Does nothing if already running.
+     * 
+     * @throws IllegalStateException if the world is not set.
+     */
     public void start() {
+        if (world == null) {
+            throw new IllegalStateException("Cannot start GameLoop: World is not set.");
+        }
         if (running.compareAndSet(false, true)) {
             loopTask = taskExecutor.submit(this::run);
             log.info("GameLoop started.");
         }
     }
 
+    /**
+     * Requests the loop to stop. 
+     * The current tick will be completed before the background thread terminates.
+     */
     public void stop() {
         if (running.compareAndSet(true, false)) {
             log.info("Stopping GameLoop...");
@@ -83,10 +136,24 @@ public class GameLoop<T extends Mortal> {
         }
     }
 
+    /**
+     * Checks if the simulation loop is currently active.
+     */
     public boolean isRunning() {
         return running.get();
     }
 
+    /**
+     * Executes a single simulation tick synchronously.
+     * 
+     * <p>This method performs:
+     * <ol>
+     *     <li>Pending task registration</li>
+     *     <li>World state tick (topology, cleanup)</li>
+     *     <li>Phased task execution (PREPARE -> SIMULATION -> POSTPROCESS)</li>
+     * </ol>
+     * </p>
+     */
     public void runTick() {
         tickCount++;
         

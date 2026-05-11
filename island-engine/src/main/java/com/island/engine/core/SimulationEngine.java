@@ -17,10 +17,13 @@ import java.util.concurrent.Executors;
  *
  * <p>Usage:
  * <pre>{@code
+ * SimulationPlugin<Organism> plugin = new MyPlugin();
  * SimulationConfig config = SimulationConfig.defaultFor(4);
- * try (SimulationContext<Organism> ctx = new SimulationEngine<Organism>().build(plugin, config)) {
+ * SimulationEngine<Organism> engine = new SimulationEngine<>();
+ * 
+ * try (SimulationContext<Organism> ctx = engine.build(plugin, config)) {
  *     ctx.gameLoop().start();
- *     // ...
+ *     // Simulation runs in background
  * }
  * }</pre>
  *
@@ -34,9 +37,13 @@ public class SimulationEngine<T extends Mortal> {
      * Starts a simulation using the provided plugin and parameters.
      * This method builds the context and immediately starts the game loop.
      *
+     * <p>This is a convenience method that combines {@link #build(SimulationPlugin, SimulationConfig)}
+     * and {@link GameLoop#start()}.</p>
+     *
      * @param plugin The plugin defining the simulation domain.
      * @param config Simulation configuration.
      * @return The created and started simulation context.
+     * @see #build(SimulationPlugin, SimulationConfig)
      */
     public SimulationContext<T> start(SimulationPlugin<T> plugin, SimulationConfig config) {
         SimulationContext<T> context = build(plugin, config);
@@ -49,9 +56,20 @@ public class SimulationEngine<T extends Mortal> {
      * The returned context must be closed when no longer needed (e.g. via try-with-resources).
      * This method does NOT start the game loop.
      *
+     * <p>The build process includes:
+     * <ol>
+     *     <li>Creating the {@link EventBus}</li>
+     *     <li>Instantiating the {@link SimulationWorld} via {@link SimulationPlugin#createWorld(EventBus)}</li>
+     *     <li>Initializing the {@link ExecutorService} based on {@link SimulationConfig#getThreadCount()}</li>
+     *     <li>Setting up the {@link GameLoop} and registering tasks</li>
+     *     <li>Notifying the plugin via {@link SimulationPlugin#onSimulationStarted(SimulationContext)}</li>
+     * </ol>
+     * </p>
+     *
      * @param plugin the simulation plugin providing world and tasks
      * @param config execution configuration (tick rate, thread count)
-     * @return a ready-to-use simulation context
+     * @return a ready-to-use simulation context; caller is responsible for calling {@link SimulationContext#close()}
+     * @throws IllegalArgumentException if the plugin returns a null world
      */
     public SimulationContext<T> build(SimulationPlugin<T> plugin, SimulationConfig config) {
         EventBus eventBus = EventBus.create();

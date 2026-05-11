@@ -12,6 +12,10 @@
     <artifactId>island-simcity</artifactId>
     <name>Island Ecosystem Simulator - SimCity</name>
 
+    <properties>
+        <jacoco.minimum.coverage>0.60</jacoco.minimum.coverage>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.island</groupId>

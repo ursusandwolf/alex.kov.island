@@ -11,6 +11,9 @@ import com.island.engine.scheduling.GameLoop;
  * <p>Plugins are the primary way to extend the engine with specific simulation logic,
  * such as an island ecosystem or a city economy.</p>
  *
+ * <p>Implementations must provide a default no-args constructor if they are to be 
+ * discovered via {@link java.util.ServiceLoader}.</p>
+ *
  * @param <T> The base type of entities (must implement {@link Mortal}).
  * @since 1.0
  */
@@ -18,10 +21,10 @@ import com.island.engine.scheduling.GameLoop;
 public interface SimulationPlugin<T extends Mortal> {
     /**
      * Creates and initializes the simulation world.
-     * This is called once during engine bootstrapping.
+     * This is called once during engine bootstrapping by {@link SimulationEngine#build}.
      *
      * @param eventBus the event bus for decoupled communication within the domain.
-     * @return a fully initialized simulation world instance.
+     * @return a fully initialized simulation world instance. Must not be null.
      */
     SimulationWorld<T> createWorld(EventBus eventBus);
 

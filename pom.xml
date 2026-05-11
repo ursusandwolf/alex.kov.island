@@ -19,6 +19,7 @@
         <junit.version>5.9.3</junit.version>
         <slf4j.version>2.0.7</slf4j.version>
         <mockito.version>5.5.0</mockito.version>
+        <jacoco.minimum.coverage>0.50</jacoco.minimum.coverage>
     </properties>
 
     <modules>
@@ -125,7 +126,7 @@
                                         <limit>
                                             <counter>LINE</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.58</minimum>
+                                            <minimum>${jacoco.minimum.coverage}</minimum>
                                         </limit>
                                     </limits>
                                 </rule>

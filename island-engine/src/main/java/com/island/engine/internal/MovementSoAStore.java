@@ -8,6 +8,10 @@ import java.util.concurrent.locks.StampedLock;
 /**
  * High-performance, primitive-based store for movement SoA components.
  * Uses AtomicIntegerArray for thread-safe element access and StampedLock for safe resizing.
+ * 
+ * <p><b>Important:</b> StampedLock is NOT reentrant. Methods in this class must not be 
+ * called recursively or from contexts that already hold a write lock on this instance 
+ * to avoid deadlocks.
  */
 @InternalEngine
 public final class MovementSoAStore implements MovementStorage {

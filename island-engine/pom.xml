@@ -12,6 +12,10 @@
     <artifactId>island-engine</artifactId>
     <name>Island Ecosystem Simulator - Engine</name>
 
+    <properties>
+        <jacoco.minimum.coverage>0.75</jacoco.minimum.coverage>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.projectlombok</groupId>

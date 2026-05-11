@@ -12,6 +12,10 @@
     <artifactId>island-nature</artifactId>
     <name>Island Ecosystem Simulator - Nature</name>
 
+    <properties>
+        <jacoco.minimum.coverage>0.65</jacoco.minimum.coverage>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.island</groupId>
