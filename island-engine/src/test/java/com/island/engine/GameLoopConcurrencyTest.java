@@ -10,7 +10,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 import com.island.engine.core.ExecutionMode;
+import com.island.engine.core.SimulationWorld;
 import com.island.engine.model.Mortal;
 import com.island.engine.model.Tickable;
 import com.island.engine.internal.ParallelDispatcher;
@@ -97,6 +99,7 @@ public class GameLoopConcurrencyTest {
         ParallelDispatcher<Mortal> dispatcher = new ParallelDispatcher<>(executor);
         PhaseScheduler<Mortal> scheduler = new PhaseScheduler<>(dispatcher);
         GameLoop<Mortal> gameLoop = new GameLoop<>(1, executor, scheduler); // Very fast ticks
+        gameLoop.setWorld(mock(SimulationWorld.class));
         CountDownLatch startLatch = new CountDownLatch(1);
         
         gameLoop.addRecurringTask(() -> {

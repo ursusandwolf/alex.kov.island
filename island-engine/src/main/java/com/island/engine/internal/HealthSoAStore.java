@@ -31,29 +31,53 @@ public final class HealthSoAStore implements HealthStorage {
         this.alive.set(entityId, alive ? 1 : 0);
     }
 
-    public long getCurrentEnergy(int entityId) { 
-        return currentEnergy.get(entityId); 
-    }
-    
-    public long getMaxEnergy(int entityId) { 
-        return maxEnergy.get(entityId); 
-    }
-    
-    public boolean isAlive(int entityId) { 
-        return alive.get(entityId) == 1; 
+    @Override
+    public long getCurrentEnergy(int entityId) {
+        int cap = capacity;
+        AtomicLongArray arr = currentEnergy;
+        return (entityId < cap) ? arr.get(entityId) : 0L;
     }
 
-    public void setCurrentEnergy(int entityId, long energy) { 
-        currentEnergy.set(entityId, energy); 
+    @Override
+    public long getMaxEnergy(int entityId) {
+        int cap = capacity;
+        AtomicLongArray arr = maxEnergy;
+        return (entityId < cap) ? arr.get(entityId) : 0L;
     }
-    
-    public void setAlive(int entityId, boolean isAlive) { 
-        alive.set(entityId, isAlive ? 1 : 0); 
+
+    @Override
+    public boolean isAlive(int entityId) {
+        int cap = capacity;
+        AtomicIntegerArray arr = alive;
+        return (entityId < cap) && arr.get(entityId) == 1;
+    }
+
+    @Override
+    public void setCurrentEnergy(int entityId, long energy) {
+        int cap = capacity;
+        AtomicLongArray arr = currentEnergy;
+        if (entityId < cap) {
+            arr.set(entityId, energy);
+        }
+    }
+
+    @Override
+    public void setAlive(int entityId, boolean isAlive) {
+        int cap = capacity;
+        AtomicIntegerArray arr = alive;
+        if (entityId < cap) {
+            arr.set(entityId, isAlive ? 1 : 0);
+        }
     }
 
     @Override
     public long addEnergy(int entityId, long delta) {
-        return currentEnergy.addAndGet(entityId, delta);
+        int cap = capacity;
+        AtomicLongArray arr = currentEnergy;
+        if (entityId < cap) {
+            return arr.addAndGet(entityId, delta);
+        }
+        return 0L;
     }
 
     private synchronized void ensureCapacity(int entityId) {

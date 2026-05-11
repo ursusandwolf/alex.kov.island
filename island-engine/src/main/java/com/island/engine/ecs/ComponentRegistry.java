@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Central registry for ECS component mapping.
  * 
  * <p>Maps component classes to stable integer indices. These indices are used 
- * by high-performance storage implementations (like {@link ArrayComponentStore}) 
+ * by high-performance storage implementations (like {@code ArrayComponentStore}) 
  * for constant-time access.</p>
  * 
  * <p>This registry also manages the {@link EntityArchetype} cache, ensuring that 

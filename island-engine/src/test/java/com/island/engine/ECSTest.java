@@ -1,6 +1,11 @@
 package com.island.engine;
 
-import com.island.engine.ecs.*;
+import com.island.engine.ecs.Component;
+import com.island.engine.ecs.ComponentRegistry;
+import com.island.engine.ecs.ComponentStore;
+import com.island.engine.ecs.Entity;
+import com.island.engine.ecs.EntityArchetype;
+import com.island.engine.ecs.EntityQuery;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

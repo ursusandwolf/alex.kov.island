@@ -60,7 +60,7 @@ public class SimulationEngine<T extends Mortal> {
      * <ol>
      *     <li>Creating the {@link EventBus}</li>
      *     <li>Instantiating the {@link SimulationWorld} via {@link SimulationPlugin#createWorld(EventBus)}</li>
-     *     <li>Initializing the {@link ExecutorService} based on {@link SimulationConfig#getThreadCount()}</li>
+     *     <li>Initializing the {@link java.util.concurrent.ExecutorService} based on the thread count in {@link SimulationConfig}</li>
      *     <li>Setting up the {@link GameLoop} and registering tasks</li>
      *     <li>Notifying the plugin via {@link SimulationPlugin#onSimulationStarted(SimulationContext)}</li>
      * </ol>

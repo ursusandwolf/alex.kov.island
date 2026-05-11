@@ -27,20 +27,36 @@ public final class AgeSoAStore implements AgeStorage {
         this.maxLifespan.set(entityId, maxLifespan);
     }
 
-    public int getAge(int entityId) { 
-        return age.get(entityId); 
-    }
-    
-    public int getMaxLifespan(int entityId) { 
-        return maxLifespan.get(entityId); 
+    @Override
+    public int getAge(int entityId) {
+        int cap = capacity;
+        AtomicIntegerArray arr = age;
+        return (entityId < cap) ? arr.get(entityId) : 0;
     }
 
-    public void setAge(int entityId, int age) { 
-        this.age.set(entityId, age); 
+    @Override
+    public int getMaxLifespan(int entityId) {
+        int cap = capacity;
+        AtomicIntegerArray arr = maxLifespan;
+        return (entityId < cap) ? arr.get(entityId) : 0;
     }
-    
-    public void setMaxLifespan(int entityId, int maxLifespan) { 
-        this.maxLifespan.set(entityId, maxLifespan); 
+
+    @Override
+    public void setAge(int entityId, int age) {
+        int cap = capacity;
+        AtomicIntegerArray arr = this.age;
+        if (entityId < cap) {
+            arr.set(entityId, age);
+        }
+    }
+
+    @Override
+    public void setMaxLifespan(int entityId, int maxLifespan) {
+        int cap = capacity;
+        AtomicIntegerArray arr = this.maxLifespan;
+        if (entityId < cap) {
+            arr.set(entityId, maxLifespan);
+        }
     }
 
     private synchronized void ensureCapacity(int entityId) {

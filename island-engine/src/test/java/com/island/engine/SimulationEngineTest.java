@@ -1,6 +1,10 @@
 package com.island.engine;
 
-import com.island.engine.core.*;
+import com.island.engine.core.SimulationConfig;
+import com.island.engine.core.SimulationContext;
+import com.island.engine.core.SimulationEngine;
+import com.island.engine.core.SimulationPlugin;
+import com.island.engine.core.SimulationWorld;
 import com.island.engine.model.Mortal;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
