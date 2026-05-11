@@ -69,15 +69,21 @@ public final class ParallelDispatcher<T extends Mortal> {
                 activeProcessors.add(processor);
             }
 
+            List<Future<Void>> futures = null;
             try {
-                List<Future<Void>> futures = taskExecutor.invokeAll(activeProcessors);
+                futures = taskExecutor.invokeAll(activeProcessors);
                 for (Future<Void> future : futures) {
                     future.get();
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+                if (futures != null) {
+                    futures.forEach(f -> f.cancel(true));
+                }
+                throw new RuntimeException("Parallel execution interrupted", e);
             } catch (ExecutionException e) {
                 log.error("Critical error in parallel cell service execution: {}", e.getCause().getMessage(), e.getCause());
+                throw new RuntimeException("Critical error in parallel execution", e.getCause());
             } catch (RejectedExecutionException e) {
                 log.error("Task execution rejected in parallel dispatcher: {}. Executing synchronously.", e.getMessage());
                 for (CellProcessor<T> processor : activeProcessors) {
@@ -85,6 +91,7 @@ public final class ParallelDispatcher<T extends Mortal> {
                         processor.call();
                     } catch (Exception syncEx) {
                         log.error("Critical error in synchronous fallback execution: {}", syncEx.getMessage(), syncEx);
+                        throw new RuntimeException("Critical error in synchronous fallback execution", syncEx);
                     }
                 }
             }
@@ -100,9 +107,9 @@ public final class ParallelDispatcher<T extends Mortal> {
     }
 
     private static class CellProcessor<T extends Mortal> implements Callable<Void> {
-        private volatile WorkUnit<T> unit;
-        private volatile List<ParallelTask<T>> services;
-        private volatile int tickCount;
+        private WorkUnit<T> unit;
+        private List<ParallelTask<T>> services;
+        private int tickCount;
 
         void update(WorkUnit<T> unit, List<ParallelTask<T>> services, int tickCount) {
             this.unit = unit;

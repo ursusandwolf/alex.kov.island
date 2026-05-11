@@ -49,6 +49,7 @@ class ParallelDispatcherTest {
         SimulationWorld world = mock(SimulationWorld.class);
         WorkUnit unit = mock(WorkUnit.class);
         when(world.getParallelWorkUnits()).thenReturn(Collections.singletonList(unit));
+        when(unit.iterator()).thenReturn(Collections.emptyIterator());
         
         ParallelTask service = mock(ParallelTask.class);
         doThrow(new RuntimeException("Fail")).when(service).beforeTick(anyInt());
