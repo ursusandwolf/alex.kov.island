@@ -13,7 +13,7 @@
     <name>Island Ecosystem Simulator - Engine</name>
 
     <properties>
-        <jacoco.minimum.coverage>0.59</jacoco.minimum.coverage>
+        <jacoco.minimum.coverage>0.75</jacoco.minimum.coverage>
     </properties>
 
     <dependencies>
@@ -38,19 +38,6 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <!-- JMH for performance benchmarking -->
-        <dependency>
-            <groupId>org.openjdk.jmh</groupId>
-            <artifactId>jmh-core</artifactId>
-            <version>1.37</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.openjdk.jmh</groupId>
-            <artifactId>jmh-generator-annprocess</artifactId>
-            <version>1.37</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
