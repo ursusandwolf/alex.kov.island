@@ -42,8 +42,14 @@ class AnimalHealthSystemTest {
     void setUp() {
         SpeciesRegistry registry = new SpeciesLoader(config).load();
         ComponentRegistry componentRegistry = new ComponentRegistry();
-        AnimalFactory animalFactory = new AnimalFactory(registry, random, componentRegistry);
         StatisticsService stats = new StatisticsService(config);
+
+        com.island.engine.core.EntityIdProvider idProvider = com.island.engine.core.EntityIdProvider.create();
+        com.island.engine.core.HealthStorage healthStorage = com.island.engine.core.HealthStorage.create(100);
+        com.island.engine.core.AgeStorage ageStorage = com.island.engine.core.AgeStorage.create(100);
+        com.island.engine.core.MovementStorage movementStorage = com.island.engine.core.MovementStorage.create(100);
+
+        AnimalFactory animalFactory = new AnimalFactory(registry, random, componentRegistry, idProvider, healthStorage, ageStorage, movementStorage);
 
         domainContext = NatureDomainContext.builder()
                 .config(config)
@@ -58,6 +64,10 @@ class AnimalHealthSystemTest {
                 .chunkingStrategy(new StaticChunkingStrategy(config))
                 .randomProvider(random)
                 .componentRegistry(componentRegistry)
+                .entityIdProvider(idProvider)
+                .healthStorage(healthStorage)
+                .ageStorage(ageStorage)
+                .movementStorage(movementStorage)
                 .build();
 
         island = new Island(domainContext, 1, 1, EventBus.create());
