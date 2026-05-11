@@ -137,3 +137,26 @@ classDiagram
     CityMap "1" *-- "many" CityTile
     CityTile "1" *-- "many" SimEntity
 ```
+
+## Spring Boot Integration (Phase 4)
+
+```mermaid
+graph LR
+    subgraph App_Layer
+        SC[SimulationController]
+        SB[SnapshotBroadcaster]
+        SS[SimulationService]
+    end
+
+    subgraph Core_Layer
+        SE[SimulationEngine]
+        CX[SimulationContext]
+    end
+
+    SC --> SS
+    SS --> SE
+    SS --> CX
+    SB --> CX
+    SB -- WebSocket --> Client[React Dashboard]
+    Client -- REST --> SC
+```

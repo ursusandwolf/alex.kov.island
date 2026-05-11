@@ -1,3 +1,14 @@
+## [1.47.0] - 2026-05-11
+### Added
+- **ADR 004: Spring Boot Integration**: Drafted a new architectural decision record for transitioning `island-app` to a Spring Boot-based backend with REST and WebSocket APIs.
+- **Engine Shutdown Hardening**: Enhanced `SimulationContext.close()` with robust `ExecutorService` termination logic, including `awaitTermination` and `shutdownNow()` fallbacks, to ensure clean resource release during application shutdown.
+
+### Fixed
+- **SimCity Code Quality**: Resolved all Lombok duplicate method warnings in `CityTile` and `CityMap` by refactoring manual getters/setters and optimizing the use of `@Getter` and `@Setter` annotations. This ensures a clean build and reliable JSON serialization.
+
+### Changed
+- **Engine Stability Verification**: Validated `SimulationEngine` and `GameLoop` for safe lifecycle management, confirming readiness for Spring-managed bean lifecycle.
+
 ## [1.46.0] - 2026-05-11
 ### Added
 - **Engine Lifecycle Tests**: Implemented comprehensive unit tests for `SimulationEngine` lifecycle methods (`build()` vs `start()`), ensuring proper `GameLoop` state management.

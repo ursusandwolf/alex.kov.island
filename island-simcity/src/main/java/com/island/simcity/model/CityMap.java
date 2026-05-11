@@ -68,42 +68,13 @@ public class CityMap implements SimulationWorld<SimEntity> {
         }
     }
 
-    public ComponentRegistry getComponentRegistry() { return componentRegistry; }
-    
-    @Override
-    public EventBus getEventBus() { return eventBus; }
-    
-    @Override
-    public int getHeight() { return height; }
-    
-    @Override
-    public int getWidth() { return width; }
-
-    public CityTile[][] getGrid() { return grid; }
     public long getMoney() { return money.get(); }
     public void setMoney(long amount) { this.money.set(amount); }
-    public int getTaxRate() { return taxRate; }
-    public long getLastTickIncome() { return lastTickIncome; }
-    public long getLastTickExpenses() { return lastTickExpenses; }
-    public List<String> getAlerts() { return alerts; }
-    public int getResDemand() { return resDemand; }
-    public int getComDemand() { return comDemand; }
-    public int getIndDemand() { return indDemand; }
-    public int getTotalJobs() { return totalJobs; }
 
     private int negativeBalanceTicks = 0;
-    private boolean bankrupt = false;
+    @Getter private boolean bankrupt = false;
 
-    public int getPopulation() { return population; }
-    public void setPopulation(int population) { this.population = population; }
-    public void setTotalJobs(int totalJobs) { this.totalJobs = totalJobs; }
-    public void setResDemand(int resDemand) { this.resDemand = resDemand; }
-    public void setIndDemand(int indDemand) { this.indDemand = indDemand; }
-    public void setComDemand(int comDemand) { this.comDemand = comDemand; }
-    public void setLastTickIncome(long income) { this.lastTickIncome = income; }
-    public void setLastTickExpenses(long expenses) { this.lastTickExpenses = expenses; }
     public void addAlert(String alert) { alerts.add(alert); }
-    public boolean isBankrupt() { return bankrupt; }
     public void addMoney(long amount) { this.money.addAndGet(amount); }
     
     @Override

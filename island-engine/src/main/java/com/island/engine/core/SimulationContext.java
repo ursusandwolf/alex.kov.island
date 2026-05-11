@@ -39,5 +39,13 @@ public record SimulationContext<T extends Mortal>(
     public void close() {
         gameLoop.stop();
         executor.shutdown();
+        try {
+            if (!executor.awaitTermination(2, java.util.concurrent.TimeUnit.SECONDS)) {
+                executor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 }
