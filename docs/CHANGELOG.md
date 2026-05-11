@@ -1,6 +1,20 @@
-# Changelog
+## [1.46.0] - 2026-05-11
+### Added
+- **Engine Lifecycle Tests**: Implemented comprehensive unit tests for `SimulationEngine` lifecycle methods (`build()` vs `start()`), ensuring proper `GameLoop` state management.
+- **SimCity Economic Profiles**: Introduced `BuildingProfile` enum to centralize and manage economic constants (income, expenses, multipliers), eliminating "magic numbers" from the codebase.
+- **Rich SimCity Visualization**: Overhauled `CityConsoleView` and `CitySnapshot` to support rich ASCII graphics, including ANSI colors, emojis (🏘️, 🏪, 🏭), and real-time financial sparklines.
+- **SimCity Node Snapshots**: Implemented `CityNodeSnapshot` to provide a domain-agnostic view of city tiles for visualization and API layers.
 
-## [1.45.0] - 2026-05-11
+### Changed
+- **SimCity Economy Migration**: Successfully migrated economic logic from the legacy `EconomyService` to a high-performance, parallelizable `EconomySystem` (ECS).
+- **Engine Refactoring**:
+    - Extracted `ExecutorService` creation logic in `SimulationEngine` to a dedicated `createExecutor` method for better readability.
+    - Cleaned up Javadocs in `SimulationEngine` to eliminate redundant Fully Qualified Names (FQNs).
+
+### Fixed
+- **SimCity Launcher**: Updated `SimCityLauncher` to use the new `WorldSnapshot` based visualization, improving consistency with the Nature module.
+- **TODO Cleanup**: Resolved two long-standing technical debts in the SimCity module regarding economic logic and magic numbers.
+
 ### Added
 - **GitHub Actions CI**: Implemented automated CI pipeline in `.github/workflows/ci.yml` covering build, test, checkstyle, and coverage reporting.
 - **Plugin Discovery (ServiceLoader)**: Integrated JPMS `provides`/`uses` directives and updated `Main` application to use `java.util.ServiceLoader` for dynamic simulation plugin discovery.

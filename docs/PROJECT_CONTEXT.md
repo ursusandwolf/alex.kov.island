@@ -17,17 +17,19 @@
         - **Wealth Tiers**: `PopulationComponent` supports POOR, MIDDLE, and WEALTHY levels.
         - **Progression Logic**: `ZoningService` handles building upgrades and wealth progression based on environmental factors.
     - **Scheduling Improvements**: `ConnectivityService`, `PollutionService`, and `DesirabilityService` moved to `Phase.PREPARE` for better data consistency.
-    - **Documentation Hardening**: Established Documentation Governance. Completed all documentation layers (P1-P4). Cleaned up redundant TODO files and consolidated the SimCity roadmap into `docs/simcity/ROADMAP.md`.
-    - **Performance**: Optimized `ConnectivityService` to use `BitSet` for pathfinding and reduced GC pressure in several services.
+    - **Engine Lifecycle Hardening**: Added explicit tests for `SimulationEngine` build/start phases. Refactored executor creation for better readability.
+    - **SimCity ECS Transition**: Migrated legacy `EconomyService` to `EconomySystem` (ECS). Introduced `BuildingProfile` to manage economic constants centrally.
+    - **Visualization Hardening**: Implemented "Rich ASCII" for SimCity, aligning it with Nature's visual standards. Added support for ANSI colors and emojis in `CityConsoleView`.
+    - **TODO Cleanup**: Eliminated technical debt in the SimCity economy module.
 
 ## Architecture
 - **Engine**: Decoupled core with SoA-based storage, phase-based scheduling, and robust thread pooling.
 - **Nature**: High-performance ecosystem with predatory and metabolic logic.
-- **SimCity**: Grid-based urban simulation with RCI zones, infrastructure, and environmental mechanics.
+- **SimCity**: Grid-based urban simulation with RCI zones, infrastructure, and environmental mechanics. Now fully ECS-driven for economy.
 
 ## Next Steps
 - **Phase 4: User Interface, Controls & Persistence**:
-    - Enhance existing terminal-based pseudographics (ASCII/ANSI) to render `WorldSnapshot` as rich as possible in CLI.
-    - Build a Web-based (Spring Boot + React) dashboard in the `island-app` module for full graphical visualization.
-    - Implemented additional unit tests for `SimulationEngine` lifecycle methods (`build()` vs `start()`).
-    - Implement serialization to save and load `WorldSnapshot` (JSON or binary formats).
+    - **Spring Boot Integration**: Update `island-app` to include Spring Web and WebSocket starters.
+    - **Web Dashboard**: Build a React-based dashboard for full graphical visualization of the world.
+    - **Persistence**: Implement serialization to save and load `WorldSnapshot` (JSON or binary formats).
+    - **Real-Time Controls**: Add REST endpoints for dynamic pausing and speed adjustments.
