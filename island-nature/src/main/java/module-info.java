@@ -7,6 +7,7 @@ module com.island.nature {
     exports com.island.nature.config;
     exports com.island.nature.view;
     exports com.island.nature.entities.core;
+    exports com.island.nature.model;
 
     provides com.island.engine.core.SimulationPlugin with com.island.nature.NaturePlugin;
 }
