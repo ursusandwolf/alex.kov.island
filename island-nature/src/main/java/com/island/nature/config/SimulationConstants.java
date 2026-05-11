@@ -2,7 +2,10 @@ package com.island.nature.config;
 
 /**
  * Registry for default simulation constants.
+ * 
  * @deprecated Use {@link Configuration} instead for multi-instance support.
+ *             Migrate by injecting {@link Configuration} via constructor or
+ *             obtaining it from {@link com.island.nature.entities.domain.NatureDomainContext}.
  */
 @Deprecated
 public final class SimulationConstants {

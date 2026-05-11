@@ -3,16 +3,18 @@ package com.island.engine.internal;
 import com.island.engine.core.AgeStorage;
 import com.island.engine.core.InternalEngine;
 import java.util.concurrent.atomic.AtomicIntegerArray;
+import java.util.concurrent.locks.StampedLock;
 
 /**
  * High-performance, primitive-based store for AgeComponent data.
- * Uses AtomicIntegerArray for thread-safe element access.
+ * Uses AtomicIntegerArray for thread-safe element access and StampedLock for safe resizing.
  */
 @InternalEngine
 public final class AgeSoAStore implements AgeStorage {
     private volatile AtomicIntegerArray age;
     private volatile AtomicIntegerArray maxLifespan;
     private volatile int capacity;
+    private final StampedLock lock = new StampedLock();
 
     public AgeSoAStore(int initialCapacity) {
         this.capacity = initialCapacity;
@@ -22,44 +24,92 @@ public final class AgeSoAStore implements AgeStorage {
 
     @Override
     public void set(int entityId, int age, int maxLifespan) {
-        ensureCapacity(entityId);
-        this.age.set(entityId, age);
-        this.maxLifespan.set(entityId, maxLifespan);
+        long stamp = lock.readLock();
+        try {
+            if (entityId < capacity) {
+                this.age.set(entityId, age);
+                this.maxLifespan.set(entityId, maxLifespan);
+                return;
+            }
+        } finally {
+            lock.unlockRead(stamp);
+        }
+
+        stamp = lock.writeLock();
+        try {
+            ensureCapacityInternal(entityId);
+            this.age.set(entityId, age);
+            this.maxLifespan.set(entityId, maxLifespan);
+        } finally {
+            lock.unlockWrite(stamp);
+        }
     }
 
     @Override
     public int getAge(int entityId) {
+        long stamp = lock.tryOptimisticRead();
         int cap = capacity;
         AtomicIntegerArray arr = age;
-        return (entityId < cap) ? arr.get(entityId) : 0;
+        int val = (entityId < cap) ? arr.get(entityId) : 0;
+
+        if (!lock.validate(stamp)) {
+            stamp = lock.readLock();
+            try {
+                cap = capacity;
+                arr = age;
+                val = (entityId < cap) ? arr.get(entityId) : 0;
+            } finally {
+                lock.unlockRead(stamp);
+            }
+        }
+        return val;
     }
 
     @Override
     public int getMaxLifespan(int entityId) {
+        long stamp = lock.tryOptimisticRead();
         int cap = capacity;
         AtomicIntegerArray arr = maxLifespan;
-        return (entityId < cap) ? arr.get(entityId) : 0;
+        int val = (entityId < cap) ? arr.get(entityId) : 0;
+
+        if (!lock.validate(stamp)) {
+            stamp = lock.readLock();
+            try {
+                cap = capacity;
+                arr = maxLifespan;
+                val = (entityId < cap) ? arr.get(entityId) : 0;
+            } finally {
+                lock.unlockRead(stamp);
+            }
+        }
+        return val;
     }
 
     @Override
     public void setAge(int entityId, int age) {
-        int cap = capacity;
-        AtomicIntegerArray arr = this.age;
-        if (entityId < cap) {
-            arr.set(entityId, age);
+        long stamp = lock.readLock();
+        try {
+            if (entityId < capacity) {
+                this.age.set(entityId, age);
+            }
+        } finally {
+            lock.unlockRead(stamp);
         }
     }
 
     @Override
     public void setMaxLifespan(int entityId, int maxLifespan) {
-        int cap = capacity;
-        AtomicIntegerArray arr = this.maxLifespan;
-        if (entityId < cap) {
-            arr.set(entityId, maxLifespan);
+        long stamp = lock.readLock();
+        try {
+            if (entityId < capacity) {
+                this.maxLifespan.set(entityId, maxLifespan);
+            }
+        } finally {
+            lock.unlockRead(stamp);
         }
     }
 
-    private synchronized void ensureCapacity(int entityId) {
+    private void ensureCapacityInternal(int entityId) {
         if (entityId >= capacity) {
             int newCapacity = Math.max(entityId + 1, capacity * 2);
             

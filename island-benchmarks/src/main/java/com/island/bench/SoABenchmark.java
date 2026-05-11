@@ -1,4 +1,4 @@
-package com.island.engine.bench;
+package com.island.bench;
 
 import com.island.engine.core.HealthStorage;
 import org.openjdk.jmh.annotations.Benchmark;

@@ -68,6 +68,30 @@ public class GameLoop<T extends Mortal> {
     private volatile Runnable onStopCallback;
 
     private final AtomicBoolean running = new AtomicBoolean(false);
+    private final AtomicBoolean paused = new AtomicBoolean(false);
+
+    public enum SimulationStatus {
+        IDLE, RUNNING, PAUSED
+    }
+
+    public SimulationStatus getStatus() {
+        if (!running.get()) return SimulationStatus.IDLE;
+        return paused.get() ? SimulationStatus.PAUSED : SimulationStatus.RUNNING;
+    }
+
+    public void pause() {
+        if (running.get()) {
+            paused.set(true);
+            log.info("GameLoop paused.");
+        }
+    }
+
+    public void resume() {
+        if (running.get()) {
+            paused.set(false);
+            log.info("GameLoop resumed.");
+        }
+    }
 
     /**
      * The total number of ticks executed since the loop started.
@@ -186,6 +210,15 @@ public class GameLoop<T extends Mortal> {
 
     private void run() {
         while (running.get()) {
+            if (paused.get()) {
+                try {
+                    TimeUnit.MILLISECONDS.sleep(tickDurationMs);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+                continue;
+            }
             long startTime = System.nanoTime();
             try {
                 runTick();

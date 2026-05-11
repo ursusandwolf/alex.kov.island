@@ -4,10 +4,11 @@ import com.island.engine.core.HealthStorage;
 import com.island.engine.core.InternalEngine;
 import java.util.concurrent.atomic.AtomicLongArray;
 import java.util.concurrent.atomic.AtomicIntegerArray;
+import java.util.concurrent.locks.StampedLock;
 
 /**
  * High-performance, primitive-based store for SoA (Structure of Arrays) components.
- * Uses Atomic arrays for thread-safe element access.
+ * Uses Atomic arrays for thread-safe element access and StampedLock for safe resizing.
  */
 @InternalEngine
 public final class HealthSoAStore implements HealthStorage {
@@ -15,6 +16,7 @@ public final class HealthSoAStore implements HealthStorage {
     private volatile AtomicLongArray maxEnergy;
     private volatile AtomicIntegerArray alive;
     private volatile int capacity;
+    private final StampedLock lock = new StampedLock();
 
     public HealthSoAStore(int initialCapacity) {
         this.capacity = initialCapacity;
@@ -25,62 +27,127 @@ public final class HealthSoAStore implements HealthStorage {
 
     @Override
     public void set(int entityId, long currentEnergy, long maxEnergy, boolean alive) {
-        ensureCapacity(entityId);
-        this.currentEnergy.set(entityId, currentEnergy);
-        this.maxEnergy.set(entityId, maxEnergy);
-        this.alive.set(entityId, alive ? 1 : 0);
+        long stamp = lock.readLock();
+        try {
+            if (entityId < capacity) {
+                this.currentEnergy.set(entityId, currentEnergy);
+                this.maxEnergy.set(entityId, maxEnergy);
+                this.alive.set(entityId, alive ? 1 : 0);
+                return;
+            }
+        } finally {
+            lock.unlockRead(stamp);
+        }
+
+        stamp = lock.writeLock();
+        try {
+            ensureCapacityInternal(entityId);
+            this.currentEnergy.set(entityId, currentEnergy);
+            this.maxEnergy.set(entityId, maxEnergy);
+            this.alive.set(entityId, alive ? 1 : 0);
+        } finally {
+            lock.unlockWrite(stamp);
+        }
     }
 
     @Override
     public long getCurrentEnergy(int entityId) {
+        long stamp = lock.tryOptimisticRead();
         int cap = capacity;
         AtomicLongArray arr = currentEnergy;
-        return (entityId < cap) ? arr.get(entityId) : 0L;
+        long val = (entityId < cap) ? arr.get(entityId) : 0L;
+
+        if (!lock.validate(stamp)) {
+            stamp = lock.readLock();
+            try {
+                cap = capacity;
+                arr = currentEnergy;
+                val = (entityId < cap) ? arr.get(entityId) : 0L;
+            } finally {
+                lock.unlockRead(stamp);
+            }
+        }
+        return val;
     }
 
     @Override
     public long getMaxEnergy(int entityId) {
+        long stamp = lock.tryOptimisticRead();
         int cap = capacity;
         AtomicLongArray arr = maxEnergy;
-        return (entityId < cap) ? arr.get(entityId) : 0L;
+        long val = (entityId < cap) ? arr.get(entityId) : 0L;
+
+        if (!lock.validate(stamp)) {
+            stamp = lock.readLock();
+            try {
+                cap = capacity;
+                arr = maxEnergy;
+                val = (entityId < cap) ? arr.get(entityId) : 0L;
+            } finally {
+                lock.unlockRead(stamp);
+            }
+        }
+        return val;
     }
 
     @Override
     public boolean isAlive(int entityId) {
+        long stamp = lock.tryOptimisticRead();
         int cap = capacity;
         AtomicIntegerArray arr = alive;
-        return (entityId < cap) && arr.get(entityId) == 1;
+        boolean val = (entityId < cap) && arr.get(entityId) == 1;
+
+        if (!lock.validate(stamp)) {
+            stamp = lock.readLock();
+            try {
+                cap = capacity;
+                arr = alive;
+                val = (entityId < cap) && arr.get(entityId) == 1;
+            } finally {
+                lock.unlockRead(stamp);
+            }
+        }
+        return val;
     }
 
     @Override
     public void setCurrentEnergy(int entityId, long energy) {
-        int cap = capacity;
-        AtomicLongArray arr = currentEnergy;
-        if (entityId < cap) {
-            arr.set(entityId, energy);
+        long stamp = lock.readLock();
+        try {
+            if (entityId < capacity) {
+                currentEnergy.set(entityId, energy);
+            }
+        } finally {
+            lock.unlockRead(stamp);
         }
     }
 
     @Override
     public void setAlive(int entityId, boolean isAlive) {
-        int cap = capacity;
-        AtomicIntegerArray arr = alive;
-        if (entityId < cap) {
-            arr.set(entityId, isAlive ? 1 : 0);
+        long stamp = lock.readLock();
+        try {
+            if (entityId < capacity) {
+                alive.set(entityId, isAlive ? 1 : 0);
+            }
+        } finally {
+            lock.unlockRead(stamp);
         }
     }
 
     @Override
     public long addEnergy(int entityId, long delta) {
-        int cap = capacity;
-        AtomicLongArray arr = currentEnergy;
-        if (entityId < cap) {
-            return arr.addAndGet(entityId, delta);
+        long stamp = lock.readLock();
+        try {
+            if (entityId < capacity) {
+                return currentEnergy.addAndGet(entityId, delta);
+            }
+        } finally {
+            lock.unlockRead(stamp);
         }
         return 0L;
     }
 
-    private synchronized void ensureCapacity(int entityId) {
+    private void ensureCapacityInternal(int entityId) {
         if (entityId >= capacity) {
             int newCapacity = Math.max(entityId + 1, capacity * 2);
             

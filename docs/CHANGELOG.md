@@ -1,3 +1,17 @@
+## [1.49.0] - 2026-05-11
+### Added
+- **GameLoop Control**: Added `pause()`/`resume()` functionality to `GameLoop` along with a `SimulationStatus` enum for status monitoring, preparing the engine for REST API integration.
+- **Thread-Safe Snapshotting**: Refactored `IslandSnapshot` into a truly immutable structure, capturing all world state (metrics, counts, and grid) during construction to eliminate data races during web-layer serialization.
+- **Benchmarks Isolation**: Introduced a dedicated `island-benchmarks` module to house JMH performance suites, keeping the core engine module clean.
+- **Jackson Mixin Infrastructure**: Established `WorldSnapshotMixin` and `SimulationJacksonConfig` in `island-app` to support polymorphic JSON serialization without adding dependencies to the engine.
+
+### Fixed
+- **SoA Concurrency Unification**: Refactored `HealthSoAStore` and `AgeSoAStore` to use `StampedLock` with optimistic reads, unifying the concurrency model with `MovementSoAStore` and improving thread safety during capacity expansion.
+
+### Changed
+- **Quality Gates**: Increased `island-engine` line coverage threshold to **75%** to align with professional library standards.
+- **API Documentation**: Updated `SimulationConstants` Javadoc with clear migration instructions for the multi-instance `Configuration` system.
+
 ## [1.48.0] - 2026-05-11
 ### Added
 - Improved console sparkline visualization with new symbols for better readability in `ViewUtils`.

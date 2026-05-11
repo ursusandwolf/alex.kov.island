@@ -3,28 +3,27 @@
 ## Current State
 - **Phase 5: Production Readiness & Quality Hardening (Completed)**:
     - **GitHub Actions CI**: Automated pipeline established for all modules with enforced JaCoCo coverage (100% checks met).
-    - **Engine Concurrency Modernization**: Replaced unmanaged threads with robust `ExecutorService`.
-    - **SoA Correctness**: Replaced `volatile` arrays with `AtomicLongArray` and `AtomicIntegerArray`.
+    - **SoA Correctness & Performance**: Unified all SoA stores (`Health`, `Age`, `Movement`) on `StampedLock` with optimistic read patterns.
+    - **Engine Coverage**: Increased `island-engine` line coverage to **75%** with robust unit and integration tests.
+    - **Benchmarks**: Extracted JMH benchmarks to a dedicated `island-benchmarks` module.
     - **Engine Lifecycle Hardening**: Improved `SimulationContext.close()` to ensure clean thread termination.
-    - **SimCity ECS Transition**: Migrated legacy `EconomyService` to `EconomySystem` (ECS).
-    - **SimCity Refactoring**: Eliminated Lombok warnings and duplicate methods in `CityTile` and `CityMap`.
-    - **Ecosystem Balance**: Resolved mass starvation/extinction by scaling lifespans and widening LOD limits.
-    - **UI Enhancements**: Upgraded console sparklines and improved dashboard formatting for ecosystem monitoring.
 - **Phase 4: User Interface, Controls & Persistence (In Progress)**:
-    - **Design**: ADR 004 drafted for Spring Boot integration (REST + WebSocket).
+    - **Spring Boot Readiness**: 
+        - Implemented `pause()`/`resume()`/`getStatus()` in `GameLoop`.
+        - Refactored `IslandSnapshot` for thread-safe immutability.
+        - Configured Jackson Mixins in `island-app` for polymorphic serialization.
     - **Architecture**: Validated `SimulationEngine` for safe integration into Spring container.
 
 ## Architecture
 - **Engine**: Decoupled core with SoA-based storage, phase-based scheduling, and robust thread pooling.
 - **Nature**: High-performance ecosystem with predatory and metabolic logic.
 - **SimCity**: Grid-based urban simulation with RCI zones and environmental mechanics.
-- **App (Upcoming)**: Spring Boot-managed orchestrator for simulation control and visualization.
+- **App**: Spring Boot-managed orchestrator for simulation control and visualization (Readiness achieved).
 
 ## Next Steps
-- **Spring Boot Integration**:
-    - Update Maven parent and `island-app` dependencies.
+- **Spring Boot Core**:
     - Implement `SimulationService` for engine orchestration.
     - Create `SimulationController` for RESTful management.
 - **Web Dashboard**: Build a React-based dashboard for graphical visualization.
-- **Persistence**: Implement JSON serialization for `WorldSnapshot`.
+- **WebSocket Feed**: Implement real-time snapshot broadcasting using the new immutable `WorldSnapshot`.
 
