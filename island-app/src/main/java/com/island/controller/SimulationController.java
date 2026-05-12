@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -19,6 +20,36 @@ import org.springframework.web.bind.annotation.RestController;
 public class SimulationController {
 
     private final SimulationService simulationService;
+
+    /**
+     * Starts a new simulation, replacing any currently running one.
+     * 
+     * @param type   simulation type (nature, simcity)
+     * @param width  grid width (default 20)
+     * @param height grid height (default 20)
+     * @param tickMs tick duration in milliseconds (default 100)
+     * @return the current simulation status
+     */
+    @PostMapping("/start")
+    public ResponseEntity<StatusResponse> start(
+            @RequestParam(defaultValue = "nature") String type,
+            @RequestParam(defaultValue = "20") int width,
+            @RequestParam(defaultValue = "20") int height,
+            @RequestParam(defaultValue = "100") int tickMs) {
+        simulationService.start(type, width, height, tickMs);
+        return ResponseEntity.ok(new StatusResponse(simulationService.getStatus()));
+    }
+
+    /**
+     * Stops the simulation game loop.
+     * 
+     * @return the current simulation status
+     */
+    @PostMapping("/stop")
+    public ResponseEntity<StatusResponse> stop() {
+        simulationService.stop();
+        return ResponseEntity.ok(new StatusResponse(simulationService.getStatus()));
+    }
 
     /**
      * Pauses the simulation.
@@ -59,7 +90,11 @@ public class SimulationController {
      */
     @GetMapping("/snapshot")
     public ResponseEntity<WorldSnapshot> getSnapshot() {
-        return ResponseEntity.ok(simulationService.getSnapshot());
+        WorldSnapshot snapshot = simulationService.getSnapshot();
+        if (snapshot == null) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(snapshot);
     }
 
     /**

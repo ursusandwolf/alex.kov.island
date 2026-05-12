@@ -12,7 +12,7 @@ interface SimulationState {
   // Actions
   connect: () => void;
   disconnect: () => void;
-  start: (type: 'nature' | 'simcity') => Promise<void>;
+  start: (type: 'nature' | 'simcity', width?: number, height?: number, tickMs?: number) => Promise<void>;
   pause: () => Promise<void>;
   resume: () => Promise<void>;
   stop: () => Promise<void>;
@@ -41,7 +41,7 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
     stompClient.onConnect = (_frame) => {
       set({ connected: true, error: null });
       console.log('Connected to STOMP');
-      stompClient?.subscribe('/topic/snapshot', (message) => {
+      stompClient?.subscribe('/topic/world-state', (message) => {
         const snapshot: WorldSnapshot = JSON.parse(message.body);
         set({ snapshot });
       });
@@ -66,15 +66,15 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
   updateStatus: async () => {
     try {
       const response = await fetch('/api/v1/simulation/status');
-      const status = await response.text() as SimulationStatus;
-      set({ status });
+      const data = await response.json();
+      set({ status: data.status });
     } catch (err) {
       console.error('Failed to fetch status', err);
     }
   },
 
-  start: async (type) => {
-    await fetch(`/api/v1/simulation/start?type=${type}`, { method: 'POST' });
+  start: async (type, width = 20, height = 20, tickMs = 100) => {
+    await fetch(`/api/v1/simulation/start?type=${type}&width=${width}&height=${height}&tickMs=${tickMs}`, { method: 'POST' });
     await get().updateStatus();
   },
 

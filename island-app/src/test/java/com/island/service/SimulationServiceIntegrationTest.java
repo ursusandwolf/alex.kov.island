@@ -34,7 +34,7 @@ class SimulationServiceIntegrationTest {
         simulationService.stop();
         assertEquals(SimulationStatus.IDLE, simulationService.getStatus());
 
-        simulationService.startExplicitly();
+        simulationService.start("nature", 20, 20, 100);
         assertEquals(SimulationStatus.RUNNING, simulationService.getStatus());
     }
 }

@@ -1,20 +1,18 @@
 package com.island.service;
 
-import com.island.engine.core.SimulationContext;
 import com.island.engine.model.WorldSnapshot;
 import com.island.engine.scheduling.Phase;
 import com.island.engine.scheduling.ScheduledTask;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 /**
  * Orchestrates broadcasting of simulation states and events via WebSockets.
- * Listens for application start to register itself in the simulation game loop.
+ * Listens for SimulationStartedEvent to register itself in the game loop.
  */
 @Component
 @RequiredArgsConstructor
@@ -22,19 +20,19 @@ import org.springframework.stereotype.Component;
 public class SimulationBroadcaster {
 
     private final SimpMessagingTemplate messaging;
-    private final SimulationContext<?> context;
+    private final SimulationService simulationService;
 
     @Value("${sim.broadcast-interval:5}")
     private int snapshotInterval;
 
     /**
      * Automatically registers the broadcaster as a recurring task in the simulation game loop
-     * once the application has fully started.
+     * once a new simulation context is started.
      */
-    @EventListener(ApplicationStartedEvent.class)
-    public void startBroadcasting() {
-        context.gameLoop().addRecurringTask(new TickBroadcastTask());
-        log.info("Simulation broadcasting started with interval: {} ticks", snapshotInterval);
+    @EventListener(SimulationStartedEvent.class)
+    public void startBroadcasting(SimulationStartedEvent event) {
+        event.getContext().gameLoop().addRecurringTask(new TickBroadcastTask());
+        log.info("Simulation broadcasting attached to new context with interval: {} ticks", snapshotInterval);
     }
 
     /**
@@ -55,9 +53,11 @@ public class SimulationBroadcaster {
         public void tick(int tickCount) {
             if (tickCount % snapshotInterval != 0) return;
 
-            WorldSnapshot snapshot = context.world().createSnapshot();
-            messaging.convertAndSend("/topic/world-state", snapshot);
-            log.trace("Broadcasted world state for tick {}", tickCount);
+            WorldSnapshot snapshot = simulationService.getSnapshot();
+            if (snapshot != null) {
+                messaging.convertAndSend("/topic/world-state", snapshot);
+                log.trace("Broadcasted world state for tick {}", tickCount);
+            }
         }
     }
 

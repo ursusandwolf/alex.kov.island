@@ -1,63 +1,122 @@
 package com.island.service;
 
+import com.island.engine.core.SimulationConfig;
 import com.island.engine.core.SimulationContext;
-import com.island.engine.scheduling.SimulationStatus;
+import com.island.engine.core.SimulationEngine;
+import com.island.engine.core.SimulationPlugin;
 import com.island.engine.model.WorldSnapshot;
+import com.island.engine.scheduling.SimulationStatus;
+import com.island.nature.NaturePlugin;
+import com.island.simcity.SimCityPlugin;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 /**
- * Service to manage the simulation lifecycle using Spring-injected context.
+ * Service to manage the simulation lifecycle and its dynamic context.
  */
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class SimulationService {
 
-    private final SimulationContext<?> context;
+    private final ApplicationEventPublisher eventPublisher;
+
+    @Value("${sim.width:20}")
+    private int defaultWidth;
+
+    @Value("${sim.height:20}")
+    private int defaultHeight;
+
+    @Value("${sim.threads:4}")
+    private int defaultThreads;
+
+    @Value("${sim.tickMs:100}")
+    private int defaultTickMs;
+
+    @Value("${spring.profiles.active:nature}")
+    private String defaultProfile;
+
+    private SimulationContext<?> context;
 
     /**
-     * Starts the simulation automatically when the application is ready.
+     * Starts the simulation automatically with default configuration.
      */
     @EventListener(ApplicationStartedEvent.class)
-    public void start() {
-        context.gameLoop().start();
-        log.info("Simulation started");
+    public void startDefault() {
+        start(defaultProfile, defaultWidth, defaultHeight, defaultTickMs);
     }
 
     /**
-     * Explicitly starts the simulation.
+     * Starts a new simulation with custom parameters, destroying the old one if it exists.
+     *
+     * @param type    the simulation type ("nature" or "simcity")
+     * @param width   the grid width
+     * @param height  the grid height
+     * @param tickMs  the tick duration in milliseconds
      */
-    public void startExplicitly() {
-        context.gameLoop().start();
+    public synchronized void start(String type, int width, int height, int tickMs) {
+        if (context != null) {
+            context.close();
+            log.info("Previous simulation context destroyed");
+        }
+
+        SimulationConfig config = SimulationConfig.builder()
+                .threadCount(defaultThreads)
+                .tickDurationMs(tickMs)
+                .build();
+
+        SimulationPlugin<?> plugin;
+        if ("simcity".equalsIgnoreCase(type)) {
+            plugin = new SimCityPlugin(width, height);
+        } else {
+            com.island.nature.config.Configuration cfg = com.island.nature.config.Configuration.load();
+            cfg.setIslandWidth(width);
+            cfg.setIslandHeight(height);
+            plugin = new NaturePlugin(cfg);
+        }
+
+        this.context = new SimulationEngine().build(plugin, config);
+        
+        eventPublisher.publishEvent(new SimulationStartedEvent(this.context));
+        
+        this.context.gameLoop().start();
+        log.info("Started new '{}' simulation ({}x{}) at {}ms/tick", type, width, height, tickMs);
     }
 
     /**
      * Stops the simulation game loop.
      */
     public void stop() {
-        context.gameLoop().stop();
-        log.info("Simulation stopped");
+        if (context != null) {
+            context.gameLoop().stop();
+            log.info("Simulation stopped");
+        }
     }
 
     /**
      * Pauses the simulation game loop.
      */
     public void pause() {
-        context.gameLoop().pause();
-        log.info("Simulation paused");
+        if (context != null) {
+            context.gameLoop().pause();
+            log.info("Simulation paused");
+        }
     }
 
     /**
      * Resumes the simulation game loop.
      */
     public void resume() {
-        context.gameLoop().resume();
-        log.info("Simulation resumed");
+        if (context != null) {
+            context.gameLoop().resume();
+            log.info("Simulation resumed");
+        }
     }
 
     /**
@@ -66,16 +125,16 @@ public class SimulationService {
      * @return the simulation status
      */
     public SimulationStatus getStatus() {
-        return context.gameLoop().getStatus();
+        return context != null ? context.gameLoop().getStatus() : SimulationStatus.IDLE;
     }
 
     /**
      * Creates a current snapshot of the simulation world.
      * 
-     * @return the world snapshot
+     * @return the world snapshot, or null if no simulation is running
      */
     public WorldSnapshot getSnapshot() {
-        return context.world().createSnapshot();
+        return context != null ? context.world().createSnapshot() : null;
     }
 
     /**
@@ -83,7 +142,9 @@ public class SimulationService {
      */
     @PreDestroy
     public void shutdown() {
-        context.close();
-        log.info("Simulation shutdown complete");
+        if (context != null) {
+            context.close();
+            log.info("Simulation shutdown complete");
+        }
     }
 }

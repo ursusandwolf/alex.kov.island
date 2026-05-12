@@ -18,6 +18,9 @@ function App() {
   } = useSimulationStore();
 
   const [selectedCoords, setSelectedCoords] = useState<string | null>(null);
+  const [configWidth, setConfigWidth] = useState(20);
+  const [configHeight, setConfigHeight] = useState(20);
+  const [configTickMs, setConfigTickMs] = useState(100);
 
   useEffect(() => {
     connect();
@@ -61,17 +64,20 @@ function App() {
 
       <main style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '30px' }}>
         <section>
-          <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
+          <div style={{ marginBottom: '20px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '10px', marginRight: '10px', background: '#f5f5f5', padding: '10px', borderRadius: '8px' }}>
+              <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Width: <input type="number" min="1" max="100" value={configWidth} onChange={e => setConfigWidth(Number(e.target.value))} style={inputStyle} /></label>
+              <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Height: <input type="number" min="1" max="100" value={configHeight} onChange={e => setConfigHeight(Number(e.target.value))} style={inputStyle} /></label>
+              <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Tick (ms): <input type="number" min="10" max="5000" value={configTickMs} onChange={e => setConfigTickMs(Number(e.target.value))} style={inputStyle} /></label>
+            </div>
             <button 
-              onClick={() => start('nature')} 
-              disabled={status !== 'IDLE'}
+              onClick={() => start('nature', configWidth, configHeight, configTickMs)} 
               style={{ ...buttonStyle, background: '#4caf50', color: 'white' }}
             >
               Start Nature
             </button>
             <button 
-              onClick={() => start('simcity')} 
-              disabled={status !== 'IDLE'}
+              onClick={() => start('simcity', configWidth, configHeight, configTickMs)} 
               style={{ ...buttonStyle, background: '#2196f3', color: 'white' }}
             >
               Start SimCity
@@ -156,6 +162,14 @@ const buttonStyle: React.CSSProperties = {
   cursor: 'pointer',
   fontWeight: 'bold',
   boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+};
+
+const inputStyle: React.CSSProperties = {
+  width: '60px',
+  marginLeft: '5px',
+  padding: '4px',
+  border: '1px solid #ccc',
+  borderRadius: '4px'
 };
 
 const panelStyle: React.CSSProperties = {
