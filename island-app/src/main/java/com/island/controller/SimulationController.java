@@ -3,16 +3,20 @@ package com.island.controller;
 import com.island.engine.model.WorldSnapshot;
 import com.island.engine.scheduling.SimulationStatus;
 import com.island.service.SimulationService;
+import com.island.service.SnapshotHistoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 /**
- * REST API for controlling the simulation state.
+ * REST API for controlling the simulation state and snapshots.
  */
 @RestController
 @RequestMapping("/api/v1/simulation")
@@ -20,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class SimulationController {
 
     private final SimulationService simulationService;
+    private final SnapshotHistoryService historyService;
 
     /**
      * Starts a new simulation, replacing any currently running one.
@@ -93,6 +98,45 @@ public class SimulationController {
         WorldSnapshot snapshot = simulationService.getSnapshot();
         if (snapshot == null) {
             return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(snapshot);
+    }
+
+    /**
+     * Saves the current simulation snapshot to disk.
+     *
+     * @return the filename of the saved snapshot
+     */
+    @PostMapping("/snapshot/save")
+    public ResponseEntity<String> saveSnapshot() {
+        String filename = historyService.saveCurrentSnapshot();
+        if (filename == null) {
+            return ResponseEntity.internalServerError().build();
+        }
+        return ResponseEntity.ok(filename);
+    }
+
+    /**
+     * Lists all saved historical snapshots.
+     *
+     * @return list of filenames
+     */
+    @GetMapping("/snapshot/history")
+    public ResponseEntity<List<String>> listSnapshots() {
+        return ResponseEntity.ok(historyService.listSnapshots());
+    }
+
+    /**
+     * Loads a specific historical snapshot by filename.
+     *
+     * @param filename the snapshot filename
+     * @return the loaded world snapshot
+     */
+    @GetMapping("/snapshot/history/{filename}")
+    public ResponseEntity<WorldSnapshot> getHistoricalSnapshot(@PathVariable String filename) {
+        WorldSnapshot snapshot = historyService.loadSnapshot(filename);
+        if (snapshot == null) {
+            return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(snapshot);
     }

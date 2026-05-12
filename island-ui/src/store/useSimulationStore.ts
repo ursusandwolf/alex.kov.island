@@ -8,6 +8,7 @@ interface SimulationState {
   snapshot: WorldSnapshot | null;
   connected: boolean;
   error: string | null;
+  history: string[];
 
   // Actions
   connect: () => void;
@@ -17,6 +18,11 @@ interface SimulationState {
   resume: () => Promise<void>;
   stop: () => Promise<void>;
   updateStatus: () => Promise<void>;
+  
+  // History Actions
+  fetchHistory: () => Promise<void>;
+  saveSnapshot: () => Promise<void>;
+  loadHistoricalSnapshot: (filename: string) => Promise<void>;
 }
 
 let stompClient: Client | null = null;
@@ -26,6 +32,7 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
   snapshot: null,
   connected: false,
   error: null,
+  history: [],
 
   connect: () => {
     if (stompClient?.active) return;
@@ -42,6 +49,8 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
       set({ connected: true, error: null });
       console.log('Connected to STOMP');
       stompClient?.subscribe('/topic/world-state', (message) => {
+        // Only update live if we are running/paused, not just viewing history
+        // If status is IDLE, we might be viewing history. Let's still accept updates but maybe flag it.
         const snapshot: WorldSnapshot = JSON.parse(message.body);
         set({ snapshot });
       });
@@ -93,4 +102,37 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
     await get().updateStatus();
     set({ snapshot: null });
   },
+
+  fetchHistory: async () => {
+    try {
+      const res = await fetch('/api/v1/simulation/snapshot/history');
+      if (res.ok) {
+        const history = await res.json();
+        set({ history });
+      }
+    } catch (err) {
+      console.error('Failed to fetch history', err);
+    }
+  },
+
+  saveSnapshot: async () => {
+    try {
+      await fetch('/api/v1/simulation/snapshot/save', { method: 'POST' });
+      await get().fetchHistory();
+    } catch (err) {
+      console.error('Failed to save snapshot', err);
+    }
+  },
+
+  loadHistoricalSnapshot: async (filename) => {
+    try {
+      const res = await fetch(`/api/v1/simulation/snapshot/history/${filename}`);
+      if (res.ok) {
+        const snapshot = await res.json();
+        set({ snapshot });
+      }
+    } catch (err) {
+      console.error('Failed to load historical snapshot', err);
+    }
+  }
 }));

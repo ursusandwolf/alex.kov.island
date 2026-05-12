@@ -8,13 +8,17 @@ function App() {
     status, 
     snapshot, 
     connected, 
+    history,
     connect, 
     disconnect, 
     start, 
     pause, 
     resume, 
     stop, 
-    updateStatus 
+    updateStatus,
+    fetchHistory,
+    saveSnapshot,
+    loadHistoricalSnapshot
   } = useSimulationStore();
 
   const [selectedCoords, setSelectedCoords] = useState<string | null>(null);
@@ -25,8 +29,9 @@ function App() {
   useEffect(() => {
     connect();
     updateStatus();
+    fetchHistory();
     return () => disconnect();
-  }, [connect, disconnect, updateStatus]);
+  }, [connect, disconnect, updateStatus, fetchHistory]);
 
   let selectedNode: NodeSnapshot | null = null;
   if (snapshot && selectedCoords) {
@@ -103,6 +108,13 @@ function App() {
             >
               Stop
             </button>
+            <button 
+              onClick={saveSnapshot}
+              disabled={status === 'IDLE'}
+              style={{ ...buttonStyle, background: '#ff9800', color: 'white', marginLeft: 'auto' }}
+            >
+              Save Snapshot
+            </button>
           </div>
 
           <WorldCanvas 
@@ -130,16 +142,6 @@ function App() {
             )) : <p>No metrics available</p>}
           </div>
 
-          <div style={panelStyle}>
-            <h3>Legend</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <LegendItem color="#4caf50" label="Plants / Residential" />
-              <LegendItem color="#2196f3" label="Herbivores / Commercial" />
-              <LegendItem color="#f44336" label="Predators / Industrial" />
-              <LegendItem color="#9c27b0" label="Special / Others" />
-            </div>
-          </div>
-
           {selectedNode && (
             <div style={{ ...panelStyle, background: '#e3f2fd', border: '1px solid #90caf9' }}>
               <h3>Cell Details</h3>
@@ -149,6 +151,45 @@ function App() {
               <p><strong>Has Organisms:</strong> {selectedNode.hasOrganisms ? 'Yes' : 'No'}</p>
             </div>
           )}
+
+          <div style={panelStyle}>
+            <h3>Snapshot History</h3>
+            {history.length === 0 ? (
+              <p style={{ color: '#888', fontSize: '0.9rem' }}>No snapshots saved yet.</p>
+            ) : (
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, maxHeight: '150px', overflowY: 'auto' }}>
+                {history.map(filename => (
+                  <li key={filename} style={{ marginBottom: '5px' }}>
+                    <button 
+                      onClick={() => loadHistoricalSnapshot(filename)}
+                      style={{ 
+                        background: 'none', 
+                        border: '1px solid #ddd', 
+                        padding: '5px', 
+                        borderRadius: '4px', 
+                        cursor: 'pointer', 
+                        width: '100%', 
+                        textAlign: 'left',
+                        fontSize: '0.8rem'
+                      }}
+                    >
+                      {filename.replace('.json', '')}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div style={panelStyle}>
+            <h3>Legend</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <LegendItem color="#4caf50" label="Plants / Residential" />
+              <LegendItem color="#2196f3" label="Herbivores / Commercial" />
+              <LegendItem color="#f44336" label="Predators / Industrial" />
+              <LegendItem color="#9c27b0" label="Special / Others" />
+            </div>
+          </div>
         </aside>
       </main>
     </div>
