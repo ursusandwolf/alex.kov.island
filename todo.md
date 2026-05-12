@@ -54,11 +54,19 @@
 - [x] Update `GEMINI.md` with new architectural rules.
 - [x] Review shouldStop semantic change.
 
-## 🖥 Phase 4: User Interface, Controls & Persistence
-- [ ] **Vector 6: Visualization & App Layer**
-    - [ ] Enhance existing terminal-based pseudographics (ASCII/ANSI) to render `WorldSnapshot` as rich as possible in CLI.
-    - [ ] Build a Web-based (Spring Boot + React) dashboard in the `island-app` module for full graphical visualization.
-- [ ] **Vector 7: Real-Time Interaction**
-    - [ ] Allow dynamic pausing, speed adjustments (tick rate scaling), and manual entity spawning via UI (CLI and Web).
-- [ ] **Vector 8: Serialization & Save States**
-    - [ ] Implement serialization to save and load `WorldSnapshot` (JSON or binary formats).
+## 🖥 Phase 4: User Interface, Controls & Persistence (Completed)
+- [x] **Vector 6: Visualization & App Layer**
+    - [x] Enhance existing terminal-based pseudographics (ASCII/ANSI) to render `WorldSnapshot` as rich as possible in CLI.
+    - [x] Build a Web-based (Spring Boot + React) dashboard in the `island-app` module for full graphical visualization.
+- [x] **Vector 7: Real-Time Interaction**
+    - [x] Allow dynamic pausing, speed adjustments (tick rate scaling), and manual entity spawning via UI (CLI and Web).
+- [x] **Vector 8: Serialization & Save States**
+    - [x] Implement serialization to save and load `WorldSnapshot` (JSON or binary formats).
+
+## 🚀 Phase 5: Production Readiness & Quality Hardening (Completed)
+- [x] **Vector 9: CI/CD & Automation**
+    - [x] GitHub Actions CI: Automated pipeline established for all modules.
+- [x] **Vector 10: Quality Gate Hardening**
+    - [x] JaCoCo coverage threshold increased to 65% project-wide.
+- [x] **Vector 11: Modular Isolation**
+    - [x] Correctly configured module boundaries and exports/opens for Spring and Jackson (JPMS).

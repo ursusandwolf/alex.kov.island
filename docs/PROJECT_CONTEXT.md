@@ -15,6 +15,11 @@
     - **Dependency Management**: Centralized versions for logback, jakarta-annotation, etc. in parent POM.
     - **JPMS Hardening**: Correctly configured module boundaries and exports/opens for Spring and Jackson.
 
+- **Documentation & Release Prep (Completed)**:
+    - **UI Guide**: Created comprehensive `docs/UI_GUIDE.md` for the Web Dashboard.
+    - **Maintenance**: Synced `todo.md` and `README.md` with current project architecture (Spring Boot migration).
+    - **ADR Audit**: Finalized and accepted ADR 004 (Spring Boot Integration).
+
 ## Architecture
 - **Engine**: Decoupled core with SoA-based storage, phase-based scheduling, and robust thread pooling.
 - **Nature**: High-performance ecosystem with predatory and metabolic logic.
@@ -22,5 +27,6 @@
 - **App**: Spring Boot-managed backend providing REST and WebSocket APIs for simulation control and visualization.
 
 ## Next Steps
-- **Documentation**: Finalize UI usage documentation and prepare for release.
+- **Release**: Prepare for official v1.54.0 release.
+- **New Feature Inquiries**: Await user instructions for new functional features or further optimizations.
 

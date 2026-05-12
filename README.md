@@ -14,14 +14,15 @@ cd alex.kov.island
 # 2. Build and run tests
 mvn clean verify
 
-# 3. Launch the nature simulation
-mvn exec:java -pl island-app -Dexec.mainClass="com.island.NatureLauncher"
+# 3. Launch the simulation (Spring Boot backend + REST/WebSocket API)
+mvn spring-boot:run -pl island-app
 ```
 
 ## Architecture & Design Patterns
 
 ### Modern Architecture (Java 21)
 - **Virtual Threads (Project Loom)**: High-scalability parallel processing using `VirtualThreadPerTaskExecutor`.
+- **Spring Boot Integration**: Modern backend with REST API for control and WebSockets for real-time visualization.
 - **Dependency Injection (DI)**: Core services (Feeding, Reproduction) utilize constructor injection for strategies and registries, ensuring high testability.
 - **Deterministic Simulation**: Pluggable `RandomProvider` architecture allows for 100% reproducible simulation runs via fixed seeds.
 
@@ -33,6 +34,7 @@ mvn exec:java -pl island-app -Dexec.mainClass="com.island.NatureLauncher"
 5. **Mediator** - `Cell` coordinates atomic interactions between organisms.
 
 ### Performance Optimizations
+- **Structure of Arrays (SoA)**: High-performance primitive storage for health, age, and movement components, minimizing GC pressure.
 - **Smart Biomass**: Plants and small insects are modeled as mass containers instead of individual objects, reducing heap pressure by millions of objects.
 - **O(1) Spatial Indexing**: `Cell` uses `EnumMap` and role-based buckets for constant-time access to specific species or size classes.
 - **High-Perf Interaction Matrix**: Uses primitive `int[][]` arrays and ordinal indexing for maximum cache locality and zero-boxing overhead.
@@ -57,17 +59,21 @@ mvn exec:java -pl island-app -Dexec.mainClass="com.island.NatureLauncher"
 
 ### Running the Application
 
-This is a multi-module Maven project. Use the following commands to launch specific parts of the simulator:
+This is a multi-module Maven project. Use the following commands to launch the simulator:
 
-- **Run Nature Simulation (Island):**
+- **Launch Backend (Spring Boot):**
   ```bash
-  mvn exec:java -pl island-app -Dexec.mainClass="com.island.NatureLauncher"
+  mvn spring-boot:run -pl island-app
   ```
+  The server starts at `http://localhost:8080`.
 
-- **Run SimCity Simulation:**
+- **Launch Frontend Dashboard:**
   ```bash
-  mvn exec:java -pl island-app -Dexec.mainClass="com.island.SimCityLauncher"
+  cd island-ui
+  npm install
+  npm run dev
   ```
+  The interactive dashboard will be available at `http://localhost:5173`.
 
 ### Running Tests
 ```bash
