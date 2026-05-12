@@ -72,6 +72,10 @@ public class IslandSnapshot implements WorldSnapshot {
         return metrics;
     }
 
+    public CellSnapshot[][] getNodes() {
+        return nodes;
+    }
+
     @Override
     public NodeSnapshot getNodeSnapshot(int x, int y) {
         return nodes[x][y];

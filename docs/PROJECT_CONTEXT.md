@@ -23,14 +23,18 @@
     - **Refactoring**: Successfully refactored `WorldInitializer` (biomass factory, terrain deduplication) and `SimulationService`.
     - **Standards**: Eliminated FQN violations in `SimulationService`.
     - **Validation**: All core engine and nature tests passed.
+- **Release v1.54.0 (May 12, 2026) - COMPLETED**:
+    - **Stability**: Core (island-engine) audited and frozen.
+    - **Fixes**: Map rendering issue resolved via JSON serialization fix.
+    - **Packaging**: Verified JAR library structure and JPMS exports.
 
 ## Architecture
-- **Engine**: Decoupled core with SoA-based storage, phase-based scheduling, and robust thread pooling.
-- **Nature**: High-performance ecosystem with predatory and metabolic logic.
-- **SimCity**: Grid-based urban simulation with RCI zones and environmental mechanics.
-- **App**: Spring Boot-managed backend providing REST and WebSocket APIs for simulation control and visualization.
+- **Engine (Stable v1.54.0)**: Decoupled core with SoA-based storage, phase-based scheduling, and robust thread pooling.
+- **Nature (Stable v1.54.0)**: High-performance ecosystem with predatory and metabolic logic.
+- **SimCity (Stable v1.54.0)**: Grid-based urban simulation with RCI zones and environmental mechanics.
+- **App (Stable v1.54.0)**: Spring Boot-managed backend providing REST and WebSocket APIs for simulation control and visualization.
 
 ## Next Steps
-- **Release**: Prepare for official v1.54.0 release.
-- **New Feature Inquiries**: Await user instructions for new functional features or further optimizations.
+- **Monitoring**: Observability of the live nature simulation.
+- **Extension**: New domain-specific plugins using the stable Engine API.
 

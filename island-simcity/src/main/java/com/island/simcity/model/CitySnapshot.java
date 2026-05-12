@@ -10,6 +10,25 @@ import com.island.engine.model.WorldSnapshot;
 public class CitySnapshot implements WorldSnapshot {
     private final CityMap map;
     private final int tickCount;
+    private CityNodeSnapshot[][] nodes;
+
+    private synchronized void ensureNodes() {
+        if (nodes == null) {
+            int w = getWidth();
+            int h = getHeight();
+            nodes = new CityNodeSnapshot[w][h];
+            for (int x = 0; x < w; x++) {
+                for (int y = 0; y < h; y++) {
+                    nodes[x][y] = new CityNodeSnapshot(map.getGrid()[x][y]);
+                }
+            }
+        }
+    }
+
+    public CityNodeSnapshot[][] getNodes() {
+        ensureNodes();
+        return nodes;
+    }
 
     @Override
     public int getTickCount() {
