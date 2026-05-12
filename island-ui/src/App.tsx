@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSimulationStore } from './store/useSimulationStore';
 import WorldCanvas from './components/WorldCanvas';
+import { NodeSnapshot } from './types/simulation';
 
 function App() {
   const { 
@@ -16,11 +17,26 @@ function App() {
     updateStatus 
   } = useSimulationStore();
 
+  const [selectedCoords, setSelectedCoords] = useState<string | null>(null);
+
   useEffect(() => {
     connect();
     updateStatus();
     return () => disconnect();
   }, [connect, disconnect, updateStatus]);
+
+  let selectedNode: NodeSnapshot | null = null;
+  if (snapshot && selectedCoords) {
+    for (const col of snapshot.nodes) {
+      for (const node of col) {
+        if (node.coordinates === selectedCoords) {
+          selectedNode = node;
+          break;
+        }
+      }
+      if (selectedNode) break;
+    }
+  }
 
   return (
     <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
@@ -83,7 +99,11 @@ function App() {
             </button>
           </div>
 
-          <WorldCanvas snapshot={snapshot} />
+          <WorldCanvas 
+            snapshot={snapshot} 
+            selectedCoords={selectedCoords} 
+            onCellClick={setSelectedCoords} 
+          />
         </section>
 
         <aside>
@@ -113,6 +133,16 @@ function App() {
               <LegendItem color="#9c27b0" label="Special / Others" />
             </div>
           </div>
+
+          {selectedNode && (
+            <div style={{ ...panelStyle, background: '#e3f2fd', border: '1px solid #90caf9' }}>
+              <h3>Cell Details</h3>
+              <p><strong>Coordinates:</strong> {selectedNode.coordinates}</p>
+              <p><strong>Top Species:</strong> {selectedNode.topSpeciesCode || 'None'}</p>
+              <p><strong>Is Plant:</strong> {selectedNode.topSpeciesPlant ? 'Yes' : 'No'}</p>
+              <p><strong>Has Organisms:</strong> {selectedNode.hasOrganisms ? 'Yes' : 'No'}</p>
+            </div>
+          )}
         </aside>
       </main>
     </div>
