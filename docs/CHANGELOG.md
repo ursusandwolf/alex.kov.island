@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+### Changed
+- **Repository Optimization**: Removed tracked `node_modules`, `dist`, and `.vite` directories from the Git index. Reduced repository ZIP size from ~19MB to ~1.6MB.
+- **Governance**: Updated root `.gitignore` to include frontend build artifacts and dependencies.
+
 ### Added
 - Seeding simulation world from historical snapshots in `SimulationService`, `NaturePlugin`, and `SimCityPlugin`.
 - Web UI support for browsing and loading historical snapshots.

@@ -35,6 +35,10 @@
 - **App (Stable v1.54.0)**: Spring Boot-managed backend providing REST and WebSocket APIs for simulation control and visualization.
 
 ## Next Steps
+- **Maintenance & Optimization (May 12, 2026) - COMPLETED**:
+    - **Repository Cleanup**: Identified and removed tracked `node_modules` and build artifacts (`dist`) from `island-ui`.
+    - **Size Reduction**: Tracked repository size reduced from 19MB+ to ~1.6MB.
+    - **Governance**: Updated root `.gitignore` to prevent future tracking of frontend dependencies and artifacts.
 - **Monitoring**: Observability of the live nature simulation.
 - **Extension**: New domain-specific plugins using the stable Engine API.
 
