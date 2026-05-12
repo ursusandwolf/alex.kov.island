@@ -42,7 +42,7 @@ public class SimulationService {
     @Value("${spring.profiles.active:nature}")
     private String defaultProfile;
 
-    private SimulationContext<?> context;
+    private volatile SimulationContext<?> context;
 
     /**
      * Starts the simulation automatically with default configuration.

@@ -69,12 +69,11 @@ public class SnapshotHistoryService {
      * Lists all saved snapshot filenames.
      */
     public List<String> listSnapshots() {
-        try {
-            return Files.list(Paths.get(historyDir))
-                    .filter(p -> p.toString().endsWith(".json"))
+        try (var stream = Files.list(Paths.get(historyDir))) {
+            return stream.filter(p -> p.toString().endsWith(".json"))
                     .map(p -> p.getFileName().toString())
                     .sorted()
-                    .collect(Collectors.toList());
+                    .toList();
         } catch (IOException e) {
             log.error("Failed to list snapshots in {}", historyDir, e);
             return List.of();
@@ -85,7 +84,12 @@ public class SnapshotHistoryService {
      * Loads a specific snapshot by filename.
      */
     public WorldSnapshot loadSnapshot(String filename) {
-        Path path = Paths.get(historyDir, filename);
+        Path path = Paths.get(historyDir, filename).normalize();
+        if (!path.startsWith(Paths.get(historyDir).normalize())) {
+            log.warn("Invalid snapshot filename or path traversal attempt: {}", filename);
+            return null;
+        }
+
         if (!Files.exists(path)) {
             log.warn("Snapshot file not found: {}", path);
             return null;

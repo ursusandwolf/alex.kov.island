@@ -6,6 +6,11 @@
 - **UI Enhancements**: Cell selection and entity details panel in the `WorldCanvas` dashboard.
 - **Backend Lifecycle**: Dynamic `SimulationContext` management to support on-the-fly configuration and snapshot loading.
 
+### Fixed
+- **App Resource Management**: Fixed a critical resource leak in `SnapshotHistoryService.listSnapshots()` by using try-with-resources for `Files.list()`.
+- **App Security**: Implemented Path Traversal protection in `SnapshotHistoryService.loadSnapshot()` by normalizing and validating requested filenames.
+- **App Thread-Safety**: Marked `context` field as `volatile` in `SimulationService` to ensure safe publication and visibility across threads.
+
 ### Changed
 - Refactored `SimulationService` to manage lifecycle and dynamic creation of simulation contexts.
 - Updated `NodeSnapshot` interface to provide detailed entity counts for restoration logic.
