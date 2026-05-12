@@ -1,3 +1,18 @@
+## [1.54.0] - 2026-05-12
+
+### Added
+- **Persistence**: Snapshot History support. Saving snapshots to JSON and reseeding simulation worlds from them.
+- **Configuration**: Dynamic simulation startup parameters (Width, Height, Tick Rate) directly from the UI.
+- **UI Enhancements**: Cell selection and entity details panel in the `WorldCanvas` dashboard.
+- **Backend Lifecycle**: Dynamic `SimulationContext` management to support on-the-fly configuration and snapshot loading.
+
+### Changed
+- Refactored `SimulationService` to manage lifecycle and dynamic creation of simulation contexts.
+- Updated `NodeSnapshot` interface to provide detailed entity counts for restoration logic.
+- Updated `NaturePlugin` and `SimCityPlugin` to support world initialization from `WorldSnapshot`.
+- Cleaned up obsolete code review documentation files.
+
+---
 ## [1.53.0] - 2026-05-12
 ### Added
 - **Spring Profiles for Domains**: Implemented profile-based configuration (`nature` and `simcity`) for simulation plugins, enabling easy switching between simulation types via `spring.profiles.active`.

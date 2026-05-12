@@ -8,7 +8,7 @@
     - **Engine Orchestration**: `SimulationService` manages the `SimulationContext` dynamically, supporting custom width, height, and tick rate at runtime.
     - **UI Enhancements**: Added cell selection capability, displaying entity details on cell click in the `WorldCanvas` dashboard.
     - **Configuration**: Added dynamic UI controls for starting a simulation with custom parameters (width, height, tick rate).
-    - **Persistence**: Implemented `SnapshotHistoryService` to save historical snapshots to JSON, with full support in the React dashboard.
+    - **Persistence**: Implemented `SnapshotHistoryService` to save historical snapshots to JSON, with full support in the React dashboard for saving, viewing, and reseeding simulations from history.
 - **Phase 5: Production Readiness & Quality Hardening (Completed)**:
     - **GitHub Actions CI**: Automated pipeline established for all modules.
     - **Quality Gate**: JaCoCo coverage threshold increased to 65% project-wide.
