@@ -7,6 +7,7 @@ import com.island.engine.core.SimulationPlugin;
 import com.island.engine.model.WorldSnapshot;
 import com.island.engine.scheduling.SimulationStatus;
 import com.island.nature.NaturePlugin;
+import com.island.nature.config.Configuration;
 import com.island.simcity.SimCityPlugin;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
@@ -86,7 +87,7 @@ public class SimulationService {
         if ("simcity".equalsIgnoreCase(type)) {
             plugin = new SimCityPlugin(width, height, initialSnapshot);
         } else {
-            com.island.nature.config.Configuration cfg = com.island.nature.config.Configuration.load();
+            Configuration cfg = Configuration.load();
             cfg.setIslandWidth(width);
             cfg.setIslandHeight(height);
             plugin = new NaturePlugin(cfg, initialSnapshot);

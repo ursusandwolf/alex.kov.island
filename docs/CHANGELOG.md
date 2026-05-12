@@ -1,3 +1,20 @@
+## [Unreleased]
+
+### Added
+- Seeding simulation world from historical snapshots in `SimulationService`, `NaturePlugin`, and `SimCityPlugin`.
+- Web UI support for browsing and loading historical snapshots.
+
+### Fixed
+- Resource leak in `SnapshotHistoryService` (try-with-resources for `Files.list()`).
+- Path traversal vulnerability in `SnapshotHistoryService.loadSnapshot()`.
+- Thread-safety issue in `SimulationService` (volatile context).
+
+### Improved (Code Quality Audit)
+- **Refactoring**: `WorldInitializer` refactored to use factory pattern for biomass creation, eliminating large `if-else` chains (OCP).
+- **Deduplication**: Extracted terrain generation and biomass logic in `WorldInitializer` to shared methods.
+- **Standards**: Fixed FQN usage in `SimulationService` according to `GEMINI.md`.
+- **Maintainability**: Replaced magic numbers in `WorldInitializer` with named constants.
+
 ## [1.54.0] - 2026-05-12
 
 ### Added

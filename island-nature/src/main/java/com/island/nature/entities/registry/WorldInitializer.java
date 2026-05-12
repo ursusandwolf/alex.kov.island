@@ -22,11 +22,42 @@ import com.island.nature.entities.core.GenericBiomass;
 import com.island.nature.entities.core.SpeciesKey;
 import com.island.nature.entities.domain.NatureWorld;
 import com.island.util.common.RandomProvider;
+import java.util.function.Function;
+import java.util.Optional;
 
 /**
  * Initializes the island world with organisms using integer-based arithmetic.
  */
 public class WorldInitializer {
+
+    private static final int RIVER_WIDTH = 3;
+    private static final double RIVER_WINDING_FREQ = 0.5;
+    private static final int RIVER_WINDING_AMP = 2;
+    
+    private static final int TERRAIN_MOUNTAIN_THRESHOLD = 15;
+    private static final int TERRAIN_FOREST_THRESHOLD = 40;
+
+    private static final Map<String, BiomassCreator> BIOMASS_CREATORS = Map.of(
+        "butterfly", (island, compRegistry, key, amount, capacity, speed) -> 
+            new Butterfly(island.getConfiguration(), compRegistry, key, amount, capacity, speed),
+        "caterpillar", (island, compRegistry, key, amount, capacity, speed) -> 
+            new Caterpillar(island.getConfiguration(), compRegistry, key, amount, capacity, speed),
+        "grass", (island, compRegistry, key, amount, capacity, speed) -> {
+            Grass g = new Grass(island.getConfiguration(), compRegistry, key, capacity, speed);
+            g.setBiomass(amount);
+            return g;
+        },
+        "mushroom", (island, compRegistry, key, amount, capacity, speed) -> {
+            Mushroom m = new Mushroom(island.getConfiguration(), compRegistry, key, capacity, speed);
+            m.setBiomass(amount);
+            return m;
+        }
+    );
+
+    @FunctionalInterface
+    private interface BiomassCreator {
+        Biomass create(Island island, ComponentRegistry compRegistry, SpeciesKey key, long amount, long capacity, int speed);
+    }
 
     public void initialize(Island island, SpeciesRegistry registry, AnimalFactory animalFactory, 
                            ExecutorService executor, RandomProvider random) {
@@ -78,102 +109,40 @@ public class WorldInitializer {
 
     private void initializeCell(Cell cell, SpeciesRegistry registry, AnimalFactory animalFactory, RandomProvider random) {
         Island island = (Island) cell.getWorld();
-        
-        // Generate a winding river vertically across the island
-        int riverCenter = island.getWidth() / 2 + (int)(Math.sin(cell.getY() * 0.5) * 2);
-        boolean isRiver = Math.abs(cell.getX() - riverCenter) <= 1; // 3 cells wide river
-
-        if (isRiver) {
-            cell.setTerrainType(TerrainType.WATER);
-        } else {
-            // Randomly assign other terrain types
-            int terrainRoll = random.nextInt(100);
-            if (terrainRoll < 15) {
-                cell.setTerrainType(TerrainType.MOUNTAIN);
-            } else if (terrainRoll < 40) {
-                cell.setTerrainType(TerrainType.FOREST);
-            } else {
-                cell.setTerrainType(TerrainType.MEADOW);
-            }
-        }
+        applyTerrain(cell, island, random);
 
         ComponentRegistry compRegistry = island.getComponentRegistry();
 
-        // Initialize biomass containers (Plants, Insects modeled as biomass)
+        // Initialize biomass containers
         for (SpeciesKey biomassKey : registry.getAllBiomassKeys()) {
             registry.getBiomassType(biomassKey).ifPresent(type -> {
-                Biomass b;
                 long capacity = type.getWeight() * type.getMaxPerCell();
                 long initialAmount = (capacity * type.getPresenceChance()) / 100;
-                
-                String code = biomassKey.getCode();
-                if ("butterfly".equals(code)) {
-                    b = new Butterfly(island.getConfiguration(), compRegistry, biomassKey, initialAmount, capacity, type.getSpeed());
-                } else if ("caterpillar".equals(code)) {
-                    b = new Caterpillar(island.getConfiguration(), compRegistry, biomassKey, initialAmount, capacity, type.getSpeed());
-                } else if ("grass".equals(code)) {
-                    b = new Grass(island.getConfiguration(), compRegistry, biomassKey, capacity, type.getSpeed());
-                    b.setBiomass(initialAmount);
-                } else if ("mushroom".equals(code)) {
-                    b = new Mushroom(island.getConfiguration(), compRegistry, biomassKey, capacity, type.getSpeed());
-                    b.setBiomass(initialAmount);
-                } else {
-                    b = new GenericBiomass(type, compRegistry);
-                    b.setBiomass(initialAmount);
-                }
-                cell.addBiomass(b);
-                if (cell.getWorld() instanceof NatureWorld nw) {
-                    nw.getStatisticsService().registerBiomassChange(biomassKey, b.getBiomass());
-                }
+                addBiomass(cell, island, compRegistry, biomassKey, type, initialAmount, capacity);
             });
         }
 
         // Initialize animal species
         for (SpeciesKey species : animalFactory.getRegisteredSpecies()) {
-            AnimalType type = registry.getAnimalType(species).orElse(null);
-            if (type == null) {
-                continue;
-            }
-
-            // Data-driven settlement for animals (0-100)
-            if (random.nextInt(0, 100) < type.getPresenceChance()) {
-                // settlementRate in percent
-                long base = type.getSettlementBase() * 100 / island.getConfiguration().getScale1M();
-                long range = type.getSettlementRange() * 100 / island.getConfiguration().getScale1M();
-                int settlementPercent = (int) (base + (range > 0 ? random.nextInt(0, (int) range + 1) : 0));
-                
-                int count = (type.getMaxPerCell() * settlementPercent) / 100;                
-                if (type.getMaxPerCell() >= 2) {
-                    count = Math.max(count, 2);
-                } else {
-                    count = Math.max(count, 1);
+            registry.getAnimalType(species).ifPresent(type -> {
+                if (random.nextInt(0, 100) < type.getPresenceChance()) {
+                    long base = type.getSettlementBase() * 100 / island.getConfiguration().getScale1M();
+                    long range = type.getSettlementRange() * 100 / island.getConfiguration().getScale1M();
+                    int settlementPercent = (int) (base + (range > 0 ? random.nextInt(0, (int) range + 1) : 0));
+                    
+                    int count = Math.max((type.getMaxPerCell() * settlementPercent) / 100, type.getMaxPerCell() >= 2 ? 2 : 1);
+                    
+                    for (int i = 0; i < count; i++) {
+                        animalFactory.createInitialAnimal(species).ifPresent(a -> cell.addAnimal(a, false));
+                    }
                 }
-                
-                for (int i = 0; i < count; i++) {
-                    animalFactory.createInitialAnimal(species).ifPresent(a -> cell.addAnimal(a, false));
-                }
-            }
+            });
         }
     }
 
     private void initializeCellFromSnapshot(Cell cell, NodeSnapshot snapshot, SpeciesRegistry registry, AnimalFactory animalFactory, RandomProvider random) {
         Island island = (Island) cell.getWorld();
-        
-        // Terrain logic remains the same for simplicity
-        int riverCenter = island.getWidth() / 2 + (int)(Math.sin(cell.getY() * 0.5) * 2);
-        boolean isRiver = Math.abs(cell.getX() - riverCenter) <= 1;
-        if (isRiver) {
-            cell.setTerrainType(TerrainType.WATER);
-        } else {
-            int terrainRoll = random.nextInt(100);
-            if (terrainRoll < 15) {
-                cell.setTerrainType(TerrainType.MOUNTAIN);
-            } else if (terrainRoll < 40) {
-                cell.setTerrainType(TerrainType.FOREST);
-            } else {
-                cell.setTerrainType(TerrainType.MEADOW);
-            }
-        }
+        applyTerrain(cell, island, random);
 
         ComponentRegistry compRegistry = island.getComponentRegistry();
         Map<String, Integer> counts = snapshot.getEntityCounts();
@@ -181,31 +150,10 @@ public class WorldInitializer {
         // Initialize biomass containers
         for (SpeciesKey biomassKey : registry.getAllBiomassKeys()) {
             registry.getBiomassType(biomassKey).ifPresent(type -> {
-                Biomass b;
                 long capacity = type.getWeight() * type.getMaxPerCell();
-                // Restore the specific count if it exists, otherwise 0
                 int count = counts != null ? counts.getOrDefault(biomassKey.getCode(), 0) : 0;
-                long amount = count * type.getWeight(); // Rough approximation back to biomass
-                
-                String code = biomassKey.getCode();
-                if ("butterfly".equals(code)) {
-                    b = new Butterfly(island.getConfiguration(), compRegistry, biomassKey, amount, capacity, type.getSpeed());
-                } else if ("caterpillar".equals(code)) {
-                    b = new Caterpillar(island.getConfiguration(), compRegistry, biomassKey, amount, capacity, type.getSpeed());
-                } else if ("grass".equals(code)) {
-                    b = new Grass(island.getConfiguration(), compRegistry, biomassKey, capacity, type.getSpeed());
-                    b.setBiomass(amount);
-                } else if ("mushroom".equals(code)) {
-                    b = new Mushroom(island.getConfiguration(), compRegistry, biomassKey, capacity, type.getSpeed());
-                    b.setBiomass(amount);
-                } else {
-                    b = new GenericBiomass(type, compRegistry);
-                    b.setBiomass(amount);
-                }
-                cell.addBiomass(b);
-                if (cell.getWorld() instanceof NatureWorld nw) {
-                    nw.getStatisticsService().registerBiomassChange(biomassKey, b.getBiomass());
-                }
+                long amount = count * type.getWeight();
+                addBiomass(cell, island, compRegistry, biomassKey, type, amount, capacity);
             });
         }
 
@@ -217,6 +165,38 @@ public class WorldInitializer {
                     animalFactory.createInitialAnimal(species).ifPresent(a -> cell.addAnimal(a, false));
                 }
             }
+        }
+    }
+
+    private void applyTerrain(Cell cell, Island island, RandomProvider random) {
+        int riverCenter = island.getWidth() / 2 + (int)(Math.sin(cell.getY() * RIVER_WINDING_FREQ) * RIVER_WINDING_AMP);
+        boolean isRiver = Math.abs(cell.getX() - riverCenter) <= (RIVER_WIDTH / 2);
+
+        if (isRiver) {
+            cell.setTerrainType(TerrainType.WATER);
+        } else {
+            int terrainRoll = random.nextInt(100);
+            if (terrainRoll < TERRAIN_MOUNTAIN_THRESHOLD) {
+                cell.setTerrainType(TerrainType.MOUNTAIN);
+            } else if (terrainRoll < TERRAIN_FOREST_THRESHOLD) {
+                cell.setTerrainType(TerrainType.FOREST);
+            } else {
+                cell.setTerrainType(TerrainType.MEADOW);
+            }
+        }
+    }
+
+    private void addBiomass(Cell cell, Island island, ComponentRegistry compRegistry, SpeciesKey key, 
+                            AnimalType type, long amount, long capacity) {
+        Biomass b = BIOMASS_CREATORS.getOrDefault(key.getCode(), (isl, reg, k, amt, cap, spd) -> {
+            GenericBiomass gb = new GenericBiomass(type, reg);
+            gb.setBiomass(amt);
+            return gb;
+        }).create(island, compRegistry, key, amount, capacity, type.getSpeed());
+
+        cell.addBiomass(b);
+        if (cell.getWorld() instanceof NatureWorld nw) {
+            nw.getStatisticsService().registerBiomassChange(key, b.getBiomass());
         }
     }
 }
