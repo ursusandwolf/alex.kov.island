@@ -23,7 +23,7 @@ module com.island.app {
     opens com.island to spring.core, spring.beans, spring.context;
     opens com.island.config to spring.core, spring.beans, spring.context, com.fasterxml.jackson.databind, spring.messaging;
     opens com.island.service to spring.core, spring.beans, spring.context, spring.messaging;
-    opens com.island.controller to spring.core, spring.beans, spring.context, spring.web, spring.messaging;
+    opens com.island.controller to spring.core, spring.beans, spring.context, spring.web, spring.messaging, com.fasterxml.jackson.databind;
     
     uses com.island.engine.core.SimulationPlugin;
 }

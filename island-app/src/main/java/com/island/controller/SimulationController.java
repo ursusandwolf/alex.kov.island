@@ -1,46 +1,69 @@
 package com.island.controller;
 
+import com.island.engine.model.WorldSnapshot;
+import com.island.engine.scheduling.SimulationStatus;
 import com.island.service.SimulationService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
- * REST API for controlling the simulation.
+ * REST API for controlling the simulation state.
  */
 @RestController
 @RequestMapping("/api/v1/simulation")
 @RequiredArgsConstructor
 public class SimulationController {
+
     private final SimulationService simulationService;
 
-    @PostMapping("/start")
-    public Map<String, String> start(@RequestParam(defaultValue = "nature") String type) {
-        simulationService.startSimulation(type);
-        return Map.of("message", "Simulation " + type + " started", "status", "RUNNING");
-    }
-
+    /**
+     * Pauses the simulation.
+     * 
+     * @return the current simulation status
+     */
     @PostMapping("/pause")
-    public Map<String, String> pause() {
+    public ResponseEntity<StatusResponse> pause() {
         simulationService.pause();
-        return Map.of("message", "Simulation paused", "status", "PAUSED");
+        return ResponseEntity.ok(new StatusResponse(simulationService.getStatus()));
     }
 
+    /**
+     * Resumes the simulation.
+     * 
+     * @return the current simulation status
+     */
     @PostMapping("/resume")
-    public Map<String, String> resume() {
+    public ResponseEntity<StatusResponse> resume() {
         simulationService.resume();
-        return Map.of("message", "Simulation resumed", "status", "RUNNING");
+        return ResponseEntity.ok(new StatusResponse(simulationService.getStatus()));
     }
 
-    @PostMapping("/stop")
-    public Map<String, String> stop() {
-        simulationService.stop();
-        return Map.of("message", "Simulation stopped", "status", "IDLE");
-    }
-
+    /**
+     * Returns the current simulation status.
+     * 
+     * @return the current simulation status
+     */
     @GetMapping("/status")
-    public Map<String, Object> getStatus() {
-        return Map.of("status", simulationService.getStatus());
+    public ResponseEntity<StatusResponse> getStatus() {
+        return ResponseEntity.ok(new StatusResponse(simulationService.getStatus()));
     }
+
+    /**
+     * Returns a snapshot of the current world state.
+     * 
+     * @return the world snapshot
+     */
+    @GetMapping("/snapshot")
+    public ResponseEntity<WorldSnapshot> getSnapshot() {
+        return ResponseEntity.ok(simulationService.getSnapshot());
+    }
+
+    /**
+     * DTO for simulation status responses.
+     */
+    public record StatusResponse(SimulationStatus status) {}
 }

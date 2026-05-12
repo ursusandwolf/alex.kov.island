@@ -1,27 +1,32 @@
 package com.island.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.island.engine.model.WorldSnapshot;
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 
 /**
- * Spring configuration for simulation Jackson serialization.
+ * Spring configuration for simulation Jackson serialization using the recommended customizer approach.
  */
 @Configuration
 public class SimulationJacksonConfig {
 
     /**
-     * Provides a pre-configured ObjectMapper bean with necessary mixins for simulation models.
+     * Customizes the default Spring Boot ObjectMapper with simulation-specific mixins and settings.
      * 
-     * @return the configured ObjectMapper
+     * @return the Jackson customizer
      */
     @Bean
-    @Primary
-    public ObjectMapper objectMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.addMixIn(WorldSnapshot.class, WorldSnapshotMixin.class);
-        return mapper;
+    public Jackson2ObjectMapperBuilderCustomizer simulationJsonCustomizer() {
+        return builder -> builder
+                .mixIn(WorldSnapshot.class, WorldSnapshotMixin.class)
+                .serializationInclusion(JsonInclude.Include.NON_NULL)
+                .featuresToDisable(
+                        SerializationFeature.WRITE_DATES_AS_TIMESTAMPS,
+                        DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
+                );
     }
 }

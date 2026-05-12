@@ -6,10 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
+@ActiveProfiles("nature")
 class SimulationServiceIntegrationTest {
 
     @Autowired
@@ -19,19 +21,9 @@ class SimulationServiceIntegrationTest {
     private SimpMessagingTemplate messagingTemplate;
 
     @Test
-    void shouldStartAndStopNatureSimulation() {
-        assertEquals(SimulationStatus.IDLE, simulationService.getStatus());
-        
-        simulationService.startSimulation("nature");
-        assertEquals(SimulationStatus.RUNNING, simulationService.getStatus());
-        
-        simulationService.stop();
-        assertEquals(SimulationStatus.IDLE, simulationService.getStatus());
-    }
-
-    @Test
-    void shouldPauseAndResumeSimulation() {
-        simulationService.startSimulation("nature");
+    void shouldManageSimulationLifecycle() {
+        // By default, it should be running because of @EventListener(ApplicationStartedEvent.class)
+        // However, in tests, it might take a moment to start or we might want to check transitions
         
         simulationService.pause();
         assertEquals(SimulationStatus.PAUSED, simulationService.getStatus());
@@ -40,5 +32,9 @@ class SimulationServiceIntegrationTest {
         assertEquals(SimulationStatus.RUNNING, simulationService.getStatus());
         
         simulationService.stop();
+        assertEquals(SimulationStatus.IDLE, simulationService.getStatus());
+
+        simulationService.startExplicitly();
+        assertEquals(SimulationStatus.RUNNING, simulationService.getStatus());
     }
 }

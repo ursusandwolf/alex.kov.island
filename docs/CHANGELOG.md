@@ -1,3 +1,21 @@
+## [1.53.0] - 2026-05-12
+### Added
+- **Spring Profiles for Domains**: Implemented profile-based configuration (`nature` and `simcity`) for simulation plugins, enabling easy switching between simulation types via `spring.profiles.active`.
+- **Spring-Native Configuration**: Introduced `SimulationBeanConfig` to manage `SimulationPlugin` and `SimulationContext` as Spring beans, aligning with modern Spring Boot practices.
+- **Dynamic WebSocket Broadcaster**: Refactored `SimulationBroadcaster` to automatically register with the simulation game loop using `ApplicationStartedEvent` and support configurable broadcast intervals.
+
+### Changed
+- **Architectural Refinement**: Refactored `SimulationService` and `SimulationController` to leverage injected Spring beans, simplifying the service layer and improving maintainability.
+- **REST API Hardening**: Updated `SimulationController` to use `ResponseEntity` and Records for responses, providing better API structure and type safety.
+- **Quality Gates & Thresholds**: Increased the project-wide JaCoCo coverage threshold to **65%** and centralized quality-related properties in the parent POM.
+- **Dependency Centralization**: Moved `logback-classic` and `jakarta.annotation-api` versions to the parent `dependencyManagement` to ensure consistency and easier upgrades.
+
+### Fixed
+- **JPMS Accessibility**: Resolved visibility and reflection issues for Jackson serialization and Spring Boot by correctly configuring `exports` and `opens` in `module-info.java`.
+- **Javadoc & Compilation Errors**: Fixed ambiguous `Configuration` references and invalid Javadoc tags in the `island-app` module.
+- **Legacy Cleanup**: Removed obsolete CLI launchers (`NatureLauncher`, `SimCityLauncher`) to ensure `island-app` is a focused Spring Boot backend.
+- **WebSocket Security**: Added `setAllowedOriginPatterns("*")` to `WebSocketConfig` to facilitate local development with modern frontend frameworks.
+
 ## [1.52.0] - 2026-05-11
 ### Added
 - **Spring Boot Integration**: Transformed `island-app` into a Spring Boot application, enabling modern web-based management.

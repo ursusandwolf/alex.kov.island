@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -16,6 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles("nature")
 class SimulationControllerTest {
 
     @Autowired
@@ -23,35 +25,24 @@ class SimulationControllerTest {
 
     @Test
     void testSimulationLifecycle() throws Exception {
-        // 1. Check initial status
+        // 1. Check status (should be RUNNING due to auto-start)
         mockMvc.perform(get("/api/v1/simulation/status"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("IDLE"));
-
-        // 2. Start nature simulation
-        mockMvc.perform(post("/api/v1/simulation/start")
-                .param("type", "nature"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("RUNNING"));
 
-        // 3. Pause
+        // 2. Pause
         mockMvc.perform(post("/api/v1/simulation/pause"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("PAUSED"));
 
-        // 4. Resume
+        // 3. Resume
         mockMvc.perform(post("/api/v1/simulation/resume"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("RUNNING"));
 
-        // 5. Stop
-        mockMvc.perform(post("/api/v1/simulation/stop"))
+        // 4. Snapshot
+        mockMvc.perform(get("/api/v1/simulation/snapshot"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("IDLE"));
-        
-        // 6. Verify back to IDLE
-        mockMvc.perform(get("/api/v1/simulation/status"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("IDLE"));
+                .andExpect(jsonPath("$.width").exists());
     }
 }

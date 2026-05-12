@@ -20,7 +20,9 @@
         <slf4j.version>2.0.7</slf4j.version>
         <mockito.version>5.5.0</mockito.version>
         <spring-boot.version>3.2.5</spring-boot.version>
-        <jacoco.minimum.coverage>0.50</jacoco.minimum.coverage>
+        <jacoco.minimum.coverage>0.65</jacoco.minimum.coverage>
+        <logback.version>1.4.14</logback.version>
+        <jakarta-annotation.version>2.1.1</jakarta-annotation.version>
     </properties>
 
     <modules>
@@ -85,6 +87,16 @@
                 <artifactId>slf4j-simple</artifactId>
                 <version>${slf4j.version}</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.annotation</groupId>
+                <artifactId>jakarta.annotation-api</artifactId>
+                <version>${jakarta-annotation.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

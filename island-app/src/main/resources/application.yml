@@ -1,0 +1,32 @@
+spring:
+  profiles:
+    active: nature
+
+server:
+  port: 8080
+
+sim:
+  width: 20
+  height: 20
+  threads: 4
+  tickMs: 100
+  broadcast-interval: 5
+
+---
+spring:
+  config:
+    activate:
+      on-profile: nature
+sim:
+  width: 30
+  height: 30
+
+---
+spring:
+  config:
+    activate:
+      on-profile: simcity
+sim:
+  width: 15
+  height: 15
+  tickMs: 200

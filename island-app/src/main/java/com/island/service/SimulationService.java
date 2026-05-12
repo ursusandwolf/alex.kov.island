@@ -1,94 +1,89 @@
 package com.island.service;
 
-import com.island.engine.core.SimulationConfig;
 import com.island.engine.core.SimulationContext;
-import com.island.engine.core.SimulationEngine;
-import com.island.engine.core.SimulationPlugin;
-import com.island.engine.scheduling.GameLoop;
 import com.island.engine.scheduling.SimulationStatus;
-import com.island.engine.model.Mortal;
-import com.island.nature.NaturePlugin;
-import com.island.nature.config.Configuration;
-import com.island.simcity.SimCityPlugin;
+import com.island.engine.model.WorldSnapshot;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.event.ApplicationStartedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import java.util.concurrent.atomic.AtomicReference;
-
 /**
- * Service to manage the simulation lifecycle.
+ * Service to manage the simulation lifecycle using Spring-injected context.
  */
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class SimulationService {
-    private final SimulationEngine<Mortal> engine = new SimulationEngine<>();
-    private final AtomicReference<SimulationContext<Mortal>> contextRef = new AtomicReference<>();
-    private final AtomicReference<SimulationPlugin> pluginRef = new AtomicReference<>();
-    
-    private final SnapshotBroadcaster broadcaster;
 
-    @SuppressWarnings("unchecked")
-    public void startSimulation(String type) {
-        if (contextRef.get() != null && contextRef.get().gameLoop().isRunning()) {
-            throw new IllegalStateException("Simulation is already running");
-        }
+    private final SimulationContext<?> context;
 
-        SimulationPlugin plugin;
-        if ("nature".equalsIgnoreCase(type)) {
-            plugin = new NaturePlugin(Configuration.load());
-        } else if ("simcity".equalsIgnoreCase(type)) {
-            plugin = new SimCityPlugin();
-        } else {
-            throw new IllegalArgumentException("Unknown simulation type: " + type);
-        }
-
-        SimulationConfig simConfig = SimulationConfig.defaultFor(4);
-        SimulationContext<Mortal> context = (SimulationContext<Mortal>) engine.start((SimulationPlugin) plugin, simConfig);
-        
-        broadcaster.setContext(context);
-        context.gameLoop().addRecurringTask(broadcaster);
-        
-        contextRef.set(context);
-        pluginRef.set(plugin);
-        log.info("Simulation {} started with WebSocket broadcasting", type);
+    /**
+     * Starts the simulation automatically when the application is ready.
+     */
+    @EventListener(ApplicationStartedEvent.class)
+    public void start() {
+        context.gameLoop().start();
+        log.info("Simulation started");
     }
 
-    public void pause() {
-        SimulationContext<Mortal> context = contextRef.get();
-        if (context != null) {
-            context.gameLoop().pause();
-        }
+    /**
+     * Explicitly starts the simulation.
+     */
+    public void startExplicitly() {
+        context.gameLoop().start();
     }
 
-    public void resume() {
-        SimulationContext<Mortal> context = contextRef.get();
-        if (context != null) {
-            context.gameLoop().resume();
-        }
-    }
-
+    /**
+     * Stops the simulation game loop.
+     */
     public void stop() {
-        SimulationContext<Mortal> context = contextRef.get();
-        SimulationPlugin plugin = pluginRef.get();
-        if (context != null && plugin != null) {
-            engine.stop(context, plugin);
-            contextRef.set(null);
-            pluginRef.set(null);
-            log.info("Simulation stopped");
-        }
+        context.gameLoop().stop();
+        log.info("Simulation stopped");
     }
 
+    /**
+     * Pauses the simulation game loop.
+     */
+    public void pause() {
+        context.gameLoop().pause();
+        log.info("Simulation paused");
+    }
+
+    /**
+     * Resumes the simulation game loop.
+     */
+    public void resume() {
+        context.gameLoop().resume();
+        log.info("Simulation resumed");
+    }
+
+    /**
+     * Returns the current status of the simulation.
+     * 
+     * @return the simulation status
+     */
     public SimulationStatus getStatus() {
-        SimulationContext<Mortal> context = contextRef.get();
-        if (context == null) return SimulationStatus.IDLE;
         return context.gameLoop().getStatus();
     }
 
+    /**
+     * Creates a current snapshot of the simulation world.
+     * 
+     * @return the world snapshot
+     */
+    public WorldSnapshot getSnapshot() {
+        return context.world().createSnapshot();
+    }
+
+    /**
+     * Ensures proper cleanup of simulation resources on application shutdown.
+     */
     @PreDestroy
-    public void cleanup() {
-        stop();
+    public void shutdown() {
+        context.close();
+        log.info("Simulation shutdown complete");
     }
 }
