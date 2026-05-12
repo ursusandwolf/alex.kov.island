@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.island</groupId>
         <artifactId>island-simulator-parent</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.54.0</version>
     </parent>
 
     <artifactId>island-benchmarks</artifactId>
