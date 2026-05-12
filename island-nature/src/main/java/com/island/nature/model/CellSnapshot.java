@@ -17,23 +17,30 @@ public class CellSnapshot implements NodeSnapshot {
     private final String topSpeciesCode;
     private final boolean isTopSpeciesPlant;
     private final boolean hasOrganisms;
+    private final Map<String, Integer> entityCounts;
 
     public CellSnapshot(Cell cell) {
         this.coordinates = cell.getCoordinates();
         
         Map<SpeciesKey, Long> biomassMap = new HashMap<>();
+        Map<String, Integer> counts = new HashMap<>();
+        
         cell.forEachAnimal(a -> {
             if (a.isAlive()) {
                 biomassMap.merge(a.getSpeciesKey(), a.getWeight(), Long::sum);
+                counts.merge(a.getSpeciesKey().getCode(), 1, Integer::sum);
             }
         });
         for (Biomass b : cell.getBiomassContainers()) {
             if (b.isAlive() && b.getBiomass() > 0) {
                 biomassMap.merge(b.getSpeciesKey(), b.getBiomass(), Long::sum);
+                counts.merge(b.getSpeciesKey().getCode(), 1, Integer::sum);
             }
         }
 
+        this.entityCounts = Map.copyOf(counts);
         this.hasOrganisms = !biomassMap.isEmpty();
+        
         if (hasOrganisms && cell.getWorld() instanceof NatureWorld nw) {
             SpeciesKey top = null;
             long maxWeight = -1;
@@ -70,5 +77,10 @@ public class CellSnapshot implements NodeSnapshot {
     @Override
     public boolean hasOrganisms() {
         return hasOrganisms;
+    }
+    
+    @Override
+    public Map<String, Integer> getEntityCounts() {
+        return entityCounts;
     }
 }

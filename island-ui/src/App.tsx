@@ -12,6 +12,7 @@ function App() {
     connect, 
     disconnect, 
     start, 
+    startFromSnapshot,
     pause, 
     resume, 
     stop, 
@@ -157,9 +158,9 @@ function App() {
             {history.length === 0 ? (
               <p style={{ color: '#888', fontSize: '0.9rem' }}>No snapshots saved yet.</p>
             ) : (
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0, maxHeight: '150px', overflowY: 'auto' }}>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, maxHeight: '200px', overflowY: 'auto' }}>
                 {history.map(filename => (
-                  <li key={filename} style={{ marginBottom: '5px' }}>
+                  <li key={filename} style={{ marginBottom: '8px', display: 'flex', gap: '5px' }}>
                     <button 
                       onClick={() => loadHistoricalSnapshot(filename)}
                       style={{ 
@@ -168,12 +169,43 @@ function App() {
                         padding: '5px', 
                         borderRadius: '4px', 
                         cursor: 'pointer', 
-                        width: '100%', 
+                        flexGrow: 1, 
                         textAlign: 'left',
                         fontSize: '0.8rem'
                       }}
+                      title="View Snapshot"
                     >
                       {filename.replace('.json', '')}
+                    </button>
+                    <button 
+                      onClick={() => startFromSnapshot(filename, 'nature', configTickMs)}
+                      style={{ 
+                        background: '#4caf50', 
+                        color: 'white',
+                        border: 'none', 
+                        padding: '5px 10px', 
+                        borderRadius: '4px', 
+                        cursor: 'pointer',
+                        fontSize: '0.8rem'
+                      }}
+                      title="Start Nature simulation from this snapshot"
+                    >
+                      ▶ Nature
+                    </button>
+                    <button 
+                      onClick={() => startFromSnapshot(filename, 'simcity', configTickMs)}
+                      style={{ 
+                        background: '#2196f3', 
+                        color: 'white',
+                        border: 'none', 
+                        padding: '5px 10px', 
+                        borderRadius: '4px', 
+                        cursor: 'pointer',
+                        fontSize: '0.8rem'
+                      }}
+                      title="Start SimCity simulation from this snapshot"
+                    >
+                      ▶ City
                     </button>
                   </li>
                 ))}

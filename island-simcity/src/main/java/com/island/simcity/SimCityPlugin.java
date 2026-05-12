@@ -2,6 +2,8 @@ package com.island.simcity;
 
 import com.island.engine.ecs.ComponentRegistry;
 import com.island.engine.event.EventBus;
+import com.island.engine.model.NodeSnapshot;
+import com.island.engine.model.WorldSnapshot;
 import com.island.simcity.entities.SimEntity;
 import com.island.simcity.entities.components.BuildingComponent;
 import com.island.simcity.entities.components.EconomyComponent;
@@ -20,6 +22,7 @@ import com.island.engine.core.SimulationPlugin;
 import com.island.engine.core.SimulationWorld;
 import com.island.engine.scheduling.GameLoop;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Plugin implementation for the SimCity simulation.
@@ -28,14 +31,20 @@ public class SimCityPlugin implements SimulationPlugin<SimEntity> {
     private final int width;
     private final int height;
     private final ComponentRegistry componentRegistry = new ComponentRegistry();
+    private final WorldSnapshot initialSnapshot;
 
     public SimCityPlugin() {
-        this(10, 10);
+        this(10, 10, null);
     }
 
     public SimCityPlugin(int width, int height) {
-        this.width = width;
-        this.height = height;
+        this(width, height, null);
+    }
+
+    public SimCityPlugin(int width, int height, WorldSnapshot initialSnapshot) {
+        this.width = initialSnapshot != null ? initialSnapshot.getWidth() : width;
+        this.height = initialSnapshot != null ? initialSnapshot.getHeight() : height;
+        this.initialSnapshot = initialSnapshot;
         // Register components for stable indices
         componentRegistry.getBitSet(List.of(
                 PopulationComponent.class,
@@ -46,7 +55,33 @@ public class SimCityPlugin implements SimulationPlugin<SimEntity> {
 
     @Override
     public SimulationWorld<SimEntity> createWorld(EventBus eventBus) {
-        return new CityMap(width, height, eventBus, componentRegistry);
+        CityMap map = new CityMap(width, height, eventBus, componentRegistry);
+        
+        if (initialSnapshot != null) {
+            for (int x = 0; x < width; x++) {
+                for (int y = 0; y < height; y++) {
+                    NodeSnapshot nodeSnapshot = initialSnapshot.getNodeSnapshot(x, y);
+                    if (nodeSnapshot != null && nodeSnapshot.getEntityCounts() != null) {
+                        CityTile tile = map.getGrid()[x][y];
+                        for (Map.Entry<String, Integer> entry : nodeSnapshot.getEntityCounts().entrySet()) {
+                            try {
+                                BuildingComponent.Type type = BuildingComponent.Type.valueOf(entry.getKey().toUpperCase());
+                                int count = entry.getValue();
+                                for (int i = 0; i < count; i++) {
+                                    SimEntity building = new SimEntity(componentRegistry);
+                                    building.addComponent(BuildingComponent.builder().type(type).build());
+                                    tile.addEntity(building);
+                                }
+                            } catch (IllegalArgumentException e) {
+                                // Ignore unknown types
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        return map;
     }
 
     @Override

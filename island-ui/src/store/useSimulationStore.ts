@@ -14,6 +14,7 @@ interface SimulationState {
   connect: () => void;
   disconnect: () => void;
   start: (type: 'nature' | 'simcity', width?: number, height?: number, tickMs?: number) => Promise<void>;
+  startFromSnapshot: (filename: string, type: 'nature' | 'simcity', tickMs?: number) => Promise<void>;
   pause: () => Promise<void>;
   resume: () => Promise<void>;
   stop: () => Promise<void>;
@@ -84,6 +85,11 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
 
   start: async (type, width = 20, height = 20, tickMs = 100) => {
     await fetch(`/api/v1/simulation/start?type=${type}&width=${width}&height=${height}&tickMs=${tickMs}`, { method: 'POST' });
+    await get().updateStatus();
+  },
+
+  startFromSnapshot: async (filename, type, tickMs = 100) => {
+    await fetch(`/api/v1/simulation/start-from-snapshot?filename=${filename}&type=${type}&tickMs=${tickMs}`, { method: 'POST' });
     await get().updateStatus();
   },
 

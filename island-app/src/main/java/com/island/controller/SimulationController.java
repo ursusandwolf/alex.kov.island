@@ -46,6 +46,27 @@ public class SimulationController {
     }
 
     /**
+     * Starts a new simulation from a historical snapshot, replacing any currently running one.
+     * 
+     * @param filename the snapshot filename
+     * @param type     simulation type (nature, simcity)
+     * @param tickMs   tick duration in milliseconds (default 100)
+     * @return the current simulation status
+     */
+    @PostMapping("/start-from-snapshot")
+    public ResponseEntity<StatusResponse> startFromSnapshot(
+            @RequestParam String filename,
+            @RequestParam(defaultValue = "nature") String type,
+            @RequestParam(defaultValue = "100") int tickMs) {
+        WorldSnapshot snapshot = historyService.loadSnapshot(filename);
+        if (snapshot == null) {
+            return ResponseEntity.notFound().build();
+        }
+        simulationService.startFromSnapshot(snapshot, type, tickMs);
+        return ResponseEntity.ok(new StatusResponse(simulationService.getStatus()));
+    }
+
+    /**
      * Stops the simulation game loop.
      * 
      * @return the current simulation status

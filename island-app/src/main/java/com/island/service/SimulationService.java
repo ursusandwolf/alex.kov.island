@@ -61,6 +61,17 @@ public class SimulationService {
      * @param tickMs  the tick duration in milliseconds
      */
     public synchronized void start(String type, int width, int height, int tickMs) {
+        doStart(type, width, height, tickMs, null);
+    }
+
+    /**
+     * Starts a new simulation from an existing snapshot.
+     */
+    public synchronized void startFromSnapshot(WorldSnapshot snapshot, String type, int tickMs) {
+        doStart(type, snapshot.getWidth(), snapshot.getHeight(), tickMs, snapshot);
+    }
+
+    private void doStart(String type, int width, int height, int tickMs, WorldSnapshot initialSnapshot) {
         if (context != null) {
             context.close();
             log.info("Previous simulation context destroyed");
@@ -73,12 +84,12 @@ public class SimulationService {
 
         SimulationPlugin<?> plugin;
         if ("simcity".equalsIgnoreCase(type)) {
-            plugin = new SimCityPlugin(width, height);
+            plugin = new SimCityPlugin(width, height, initialSnapshot);
         } else {
             com.island.nature.config.Configuration cfg = com.island.nature.config.Configuration.load();
             cfg.setIslandWidth(width);
             cfg.setIslandHeight(height);
-            plugin = new NaturePlugin(cfg);
+            plugin = new NaturePlugin(cfg, initialSnapshot);
         }
 
         this.context = new SimulationEngine().build(plugin, config);
@@ -86,7 +97,8 @@ public class SimulationService {
         eventPublisher.publishEvent(new SimulationStartedEvent(this.context));
         
         this.context.gameLoop().start();
-        log.info("Started new '{}' simulation ({}x{}) at {}ms/tick", type, width, height, tickMs);
+        log.info("Started new '{}' simulation ({}x{}) at {}ms/tick{}", 
+                 type, width, height, tickMs, initialSnapshot != null ? " from snapshot" : "");
     }
 
     /**

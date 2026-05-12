@@ -12,6 +12,7 @@ import java.util.concurrent.Executors;
 import com.island.engine.core.SimulationContext;
 import com.island.engine.core.SimulationPlugin;
 import com.island.engine.core.SimulationWorld;
+import com.island.engine.model.WorldSnapshot;
 import com.island.engine.scheduling.GameLoop;
 import com.island.nature.entities.core.AnimalType;
 import com.island.nature.entities.core.Organism;
@@ -29,18 +30,24 @@ public class NaturePlugin implements SimulationPlugin<Organism> {
     private final Configuration config;
     private final NatureDomainContext domainContext;
     private final SimulationView view;
+    private final WorldSnapshot initialSnapshot;
 
     public NaturePlugin() {
-        this(Configuration.load());
+        this(Configuration.load(), null);
     }
 
     public NaturePlugin(Configuration config) {
-        this(config, config.isHeadless() ? new HeadlessView() : new ConsoleView());
+        this(config, null);
     }
 
-    public NaturePlugin(Configuration config, SimulationView view) {
+    public NaturePlugin(Configuration config, WorldSnapshot initialSnapshot) {
+        this(config, config.isHeadless() ? new HeadlessView() : new ConsoleView(), initialSnapshot);
+    }
+
+    public NaturePlugin(Configuration config, SimulationView view, WorldSnapshot initialSnapshot) {
         this.config = config;
         this.view = view;
+        this.initialSnapshot = initialSnapshot;
         this.domainContext = NatureDomainContextFactory.create(config);
     }
 
@@ -50,13 +57,20 @@ public class NaturePlugin implements SimulationPlugin<Organism> {
 
     @Override
     public SimulationWorld<Organism> createWorld(EventBus eventBus) {
-        Island island = new Island(domainContext, config.getIslandWidth(), config.getIslandHeight(), eventBus);
-        
+        int width = initialSnapshot != null ? initialSnapshot.getWidth() : config.getIslandWidth();
+        int height = initialSnapshot != null ? initialSnapshot.getHeight() : config.getIslandHeight();
+
+        Island island = new Island(domainContext, width, height, eventBus);
+
         WorldInitializer initializer = new WorldInitializer();
         try (ExecutorService initExecutor = Executors.newSingleThreadExecutor()) {
-            initializer.initialize(island, domainContext.getSpeciesRegistry(), domainContext.getAnimalFactory(), 
-                                   initExecutor, 
-                                   domainContext.getRandomProvider());
+            if (initialSnapshot != null) {
+                initializer.initializeFromSnapshot(island, domainContext.getSpeciesRegistry(), domainContext.getAnimalFactory(), 
+                                                   initialSnapshot, initExecutor, domainContext.getRandomProvider());
+            } else {
+                initializer.initialize(island, domainContext.getSpeciesRegistry(), domainContext.getAnimalFactory(), 
+                                       initExecutor, domainContext.getRandomProvider());
+            }
         }
         island.init();
         island.rebalance(); // Ensure partition reflects initial population
@@ -66,7 +80,7 @@ public class NaturePlugin implements SimulationPlugin<Organism> {
     @Override
     public void registerTasks(GameLoop<Organism> gameLoop, SimulationWorld<Organism> world, EventBus eventBus) {
         NatureWorld natureWorld = (NatureWorld) world;
-        
+
         TaskRegistry taskRegistry = new TaskRegistry(gameLoop, natureWorld, domainContext, domainContext.getInteractionProvider(), 
                                                      domainContext.getAnimalFactory(), domainContext.getSpeciesRegistry(), 
                                                      view, domainContext.getRandomProvider(), eventBus);

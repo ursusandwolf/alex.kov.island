@@ -2,6 +2,8 @@ package com.island.engine.model;
 
 import com.island.engine.core.EngineAPI;
 
+import java.util.Map;
+
 /**
  * Domain-agnostic snapshot of a simulation node state.
  */
@@ -26,4 +28,9 @@ public interface NodeSnapshot {
      * Checks if the node currently contains any organisms.
      */
     boolean hasOrganisms();
+
+    /**
+     * Gets the exact count of entities by their type or species code in this node.
+     */
+    Map<String, Integer> getEntityCounts();
 }
