@@ -29,6 +29,8 @@ public class CityMap implements SimulationWorld<SimEntity> {
     @Setter private int resDemand = 50;
     @Setter private int comDemand = 50;
     @Setter private int indDemand = 50;
+    @Setter private int averageEQ = 0;
+    @Setter private int averageHealth = 0;
     @Setter private long lastTickIncome = 0;
     @Setter private long lastTickExpenses = 0;
     @Setter private int taxRate = 15;

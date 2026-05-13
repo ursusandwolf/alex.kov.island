@@ -4,6 +4,7 @@ import com.island.engine.ecs.Component;
 import com.island.simcity.entities.SimEntity;
 import com.island.simcity.entities.components.BuildingComponent;
 import com.island.simcity.entities.components.PopulationComponent;
+import com.island.simcity.model.CityMap;
 import com.island.simcity.model.CityTile;
 import java.util.List;
 
@@ -20,6 +21,15 @@ public class ZoningService extends AbstractSimCityService {
     private static final int MIN_HAPPINESS_WEALTHY = 90;
     private static final int MAX_POLLUTION_MIDDLE = 20;
     private static final int MAX_POLLUTION_WEALTHY = 5;
+    private static final int MIN_EQ_HIGH_TECH = 120;
+    private static final int MIN_EDUCATION_LEVEL = 40;
+    private static final int MAX_POLLUTION_HIGH_TECH = 10;
+
+    private final CityMap map;
+
+    public ZoningService(CityMap map) {
+        this.map = map;
+    }
 
     @Override
     public List<Class<? extends Component>> readComponents() {
@@ -44,7 +54,24 @@ public class ZoningService extends AbstractSimCityService {
             if (isRCI(building.getType())) {
                 updateDensity(tile, building);
                 updateWealth(tile, entity);
+                if (building.getType() == BuildingComponent.Type.INDUSTRIAL) {
+                    tryUpgradeToHighTech(tile, building);
+                }
             }
+        }
+    }
+
+    private void tryUpgradeToHighTech(CityTile tile, BuildingComponent building) {
+        if (map == null) return;
+
+        int pollution = tile.getAirPollution() + tile.getWaterPollution();
+        if (tile.getEducationLevel() >= MIN_EDUCATION_LEVEL && 
+            map.getAverageEQ() >= MIN_EQ_HIGH_TECH && 
+            pollution <= MAX_POLLUTION_HIGH_TECH &&
+            tile.getDesirability() >= MIN_DESIRABILITY_MEDIUM) {
+            
+            building.setType(BuildingComponent.Type.HIGH_TECH);
+            map.addAlert("Industrial Zone upgraded to High-Tech!");
         }
     }
 

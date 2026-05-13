@@ -48,6 +48,11 @@ public class BuildingService {
             case WATER_PIPE -> 80;
             case POWER_PLANT -> 5000;
             case POWER_LINE -> 200;
+            case SCHOOL -> 1500;
+            case COLLEGE -> 4000;
+            case HOSPITAL -> 3500;
+            case PARK -> 800;
+            case HIGH_TECH -> 2500;
         };
     }
 }

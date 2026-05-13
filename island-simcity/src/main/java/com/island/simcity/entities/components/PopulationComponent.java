@@ -24,6 +24,8 @@ public class PopulationComponent implements Component {
 
     private int age;
     private int happiness;
+    private int education; // Education Quotient (EQ), 0-200
+    private int health;    // Health level, 0-100
     @Builder.Default
     private WealthLevel wealth = WealthLevel.POOR;
 

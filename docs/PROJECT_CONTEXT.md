@@ -27,6 +27,13 @@
     - **Standards**: Refactored `NaturePlugin` to strictly follow Lombok standards (`@Getter`, `@AllArgsConstructor`, `@NoArgsConstructor`).
     - **Build Integrity**: Restored compilation and functionality of the simulation broadcasting system.
     - **Validation**: All tests passing, including isolated web-layer tests.
+- **SimCity Expansion (May 13, 2026) - COMPLETED**:
+    - **Social Services**: Implemented `SocialService` for Education (Schools, Colleges) and Health (Hospitals).
+    - **Resident Evolution**: Added Education Quotient (EQ) and Health stats to `PopulationComponent`.
+    - **High-Tech Industry**: Implemented transition of industrial zones to clean High-Tech industry based on EQ and environmental factors.
+    - **Analytics**: Enhanced `CityAnalyticsService` to track city-wide average EQ and health.
+    - **Desirability**: Integrated social services into tile desirability calculations.
+
 - **Maintenance & Plugin Hardening (May 13, 2026) - COMPLETED**:
     - **Plugin SPI**: Enhanced `NamedSimulationPlugin` with `withConfiguration` to support dynamic parameters for Spring-managed singleton plugins.
     - **Optional API**: Transitions to `Optional` in `SimulationService` and `SnapshotHistoryService` to eliminate `null` returns.

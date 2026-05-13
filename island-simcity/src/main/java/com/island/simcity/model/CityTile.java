@@ -27,6 +27,8 @@ public class CityTile implements SimulationNode<SimEntity> {
     @Getter @Setter private int airPollution = 0;
     @Getter @Setter private int waterPollution = 0;
     @Getter @Setter private int desirability = 0;
+    @Getter @Setter private int educationLevel = 0;
+    @Getter @Setter private int healthLevel = 0;
 
     public CityTile(int x, int y, SimulationWorld<SimEntity> world) {
         this.x = x;

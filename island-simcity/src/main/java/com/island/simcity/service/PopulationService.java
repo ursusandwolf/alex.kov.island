@@ -120,12 +120,18 @@ public class PopulationService extends AbstractSimCityService {
                 
                 pop.updateHappiness(baseHappinessDelta);
                 
+                // Death and migration logic
+                int survivalThreshold = pop.getHealth() < 30 ? DEATH_THRESHOLD + 10 : DEATH_THRESHOLD;
                 if (pop.getHappiness() < LEAVE_CITY_THRESHOLD && tickCount % 2 == 0) {
                     entity.die(); // Leaves the city
                     map.addAlert("Residents leaving: Low Happiness");
+                } else if (pop.getHappiness() < survivalThreshold) {
+                    entity.die();
                 }
                 
-                if (pop.getAge() > MAX_AGE) {
+                // Dynamic life expectancy
+                int effectiveMaxAge = MAX_AGE + (pop.getHealth() - 50) / 2;
+                if (pop.getAge() > effectiveMaxAge || (pop.getHealth() <= 0 && tickCount % 5 == 0)) {
                     entity.die();
                 }
             } else if (building != null && building.getType() == BuildingComponent.Type.RESIDENTIAL) {

@@ -58,6 +58,8 @@ public class CitySnapshot implements WorldSnapshot {
         metrics.put("comDemand", map.getComDemand());
         metrics.put("indDemand", map.getIndDemand());
         metrics.put("totalJobs", map.getTotalJobs());
+        metrics.put("averageEQ", map.getAverageEQ());
+        metrics.put("averageHealth", map.getAverageHealth());
         metrics.put("income", map.getLastTickIncome());
         metrics.put("expenses", map.getLastTickExpenses());
         return metrics;

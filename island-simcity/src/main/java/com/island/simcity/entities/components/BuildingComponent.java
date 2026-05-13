@@ -23,7 +23,12 @@ public class BuildingComponent implements Component {
         METRO,
         WATER_PIPE,
         POWER_PLANT,
-        POWER_LINE
+        POWER_LINE,
+        SCHOOL,
+        COLLEGE,
+        HOSPITAL,
+        PARK,
+        HIGH_TECH
     }
 
     public enum Density {

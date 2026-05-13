@@ -38,6 +38,10 @@ public class DesirabilityService extends AbstractSimCityService {
         if (tile.isRailed()) score += 10;
         if (tile.isMetroConnected()) score += 20;
 
+        // Social services bonuses
+        score += tile.getEducationLevel() / 3;
+        score += tile.getHealthLevel() / 3;
+
         // Pollution penalties (severe)
         score -= tile.getAirPollution() / 2;
         score -= tile.getWaterPollution() / 2;

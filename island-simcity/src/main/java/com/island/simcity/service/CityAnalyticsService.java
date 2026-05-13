@@ -18,6 +18,8 @@ public class CityAnalyticsService extends AbstractSimCityService {
     }
     private final AtomicInteger pop = new AtomicInteger();
     private final AtomicInteger jobs = new AtomicInteger();
+    private final AtomicInteger totalEQ = new AtomicInteger();
+    private final AtomicInteger totalHealth = new AtomicInteger();
 
     @Override
     public List<Class<? extends Component>> readComponents() {
@@ -28,6 +30,8 @@ public class CityAnalyticsService extends AbstractSimCityService {
     public void beforeTick(int tickCount) {
         pop.set(0);
         jobs.set(0);
+        totalEQ.set(0);
+        totalHealth.set(0);
     }
 
     @Override
@@ -38,12 +42,19 @@ public class CityAnalyticsService extends AbstractSimCityService {
             
             if (popComp != null) {
                 pop.incrementAndGet();
+                totalEQ.addAndGet(popComp.getEducation());
+                totalHealth.addAndGet(popComp.getHealth());
             } else if (building != null) {
                 int jobCount = switch (building.getType()) {
                     case INDUSTRIAL -> switch (building.getDensity()) {
                         case LOW -> 10;
                         case MEDIUM -> 50;
                         case HIGH -> 250;
+                    };
+                    case HIGH_TECH -> switch (building.getDensity()) {
+                        case LOW -> 15;
+                        case MEDIUM -> 80;
+                        case HIGH -> 400;
                     };
                     case COMMERCIAL -> switch (building.getDensity()) {
                         case LOW -> 5;
@@ -63,6 +74,12 @@ public class CityAnalyticsService extends AbstractSimCityService {
         int currentJobs = jobs.get();
         map.setPopulation(currentPop);
         map.setTotalJobs(currentJobs);
+        
+        if (currentPop > 0) {
+            map.setAverageEQ(totalEQ.get() / currentPop);
+            map.setAverageHealth(totalHealth.get() / currentPop);
+        }
+        
         map.setResDemand(clamp((currentJobs - currentPop) * 5));
         map.setIndDemand(clamp((currentPop - currentJobs + 10) * 2));
         map.setComDemand(clamp(currentPop / 2 - currentJobs / 4));
