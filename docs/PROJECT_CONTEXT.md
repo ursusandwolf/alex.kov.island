@@ -24,6 +24,10 @@
     - **Standards**: Implemented `CorsConfig`, fixed `.gitignore` redundancies, and added Frontend CI to GitHub Actions.
     - **UI**: Enhanced React dashboard with robust error handling and visual feedback.
     - **Validation**: All tests passing, including isolated web-layer tests.
+- **Maintenance & Plugin Hardening (May 13, 2026) - COMPLETED**:
+    - **Plugin SPI**: Enhanced `NamedSimulationPlugin` with `withConfiguration` to support dynamic parameters for Spring-managed singleton plugins.
+    - **Optional API**: Transitions to `Optional` in `SimulationService` and `SnapshotHistoryService` to eliminate `null` returns.
+    - **Regression Fix**: Ensured `width`, `height`, and `snapshot` parameters are correctly passed to simulation engines.
 - **Release v1.54.0 (May 12, 2026) - COMPLETED**:
     - **Stability**: Core (island-engine) audited and frozen.
     - **Fixes**: Map rendering issue resolved via JSON serialization fix.
@@ -34,6 +38,12 @@
 - **Nature (Stable v1.54.0)**: High-performance ecosystem with predatory and metabolic logic.
 - **SimCity (Stable v1.54.0)**: Grid-based urban simulation with RCI zones and environmental mechanics.
 - **App (Stable v1.54.0)**: Spring Boot-managed backend providing REST and WebSocket APIs for simulation control and visualization.
+
+- **Architecture Constraint (JPMS)**:
+    - Attempted to refactor `SimulationService` to remove direct domain module dependencies (NaturePlugin).
+    - Failed due to JPMS module isolation and classloader conflicts in integration tests, causing `ClassCastException` where `NaturePlugin` and `NamedSimulationPlugin` were loaded by different module loaders despite being in the same module path.
+    - Decided to maintain explicit dependency to ensure test and runtime stability for current release.
+    - Future refactorings must address classloader consistency in integration test contexts.
 
 ## Next Steps
 - **Maintenance & Optimization (May 13, 2026)**:

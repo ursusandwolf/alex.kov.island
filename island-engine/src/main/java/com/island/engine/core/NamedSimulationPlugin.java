@@ -1,6 +1,7 @@
 package com.island.engine.core;
 
 import com.island.engine.model.Mortal;
+import com.island.engine.model.WorldSnapshot;
 
 /**
  * Extension of {@link SimulationPlugin} that identifies itself by a unique string name.
@@ -14,4 +15,17 @@ public interface NamedSimulationPlugin<T extends Mortal> extends SimulationPlugi
      * @return the unique name of the simulation plugin (e.g., "nature").
      */
     String getPluginName();
+
+    /**
+     * Creates a new instance of the plugin configured with specific world parameters.
+     * This allows Spring-managed singleton plugins to act as factories for specific simulation runs.
+     *
+     * @param width    the desired grid width
+     * @param height   the desired grid height
+     * @param snapshot an optional initial snapshot to load from
+     * @return a configured simulation plugin instance
+     */
+    default SimulationPlugin<T> withConfiguration(int width, int height, WorldSnapshot snapshot) {
+        return this;
+    }
 }

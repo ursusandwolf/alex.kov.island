@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 /**
  * Главная точка входа в симуляцию острова (Spring Boot).
  */
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "com.island")
 public class Main {
     public static void main(String[] args) {
         SpringApplication.run(Main.class, args);

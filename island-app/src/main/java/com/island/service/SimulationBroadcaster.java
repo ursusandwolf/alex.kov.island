@@ -53,11 +53,10 @@ public class SimulationBroadcaster {
         public void tick(int tickCount) {
             if (tickCount % snapshotInterval != 0) return;
 
-            WorldSnapshot snapshot = simulationService.getSnapshot();
-            if (snapshot != null) {
+            simulationService.getSnapshot().ifPresent(snapshot -> {
                 messaging.convertAndSend("/topic/world-state", snapshot);
                 log.trace("Broadcasted world state for tick {}", tickCount);
-            }
+            });
         }
     }
 

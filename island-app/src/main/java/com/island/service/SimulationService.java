@@ -4,6 +4,7 @@ import com.island.engine.core.NamedSimulationPlugin;
 import com.island.engine.core.SimulationConfig;
 import com.island.engine.core.SimulationContext;
 import com.island.engine.core.SimulationEngine;
+import com.island.engine.core.SimulationPlugin;
 import com.island.engine.model.WorldSnapshot;
 import com.island.engine.scheduling.SimulationStatus;
 import com.island.nature.NaturePlugin;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -92,13 +94,14 @@ public class SimulationService {
                 .tickDurationMs(tickMs)
                 .build();
 
-        NamedSimulationPlugin<?> plugin = plugins.get(type.toLowerCase());
-        if (plugin == null) {
+        NamedSimulationPlugin<?> factory = plugins.get(type.toLowerCase());
+        if (factory == null) {
             throw new IllegalArgumentException("Unknown simulation type: " + type);
         }
 
-        // Handle specific initial config for Nature if needed, or pass plugin instance directly
-        // Currently assumes plugin can handle its own initialization state from the snapshot.
+        // Create a configured instance of the plugin
+        SimulationPlugin<?> plugin = factory.withConfiguration(width, height, initialSnapshot);
+
         this.context = new SimulationEngine().build(plugin, config);
         
         eventPublisher.publishEvent(new SimulationStartedEvent(this.context));
@@ -150,10 +153,10 @@ public class SimulationService {
     /**
      * Creates a current snapshot of the simulation world.
      * 
-     * @return the world snapshot, or null if no simulation is running
+     * @return the world snapshot
      */
-    public WorldSnapshot getSnapshot() {
-        return context != null ? context.world().createSnapshot() : null;
+    public Optional<WorldSnapshot> getSnapshot() {
+        return Optional.ofNullable(context).map(c -> c.world().createSnapshot());
     }
 
     /**

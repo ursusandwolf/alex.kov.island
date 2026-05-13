@@ -18,6 +18,7 @@ import com.island.simcity.service.PollutionService;
 import com.island.simcity.service.DesirabilityService;
 import com.island.simcity.service.ZoningService;
 import com.island.engine.core.NamedSimulationPlugin;
+import com.island.engine.core.SimulationPlugin;
 import com.island.engine.core.SimulationWorld;
 import com.island.engine.scheduling.GameLoop;
 import org.springframework.stereotype.Component;
@@ -58,6 +59,11 @@ public class SimCityPlugin implements NamedSimulationPlugin<SimEntity> {
     @Override
     public String getPluginName() {
         return "simcity";
+    }
+
+    @Override
+    public SimulationPlugin<SimEntity> withConfiguration(int width, int height, WorldSnapshot snapshot) {
+        return new SimCityPlugin(width, height, snapshot);
     }
 
     @Override

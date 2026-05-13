@@ -44,25 +44,26 @@ public class SnapshotHistoryService {
     /**
      * Saves the current simulation snapshot to a JSON file.
      * 
-     * @return the generated filename, or null if failed
+     * @return the generated filename
      */
-    public String saveCurrentSnapshot() {
-        WorldSnapshot snapshot = simulationService.getSnapshot();
-        if (snapshot == null) {
+    public Optional<String> saveCurrentSnapshot() {
+        Optional<WorldSnapshot> snapshotOpt = simulationService.getSnapshot();
+        if (snapshotOpt.isEmpty()) {
             log.warn("No active simulation to snapshot");
-            return null;
+            return Optional.empty();
         }
 
+        WorldSnapshot snapshot = snapshotOpt.get();
         String filename = "snapshot_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".json";
         Path path = Paths.get(historyDir, filename);
 
         try {
             objectMapper.writeValue(path.toFile(), snapshot);
             log.info("Saved historical snapshot to {}", path);
-            return filename;
+            return Optional.of(filename);
         } catch (IOException e) {
             log.error("Failed to serialize and save snapshot", e);
-            return null;
+            return Optional.empty();
         }
     }
 

@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import com.island.engine.core.SimulationContext;
+import com.island.engine.core.SimulationPlugin;
 import com.island.engine.core.SimulationWorld;
 import com.island.engine.model.WorldSnapshot;
 import com.island.engine.scheduling.GameLoop;
@@ -56,6 +57,14 @@ public class NaturePlugin implements NamedSimulationPlugin<Organism> {
     @Override
     public String getPluginName() {
         return "nature";
+    }
+
+    @Override
+    public SimulationPlugin<Organism> withConfiguration(int width, int height, WorldSnapshot snapshot) {
+        Configuration newConfig = Configuration.load(); // Or clone existing if needed
+        newConfig.setIslandWidth(width);
+        newConfig.setIslandHeight(height);
+        return new NaturePlugin(newConfig, view, snapshot);
     }
 
     public NatureDomainContext getDomainContext() {

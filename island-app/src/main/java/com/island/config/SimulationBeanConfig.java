@@ -1,11 +1,26 @@
 package com.island.config;
 
+import com.island.engine.core.NamedSimulationPlugin;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
 
 /**
  * Spring configuration for simulation beans.
- * (Engine beans are now managed dynamically by SimulationService).
  */
+@Slf4j
 @Configuration
+@EnableConfigurationProperties(SimulationProperties.class)
+@ComponentScan(basePackages = "com.island")
 public class SimulationBeanConfig {
+
+    @Bean
+    public List<NamedSimulationPlugin<?>> simulationPlugins(List<NamedSimulationPlugin<?>> plugins) {
+        log.info("Registered plugins injected by Spring: {}", plugins);
+        return plugins;
+    }
 }

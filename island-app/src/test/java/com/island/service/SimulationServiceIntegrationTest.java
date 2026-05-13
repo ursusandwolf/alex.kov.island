@@ -1,10 +1,14 @@
 package com.island.service;
 
 import com.island.engine.scheduling.SimulationStatus;
+import com.island.nature.NaturePlugin;
+import com.island.engine.core.NamedSimulationPlugin;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -22,9 +26,6 @@ class SimulationServiceIntegrationTest {
 
     @Test
     void shouldManageSimulationLifecycle() {
-        // By default, it should be running because of @EventListener(ApplicationStartedEvent.class)
-        // However, in tests, it might take a moment to start or we might want to check transitions
-        
         simulationService.pause();
         assertEquals(SimulationStatus.PAUSED, simulationService.getStatus());
         

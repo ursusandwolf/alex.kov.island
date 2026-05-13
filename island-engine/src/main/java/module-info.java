@@ -12,5 +12,8 @@ module com.island.engine {
     exports com.island.util.math;
     exports com.island.util.sampling;
 
+    opens com.island.engine.core;
+    opens com.island.engine.model;
+
     uses com.island.engine.core.SimulationPlugin;
 }

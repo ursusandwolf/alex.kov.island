@@ -116,11 +116,9 @@ public class SimulationController {
      */
     @GetMapping("/snapshot")
     public ResponseEntity<WorldSnapshot> getSnapshot() {
-        WorldSnapshot snapshot = simulationService.getSnapshot();
-        if (snapshot == null) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(snapshot);
+        return simulationService.getSnapshot()
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
     }
 
     /**
@@ -130,11 +128,9 @@ public class SimulationController {
      */
     @PostMapping("/snapshot/save")
     public ResponseEntity<String> saveSnapshot() {
-        String filename = historyService.saveCurrentSnapshot();
-        if (filename == null) {
-            return ResponseEntity.internalServerError().build();
-        }
-        return ResponseEntity.ok(filename);
+        return historyService.saveCurrentSnapshot()
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.internalServerError().build());
     }
 
     /**

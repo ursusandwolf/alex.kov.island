@@ -2,6 +2,7 @@ module com.island.simcity {
     requires com.island.engine;
     requires static lombok;
     requires org.slf4j;
+    requires spring.context;
 
     exports com.island.simcity;
     exports com.island.simcity.model;
