@@ -7,13 +7,12 @@
 - Modularized React components (`SimulationControls`, `SimulationMetrics`, `SnapshotHistoryPanel`).
 
 ### Fixed
-- **Thread Safety**: Fixed TOCTOU NPE race conditions in `SimulationService` lifecycle methods (stop/pause/resume).
-- **Performance**: Moved STOMP I/O broadcasting out of the simulation hot path in `SimulationBroadcaster` using `AtomicReference` and `@Scheduled`.
-- **Performance**: Fixed O(W×H) frontend rendering bottleneck in `selectedNode` using `useMemo`.
-- **Configuration**: Refactored `SimulationService` to properly inject `SimulationProperties` instead of scattered `@Value` fields.
-- **Contract Enforcement**: Enforced factory pattern for `NamedSimulationPlugin.withConfiguration` by removing default `this` return, preventing singleton state pollution.
-- **Modularity**: Removed redundant domain imports in `SimulationService` to ensure strict module decoupling.
-- **Race Condition**: Secured simulation context switching by clearing the context reference before destruction.
+- **Thread Safety**: Fixed TOCTOU NPE race conditions in `SimulationService` lifecycle methods (stop/pause/resume/shutdown).
+- **Performance**: Moved STOMP I/O broadcasting out of the simulation hot path in `SimulationBroadcaster` using `AtomicReference` and `@Scheduled` (restored missing implementation).
+- **Performance**: Fixed O(W×H) frontend rendering bottleneck in `selectedNode` using `useMemo` (restored missing implementation).
+- **Configuration**: Added missing `@EnableScheduling` in `SimulationBeanConfig` to enable background tasks.
+- **Standards**: Refactored `NaturePlugin` to strictly follow Lombok standards as per `GEMINI.md`.
+- **Modularity**: Restored project build integrity by fixing missing imports and fields in `SimulationBroadcaster`.
 - **Validation**: Added missing `@Min`/`@Max` constraints for `tickMs` in `start-from-snapshot` endpoint.
 - **Plugin Regression**: Fixed issue where dynamic simulation parameters (width, height, snapshot) were ignored by Spring-managed singleton plugins.
 - Fixed entity rendering bug in `colors.ts` (species code case sensitivity).

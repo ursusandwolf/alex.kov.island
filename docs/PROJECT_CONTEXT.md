@@ -20,17 +20,12 @@
     - **Maintenance**: Synced `todo.md` and `README.md` with current project architecture (Spring Boot migration).
     - **ADR Audit**: Finalized and accepted ADR 004 (Spring Boot Integration).
 - **Code Quality Audit & Hardening (May 13, 2026) - COMPLETED**:
-    - **Concurrency**: Resolved TOCTOU NPE race condition in `SimulationService` lifecycle methods.
-    - **Performance**: Decoupled WebSocket STOMP broadcasting from simulation hot path using `AtomicReference`.
-    - **React UI**: Resolved O(W×H) rendering bottleneck in `App.tsx` and introduced Vitest for React component testing.
-    - **Configuration**: Unified property injection in `SimulationService` via `SimulationProperties`.
-    - **API Contract**: Enforced factory pattern for `NamedSimulationPlugin` to prevent state mutation in singleton beans.
-    - **Refactoring**: Successfully refactored `SimulationControllerTest` (WebMvcTest), `SnapshotHistoryService` (Optional), and `SimulationController`.
-    - **App Hardening**: Secured `SimulationService` context switching to prevent race conditions during restarts.
-    - **Modularity**: Restored domain decoupling by removing redundant imports in `SimulationService`.
-    - **Validation**: Unified REST API validation constraints for all simulation startup endpoints.
-    - **Standards**: Implemented `CorsConfig`, fixed `.gitignore` redundancies, and added Frontend CI to GitHub Actions.
-    - **UI**: Enhanced React dashboard with robust error handling and visual feedback.
+    - **Concurrency**: Resolved TOCTOU NPE race condition in `SimulationService` lifecycle methods, including `shutdown`.
+    - **Performance**: Fully decoupled WebSocket STOMP broadcasting from simulation hot path using `AtomicReference` and `@Scheduled`.
+    - **React UI**: Resolved O(W×H) rendering bottleneck in `App.tsx` using `useMemo` for coordinate-based indexing.
+    - **Configuration**: Enabled background task scheduling via `@EnableScheduling`.
+    - **Standards**: Refactored `NaturePlugin` to strictly follow Lombok standards (`@Getter`, `@AllArgsConstructor`, `@NoArgsConstructor`).
+    - **Build Integrity**: Restored compilation and functionality of the simulation broadcasting system.
     - **Validation**: All tests passing, including isolated web-layer tests.
 - **Maintenance & Plugin Hardening (May 13, 2026) - COMPLETED**:
     - **Plugin SPI**: Enhanced `NamedSimulationPlugin` with `withConfiguration` to support dynamic parameters for Spring-managed singleton plugins.

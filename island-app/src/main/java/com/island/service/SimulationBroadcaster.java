@@ -8,7 +8,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Orchestrates broadcasting of simulation states and events via WebSockets.
@@ -21,6 +24,7 @@ public class SimulationBroadcaster {
 
     private final SimpMessagingTemplate messaging;
     private final SimulationService simulationService;
+    private final AtomicReference<WorldSnapshot> pending = new AtomicReference<>();
 
     @Value("${sim.broadcast-interval:5}")
     private volatile int snapshotInterval;

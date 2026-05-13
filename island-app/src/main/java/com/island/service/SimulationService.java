@@ -155,8 +155,9 @@ public class SimulationService {
      */
     @PreDestroy
     public void shutdown() {
-        if (context != null) {
-            context.close();
+        SimulationContext<?> current = this.context;
+        if (current != null) {
+            current.close();
             log.info("Simulation shutdown complete");
         }
     }

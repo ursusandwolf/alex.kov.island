@@ -23,21 +23,25 @@ import com.island.nature.entities.domain.NatureWorld;
 import com.island.nature.entities.domain.TaskRegistry;
 import com.island.nature.entities.registry.WorldInitializer;
 import com.island.nature.entities.domain.NatureDomainContextFactory;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
  * Plugin implementation for the Nature (Island) simulation.
  */
 @Component
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Slf4j
 public class NaturePlugin implements NamedSimulationPlugin<Organism> {
-    private final Configuration config;
-    private final NatureDomainContext domainContext;
-    private final SimulationView view;
-    private final WorldSnapshot initialSnapshot;
-
-    public NaturePlugin() {
-        this(Configuration.load(), null);
-    }
+    private Configuration config;
+    private NatureDomainContext domainContext;
+    private SimulationView view;
+    private WorldSnapshot initialSnapshot;
 
     public NaturePlugin(Configuration config) {
         this(config, null);
@@ -48,10 +52,10 @@ public class NaturePlugin implements NamedSimulationPlugin<Organism> {
     }
 
     public NaturePlugin(Configuration config, SimulationView view, WorldSnapshot initialSnapshot) {
-        this.config = config;
-        this.view = view;
+        this.config = config != null ? config : Configuration.load();
+        this.view = view != null ? view : (this.config.isHeadless() ? new HeadlessView() : new ConsoleView());
         this.initialSnapshot = initialSnapshot;
-        this.domainContext = NatureDomainContextFactory.create(config);
+        this.domainContext = NatureDomainContextFactory.create(this.config);
     }
 
     @Override

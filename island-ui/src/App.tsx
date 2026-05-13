@@ -18,7 +18,11 @@ function App() {
     return () => disconnect();
   }, [connect, disconnect, updateStatus, fetchHistory]);
 
-  const selectedNode = snapshot?.nodes.flat().find(n => n.coordinates === selectedCoords) || null;
+  const selectedNode = useMemo(() => {
+    if (!snapshot || !selectedCoords) return null;
+    const [sx, sy] = selectedCoords.split(',').map(Number);
+    return snapshot.nodes[sx]?.[sy] ?? null;
+  }, [snapshot, selectedCoords]);
 
   return (
     <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
