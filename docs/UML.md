@@ -153,23 +153,27 @@ graph LR
     subgraph App_Layer [island-app (Spring Boot)]
         SC[SimulationController]
         SS[SimulationService]
-        SB[SnapshotBroadcaster]
+        SB[SimulationBroadcaster]
         JC[SimulationJacksonConfig]
+        GE[GlobalExceptionHandler]
     end
 
     subgraph Core_Layer [island-engine]
         SE[SimulationEngine]
         CX[SimulationContext]
         GL[GameLoop]
+        NP[NamedSimulationPlugin]
     end
 
     RD -- REST API --> SC
     ZS -- STOMP --> SB
     SC -- Lifecycle --> SS
+    SS -- Registry --> NP
     SS -- Manages --> SE
     SE -- Produces --> CX
     CX -- Provides --> GL
     GL -- Registers --> SB
     SB -- Serializes --> WS[WorldSnapshot]
     WS -- Broadcast --> ZS
+    SC -.-> GE
 ```
