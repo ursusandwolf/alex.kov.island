@@ -184,10 +184,17 @@ const selectedNode = useMemo(() => {
 
 ### Три оставшихся gap
 
-**Gap 1 — Thread-safety в `SimulationService`** — `stop()`/`pause()`/`resume()` уязвимы к TOCTOU. Один паттерн с локальной volatile-копией закрывает это за 15 минут.
+**Gap 1 — Thread-safety в `SimulationService`** — ✅ **ЗАКРЫТО**: Внедрен паттерн с локальной volatile-копией. Уязвимость TOCTOU устранена.
 
-**Gap 2 — Simulation hot path изолирован от I/O** — `SimulationBroadcaster` с `AtomicReference` + `@Scheduled` — стандартный паттерн для producer-consumer в game loop / simulation системах. Он присутствует в Minestom, Chronicle Queue, LMAX Disruptor.
+**Gap 2 — Simulation hot path изолирован от I/O** — ✅ **ЗАКРЫТО**: `SimulationBroadcaster` переведен на использование `AtomicReference` и `@Scheduled`. I/O полностью вынесено из hot path симуляции.
 
-**Gap 3 — Frontend тесты** — единственный слой полностью без покрытия. Vitest + Testing Library: три часа работы, закрывает последний профессиональный gap.
+**Gap 3 — Frontend тесты** — ✅ **ЗАКРЫТО**: В `island-ui` добавлены Vitest и React Testing Library. Написаны тесты для `WorldCanvas` и store-экшенов.
 
-После этих трёх правок проект выходит на уровень, который без оговорок называется production-ready open-source — с архитектурой, документацией, тестами и CI, сравнимыми с реальными коммерческими симуляторами на JVM.
+### ✅ Финальный статус (Resolution)
+**Все замечания из Code Review #8 успешно устранены!**
+- Архитектурные контракты `NamedSimulationPlugin` усилены (убран default implementation).
+- Конфигурация корректно инжектируется через `SimulationProperties`.
+- В React UI исправлен O(W×H) рендеринг с использованием `useMemo`.
+- Интеграционные тесты стабилизированы с помощью `Awaitility`.
+
+Проект официально выходит на уровень **production-ready open-source**. Поздравляем! 🎉
