@@ -4,8 +4,11 @@ import com.island.engine.model.WorldSnapshot;
 import com.island.engine.scheduling.SimulationStatus;
 import com.island.service.SimulationService;
 import com.island.service.SnapshotHistoryService;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,13 +17,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-
-/**
- * REST API for controlling the simulation state and snapshots.
- */
 @RestController
 @RequestMapping("/api/v1/simulation")
 @RequiredArgsConstructor
+@Validated
 public class SimulationController {
 
     private final SimulationService simulationService;
@@ -38,9 +38,9 @@ public class SimulationController {
     @PostMapping("/start")
     public ResponseEntity<StatusResponse> start(
             @RequestParam(defaultValue = "nature") String type,
-            @RequestParam(defaultValue = "20") int width,
-            @RequestParam(defaultValue = "20") int height,
-            @RequestParam(defaultValue = "100") int tickMs) {
+            @RequestParam(defaultValue = "20") @Min(5) @Max(200) int width,
+            @RequestParam(defaultValue = "20") @Min(5) @Max(200) int height,
+            @RequestParam(defaultValue = "100") @Min(10) @Max(10000) int tickMs) {
         simulationService.start(type, width, height, tickMs);
         return ResponseEntity.ok(new StatusResponse(simulationService.getStatus()));
     }

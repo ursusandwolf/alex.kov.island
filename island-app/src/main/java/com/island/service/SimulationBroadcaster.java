@@ -23,7 +23,7 @@ public class SimulationBroadcaster {
     private final SimulationService simulationService;
 
     @Value("${sim.broadcast-interval:5}")
-    private int snapshotInterval;
+    private volatile int snapshotInterval;
 
     /**
      * Automatically registers the broadcaster as a recurring task in the simulation game loop

@@ -19,6 +19,7 @@ module com.island.app {
     requires spring.messaging;
     requires spring.websocket;
     requires jakarta.annotation;
+    requires jakarta.validation;
 
     opens com.island to spring.core, spring.beans, spring.context;
     opens com.island.config to spring.core, spring.beans, spring.context, com.fasterxml.jackson.databind, spring.messaging;

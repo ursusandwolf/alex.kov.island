@@ -41,3 +41,7 @@ dist/
 
 # Scripts
 scripts/
+island-ui/node_modules/
+island-ui/dist/
+island-ui/node_modules/
+island-ui/dist/

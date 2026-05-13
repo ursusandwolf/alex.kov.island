@@ -4,14 +4,19 @@ export const getSpeciesColor = (code: string | null, isPlant: boolean): string =
   // Nature domain colors
   if (isPlant) return '#4caf50'; // Green
   
-  // Simple heuristic for animals if we don't have a full map yet
-  if (code.includes('Predator') || code === 'Wolf' || code === 'Bear') return '#f44336'; // Red
-  if (code.includes('Herbivore') || code === 'Rabbit' || code === 'Deer') return '#2196f3'; // Blue
+  const normalized = code.toLowerCase();
   
-  // SimCity domain colors (placeholder)
-  if (code === 'Residential') return '#4caf50';
-  if (code === 'Commercial') return '#2196f3';
-  if (code === 'Industrial') return '#ffeb3b';
+  // Heuristic for animals
+  if (normalized === 'wolf' || normalized === 'bear' || normalized === 'fox') return '#f44336'; // Red - predators
+  if (normalized === 'rabbit' || normalized === 'deer' || normalized === 'caterpillar') return '#2196f3'; // Blue - herbivores
   
-  return '#9c27b0'; // Purple for others
+  // SimCity domain colors
+  const cityColors: Record<string, string> = {
+    road: '#78909c',
+    residential: '#4caf50',
+    commercial: '#2196f3',
+    industrial: '#ffeb3b'
+  };
+  
+  return cityColors[normalized] ?? '#9c27b0'; // Purple for others
 };
