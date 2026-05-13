@@ -19,10 +19,11 @@
     - **UI Guide**: Created comprehensive `docs/UI_GUIDE.md` for the Web Dashboard.
     - **Maintenance**: Synced `todo.md` and `README.md` with current project architecture (Spring Boot migration).
     - **ADR Audit**: Finalized and accepted ADR 004 (Spring Boot Integration).
-- **Code Quality Audit (May 12, 2026) - COMPLETED**:
-    - **Refactoring**: Successfully refactored `WorldInitializer` (biomass factory, terrain deduplication) and `SimulationService`.
-    - **Standards**: Eliminated FQN violations in `SimulationService`.
-    - **Validation**: All core engine and nature tests passed.
+- **Code Quality Audit (May 13, 2026) - COMPLETED**:
+    - **Refactoring**: Successfully refactored `SimulationControllerTest` (WebMvcTest), `SnapshotHistoryService` (Optional), and `SimulationController`.
+    - **Standards**: Implemented `CorsConfig`, fixed `.gitignore` redundancies, and added Frontend CI to GitHub Actions.
+    - **UI**: Enhanced React dashboard with robust error handling and visual feedback.
+    - **Validation**: All tests passing, including isolated web-layer tests.
 - **Release v1.54.0 (May 12, 2026) - COMPLETED**:
     - **Stability**: Core (island-engine) audited and frozen.
     - **Fixes**: Map rendering issue resolved via JSON serialization fix.

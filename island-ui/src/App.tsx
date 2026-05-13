@@ -7,7 +7,7 @@ import { SimulationMetrics } from './components/simulation/SimulationMetrics';
 import { SnapshotHistoryPanel } from './components/simulation/SnapshotHistoryPanel';
 
 function App() {
-  const { status, snapshot, connected, connect, disconnect, updateStatus, fetchHistory } = useSimulationStore();
+  const { status, snapshot, connected, error, connect, disconnect, updateStatus, fetchHistory } = useSimulationStore();
   const [selectedCoords, setSelectedCoords] = useState<string | null>(null);
   const [config, setConfig] = useState({ width: 20, height: 20, tickMs: 100 });
 
@@ -36,6 +36,16 @@ function App() {
           </span>
         </div>
       </header>
+
+      {error && (
+        <div style={{ 
+          background: '#ffebee', color: '#c62828', padding: '15px', 
+          borderRadius: '8px', marginBottom: '20px', border: '1px solid #ef9a9a',
+          fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px'
+        }}>
+          ⚠️ Error: {error}
+        </div>
+      )}
 
       <main style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '30px' }}>
         <section>

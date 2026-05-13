@@ -58,12 +58,12 @@ public class SimulationController {
             @RequestParam String filename,
             @RequestParam(defaultValue = "nature") String type,
             @RequestParam(defaultValue = "100") int tickMs) {
-        WorldSnapshot snapshot = historyService.loadSnapshot(filename);
-        if (snapshot == null) {
-            return ResponseEntity.notFound().build();
-        }
-        simulationService.startFromSnapshot(snapshot, type, tickMs);
-        return ResponseEntity.ok(new StatusResponse(simulationService.getStatus()));
+        return historyService.loadSnapshot(filename)
+                .map(snapshot -> {
+                    simulationService.startFromSnapshot(snapshot, type, tickMs);
+                    return ResponseEntity.ok(new StatusResponse(simulationService.getStatus()));
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
     /**
@@ -155,11 +155,9 @@ public class SimulationController {
      */
     @GetMapping("/snapshot/history/{filename}")
     public ResponseEntity<WorldSnapshot> getHistoricalSnapshot(@PathVariable String filename) {
-        WorldSnapshot snapshot = historyService.loadSnapshot(filename);
-        if (snapshot == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(snapshot);
+        return historyService.loadSnapshot(filename)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     /**

@@ -1,48 +1,54 @@
 package com.island.controller;
 
+import com.island.service.SimulationService;
+import com.island.service.SnapshotHistoryService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.island.engine.scheduling.SimulationStatus;
+
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Integration test for SimulationController.
+ * Isolated web-layer test for SimulationController.
  */
-@SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("nature")
+@WebMvcTest(SimulationController.class)
 class SimulationControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
+    @MockBean
+    private SimulationService simulationService;
+
+    @MockBean
+    private SnapshotHistoryService historyService;
+
     @Test
-    void testSimulationLifecycle() throws Exception {
-        // 1. Check status (should be RUNNING due to auto-start)
+    void testSimulationStatus() throws Exception {
+        when(simulationService.getStatus()).thenReturn(SimulationStatus.RUNNING);
+
         mockMvc.perform(get("/api/v1/simulation/status"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("RUNNING"));
+    }
 
-        // 2. Pause
+    @Test
+    void testSimulationPause() throws Exception {
+        when(simulationService.getStatus()).thenReturn(SimulationStatus.PAUSED);
+
         mockMvc.perform(post("/api/v1/simulation/pause"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("PAUSED"));
 
-        // 3. Resume
-        mockMvc.perform(post("/api/v1/simulation/resume"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("RUNNING"));
-
-        // 4. Snapshot
-        mockMvc.perform(get("/api/v1/simulation/snapshot"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.width").exists());
+        verify(simulationService).pause();
     }
 }

@@ -13,6 +13,8 @@
 ### Changed
 - Refactored `SimulationService` to use a plugin registry, eliminating if/else logic (OCP compliance).
 - Cleaned up repository by removing tracked `node_modules` and updating `.gitignore`.
+- Refactored `SimulationControllerTest` to use `@WebMvcTest` for faster execution.
+- `SnapshotHistoryService.loadSnapshot` now returns `Optional<WorldSnapshot>`.
 
 ## [1.54.0] - 2026-05-13
 ### Added

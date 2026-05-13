@@ -76,37 +76,64 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
   updateStatus: async () => {
     try {
       const response = await fetch('/api/v1/simulation/status');
+      if (!response.ok) throw new Error(`Status fetch failed: ${response.statusText}`);
       const data = await response.json();
-      set({ status: data.status });
+      set({ status: data.status, error: null });
     } catch (err) {
+      set({ error: String(err) });
       console.error('Failed to fetch status', err);
     }
   },
 
   start: async (type, width = 20, height = 20, tickMs = 100) => {
-    await fetch(`/api/v1/simulation/start?type=${type}&width=${width}&height=${height}&tickMs=${tickMs}`, { method: 'POST' });
-    await get().updateStatus();
+    try {
+      const res = await fetch(`/api/v1/simulation/start?type=${type}&width=${width}&height=${height}&tickMs=${tickMs}`, { method: 'POST' });
+      if (!res.ok) throw new Error(`Start failed: ${await res.text()}`);
+      await get().updateStatus();
+    } catch (err) {
+      set({ error: String(err) });
+    }
   },
 
   startFromSnapshot: async (filename, type, tickMs = 100) => {
-    await fetch(`/api/v1/simulation/start-from-snapshot?filename=${filename}&type=${type}&tickMs=${tickMs}`, { method: 'POST' });
-    await get().updateStatus();
+    try {
+      const res = await fetch(`/api/v1/simulation/start-from-snapshot?filename=${filename}&type=${type}&tickMs=${tickMs}`, { method: 'POST' });
+      if (!res.ok) throw new Error(`Start from snapshot failed: ${await res.text()}`);
+      await get().updateStatus();
+    } catch (err) {
+      set({ error: String(err) });
+    }
   },
 
   pause: async () => {
-    await fetch('/api/v1/simulation/pause', { method: 'POST' });
-    await get().updateStatus();
+    try {
+      const res = await fetch('/api/v1/simulation/pause', { method: 'POST' });
+      if (!res.ok) throw new Error(`Pause failed: ${res.statusText}`);
+      await get().updateStatus();
+    } catch (err) {
+      set({ error: String(err) });
+    }
   },
 
   resume: async () => {
-    await fetch('/api/v1/simulation/resume', { method: 'POST' });
-    await get().updateStatus();
+    try {
+      const res = await fetch('/api/v1/simulation/resume', { method: 'POST' });
+      if (!res.ok) throw new Error(`Resume failed: ${res.statusText}`);
+      await get().updateStatus();
+    } catch (err) {
+      set({ error: String(err) });
+    }
   },
 
   stop: async () => {
-    await fetch('/api/v1/simulation/stop', { method: 'POST' });
-    await get().updateStatus();
-    set({ snapshot: null });
+    try {
+      const res = await fetch('/api/v1/simulation/stop', { method: 'POST' });
+      if (!res.ok) throw new Error(`Stop failed: ${res.statusText}`);
+      await get().updateStatus();
+      set({ snapshot: null });
+    } catch (err) {
+      set({ error: String(err) });
+    }
   },
 
   fetchHistory: async () => {
@@ -114,19 +141,23 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
       const res = await fetch('/api/v1/simulation/snapshot/history');
       if (res.ok) {
         const history = await res.json();
-        set({ history });
+        set({ history, error: null });
+      } else {
+        throw new Error(`History fetch failed: ${res.statusText}`);
       }
     } catch (err) {
+      set({ error: String(err) });
       console.error('Failed to fetch history', err);
     }
   },
 
   saveSnapshot: async () => {
     try {
-      await fetch('/api/v1/simulation/snapshot/save', { method: 'POST' });
+      const res = await fetch('/api/v1/simulation/snapshot/save', { method: 'POST' });
+      if (!res.ok) throw new Error(`Save failed: ${await res.text()}`);
       await get().fetchHistory();
     } catch (err) {
-      console.error('Failed to save snapshot', err);
+      set({ error: String(err) });
     }
   },
 
@@ -135,9 +166,12 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
       const res = await fetch(`/api/v1/simulation/snapshot/history/${filename}`);
       if (res.ok) {
         const snapshot = await res.json();
-        set({ snapshot });
+        set({ snapshot, error: null });
+      } else {
+        throw new Error(`Historical snapshot load failed: ${res.statusText}`);
       }
     } catch (err) {
+      set({ error: String(err) });
       console.error('Failed to load historical snapshot', err);
     }
   }

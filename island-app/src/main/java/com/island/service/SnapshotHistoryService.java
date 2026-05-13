@@ -15,6 +15,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -83,23 +84,23 @@ public class SnapshotHistoryService {
     /**
      * Loads a specific snapshot by filename.
      */
-    public WorldSnapshot loadSnapshot(String filename) {
+    public Optional<WorldSnapshot> loadSnapshot(String filename) {
         Path path = Paths.get(historyDir, filename).normalize();
         if (!path.startsWith(Paths.get(historyDir).normalize())) {
             log.warn("Invalid snapshot filename or path traversal attempt: {}", filename);
-            return null;
+            return Optional.empty();
         }
 
         if (!Files.exists(path)) {
             log.warn("Snapshot file not found: {}", path);
-            return null;
+            return Optional.empty();
         }
 
         try {
-            return objectMapper.readValue(path.toFile(), WorldSnapshot.class);
+            return Optional.ofNullable(objectMapper.readValue(path.toFile(), WorldSnapshot.class));
         } catch (IOException e) {
             log.error("Failed to deserialize snapshot from {}", path, e);
-            return null;
+            return Optional.empty();
         }
     }
 }

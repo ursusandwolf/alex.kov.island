@@ -43,3 +43,22 @@ jobs:
         with: { java-version: '21', distribution: 'temurin', cache: 'maven' }
       - name: Checkstyle
         run: mvn --batch-mode checkstyle:check
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: island-ui
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'island-ui/package-lock.json'
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Build
+        run: npm run build
