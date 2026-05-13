@@ -36,7 +36,9 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
   history: [],
 
   connect: () => {
-    if (stompClient?.active) return;
+    if (stompClient) {
+      stompClient.deactivate();
+    }
 
     stompClient = new Client({
       webSocketFactory: () => new SockJS('/ws-simulation'),

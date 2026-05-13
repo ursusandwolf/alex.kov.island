@@ -53,10 +53,16 @@ public class SimulationBroadcaster {
         public void tick(int tickCount) {
             if (tickCount % snapshotInterval != 0) return;
 
-            simulationService.getSnapshot().ifPresent(snapshot -> {
-                messaging.convertAndSend("/topic/world-state", snapshot);
-                log.trace("Broadcasted world state for tick {}", tickCount);
-            });
+            simulationService.getSnapshot().ifPresent(pending::set);
+        }
+    }
+
+    @Scheduled(fixedRateString = "${sim.broadcast-rate-ms:100}")
+    public void broadcast() {
+        WorldSnapshot snapshot = pending.getAndSet(null);
+        if (snapshot != null) {
+            messaging.convertAndSend("/topic/world-state", snapshot);
+            log.trace("Broadcasted world state from pending queue");
         }
     }
 

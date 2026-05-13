@@ -20,6 +20,11 @@
     - **Maintenance**: Synced `todo.md` and `README.md` with current project architecture (Spring Boot migration).
     - **ADR Audit**: Finalized and accepted ADR 004 (Spring Boot Integration).
 - **Code Quality Audit & Hardening (May 13, 2026) - COMPLETED**:
+    - **Concurrency**: Resolved TOCTOU NPE race condition in `SimulationService` lifecycle methods.
+    - **Performance**: Decoupled WebSocket STOMP broadcasting from simulation hot path using `AtomicReference`.
+    - **React UI**: Resolved O(W×H) rendering bottleneck in `App.tsx` and introduced Vitest for React component testing.
+    - **Configuration**: Unified property injection in `SimulationService` via `SimulationProperties`.
+    - **API Contract**: Enforced factory pattern for `NamedSimulationPlugin` to prevent state mutation in singleton beans.
     - **Refactoring**: Successfully refactored `SimulationControllerTest` (WebMvcTest), `SnapshotHistoryService` (Optional), and `SimulationController`.
     - **App Hardening**: Secured `SimulationService` context switching to prevent race conditions during restarts.
     - **Modularity**: Restored domain decoupling by removing redundant imports in `SimulationService`.

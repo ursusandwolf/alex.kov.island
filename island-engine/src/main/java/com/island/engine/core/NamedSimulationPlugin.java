@@ -19,13 +19,14 @@ public interface NamedSimulationPlugin<T extends Mortal> extends SimulationPlugi
     /**
      * Creates a new instance of the plugin configured with specific world parameters.
      * This allows Spring-managed singleton plugins to act as factories for specific simulation runs.
+     * <p>
+     * <b>Contract:</b> Implementations MUST return a new instance of the plugin to prevent
+     * concurrent configuration pollution on singleton beans.
      *
      * @param width    the desired grid width
      * @param height   the desired grid height
      * @param snapshot an optional initial snapshot to load from
-     * @return a configured simulation plugin instance
+     * @return a new, configured simulation plugin instance
      */
-    default SimulationPlugin<T> withConfiguration(int width, int height, WorldSnapshot snapshot) {
-        return this;
-    }
+    SimulationPlugin<T> withConfiguration(int width, int height, WorldSnapshot snapshot);
 }

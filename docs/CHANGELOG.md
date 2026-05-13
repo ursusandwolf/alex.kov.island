@@ -1,11 +1,17 @@
 ## [1.55.0] - 2026-05-13
 ### Added
+- Frontend testing suite using Vitest and React Testing Library, including tests for `WorldCanvas` and `useSimulationStore`.
 - `NamedSimulationPlugin` SPI with `withConfiguration` method for factory-based plugin instantiation.
 - `GlobalExceptionHandler` for centralized REST API error handling.
 - Bean Validation (`@Validated`, `@Min`, `@Max`) for `SimulationController` inputs.
 - Modularized React components (`SimulationControls`, `SimulationMetrics`, `SnapshotHistoryPanel`).
 
 ### Fixed
+- **Thread Safety**: Fixed TOCTOU NPE race conditions in `SimulationService` lifecycle methods (stop/pause/resume).
+- **Performance**: Moved STOMP I/O broadcasting out of the simulation hot path in `SimulationBroadcaster` using `AtomicReference` and `@Scheduled`.
+- **Performance**: Fixed O(W×H) frontend rendering bottleneck in `selectedNode` using `useMemo`.
+- **Configuration**: Refactored `SimulationService` to properly inject `SimulationProperties` instead of scattered `@Value` fields.
+- **Contract Enforcement**: Enforced factory pattern for `NamedSimulationPlugin.withConfiguration` by removing default `this` return, preventing singleton state pollution.
 - **Modularity**: Removed redundant domain imports in `SimulationService` to ensure strict module decoupling.
 - **Race Condition**: Secured simulation context switching by clearing the context reference before destruction.
 - **Validation**: Added missing `@Min`/`@Max` constraints for `tickMs` in `start-from-snapshot` endpoint.

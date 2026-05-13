@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useSimulationStore } from './store/useSimulationStore';
 import WorldCanvas from './components/WorldCanvas';
 import { NodeSnapshot } from './types/simulation';
@@ -105,6 +105,13 @@ const panelStyle: React.CSSProperties = {
 const LegendItem = ({ color, label }: { color: string, label: string }) => (
   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
     <div style={{ width: '16px', height: '16px', borderRadius: '3px', background: color }} />
+    <span style={{ fontSize: '0.9rem' }}>{label}</span>
+  </div>
+);
+
+export default App;
+
+'3px', background: color }} />
     <span style={{ fontSize: '0.9rem' }}>{label}</span>
   </div>
 );

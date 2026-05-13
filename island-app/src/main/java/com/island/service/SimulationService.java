@@ -7,9 +7,9 @@ import com.island.engine.core.SimulationEngine;
 import com.island.engine.core.SimulationPlugin;
 import com.island.engine.model.WorldSnapshot;
 import com.island.engine.scheduling.SimulationStatus;
+import com.island.config.SimulationProperties;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
@@ -29,26 +29,13 @@ public class SimulationService {
 
     private final ApplicationEventPublisher eventPublisher;
     private final Map<String, NamedSimulationPlugin<?>> plugins;
-
-    @Value("${sim.width:20}")
-    private int defaultWidth;
-
-    @Value("${sim.height:20}")
-    private int defaultHeight;
-
-    @Value("${sim.threads:4}")
-    private int defaultThreads;
-
-    @Value("${sim.tickMs:100}")
-    private int defaultTickMs;
-
-    @Value("${sim.default-plugin:nature}")
-    private String defaultPlugin;
+    private final SimulationProperties properties;
 
     private volatile SimulationContext<?> context;
 
-    public SimulationService(ApplicationEventPublisher eventPublisher, List<NamedSimulationPlugin<?>> pluginList) {
+    public SimulationService(ApplicationEventPublisher eventPublisher, List<NamedSimulationPlugin<?>> pluginList, SimulationProperties properties) {
         this.eventPublisher = eventPublisher;
+        this.properties = properties;
         this.plugins = pluginList.stream()
                 .collect(Collectors.toMap(p -> p.getPluginName().toLowerCase(), p -> p));
         log.info("Registered plugins: {}", plugins.keySet());
@@ -59,7 +46,7 @@ public class SimulationService {
      */
     @EventListener(ApplicationStartedEvent.class)
     public void startDefault() {
-        start(defaultPlugin, defaultWidth, defaultHeight, defaultTickMs);
+        start(properties.getDefaultPlugin(), properties.getWidth(), properties.getHeight(), properties.getTickMs());
     }
 
     /**
@@ -90,7 +77,7 @@ public class SimulationService {
         }
 
         SimulationConfig config = SimulationConfig.builder()
-                .threadCount(defaultThreads)
+                .threadCount(properties.getThreads())
                 .tickDurationMs(tickMs)
                 .build();
 
@@ -115,8 +102,9 @@ public class SimulationService {
      * Stops the simulation game loop.
      */
     public void stop() {
-        if (context != null) {
-            context.gameLoop().stop();
+        SimulationContext<?> current = this.context;
+        if (current != null) {
+            current.gameLoop().stop();
             log.info("Simulation stopped");
         }
     }
@@ -125,8 +113,9 @@ public class SimulationService {
      * Pauses the simulation game loop.
      */
     public void pause() {
-        if (context != null) {
-            context.gameLoop().pause();
+        SimulationContext<?> current = this.context;
+        if (current != null) {
+            current.gameLoop().pause();
             log.info("Simulation paused");
         }
     }
@@ -135,8 +124,9 @@ public class SimulationService {
      * Resumes the simulation game loop.
      */
     public void resume() {
-        if (context != null) {
-            context.gameLoop().resume();
+        SimulationContext<?> current = this.context;
+        if (current != null) {
+            current.gameLoop().resume();
             log.info("Simulation resumed");
         }
     }
@@ -147,7 +137,8 @@ public class SimulationService {
      * @return the simulation status
      */
     public SimulationStatus getStatus() {
-        return context != null ? context.gameLoop().getStatus() : SimulationStatus.IDLE;
+        SimulationContext<?> current = this.context;
+        return current != null ? current.gameLoop().getStatus() : SimulationStatus.IDLE;
     }
 
     /**

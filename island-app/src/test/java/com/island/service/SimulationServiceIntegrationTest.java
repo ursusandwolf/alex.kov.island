@@ -36,6 +36,9 @@ class SimulationServiceIntegrationTest {
         assertEquals(SimulationStatus.IDLE, simulationService.getStatus());
 
         simulationService.start("nature", 20, 20, 100);
-        assertEquals(SimulationStatus.RUNNING, simulationService.getStatus());
+        await().atMost(2, SECONDS).until(() -> simulationService.getStatus() == SimulationStatus.RUNNING);
+    }
+}
+quals(SimulationStatus.RUNNING, simulationService.getStatus());
     }
 }
