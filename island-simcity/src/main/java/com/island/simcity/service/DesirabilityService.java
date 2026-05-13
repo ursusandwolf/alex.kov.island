@@ -24,7 +24,7 @@ public class DesirabilityService extends AbstractSimCityService {
 
     @Override
     public int priority() {
-        return 30; // Runs after Connectivity and Pollution
+        return 10; // Last in PREPARE
     }
 
     @Override
@@ -32,19 +32,19 @@ public class DesirabilityService extends AbstractSimCityService {
         int score = 50; // Base desirability
 
         // Infrastructure bonuses
-        if (tile.isConnected()) score += 20;
-        if (tile.isWatered()) score += 15;
-        if (tile.isPowered()) score += 15;
+        if (tile.isConnected()) score += 15;
+        if (tile.isWatered()) score += 10;
+        if (tile.isPowered()) score += 10;
         if (tile.isRailed()) score += 10;
-        if (tile.isMetroConnected()) score += 20;
+        if (tile.isMetroConnected()) score += 15;
 
         // Social services bonuses
-        score += tile.getEducationLevel() / 3;
-        score += tile.getHealthLevel() / 3;
+        score += tile.getEducationLevel() / 2;
+        score += tile.getHealthLevel() / 2;
 
-        // Pollution penalties (severe)
-        score -= tile.getAirPollution() / 2;
-        score -= tile.getWaterPollution() / 2;
+        // Pollution penalties
+        score -= tile.getAirPollution() / 5;
+        score -= tile.getWaterPollution() / 5;
 
         tile.setDesirability(Math.max(0, Math.min(100, score)));
     }

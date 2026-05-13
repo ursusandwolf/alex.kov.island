@@ -28,7 +28,7 @@ public class SocialService extends AbstractSimCityService {
 
     @Override
     public int priority() {
-        return 35; // Runs after PollutionService (40)
+        return 60; // After Pollution (80)
     }
 
     @Override

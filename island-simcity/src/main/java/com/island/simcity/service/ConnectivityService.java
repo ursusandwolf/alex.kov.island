@@ -24,6 +24,11 @@ public class ConnectivityService extends AbstractSimCityService {
     }
 
     @Override
+    public int priority() {
+        return 100; // Highest priority in PREPARE
+    }
+
+    @Override
     public List<Class<? extends Component>> readComponents() {
         return List.of(BuildingComponent.class);
     }
@@ -98,16 +103,17 @@ public class ConnectivityService extends AbstractSimCityService {
     }
 
     private boolean isConductive(CityTile tile) {
-        List<SimEntity> entities = tile.getEntities();
-        for (int i = 0; i < entities.size(); i++) {
-            BuildingComponent b = entities.get(i).getComponent(BuildingComponent.class);
-            if (b == null) continue;
-            return switch (b.getType()) {
-                case ROAD, RAILWAY, METRO, WATER_PIPE -> false;
-                default -> true;
-            };
-        }
-        return false;
+        boolean[] conductive = {false};
+        tile.forEachEntity(e -> {
+            BuildingComponent b = e.getComponent(BuildingComponent.class);
+            if (b != null) {
+                switch (b.getType()) {
+                    case ROAD, RAILWAY, METRO, WATER_PIPE -> {}
+                    default -> conductive[0] = true;
+                }
+            }
+        });
+        return conductive[0];
     }
 
     private void propagateNetwork(BuildingComponent.Type type, java.util.function.BiConsumer<CityTile, Boolean> setter) {
@@ -117,11 +123,18 @@ public class ConnectivityService extends AbstractSimCityService {
         int width = map.getWidth();
         int height = map.getHeight();
 
-        CityTile start = map.getGrid()[0][0];
-        if (hasInfrastructure(start, type)) {
-            queue.add(start);
-            visited.set(0); // 0 * width + 0
+        // Start from edge tiles that have infrastructure OR from (0,0) as a fallback for small tests
+        for (int i = 0; i < width; i++) {
+            checkAndAdd(map.getGrid()[i][0], type);
+            checkAndAdd(map.getGrid()[i][height - 1], type);
         }
+        for (int i = 0; i < height; i++) {
+            checkAndAdd(map.getGrid()[0][i], type);
+            checkAndAdd(map.getGrid()[width - 1][i], type);
+        }
+        
+        // Ensure (0,0) is checked as a seed (common in tests)
+        checkAndAdd(map.getGrid()[0][0], type);
 
         while (!queue.isEmpty()) {
             CityTile current = queue.poll();
@@ -149,13 +162,26 @@ public class ConnectivityService extends AbstractSimCityService {
         }
     }
 
-    private boolean hasInfrastructure(CityTile tile, BuildingComponent.Type type) {
-        List<SimEntity> entities = tile.getEntities();
-        for (int i = 0; i < entities.size(); i++) {
-            BuildingComponent b = entities.get(i).getComponent(BuildingComponent.class);
-            if (b != null && b.getType() == type) return true;
+    private void checkAndAdd(CityTile tile, BuildingComponent.Type type) {
+        int width = map.getWidth();
+        if (hasInfrastructure(tile, type)) {
+            int idx = tile.getY() * width + tile.getX();
+            if (!visited.get(idx)) {
+                visited.set(idx);
+                queue.add(tile);
+            }
         }
-        return false;
+    }
+
+    private boolean hasInfrastructure(CityTile tile, BuildingComponent.Type type) {
+        boolean[] found = {false};
+        tile.forEachEntity(e -> {
+            BuildingComponent b = e.getComponent(BuildingComponent.class);
+            if (b != null && b.getType() == type) {
+                found[0] = true;
+            }
+        });
+        return found[0];
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.island.simcity.service;
 
 import com.island.engine.ecs.Component;
 import com.island.engine.ecs.ComponentRegistry;
+import com.island.engine.scheduling.Phase;
 import com.island.simcity.entities.SimEntity;
 import com.island.simcity.entities.components.BuildingComponent;
 import com.island.simcity.entities.components.PopulationComponent;
@@ -45,6 +46,16 @@ public class PopulationService extends AbstractSimCityService {
     private final CityMap map;
     private final ComponentRegistry registry;
     private final AtomicInteger totalPopulation = new AtomicInteger(0);
+
+    @Override
+    public Phase phase() {
+        return Phase.SIMULATION;
+    }
+
+    @Override
+    public int priority() {
+        return 100; // First in SIMULATION
+    }
 
     @Override
     public List<Class<? extends Component>> readComponents() {

@@ -13,6 +13,8 @@
 - **Configuration**: Added missing `@EnableScheduling` in `SimulationBeanConfig` to enable background tasks.
 - **Standards**: Refactored `NaturePlugin` to strictly follow Lombok standards as per `GEMINI.md`.
 - **Modularity**: Restored project build integrity by fixing missing imports and fields in `SimulationBroadcaster`.
+- **SimCity Phase 3**: Implemented Education system (Schools, Colleges), Health system (Hospitals, Parks), and High-Tech industry evolution logic.
+- **SimCity Phase 3**: Added education and health metrics to city analytics and world snapshots.
 - **Validation**: Added missing `@Min`/`@Max` constraints for `tickMs` in `start-from-snapshot` endpoint.
 - **Plugin Regression**: Fixed issue where dynamic simulation parameters (width, height, snapshot) were ignored by Spring-managed singleton plugins.
 - Fixed entity rendering bug in `colors.ts` (species code case sensitivity).

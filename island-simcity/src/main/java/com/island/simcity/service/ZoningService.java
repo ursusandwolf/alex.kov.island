@@ -1,6 +1,7 @@
 package com.island.simcity.service;
 
 import com.island.engine.ecs.Component;
+import com.island.engine.scheduling.Phase;
 import com.island.simcity.entities.SimEntity;
 import com.island.simcity.entities.components.BuildingComponent;
 import com.island.simcity.entities.components.PopulationComponent;
@@ -29,6 +30,16 @@ public class ZoningService extends AbstractSimCityService {
 
     public ZoningService(CityMap map) {
         this.map = map;
+    }
+
+    @Override
+    public Phase phase() {
+        return Phase.SIMULATION;
+    }
+
+    @Override
+    public int priority() {
+        return 80; // After Population (100)
     }
 
     @Override

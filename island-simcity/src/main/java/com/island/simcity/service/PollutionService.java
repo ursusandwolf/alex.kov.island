@@ -23,7 +23,7 @@ public class PollutionService extends AbstractSimCityService {
 
     @Override
     public int priority() {
-        return 40; // After Connectivity (50)
+        return 80; // After Connectivity (100)
     }
 
     @Override
