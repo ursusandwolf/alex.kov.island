@@ -2,6 +2,7 @@ module com.island.nature {
     requires com.island.engine;
     requires static lombok;
     requires org.slf4j;
+    requires spring.context;
 
     exports com.island.nature;
     exports com.island.nature.config;

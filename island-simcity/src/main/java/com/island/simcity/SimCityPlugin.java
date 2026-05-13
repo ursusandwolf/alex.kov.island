@@ -10,7 +10,6 @@ import com.island.simcity.entities.components.EconomyComponent;
 import com.island.simcity.entities.components.PopulationComponent;
 import com.island.simcity.model.CityMap;
 import com.island.simcity.model.CityTile;
-import com.island.simcity.service.BuildingService;
 import com.island.simcity.service.CityAnalyticsService;
 import com.island.simcity.service.ConnectivityService;
 import com.island.simcity.service.EconomyService;
@@ -18,16 +17,19 @@ import com.island.simcity.service.PopulationService;
 import com.island.simcity.service.PollutionService;
 import com.island.simcity.service.DesirabilityService;
 import com.island.simcity.service.ZoningService;
-import com.island.engine.core.SimulationPlugin;
+import com.island.engine.core.NamedSimulationPlugin;
 import com.island.engine.core.SimulationWorld;
 import com.island.engine.scheduling.GameLoop;
+import org.springframework.stereotype.Component;
+
 import java.util.List;
 import java.util.Map;
 
 /**
  * Plugin implementation for the SimCity simulation.
  */
-public class SimCityPlugin implements SimulationPlugin<SimEntity> {
+@Component
+public class SimCityPlugin implements NamedSimulationPlugin<SimEntity> {
     private final int width;
     private final int height;
     private final ComponentRegistry componentRegistry = new ComponentRegistry();
@@ -51,6 +53,11 @@ public class SimCityPlugin implements SimulationPlugin<SimEntity> {
                 BuildingComponent.class,
                 EconomyComponent.class
         ));
+    }
+
+    @Override
+    public String getPluginName() {
+        return "simcity";
     }
 
     @Override

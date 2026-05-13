@@ -1,5 +1,6 @@
 package com.island.nature;
 
+import com.island.engine.core.NamedSimulationPlugin;
 import com.island.engine.event.EventBus;
 import com.island.nature.config.Configuration;
 import com.island.nature.model.Island;
@@ -10,7 +11,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import com.island.engine.core.SimulationContext;
-import com.island.engine.core.SimulationPlugin;
 import com.island.engine.core.SimulationWorld;
 import com.island.engine.model.WorldSnapshot;
 import com.island.engine.scheduling.GameLoop;
@@ -22,11 +22,13 @@ import com.island.nature.entities.domain.NatureWorld;
 import com.island.nature.entities.domain.TaskRegistry;
 import com.island.nature.entities.registry.WorldInitializer;
 import com.island.nature.entities.domain.NatureDomainContextFactory;
+import org.springframework.stereotype.Component;
 
 /**
  * Plugin implementation for the Nature (Island) simulation.
  */
-public class NaturePlugin implements SimulationPlugin<Organism> {
+@Component
+public class NaturePlugin implements NamedSimulationPlugin<Organism> {
     private final Configuration config;
     private final NatureDomainContext domainContext;
     private final SimulationView view;
@@ -49,6 +51,11 @@ public class NaturePlugin implements SimulationPlugin<Organism> {
         this.view = view;
         this.initialSnapshot = initialSnapshot;
         this.domainContext = NatureDomainContextFactory.create(config);
+    }
+
+    @Override
+    public String getPluginName() {
+        return "nature";
     }
 
     public NatureDomainContext getDomainContext() {

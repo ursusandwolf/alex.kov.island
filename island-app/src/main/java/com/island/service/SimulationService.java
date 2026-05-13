@@ -1,16 +1,14 @@
 package com.island.service;
 
+import com.island.engine.core.NamedSimulationPlugin;
 import com.island.engine.core.SimulationConfig;
 import com.island.engine.core.SimulationContext;
 import com.island.engine.core.SimulationEngine;
-import com.island.engine.core.SimulationPlugin;
 import com.island.engine.model.WorldSnapshot;
 import com.island.engine.scheduling.SimulationStatus;
 import com.island.nature.NaturePlugin;
 import com.island.nature.config.Configuration;
-import com.island.simcity.SimCityPlugin;
 import jakarta.annotation.PreDestroy;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
@@ -18,15 +16,19 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 /**
  * Service to manage the simulation lifecycle and its dynamic context.
  */
 @Service
 @Slf4j
-@RequiredArgsConstructor
 public class SimulationService {
 
     private final ApplicationEventPublisher eventPublisher;
+    private final Map<String, NamedSimulationPlugin<?>> plugins;
 
     @Value("${sim.width:20}")
     private int defaultWidth;
@@ -40,17 +42,24 @@ public class SimulationService {
     @Value("${sim.tickMs:100}")
     private int defaultTickMs;
 
-    @Value("${spring.profiles.active:nature}")
-    private String defaultProfile;
+    @Value("${sim.default-plugin:nature}")
+    private String defaultPlugin;
 
     private volatile SimulationContext<?> context;
+
+    public SimulationService(ApplicationEventPublisher eventPublisher, List<NamedSimulationPlugin<?>> pluginList) {
+        this.eventPublisher = eventPublisher;
+        this.plugins = pluginList.stream()
+                .collect(Collectors.toMap(p -> p.getPluginName().toLowerCase(), p -> p));
+        log.info("Registered plugins: {}", plugins.keySet());
+    }
 
     /**
      * Starts the simulation automatically with default configuration.
      */
     @EventListener(ApplicationStartedEvent.class)
     public void startDefault() {
-        start(defaultProfile, defaultWidth, defaultHeight, defaultTickMs);
+        start(defaultPlugin, defaultWidth, defaultHeight, defaultTickMs);
     }
 
     /**
@@ -83,16 +92,13 @@ public class SimulationService {
                 .tickDurationMs(tickMs)
                 .build();
 
-        SimulationPlugin<?> plugin;
-        if ("simcity".equalsIgnoreCase(type)) {
-            plugin = new SimCityPlugin(width, height, initialSnapshot);
-        } else {
-            Configuration cfg = Configuration.load();
-            cfg.setIslandWidth(width);
-            cfg.setIslandHeight(height);
-            plugin = new NaturePlugin(cfg, initialSnapshot);
+        NamedSimulationPlugin<?> plugin = plugins.get(type.toLowerCase());
+        if (plugin == null) {
+            throw new IllegalArgumentException("Unknown simulation type: " + type);
         }
 
+        // Handle specific initial config for Nature if needed, or pass plugin instance directly
+        // Currently assumes plugin can handle its own initialization state from the snapshot.
         this.context = new SimulationEngine().build(plugin, config);
         
         eventPublisher.publishEvent(new SimulationStartedEvent(this.context));
