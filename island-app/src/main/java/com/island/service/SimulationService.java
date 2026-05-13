@@ -7,8 +7,6 @@ import com.island.engine.core.SimulationEngine;
 import com.island.engine.core.SimulationPlugin;
 import com.island.engine.model.WorldSnapshot;
 import com.island.engine.scheduling.SimulationStatus;
-import com.island.nature.NaturePlugin;
-import com.island.nature.config.Configuration;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -85,7 +83,9 @@ public class SimulationService {
 
     private void doStart(String type, int width, int height, int tickMs, WorldSnapshot initialSnapshot) {
         if (context != null) {
-            context.close();
+            SimulationContext<?> oldContext = this.context;
+            this.context = null; // Set to null before closing to prevent race conditions in snapshot/status calls
+            oldContext.close();
             log.info("Previous simulation context destroyed");
         }
 

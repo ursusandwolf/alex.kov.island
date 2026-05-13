@@ -57,7 +57,7 @@ public class SimulationController {
     public ResponseEntity<StatusResponse> startFromSnapshot(
             @RequestParam String filename,
             @RequestParam(defaultValue = "nature") String type,
-            @RequestParam(defaultValue = "100") int tickMs) {
+            @RequestParam(defaultValue = "100") @Min(10) @Max(10000) int tickMs) {
         return historyService.loadSnapshot(filename)
                 .map(snapshot -> {
                     simulationService.startFromSnapshot(snapshot, type, tickMs);

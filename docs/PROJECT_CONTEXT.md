@@ -19,8 +19,11 @@
     - **UI Guide**: Created comprehensive `docs/UI_GUIDE.md` for the Web Dashboard.
     - **Maintenance**: Synced `todo.md` and `README.md` with current project architecture (Spring Boot migration).
     - **ADR Audit**: Finalized and accepted ADR 004 (Spring Boot Integration).
-- **Code Quality Audit (May 13, 2026) - COMPLETED**:
+- **Code Quality Audit & Hardening (May 13, 2026) - COMPLETED**:
     - **Refactoring**: Successfully refactored `SimulationControllerTest` (WebMvcTest), `SnapshotHistoryService` (Optional), and `SimulationController`.
+    - **App Hardening**: Secured `SimulationService` context switching to prevent race conditions during restarts.
+    - **Modularity**: Restored domain decoupling by removing redundant imports in `SimulationService`.
+    - **Validation**: Unified REST API validation constraints for all simulation startup endpoints.
     - **Standards**: Implemented `CorsConfig`, fixed `.gitignore` redundancies, and added Frontend CI to GitHub Actions.
     - **UI**: Enhanced React dashboard with robust error handling and visual feedback.
     - **Validation**: All tests passing, including isolated web-layer tests.
