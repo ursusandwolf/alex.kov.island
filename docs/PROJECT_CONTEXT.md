@@ -19,14 +19,11 @@
     - **UI Guide**: Created comprehensive `docs/UI_GUIDE.md` for the Web Dashboard.
     - **Maintenance**: Synced `todo.md` and `README.md` with current project architecture (Spring Boot migration).
     - **ADR Audit**: Finalized and accepted ADR 004 (Spring Boot Integration).
-- **Code Quality Audit & Hardening (May 13, 2026) - COMPLETED**:
-    - **Concurrency**: Resolved TOCTOU NPE race condition in `SimulationService` lifecycle methods, including `shutdown`.
-    - **Performance**: Fully decoupled WebSocket STOMP broadcasting from simulation hot path using `AtomicReference` and `@Scheduled`.
-    - **React UI**: Resolved O(W×H) rendering bottleneck in `App.tsx` using `useMemo` for coordinate-based indexing.
-    - **Configuration**: Enabled background task scheduling via `@EnableScheduling`.
-    - **Standards**: Refactored `NaturePlugin` to strictly follow Lombok standards (`@Getter`, `@AllArgsConstructor`, `@NoArgsConstructor`).
-    - **Build Integrity**: Restored compilation and functionality of the simulation broadcasting system.
-    - **Validation**: All tests passing, including isolated web-layer tests.
+- **Code Quality Audit & Hardening (May 14, 2026) - COMPLETED**:
+    - **Configuration**: Refactored all remaining `@Value` properties into `@Validated` `SimulationProperties` bean.
+    - **Observability**: Integrated Spring Boot Actuator with health, info, and metrics endpoints.
+    - **Documentation**: Integrated SpringDoc OpenAPI (Swagger UI) for automated REST API documentation and exploration.
+    - **Stability**: Ensured JPMS compliance for new infrastructure modules.
 - **SimCity Expansion (May 13, 2026) - COMPLETED**:
     - **Social Services**: Implemented `SocialService` for Education (Schools, Colleges) and Health (Hospitals).
     - **Resident Evolution**: Added Education Quotient (EQ) and Health stats to `PopulationComponent`.

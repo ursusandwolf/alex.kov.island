@@ -11,6 +11,23 @@ sim:
   threads: 4
   tickMs: 100
   broadcast-interval: 5
+  broadcast-rate-ms: 100
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: alpha
 
 ---
 spring:

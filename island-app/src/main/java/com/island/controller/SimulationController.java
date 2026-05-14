@@ -4,6 +4,12 @@ import com.island.engine.model.WorldSnapshot;
 import com.island.engine.scheduling.SimulationStatus;
 import com.island.service.SimulationService;
 import com.island.service.SnapshotHistoryService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
@@ -17,10 +23,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/simulation")
 @RequiredArgsConstructor
 @Validated
+@Tag(name = "Simulation", description = "Endpoints for managing the simulation lifecycle and world state.")
 public class SimulationController {
 
     private final SimulationService simulationService;
@@ -28,36 +36,30 @@ public class SimulationController {
 
     /**
      * Starts a new simulation, replacing any currently running one.
-     * 
-     * @param type   simulation type (nature, simcity)
-     * @param width  grid width (default 20)
-     * @param height grid height (default 20)
-     * @param tickMs tick duration in milliseconds (default 100)
-     * @return the current simulation status
      */
+    @Operation(summary = "Start simulation", description = "Initializes and starts a new simulation with the given parameters.")
+    @ApiResponse(responseCode = "200", description = "Simulation started successfully")
     @PostMapping("/start")
     public ResponseEntity<StatusResponse> start(
-            @RequestParam(defaultValue = "nature") String type,
-            @RequestParam(defaultValue = "20") @Min(5) @Max(200) int width,
-            @RequestParam(defaultValue = "20") @Min(5) @Max(200) int height,
-            @RequestParam(defaultValue = "100") @Min(10) @Max(10000) int tickMs) {
+            @Parameter(description = "Type of simulation (nature, simcity)") @RequestParam(defaultValue = "nature") String type,
+            @Parameter(description = "Grid width") @RequestParam(defaultValue = "20") @Min(5) @Max(200) int width,
+            @Parameter(description = "Grid height") @RequestParam(defaultValue = "20") @Min(5) @Max(200) int height,
+            @Parameter(description = "Tick duration in ms") @RequestParam(defaultValue = "100") @Min(10) @Max(10000) int tickMs) {
         simulationService.start(type, width, height, tickMs);
         return ResponseEntity.ok(new StatusResponse(simulationService.getStatus()));
     }
 
     /**
      * Starts a new simulation from a historical snapshot, replacing any currently running one.
-     * 
-     * @param filename the snapshot filename
-     * @param type     simulation type (nature, simcity)
-     * @param tickMs   tick duration in milliseconds (default 100)
-     * @return the current simulation status
      */
+    @Operation(summary = "Start from snapshot", description = "Loads a saved snapshot and starts a simulation from its state.")
+    @ApiResponse(responseCode = "200", description = "Simulation started from snapshot")
+    @ApiResponse(responseCode = "404", description = "Snapshot file not found")
     @PostMapping("/start-from-snapshot")
     public ResponseEntity<StatusResponse> startFromSnapshot(
-            @RequestParam String filename,
-            @RequestParam(defaultValue = "nature") String type,
-            @RequestParam(defaultValue = "100") @Min(10) @Max(10000) int tickMs) {
+            @Parameter(description = "Filename of the snapshot") @RequestParam String filename,
+            @Parameter(description = "Type of simulation (nature, simcity)") @RequestParam(defaultValue = "nature") String type,
+            @Parameter(description = "Tick duration in ms") @RequestParam(defaultValue = "100") @Min(10) @Max(10000) int tickMs) {
         return historyService.loadSnapshot(filename)
                 .map(snapshot -> {
                     simulationService.startFromSnapshot(snapshot, type, tickMs);
@@ -68,9 +70,8 @@ public class SimulationController {
 
     /**
      * Stops the simulation game loop.
-     * 
-     * @return the current simulation status
      */
+    @Operation(summary = "Stop simulation", description = "Permanently stops the simulation game loop.")
     @PostMapping("/stop")
     public ResponseEntity<StatusResponse> stop() {
         simulationService.stop();
@@ -79,9 +80,8 @@ public class SimulationController {
 
     /**
      * Pauses the simulation.
-     * 
-     * @return the current simulation status
      */
+    @Operation(summary = "Pause simulation", description = "Pauses the execution of ticks.")
     @PostMapping("/pause")
     public ResponseEntity<StatusResponse> pause() {
         simulationService.pause();
@@ -90,9 +90,8 @@ public class SimulationController {
 
     /**
      * Resumes the simulation.
-     * 
-     * @return the current simulation status
      */
+    @Operation(summary = "Resume simulation", description = "Resumes the execution of ticks after a pause.")
     @PostMapping("/resume")
     public ResponseEntity<StatusResponse> resume() {
         simulationService.resume();
@@ -101,9 +100,8 @@ public class SimulationController {
 
     /**
      * Returns the current simulation status.
-     * 
-     * @return the current simulation status
      */
+    @Operation(summary = "Get status", description = "Returns the current status of the simulation (RUNNING, PAUSED, IDLE).")
     @GetMapping("/status")
     public ResponseEntity<StatusResponse> getStatus() {
         return ResponseEntity.ok(new StatusResponse(simulationService.getStatus()));
@@ -111,9 +109,10 @@ public class SimulationController {
 
     /**
      * Returns a snapshot of the current world state.
-     * 
-     * @return the world snapshot
      */
+    @Operation(summary = "Get snapshot", description = "Captures and returns the current state of the simulation world.")
+    @ApiResponse(responseCode = "200", description = "Snapshot captured")
+    @ApiResponse(responseCode = "204", description = "No simulation running")
     @GetMapping("/snapshot")
     public ResponseEntity<WorldSnapshot> getSnapshot() {
         return simulationService.getSnapshot()
@@ -123,9 +122,10 @@ public class SimulationController {
 
     /**
      * Saves the current simulation snapshot to disk.
-     *
-     * @return the filename of the saved snapshot
      */
+    @Operation(summary = "Save snapshot", description = "Saves the current world state to a JSON file on disk.")
+    @ApiResponse(responseCode = "200", description = "Snapshot saved")
+    @ApiResponse(responseCode = "500", description = "Failed to save snapshot")
     @PostMapping("/snapshot/save")
     public ResponseEntity<String> saveSnapshot() {
         return historyService.saveCurrentSnapshot()
@@ -135,9 +135,8 @@ public class SimulationController {
 
     /**
      * Lists all saved historical snapshots.
-     *
-     * @return list of filenames
      */
+    @Operation(summary = "List history", description = "Returns a list of all saved snapshot filenames.")
     @GetMapping("/snapshot/history")
     public ResponseEntity<List<String>> listSnapshots() {
         return ResponseEntity.ok(historyService.listSnapshots());
@@ -145,12 +144,13 @@ public class SimulationController {
 
     /**
      * Loads a specific historical snapshot by filename.
-     *
-     * @param filename the snapshot filename
-     * @return the loaded world snapshot
      */
+    @Operation(summary = "Get historical snapshot", description = "Retrieves the contents of a specific saved snapshot.")
+    @ApiResponse(responseCode = "200", description = "Snapshot found")
+    @ApiResponse(responseCode = "404", description = "Snapshot not found")
     @GetMapping("/snapshot/history/{filename}")
-    public ResponseEntity<WorldSnapshot> getHistoricalSnapshot(@PathVariable String filename) {
+    public ResponseEntity<WorldSnapshot> getHistoricalSnapshot(
+            @Parameter(description = "Filename of the snapshot") @PathVariable String filename) {
         return historyService.loadSnapshot(filename)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -159,5 +159,6 @@ public class SimulationController {
     /**
      * DTO for simulation status responses.
      */
-    public record StatusResponse(SimulationStatus status) {}
+    @Schema(description = "Response containing the simulation status.")
+    public record StatusResponse(@Schema(description = "Current status") SimulationStatus status) {}
 }

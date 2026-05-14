@@ -21,6 +21,11 @@ module com.island.app {
     requires spring.websocket;
     requires jakarta.annotation;
     requires jakarta.validation;
+    
+    // Infrastructure
+    requires io.swagger.v3.oas.annotations;
+    requires spring.boot.actuator;
+    requires spring.boot.actuator.autoconfigure;
 
     opens com.island to spring.core, spring.beans, spring.context;
     opens com.island.config to spring.core, spring.beans, spring.context, com.fasterxml.jackson.databind, spring.messaging, spring.boot;

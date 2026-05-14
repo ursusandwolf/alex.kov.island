@@ -15,10 +15,10 @@
 - [ ] Implement Revapi for API compatibility checks.
 - [ ] Add jqwik property-based tests for core logic.
 - [ ] Setup PITest mutation testing in CI pipeline.
-- [ ] **Technical Debt**: Refactor remaining `@Value` properties into `SimulationProperties`.
+- [x] **Technical Debt**: Refactor remaining `@Value` properties into `SimulationProperties`.
 - [ ] **Test Coverage**: Fix `@Disabled` test `SnapshotHistoryServiceTest.testLoadSnapshotSuccess` (serialization complexity).
-- [ ] **Infrastructure**: Implement SpringDoc OpenAPI for API documentation.
-- [ ] **Infrastructure**: Configure Spring Boot Actuator for metrics and health monitoring.
+- [x] **Infrastructure**: Implement SpringDoc OpenAPI for API documentation.
+- [x] **Infrastructure**: Configure Spring Boot Actuator for metrics and health monitoring.
 - [ ] **Operations**: Create Dockerfile and docker-compose.yml for production deployment.
 - [ ] **Security**: Implement Basic Authentication with Spring Security.
 - [ ] **Persistence**: Migrate snapshot storage from FS to JPA/H2.
