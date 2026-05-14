@@ -58,9 +58,10 @@
     - Future refactorings must address classloader consistency in integration test contexts.
 
 ## Next Steps
-- **Maintenance & Optimization (May 13, 2026)**:
-    - **Backlog Grooming**: Consolidated technical debt and maintenance tasks into updated `todo.md`.
-    - **Quality Roadmap**: Prioritizing Revapi integration, property-based testing, and mutation testing pipeline.
-- **Monitoring**: Observability of the live nature simulation.
-- **Extension**: New domain-specific plugins using the stable Engine API.
+- **Maintenance & Refactoring (May 14, 2026)**:
+    - **SimCity**: Refactor `SocialService` to resolve OCP/SRP violations identified during code review.
+    - **Quality Roadmap**: Implement Revapi integration and property-based testing (jqwik).
+    - **Testing**: Fix serialization-related failures in `SnapshotHistoryServiceTest`.
+- **Extension**: New domain-specific plugins using the stable and optimized Engine API.
+
 
