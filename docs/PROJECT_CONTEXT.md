@@ -24,6 +24,7 @@
     - **Observability**: Integrated Spring Boot Actuator with health, info, and metrics endpoints.
     - **Documentation**: Integrated SpringDoc OpenAPI (Swagger UI) for automated REST API documentation and exploration.
     - **Stability**: Ensured JPMS compliance for new infrastructure modules.
+    - **Code Review**: Conducted review of SimCity Social Services and Spring Boot integration. Identified OCP/SRP improvements for `SocialService`.
 - **SimCity Expansion (May 13, 2026) - COMPLETED**:
     - **Social Services**: Implemented `SocialService` for Education (Schools, Colleges) and Health (Hospitals).
     - **Resident Evolution**: Added Education Quotient (EQ) and Health stats to `PopulationComponent`.
