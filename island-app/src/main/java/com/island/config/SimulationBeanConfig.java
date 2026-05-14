@@ -17,12 +17,6 @@ import java.util.List;
 @Configuration
 @EnableScheduling
 @EnableConfigurationProperties(SimulationProperties.class)
-@ComponentScan(basePackages = "com.island")
 public class SimulationBeanConfig {
 
-    @Bean
-    public List<NamedSimulationPlugin<?>> simulationPlugins(List<NamedSimulationPlugin<?>> plugins) {
-        log.info("Registered plugins injected by Spring: {}", plugins);
-        return plugins;
-    }
 }

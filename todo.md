@@ -10,38 +10,26 @@
 - [x] **Task 3: Final Architectural Cleanup**
 - [x] **Task 4: Performance Benchmarking & GC Optimization**
 
-## 🛠 Immediate Technical Debt & Bug Fixes (Completed)
-- [x] **Technical Debt: NaturePlugin Assembly**
-- [x] **Code Quality: Dead Code Removal**
-- [x] **Architecture: Test Organization**
-- [x] **Engine: EventBus Improvements**
-
-## 🛠 Code Review Fixes (May 2026) (Completed)
-- [x] **Engine: Concurrency Modernization**
-- [x] **Code Quality: Checkstyle & Best Practices**
-- [x] **Spring: WebMvcTest & Global Exception Handling**
-- [x] **Frontend: Error Handling & CI Integration**
-
-## 📈 Phase 2: Optimization & Scalability (Completed)
-- [x] **Vector 3: Dynamic Load Balancing**
-- [x] **Performance Tuning**
-
-## 🌍 Phase 3: Global Systems & Integration (Completed)
-- [x] **Vector 4: Climate & Global Systems**
-- [x] **Vector 5: Headless & API**
-
-## 🛠 Maintenance
+## 🛠 Maintenance & Quality Hardening (In Progress)
 - [ ] Increase test coverage for concurrent scenarios.
 - [ ] Implement Revapi for API compatibility checks.
 - [ ] Add jqwik property-based tests for core logic.
 - [ ] Setup PITest mutation testing in CI pipeline.
+- [ ] **Technical Debt**: Refactor remaining `@Value` properties into `SimulationProperties`.
+- [ ] **Test Coverage**: Fix `@Disabled` test `SnapshotHistoryServiceTest.testLoadSnapshotSuccess` (serialization complexity).
+- [ ] **Infrastructure**: Implement SpringDoc OpenAPI for API documentation.
+- [ ] **Infrastructure**: Configure Spring Boot Actuator for metrics and health monitoring.
+- [ ] **Operations**: Create Dockerfile and docker-compose.yml for production deployment.
+- [ ] **Security**: Implement Basic Authentication with Spring Security.
+- [ ] **Persistence**: Migrate snapshot storage from FS to JPA/H2.
+- [ ] **Validation**: Fully configure `@ConfigurationPropertiesBinding` (@Validated).
 
-## 🖥 Phase 4: User Interface, Controls & Persistence (Completed)
-- [x] **Vector 6: Visualization & App Layer**
-- [x] **Vector 7: Real-Time Interaction**
-- [x] **Vector 8: Serialization & Save States**
-
-## 🚀 Phase 5: Production Readiness & Quality Hardening (Completed)
-- [x] **Vector 9: CI/CD & Automation**
-- [x] **Vector 10: Quality Gate Hardening**
-- [x] **Vector 11: Modular Isolation**
+## 🌍 Phase 3 & 4 (Completed)
+- [x] Vector 4: Climate & Global Systems
+- [x] Vector 5: Headless & API
+- [x] Vector 6: Visualization & App Layer
+- [x] Vector 7: Real-Time Interaction
+- [x] Vector 8: Serialization & Save States
+- [x] Vector 9: CI/CD & Automation
+- [x] Vector 10: Quality Gate Hardening
+- [x] Vector 11: Modular Isolation

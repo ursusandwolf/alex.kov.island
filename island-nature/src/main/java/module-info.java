@@ -9,6 +9,7 @@ module com.island.nature {
     exports com.island.nature.view;
     exports com.island.nature.entities.core;
     exports com.island.nature.model;
+    exports com.island.nature.service;
 
     opens com.island.nature.model;
 

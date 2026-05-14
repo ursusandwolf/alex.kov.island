@@ -1,18 +1,16 @@
 package com.island.service;
 
 import com.island.engine.scheduling.SimulationStatus;
-import com.island.nature.NaturePlugin;
-import com.island.engine.core.NamedSimulationPlugin;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Bean;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.awaitility.Awaitility.await;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 @SpringBootTest
 @ActiveProfiles("nature")
@@ -37,8 +35,5 @@ class SimulationServiceIntegrationTest {
 
         simulationService.start("nature", 20, 20, 100);
         await().atMost(2, SECONDS).until(() -> simulationService.getStatus() == SimulationStatus.RUNNING);
-    }
-}
-quals(SimulationStatus.RUNNING, simulationService.getStatus());
     }
 }
