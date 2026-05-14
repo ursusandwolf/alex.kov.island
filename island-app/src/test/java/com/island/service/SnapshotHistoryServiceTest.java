@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import com.island.nature.model.Island;
 import com.island.nature.model.IslandSnapshot;
+import com.island.nature.model.CellSnapshot;
 import com.island.nature.model.Cell;
 import com.island.nature.service.StatisticsService;
 import com.island.config.WorldSnapshotMixin;
@@ -71,23 +72,34 @@ class SnapshotHistoryServiceTest {
     }
 
     @Test
-    @org.junit.jupiter.api.Disabled("Polymorphic deserialization issues in test environment")
     void testLoadSnapshotSuccess() throws IOException {
-        Island mockIsland = mock(Island.class);
-        StatisticsService mockStats = mock(StatisticsService.class);
-        when(mockIsland.getWidth()).thenReturn(20);
-        when(mockIsland.getHeight()).thenReturn(20);
-        when(mockIsland.getStatisticsService()).thenReturn(mockStats);
-        when(mockIsland.getSpeciesCounts()).thenReturn(Collections.emptyMap());
-        when(mockIsland.getCell(anyInt(), anyInt())).thenReturn(mock(Cell.class));
+        IslandSnapshot testSnapshot = new IslandSnapshot();
+        testSnapshot.setWidth(20);
+        testSnapshot.setHeight(20);
+        testSnapshot.setTickCount(100);
+        testSnapshot.setMetrics(Collections.emptyMap());
+        testSnapshot.setNodes(new CellSnapshot[20][20]);
+        for (int x = 0; x < 20; x++) {
+            for (int y = 0; y < 20; y++) {
+                CellSnapshot cell = new CellSnapshot();
+                cell.setCoordinates(x + "," + y);
+                testSnapshot.getNodes()[x][y] = cell;
+            }
+        }
 
-        IslandSnapshot testSnapshot = new IslandSnapshot(mockIsland);
         Path path = tempDir.resolve("test.json");
-        objectMapper.writeValue(path.toFile(), testSnapshot);
+        // Use the WorldSnapshot type during serialization to ensure type info is included
+        objectMapper.writerFor(WorldSnapshot.class).writeValue(path.toFile(), testSnapshot);
 
+        // Point the service to our temp file
         Optional<WorldSnapshot> loaded = snapshotHistoryService.loadSnapshot("test.json");
+        
         assertTrue(loaded.isPresent(), "Snapshot should be loaded");
         assertEquals(20, loaded.get().getWidth());
+        assertEquals(100, loaded.get().getTickCount());
+        assertInstanceOf(IslandSnapshot.class, loaded.get());
+        assertNotNull(loaded.get().getNodeSnapshot(0, 0));
+        assertEquals("0,0", loaded.get().getNodeSnapshot(0, 0).getCoordinates());
     }
 
     @Test

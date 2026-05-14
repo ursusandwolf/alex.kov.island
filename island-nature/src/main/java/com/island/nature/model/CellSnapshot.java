@@ -9,15 +9,25 @@ import com.island.nature.entities.core.Biomass;
 import com.island.nature.entities.core.SpeciesKey;
 import com.island.nature.entities.domain.NatureWorld;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 /**
  * Island-specific implementation of NodeSnapshot using integer arithmetic for sorting.
  */
+@Getter
+@Setter
 public class CellSnapshot implements NodeSnapshot {
-    private final String coordinates;
-    private final String topSpeciesCode;
-    private final boolean isTopSpeciesPlant;
-    private final boolean hasOrganisms;
-    private final Map<String, Integer> entityCounts;
+    private String coordinates;
+    private String topSpeciesCode;
+    private boolean isTopSpeciesPlant;
+    private boolean hasOrganisms;
+    private Map<String, Integer> entityCounts;
+
+    public CellSnapshot() {
+        // No-args constructor for Jackson
+    }
 
     public CellSnapshot(Cell cell) {
         this.coordinates = cell.getCoordinates();

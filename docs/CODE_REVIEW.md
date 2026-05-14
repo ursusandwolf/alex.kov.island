@@ -1,200 +1,190 @@
+Теперь у меня полная картина. Пишу финальное ревью с развёрнутым планом итераций.
 
 ---
 
-## Code Review #8: Island dev — Plugin Registry, Validation, Component Split
+## Code Review #9: Island dev — Actuator, OpenAPI, Frontend Tests
 
-### Что закрыто из Review #7
+### Что закрыто из Review #8 — все пять критичных и средних
 
 | Замечание | Статус |
 |---|---|
-| Race condition при смене контекста | ✅ `context = null` до `close()`, reads через `Optional.ofNullable` |
-| `snapshotInterval` не thread-safe | ✅ `volatile int` |
-| Frontend без обработки ошибок | ✅ `response.ok` + `set({ error })` во всех методах |
-| `selectedNode` O(W×H) nested loop | ✅ `.flat().find()` — код чище |
-| Нет `GlobalExceptionHandler` | ✅ Добавлен с `@RestControllerAdvice`, `IllegalArgumentException` → 400 |
-| Нет валидации на endpoint | ✅ `@Validated` + `@Min`/`@Max` на всех параметрах |
-| if/else на тип плагина — нарушение OCP | ✅ `NamedSimulationPlugin` SPI + plugin registry в конструкторе |
-| React: всё в одном `App.tsx` | ✅ `SimulationControls`, `SimulationMetrics`, `SnapshotHistoryPanel` |
+| TOCTOU в `stop()`/`pause()`/`resume()` — NPE в race | ✅ `SimulationContext<?> current = this.context` во всех методах |
+| `SimulationBroadcaster` блокирует simulation hot path | ✅ `AtomicReference<WorldSnapshot> pending` + `@Scheduled` publisher |
+| `SimulationProperties` определён, но не используется | ✅ `@Value` убраны, конструктор принимает `SimulationProperties` |
+| `NamedSimulationPlugin.withConfiguration()` возвращает `this` | ✅ `NaturePlugin` создаёт `new NaturePlugin(newConfig, view, snapshot)` |
+| `selectedNode` — `flat().find()` O(W×H) | ✅ `useMemo` + прямая индексация `nodes[sx][sy]` |
+| Frontend без тестов | ✅ Vitest + `WorldCanvas.test.tsx` + `useSimulationStore.test.ts` |
+| `SimulationServiceIntegrationTest` без Awaitility | ✅ `await().atMost(2, SECONDS).until(...)` добавлен |
 
-Плюс: `CorsConfig` с externalized origins, `SimulationProperties` как `@ConfigurationProperties`, `Optional<WorldSnapshot>` везде. Скорость реакции на замечания — хорошая.
-
----
-
-### 🔴 Критично
+Дополнительно: `@EnableScheduling` + `@EnableConfigurationProperties` в `SimulationBeanConfig`, `@Validated` на `SimulationProperties` с `@Min`/`@Max`/`@NotBlank`, Spring Boot Actuator с health/metrics/prometheus, SpringDoc OpenAPI + Swagger UI, allocation-free итерация в `Cell`/`EntityContainer`, adaptive load balancing в `island-nature`, CI включает `npm run test`.
 
 ---
 
-**1. `stop()` / `pause()` / `resume()` — классический TOCTOU, NPE в многопоточной среде**
+### Текущие замечания
+
+Все критичные проблемы закрыты. Оставшееся — операционные мелочи.
+
+**`/actuator/prometheus` настроен, но зависимость отсутствует.** `application.yml` экспонирует `prometheus`, но `micrometer-registry-prometheus` не в `pom.xml`. Эндпоинт вернёт 404. Одна строка в `island-app/pom.xml`:
+```xml
+<dependency>
+    <groupId>io.micrometer</groupId>
+    <artifactId>micrometer-registry-prometheus</artifactId>
+</dependency>
+```
+
+**`@Scheduled(fixedRateString = "#{@simulationProperties.broadcastRateMs}")` — SpEL вместо `${...}`.** Работает, но нестандартно. Большинство Spring-проектов используют `${sim.broadcast-rate-ms}`. SpEL-ссылка на бин привязывает аннотацию к имени бина, что ломается при переименовании. Minor, но стоит унифицировать.
+
+**`SimulationServiceIntegrationTest.shouldManageSimulationLifecycle()` — первый `pause()` потенциально флакси.** Тест вызывает `pause()` немедленно, предполагая что автостарт уже перевёл симуляцию в `RUNNING`. `Awaitility` добавлен только в конце. Правильно — добавить `await` и в начале:
+```java
+await().atMost(2, SECONDS).until(() -> simulationService.getStatus() == RUNNING);
+simulationService.pause();
+assertEquals(PAUSED, simulationService.getStatus());
+```
+
+**`@Disabled` тест `SnapshotHistoryServiceTest.testLoadSnapshotSuccess` зафиксирован в `todo.md` но висит.** Disabled-тест, который не будет починен в ближайшей итерации — это сигнал о нерешённой архитектурной проблеме (Jackson не может десериализовать интерфейс без дополнительного контекста). Или починить — добавить `@JsonTypeInfo` и тест покрывает реальный round-trip — или удалить.
+
+**`Main.java` — Javadoc на русском** в полностью англоязычной кодовой базе. Единственное исключение за 9 итераций.
+
+---
+
+## Состояние проекта: итоговая оценка
+
+За девять итераций проект прошёл измеримый и задокументированный путь от PR21 (God Class `GameLoop`, плоская структура, нет тестов, нет CI) до v1.55 (пять Maven-модулей, JPMS, ECS с SoA, Spring Boot, React, Actuator, OpenAPI, Vitest). Это реальный производственный стек.
+
+Ниже — честная карта зрелости по слоям прямо сейчас:
+
+| Слой | Уровень | Что подтверждает |
+|---|---|---|
+| Engine core | ★★★★★ Production OSS | JPMS, `@EngineAPI`, ECS + SoA + `AtomicLongArray`, ArchUnit, JMH, ADR |
+| Spring Boot API | ★★★★☆ Production | STOMP, `@Validated`, `GlobalExceptionHandler`, Actuator, OpenAPI, TOCTOU-safe |
+| CI/CD | ★★★★☆ Commercial | JaCoCo 65%, PITest, Checkstyle, frontend test job, Codecov |
+| Frontend | ★★★☆☆ Solid mid-level | Zustand, Canvas, Vitest, компонентный split — без coverage, без e2e |
+| Testing (Java) | ★★★★☆ Strong | ArchUnit, JMH, Awaitility, интеграционные тесты, property-based — пока нет |
+| Документация | ★★★★★ OSS standard | ADR, ONBOARDING, CONTRIBUTING, GLOSSARY, TESTING_GUIDE, API docs |
+| Ops / Security | ★★☆☆☆ Minimal | Actuator есть, Dockerfile нет, Auth нет, DB нет |
+
+---
+
+## Рекомендации по следующим итерациям
+
+Проект находится на переломном моменте: все архитектурные долги закрыты, инфраструктура выстроена. Дальнейший рост — в трёх независимых направлениях. Ниже — конкретный план с обоснованием приоритетов.
+
+---
+
+### Направление A: Quality Gate — закрыть последние gaps
+
+**A1. jqwik property-based тесты** — единственный тип тестов, который ловит вероятностные инварианты в симуляции. Unit-тесты проверяют конкретные сценарии, integration-тесты проверяют стабильность. Только property-based тесты могут проверить: «при *любой* валидной конфигурации острова энергия организма после тика никогда не становится отрицательной».
 
 ```java
-// SimulationService.java — НЕ synchronized:
-public void stop() {
-    if (context != null) {          // ← thread A читает: не null
-                                    // ← thread B: start() → context = null → close()
-        context.gameLoop().stop();  // ← thread A: NPE на null reference
-    }
+// island-nature — AnimalHealthSystemPropertyTest.java
+@Property
+void energyNeverNegativeAfterTick(@ForAll @Positive int initialEnergy, 
+                                   @ForAll Season season) {
+    // ...
+    assertThat(organism.getEnergy()).isGreaterThanOrEqualTo(0);
 }
 ```
 
-`context` помечен `volatile` — это гарантирует видимость присвоения, но не атомарность read-check-act. Между `if (context != null)` и `context.gameLoop()` другой поток может вызвать `start()`, который выставит `context = null`. Итог — `NullPointerException` в HTTP-потоке.
+**A2. PITest в CI** — сейчас добавлен в `pom.xml` но не запускается в pipeline. Mutation score — единственная метрика которая показывает насколько тесты реально ловят ошибки, а не просто проходят строки. Добавить scheduled job (ночной прогон, не блокирует PR):
 
-Исправление — локальная копия под volatile-семантикой:
-
-```java
-public void stop() {
-    SimulationContext<?> current = this.context; // одно volatile-чтение
-    if (current != null) {
-        current.gameLoop().stop();               // работаем с локальной копией
-    }
-}
-// То же для pause(), resume(), getStatus()
+```yaml
+mutation-testing:
+  runs-on: ubuntu-latest
+  if: github.event_name == 'schedule'
+  steps:
+    - run: mvn -pl island-engine,island-nature org.pitest:pitest-maven:mutationCoverage
 ```
 
-`getSnapshot()` уже исправлен этим паттерном через `Optional.ofNullable(context).map(...)`.
+**A3. Revapi** — API-breaking changes между версиями не детектируются. При любом рефакторинге engine-интерфейсов возможно тихое нарушение контракта для downstream-кода:
 
----
-
-**2. `SimulationBroadcaster` всё ещё блокирует simulation hot path — критично не закрыто**
-
-```java
-// TickBroadcastTask.tick() — выполняется в потоке GameLoop:
-public void tick(int tickCount) {
-    if (tickCount % snapshotInterval != 0) return;
-
-    simulationService.getSnapshot().ifPresent(snapshot -> {
-        messaging.convertAndSend("/topic/world-state", snapshot); // ← Jackson serialize + STOMP I/O в simulation thread
-    });
-}
+```xml
+<!-- island-engine/pom.xml -->
+<plugin>
+    <groupId>org.revapi</groupId>
+    <artifactId>revapi-maven-plugin</artifactId>
+    <version>0.15.1</version>
+    <executions>
+        <execution>
+            <goals><goal>check</goal></goals>
+        </execution>
+    </executions>
+</plugin>
 ```
 
-Это замечание из Review #7, оно не закрыто. `convertAndSend` — синхронная операция через Spring messaging infrastructure. При 20+ WebSocket-клиентах или медленном брокере каждый N-й тик симуляции будет задерживаться на сетевое I/O. Это прямо противоречит архитектурному смыслу `Phase.POSTPROCESS` как «лёгкого» постобработчика.
-
-Минимальное исправление — decoupled publish через `AtomicReference`:
-
-```java
-@Component @RequiredArgsConstructor @Slf4j
-public class SimulationBroadcaster {
-
-    private final SimpMessagingTemplate messaging;
-    private final SimulationService     simulationService;
-    private final AtomicReference<WorldSnapshot> pending = new AtomicReference<>();
-
-    // В simulation thread: только O(1) атомарный set — никаких блокировок, никакого I/O:
-    private class TickBroadcastTask implements ScheduledTask {
-        public void tick(int tickCount) {
-            if (tickCount % snapshotInterval != 0) return;
-            simulationService.getSnapshot().ifPresent(pending::set);
-        }
-    }
-
-    // В отдельном Spring thread: I/O вынесено из hot path:
-    @Scheduled(fixedRateString = "${sim.broadcast-rate-ms:100}")
-    public void broadcast() {
-        WorldSnapshot snapshot = pending.getAndSet(null);
-        if (snapshot != null) {
-            messaging.convertAndSend("/topic/world-state", snapshot);
-        }
-    }
+**A4. Frontend coverage** — Vitest есть, но нет порога покрытия. Добавить в `vite.config.ts`:
+```ts
+test: {
+  coverage: { reporter: ['text', 'lcov'], thresholds: { lines: 60 } }
 }
 ```
 
 ---
 
-### 🟡 Стоит улучшить
+### Направление B: Operational Readiness — выход в production
 
----
+**B1. Dockerfile + docker-compose** — проект готов к контейнеризации: headless-режим работает, конфигурация через `application.yml` с профилями. Это минимальный шаг для демонстрации и деплоя:
 
-**3. `SimulationProperties` определён, но `SimulationService` его не использует**
-
-```java
-// SimulationProperties.java — есть, @ConfigurationProperties работает:
-@ConfigurationProperties(prefix = "sim")
-public class SimulationProperties { ... }
-
-// SimulationService.java — всё ещё @Value:
-@Value("${sim.width:20}")  private int defaultWidth;
-@Value("${sim.height:20}") private int defaultHeight;
-@Value("${sim.threads:4}") private int defaultThreads;
-@Value("${sim.tickMs:100}") private int defaultTickMs;
+```dockerfile
+FROM eclipse-temurin:21-jre-alpine
+COPY island-app/target/island-app.jar app.jar
+ENTRYPOINT ["java", "--enable-preview", "-jar", "app.jar"]
 ```
 
-`SimulationProperties` был создан (правильно), но инжекция в `SimulationService` не сделана. Это незавершённый рефакторинг — дублирование конфигурации в двух местах. Нужно инжектировать `SimulationProperties` в конструктор и убрать `@Value`-поля.
+```yaml
+# docker-compose.yml
+services:
+  island-app:
+    build: .
+    ports: ["8080:8080"]
+    environment:
+      - SPRING_PROFILES_ACTIVE=nature
+      - SIM_WIDTH=50
+      - SIM_HEIGHT=50
+```
+
+**B2. Spring Security Basic Auth** — Actuator-эндпоинты (`/actuator/prometheus`, `/actuator/health`) сейчас открыты. Перед любым public-деплоем нужна хотя бы базовая защита:
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-security</artifactId>
+</dependency>
+```
+
+**B3. JPA/H2 для снапшотов** — текущее FS-хранилище снапшотов (`SnapshotHistoryService`) имеет ограничения: нет пагинации, нет метаданных, нет search. Миграция на JPA/H2 (in-memory) + простой `SnapshotEntity` даёт полноценный CRUD бесплатно и открывает путь к PostgreSQL в продакшне.
 
 ---
 
-**4. `NamedSimulationPlugin.withConfiguration()` возвращает `this` — singleton factory не работает**
+### Направление C: Feature Development — расширение симуляции
+
+**C1. Multi-simulation поддержка** — архитектура `NamedSimulationPlugin` уже позволяет запускать несколько симуляций. `SimulationService` сейчас хранит один `context`. Замена на `Map<String, SimulationContext<?>>` (где ключ — UUID сессии) даёт multi-tenant симуляцию без изменений в engine:
 
 ```java
-// NamedSimulationPlugin.java
-default SimulationPlugin<T> withConfiguration(int width, int height, WorldSnapshot snapshot) {
-    return this;  // ← возвращает себя — singleton Spring bean
+// SimulationService.java
+private final ConcurrentHashMap<String, SimulationContext<?>> contexts = new ConcurrentHashMap<>();
+
+public String start(String type, int width, int height, int tickMs) {
+    String sessionId = UUID.randomUUID().toString();
+    contexts.put(sessionId, new SimulationEngine().build(...));
+    return sessionId;
 }
 ```
 
-Если `NaturePlugin` зарегистрирован как `@Component` (singleton) и не переопределяет `withConfiguration()`, то все вызовы `start("nature", 50, 50, null)` и `start("nature", 10, 10, snapshot)` будут работать с одним и тем же экземпляром. Конфигурация первого запуска останется в полях плагина. Это тихая логическая ошибка.
+**C2. SimCity — завершить EconomySystem** — `todo.md` фиксирует `SocialService` как OCP/SRP нарушение. SimCity стоит на паузе: `EconomySystem` без полной логики, `SocialService` без чёткого разделения ответственности. Это правильный следующий domain-шаг после того, как инфраструктура закрыта.
 
-Правильный вариант — `withConfiguration()` должен создавать новый экземпляр, а не возвращать `this`. В Javadoc это нужно явно задокументировать как контракт: «реализация ОБЯЗАНА вернуть новый экземпляр».
+**C3. Observability** — Actuator + Prometheus уже настроены. Grafana dashboard с метриками симуляции (`sim.tick.duration`, `sim.entity.count`, `sim.species.*`) через Micrometer Gauge — это следующий шаг для мониторинга live-симуляции.
 
 ---
 
-**5. `selectedNode` — `.flat().find()` остаётся O(W×H)**
+### Порядок итераций
 
-```typescript
-// App.tsx:
-const selectedNode = snapshot?.nodes.flat().find(n => n.coordinates === selectedCoords) || null;
+```
+Итерация 10: micrometer-registry-prometheus + Dockerfile + docker-compose (2-3 дня)
+Итерация 11: jqwik property-based тесты (2-3 дня)
+Итерация 12: Spring Security Basic Auth + JPA/H2 снапшоты (3-4 дня)
+Итерация 13: PITest scheduled CI job + Revapi (1-2 дня)
+Итерация 14: Multi-simulation support + SimCity EconomySystem (4-5 дней)
+Итерация 15: Grafana dashboard + frontend coverage gate (2-3 дня)
 ```
 
-`.flat()` создаёт новый массив из W×H элементов при каждом рендере. На острове 100×100 — 10 000 аллокаций + итерация. Trivial O(1) fix:
-
-```typescript
-const selectedNode = useMemo(() => {
-    if (!snapshot || !selectedCoords) return null;
-    const [sx, sy] = selectedCoords.split(',').map(Number);
-    return snapshot.nodes[sx]?.[sy] ?? null;
-}, [snapshot, selectedCoords]);
-```
-
----
-
-### 🟢 Мелочи
-
-- `SimulationServiceIntegrationTest` всё ещё без `Awaitility` — `@EventListener(ApplicationStartedEvent.class)` запускает симуляцию асинхронно, тест предполагает `RUNNING` без ожидания. Одна зависимость и `await().atMost(2, SECONDS).until(() -> service.getStatus() == RUNNING)` делает тест стабильным
-- `stompClient` по-прежнему module-level переменная — в React StrictMode `useEffect` вызывается дважды, guard `stompClient?.active` не успевает сработать. `useRef` или деактивация в cleanup решают это
-- Frontend тесты — `package.json` всё ещё без Vitest. Три теста для `WorldCanvas` и store-экшенов дают базовую защиту и закрывают последний unprofessional gap
-
----
-
-## Итоговая карта зрелости проекта
-
-За 8 итераций ревью с PR21 до версии 1.55 проект прошёл измеримый путь. Ниже — финальная честная карта.
-
-### Достигнутый уровень: Mid-level production open-source
-
-По каждому слою:
-
-**Engine** — уровень Artemis-ODB / Minestom: JPMS, ECS с `SystemExecutionGraph`, SoA с `AtomicLongArray`, `@EngineAPI`/`@InternalEngine`, ArchUnit, JMH benchmarks, ADR-документация. Это не учебный движок.
-
-**Backend** — уровень Spring Boot production: STOMP WebSocket, `@ConfigurationProperties`, `GlobalExceptionHandler`, `@Validated`, Jackson Mixin для полиморфизма, path traversal protection, plugin registry через `NamedSimulationPlugin`, JPMS `opens` для рефлексии.
-
-**Frontend** — уровень solid mid-level React: Zustand, STOMP/SockJS, Canvas-рендеринг, компонентная декомпозиция, error handling. Не хватает тестов.
-
-**Build & CI** — уровень Apache Commons: JaCoCo 65%, PITest, Checkstyle, `maven-enforcer`, `island-benchmarks` модуль, GitHub Actions.
-
-**Documentation** — уровень зрелого OSS: ONBOARDING, CONTRIBUTING, GLOSSARY, ADR, API docs, TESTING_GUIDE, UML.
-
-### Три оставшихся gap
-
-**Gap 1 — Thread-safety в `SimulationService`** — ✅ **ЗАКРЫТО**: Внедрен паттерн с локальной volatile-копией. Уязвимость TOCTOU устранена.
-
-**Gap 2 — Simulation hot path изолирован от I/O** — ✅ **ЗАКРЫТО**: `SimulationBroadcaster` переведен на использование `AtomicReference` и `@Scheduled`. I/O полностью вынесено из hot path симуляции.
-
-**Gap 3 — Frontend тесты** — ✅ **ЗАКРЫТО**: В `island-ui` добавлены Vitest и React Testing Library. Написаны тесты для `WorldCanvas` и store-экшенов.
-
-### ✅ Финальный статус (Resolution)
-**Все замечания из Code Review #8 успешно устранены!**
-- Архитектурные контракты `NamedSimulationPlugin` усилены (убран default implementation).
-- Конфигурация корректно инжектируется через `SimulationProperties`.
-- В React UI исправлен O(W×H) рендеринг с использованием `useMemo`.
-- Интеграционные тесты стабилизированы с помощью `Awaitility`.
-
-Проект официально выходит на уровень **production-ready open-source**. Поздравляем! 🎉
+Проект перестал нуждаться в архитектурных исправлениях. Следующие итерации — это чистый рост: надёжность, наблюдаемость, фичи.

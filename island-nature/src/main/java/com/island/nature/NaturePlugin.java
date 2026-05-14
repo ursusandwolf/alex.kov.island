@@ -23,9 +23,7 @@ import com.island.nature.entities.domain.NatureWorld;
 import com.island.nature.entities.domain.TaskRegistry;
 import com.island.nature.entities.registry.WorldInitializer;
 import com.island.nature.entities.domain.NatureDomainContextFactory;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -34,14 +32,16 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
 @Slf4j
 public class NaturePlugin implements NamedSimulationPlugin<Organism> {
     private Configuration config;
     private NatureDomainContext domainContext;
     private SimulationView view;
     private WorldSnapshot initialSnapshot;
+
+    public NaturePlugin() {
+        // Default constructor for JPMS and Spring
+    }
 
     public NaturePlugin(Configuration config) {
         this(config, null);

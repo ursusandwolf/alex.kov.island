@@ -23,33 +23,18 @@
     - **Dispatcher**: Eliminated `ArrayList` allocations in `ParallelDispatcher` hot path by reusing pooled lists.
     - **Load Balancing**: Enhanced `DynamicChunkingStrategy` in `island-nature` to use `WorkUnit` execution time metrics for adaptive partitioning.
     - **Zero-GC**: Refactored `Cell` and `EntityContainer` to support allocation-free iteration. Replaced `Optional` with `getNodeOrNull` in critical movement logic.
-- **Code Quality Audit & Hardening (May 14, 2026) - COMPLETED**:
-    - **Configuration**: Refactored all remaining `@Value` properties into `@Validated` `SimulationProperties` bean.
-    - **Observability**: Integrated Spring Boot Actuator with health, info, and metrics endpoints.
-    - **Documentation**: Integrated SpringDoc OpenAPI (Swagger UI) for automated REST API documentation and exploration.
-    - **Stability**: Ensured JPMS compliance for new infrastructure modules.
-    - **Code Review**: Conducted review of SimCity Social Services and Spring Boot integration. Identified OCP/SRP improvements for `SocialService`.
-- **SimCity Expansion (May 13, 2026) - COMPLETED**:
-    - **Social Services**: Implemented `SocialService` for Education (Schools, Colleges) and Health (Hospitals).
-    - **Resident Evolution**: Added Education Quotient (EQ) and Health stats to `PopulationComponent`.
-    - **High-Tech Industry**: Implemented transition of industrial zones to clean High-Tech industry based on EQ and environmental factors.
-    - **Analytics**: Enhanced `CityAnalyticsService` to track city-wide average EQ and health.
-    - **Desirability**: Integrated social services into tile desirability calculations.
-
-- **Maintenance & Plugin Hardening (May 13, 2026) - COMPLETED**:
-    - **Plugin SPI**: Enhanced `NamedSimulationPlugin` with `withConfiguration` to support dynamic parameters for Spring-managed singleton plugins.
-    - **Optional API**: Transitions to `Optional` in `SimulationService` and `SnapshotHistoryService` to eliminate `null` returns.
-    - **Regression Fix**: Ensured `width`, `height`, and `snapshot` parameters are correctly passed to simulation engines.
-- **Release v1.54.0 (May 12, 2026) - COMPLETED**:
-    - **Stability**: Core (island-engine) audited and frozen.
-    - **Fixes**: Map rendering issue resolved via JSON serialization fix.
-    - **Packaging**: Verified JAR library structure and JPMS exports.
+- **Code Review & Quality Gate (May 14, 2026) - COMPLETED**:
+    - **Infrastructure**: Added missing `micrometer-registry-prometheus` dependency and enabled Prometheus metrics.
+    - **Modularity**: Resolved JPMS `InaccessibleObjectException` for configuration properties and service providers.
+    - **Stability**: Fixed flaky `SimulationServiceIntegrationTest` lifecycle management.
+    - **Persistence**: Fixed and enabled `SnapshotHistoryServiceTest` by implementing robust polymorphic serialization in all snapshot implementations.
+    - **Consistency**: Unified scheduled task property resolution and translated `Main.java` Javadoc to English.
 
 ## Architecture
-- **Engine (Stable v1.54.0)**: Decoupled core with SoA-based storage, phase-based scheduling, and robust thread pooling.
-- **Nature (Stable v1.54.0)**: High-performance ecosystem with predatory and metabolic logic.
-- **SimCity (Stable v1.54.0)**: Grid-based urban simulation with RCI zones and environmental mechanics.
-- **App (Stable v1.54.0)**: Spring Boot-managed backend providing REST and WebSocket APIs for simulation control and visualization.
+- **Engine (Stable v1.55.0)**: Decoupled core with SoA-based storage, phase-based scheduling, and robust thread pooling.
+- **Nature (Stable v1.55.0)**: High-performance ecosystem with predatory and metabolic logic.
+- **SimCity (Stable v1.55.0)**: Grid-based urban simulation with RCI zones and environmental mechanics.
+- **App (Stable v1.55.0)**: Spring Boot-managed backend providing REST and WebSocket APIs for simulation control and visualization.
 
 - **Architecture Constraint (JPMS)**:
     - Attempted to refactor `SimulationService` to remove direct domain module dependencies (NaturePlugin).
@@ -58,10 +43,11 @@
     - Future refactorings must address classloader consistency in integration test contexts.
 
 ## Next Steps
-- **Maintenance & Refactoring (May 14, 2026)**:
+- **Maintenance & Refactoring (May 15, 2026)**:
     - **SimCity**: Refactor `SocialService` to resolve OCP/SRP violations identified during code review.
     - **Quality Roadmap**: Implement Revapi integration and property-based testing (jqwik).
-    - **Testing**: Fix serialization-related failures in `SnapshotHistoryServiceTest`.
+    - **Ops**: Create `Dockerfile` and `docker-compose.yml` for containerized deployment.
+    - **Security**: Implement Spring Security (Basic Auth) for Actuator and control endpoints.
 - **Extension**: New domain-specific plugins using the stable and optimized Engine API.
 
 

@@ -4,7 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * Главная точка входа в симуляцию острова (Spring Boot).
+ * Main entry point for the Island Ecosystem Simulation (Spring Boot).
  */
 @SpringBootApplication(scanBasePackages = "com.island")
 public class Main {

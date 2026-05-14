@@ -65,7 +65,7 @@ public class SimulationBroadcaster {
         }
     }
 
-    @Scheduled(fixedRateString = "#{@simulationProperties.broadcastRateMs}")
+    @Scheduled(fixedRateString = "${sim.broadcast-rate-ms}")
     public void broadcast() {
         WorldSnapshot snapshot = pending.getAndSet(null);
         if (snapshot != null) {

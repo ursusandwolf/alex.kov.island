@@ -138,6 +138,48 @@ classDiagram
     CityTile "1" *-- "many" SimEntity
 ```
 
+## Polymorphic Snapshots (Persistence)
+
+```mermaid
+classDiagram
+    class WorldSnapshot {
+        <<interface>>
+        +int getTickCount()
+        +int getWidth()
+        +int getHeight()
+        +Map metrics
+        +getNodeSnapshot(x, y)
+    }
+
+    class IslandSnapshot {
+        -int tickCount
+        -int width
+        -int height
+        -CellSnapshot[][] nodes
+        +IslandSnapshot()
+        +IslandSnapshot(Island)
+    }
+
+    class CitySnapshot {
+        -int tickCount
+        -int width
+        -int height
+        -CityNodeSnapshot[][] nodes
+        +CitySnapshot()
+        +CitySnapshot(CityMap, tick)
+    }
+
+    class WorldSnapshotMixin {
+        <<mixin>>
+        @JsonTypeInfo
+        @JsonSubTypes
+    }
+
+    WorldSnapshot <|.. IslandSnapshot
+    WorldSnapshot <|.. CitySnapshot
+    WorldSnapshotMixin .. WorldSnapshot : registered in ObjectMapper
+```
+
 ## Spring Boot & React Integration (Phase 4)
 
 ```mermaid

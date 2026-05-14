@@ -6,16 +6,26 @@ import com.island.engine.model.NodeSnapshot;
 import com.island.engine.model.WorldSnapshot;
 import com.island.nature.entities.core.DeathCause;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 /**
  * Island-specific implementation of WorldSnapshot.
  */
+@Getter
+@Setter
 public class IslandSnapshot implements WorldSnapshot {
-    private final int tickCount;
-    private final int width;
-    private final int height;
-    private final int totalEntityCount;
-    private final Map<String, Number> metrics;
-    private final CellSnapshot[][] nodes;
+    private int tickCount;
+    private int width;
+    private int height;
+    private int totalEntityCount;
+    private Map<String, Number> metrics;
+    private CellSnapshot[][] nodes;
+
+    public IslandSnapshot() {
+        // No-args constructor for Jackson
+    }
 
     public IslandSnapshot(Island island) {
         this.tickCount = island.getTickCount();

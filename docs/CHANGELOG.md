@@ -8,18 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.55.0] - 2026-05-14
 
 ### Added
-- Integrated **Spring Boot Actuator** for health monitoring and metrics.
-- Integrated **SpringDoc OpenAPI** (Swagger UI) for automated API documentation (accessible at `/swagger-ui.html`).
-- Added JSR-303 validation for simulation configuration properties.
-- **Engine Optimization**: Allocation-free iteration in `Cell` and `EntityContainer`.
-- **Engine Optimization**: Performance-based dynamic load balancing in `island-nature`.
+- Integrated **Spring Boot Actuator** with **Micrometer Prometheus** registry.
+- Added no-args constructors and getters/setters to all `WorldSnapshot` implementations (`IslandSnapshot`, `CitySnapshot`, etc.) for robust polymorphic serialization.
 
 ### Changed
-- Refactored `SimulationBroadcaster` to use central `SimulationProperties` instead of `@Value`.
-- Enhanced `SimulationController` with OpenAPI annotations for better documentation quality.
+- Refactored `CitySnapshot` to be fully domain-agnostic by copying data from `CityMap` into serializable fields.
+- Updated `SimulationBroadcaster` to use standard Spring property placeholder syntax (`${...}`) for scheduled tasks.
+- Translated `Main.java` Javadoc to English to maintain codebase consistency.
 
 ### Fixed
-- Resolved JPMS module visibility issues for OpenAPI and Actuator modules.
+- Resolved **JPMS** `InaccessibleObjectException` by opening `com.island.config` and domain model packages to required modules and reflection.
+- Fixed a flaky integration test in `SimulationServiceIntegrationTest` by adding `await()` to ensure simulation start before lifecycle actions.
+- Resolved polymorphic serialization failures in `SnapshotHistoryServiceTest` and enabled the test.
+- Fixed `NaturePlugin` JPMS service provider requirement by adding a manual public no-args constructor.
 
 ## [1.54.0] - 2026-05-13
 

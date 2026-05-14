@@ -26,9 +26,10 @@ module com.island.app {
     requires io.swagger.v3.oas.annotations;
     requires spring.boot.actuator;
     requires spring.boot.actuator.autoconfigure;
+    requires micrometer.registry.prometheus;
 
     opens com.island to spring.core, spring.beans, spring.context;
-    opens com.island.config to spring.core, spring.beans, spring.context, com.fasterxml.jackson.databind, spring.messaging, spring.boot;
+    opens com.island.config;
     opens com.island.service to spring.core, spring.beans, spring.context, spring.messaging, com.fasterxml.jackson.databind;
     opens com.island.controller to spring.core, spring.beans, spring.context, spring.web, spring.messaging, com.fasterxml.jackson.databind;
     

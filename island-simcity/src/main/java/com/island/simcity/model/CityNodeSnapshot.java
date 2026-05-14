@@ -2,15 +2,24 @@ package com.island.simcity.model;
 
 import com.island.engine.model.NodeSnapshot;
 import com.island.simcity.entities.components.BuildingComponent;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@Getter
+@Setter
 public class CityNodeSnapshot implements NodeSnapshot {
-    private final String coordinates;
-    private final String topSpeciesCode;
-    private final boolean hasOrganisms;
-    private final Map<String, Integer> entityCounts;
+    private String coordinates;
+    private String topSpeciesCode;
+    private boolean hasOrganisms;
+    private Map<String, Integer> entityCounts;
+
+    public CityNodeSnapshot() {
+        // No-args constructor for Jackson
+    }
 
     public CityNodeSnapshot(CityTile tile) {
         this.coordinates = tile.getX() + "," + tile.getY();

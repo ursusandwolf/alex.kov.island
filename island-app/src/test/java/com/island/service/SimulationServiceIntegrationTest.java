@@ -24,6 +24,7 @@ class SimulationServiceIntegrationTest {
 
     @Test
     void shouldManageSimulationLifecycle() {
+        await().atMost(2, SECONDS).until(() -> simulationService.getStatus() == SimulationStatus.RUNNING);
         simulationService.pause();
         assertEquals(SimulationStatus.PAUSED, simulationService.getStatus());
         
