@@ -33,12 +33,16 @@ public class DynamicChunkingStrategy implements ChunkingStrategy {
             return;
         }
 
+        long executionTime = getLastExecutionTime(sx, ex, sy, ey, island);
         int entities = countEntities(sx, ex, sy, ey, island);
+        
         int targetLoad = config.getDynamicChunkingTargetLoad();
+        long targetTimeNanos = config.getTickDurationMs() * 1_000_000L / Runtime.getRuntime().availableProcessors() / 2; // Target 50% of tick time per thread
         int minSize = config.getDynamicChunkingMinSize();
 
-        // Split if too many entities and the area is large enough to split
-        boolean shouldSplit = entities > targetLoad && (w > minSize || h > minSize) && depth < 5;
+        // Split if too many entities OR high execution time, and the area is large enough to split
+        boolean shouldSplit = (entities > targetLoad || executionTime > targetTimeNanos) 
+                && (w > minSize || h > minSize) && depth < 5;
 
         if (shouldSplit) {
             int midX = sx + w / 2;
@@ -63,6 +67,18 @@ public class DynamicChunkingStrategy implements ChunkingStrategy {
             // Create a chunk for this region
             chunks.add(new Chunk(chunks.size(), depth, sx, ex, sy, ey, island));
         }
+    }
+
+    private long getLastExecutionTime(int sx, int ex, int sy, int ey, Island island) {
+        long totalTime = 0;
+        // Find existing chunks that overlap this region
+        for (Chunk chunk : island.getChunks()) {
+            if (chunk.getStartX() >= sx && chunk.getEndX() <= ex && 
+                chunk.getStartY() >= sy && chunk.getEndY() <= ey) {
+                totalTime += chunk.getLastExecutionTimeNanos();
+            }
+        }
+        return totalTime;
     }
 
     private int countEntities(int sx, int ex, int sy, int ey, Island island) {

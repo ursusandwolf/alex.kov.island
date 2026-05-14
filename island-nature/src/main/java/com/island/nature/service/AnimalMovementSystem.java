@@ -1,6 +1,5 @@
 package com.island.nature.service;
 
-import com.island.engine.core.SimulationNode;
 import com.island.engine.ecs.Component;
 import com.island.nature.entities.components.MetabolismComponent;
 import com.island.nature.entities.components.MovementComponent;
@@ -11,10 +10,10 @@ import com.island.nature.entities.core.Organism;
 import com.island.nature.entities.domain.NatureWorld;
 import com.island.nature.entities.domain.TaskRegistry;
 import com.island.nature.model.Cell;
+import com.island.nature.model.Island;
 import com.island.util.common.RandomProvider;
 import com.island.util.sampling.SamplingContext;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -68,8 +67,8 @@ public class AnimalMovementSystem extends NatureEntitySystem {
             
             if (speed > 0) {
                 Cell target = selectTargetCell(cell, speed);
-                if (target != cell) {
-                    if (getWorld().moveOrganism(animal, cell, target)) {
+                if (target != null && target != cell) {
+                    if (((NatureWorld) getWorld()).moveOrganism(animal, cell, target)) {
                         long moveCost = (animal.getMaxEnergy() * (1 + speed) * config.getSpeedMoveCostStepBP()) / config.getScale10K();
                         animal.consumeEnergy(moveCost);
                         if (!animal.isAlive()) {
@@ -99,9 +98,9 @@ public class AnimalMovementSystem extends NatureEntitySystem {
                 continue;
             }
             
-            Optional<Cell> target = getWorld().getCell(node, dx, dy);
-            if (target.isPresent()) {
-                return target.get();
+            Cell target = ((Island) getWorld()).getCellOrNull(node, dx, dy);
+            if (target != null) {
+                return target;
             }
         }
         

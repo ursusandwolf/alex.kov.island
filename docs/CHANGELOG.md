@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Integrated **Spring Boot Actuator** for health monitoring and metrics.
 - Integrated **SpringDoc OpenAPI** (Swagger UI) for automated API documentation (accessible at `/swagger-ui.html`).
 - Added JSR-303 validation for simulation configuration properties.
+- **Engine Optimization**: Allocation-free iteration in `Cell` and `EntityContainer`.
+- **Engine Optimization**: Performance-based dynamic load balancing in `island-nature`.
 
 ### Changed
 - Refactored `SimulationBroadcaster` to use central `SimulationProperties` instead of `@Value`.

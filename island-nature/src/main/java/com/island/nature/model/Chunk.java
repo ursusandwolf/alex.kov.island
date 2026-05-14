@@ -53,6 +53,22 @@ public class Chunk implements WorkUnit<Organism> {
         return chunkIdY;
     }
 
+    public int getStartX() {
+        return startX;
+    }
+
+    public int getEndX() {
+        return endX;
+    }
+
+    public int getStartY() {
+        return startY;
+    }
+
+    public int getEndY() {
+        return endY;
+    }
+
     @Override
     public String toString() {
         return String.format("Chunk[%d,%d] cells=%d time=%dms", chunkIdX, chunkIdY, 

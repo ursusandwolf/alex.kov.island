@@ -19,6 +19,10 @@
     - **UI Guide**: Created comprehensive `docs/UI_GUIDE.md` for the Web Dashboard.
     - **Maintenance**: Synced `todo.md` and `README.md` with current project architecture (Spring Boot migration).
     - **ADR Audit**: Finalized and accepted ADR 004 (Spring Boot Integration).
+- **Engine Optimization (May 14, 2026) - COMPLETED**:
+    - **Dispatcher**: Eliminated `ArrayList` allocations in `ParallelDispatcher` hot path by reusing pooled lists.
+    - **Load Balancing**: Enhanced `DynamicChunkingStrategy` in `island-nature` to use `WorkUnit` execution time metrics for adaptive partitioning.
+    - **Zero-GC**: Refactored `Cell` and `EntityContainer` to support allocation-free iteration. Replaced `Optional` with `getNodeOrNull` in critical movement logic.
 - **Code Quality Audit & Hardening (May 14, 2026) - COMPLETED**:
     - **Configuration**: Refactored all remaining `@Value` properties into `@Validated` `SimulationProperties` bean.
     - **Observability**: Integrated Spring Boot Actuator with health, info, and metrics endpoints.

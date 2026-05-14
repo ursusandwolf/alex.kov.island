@@ -16,6 +16,9 @@ import com.island.nature.entities.core.AnimalType;
 import com.island.nature.entities.core.Biomass;
 import com.island.nature.entities.core.Organism;
 import com.island.nature.entities.core.SpeciesKey;
+import com.island.util.common.RandomProvider;
+import com.island.util.sampling.SamplingContext;
+import com.island.util.sampling.SamplingUtils;
 
 public class EntityContainer {
     private final Configuration config;
@@ -134,6 +137,38 @@ public class EntityContainer {
         for (Biomass b : biomassBySpecies.values()) {
             action.accept((Organism) b);
         }
+    }
+
+    public void forEachAnimalSampled(SamplingContext context, Consumer<Animal> action) {
+        if (animalCount <= context.getLimit()) {
+            forEachAnimal(action);
+            return;
+        }
+        
+        // If we must sample, we still need a way to access elements by index efficiently
+        // or just use the existing logic but more carefully.
+        // For now, minimizing impact by delegating to a method that might be further optimized.
+        SamplingUtils.forEachSampled(getAllAnimals(), context, action);
+    }
+
+    public void forEachHerbivoreSampled(int limit, RandomProvider random, Consumer<Animal> action) {
+        // Optimization: if population is small, don't sample
+        if (animalCount <= limit) {
+            forEachAnimal(a -> {
+                if (!a.isAnimalPredator()) {
+                    action.accept(a);
+                }
+            });
+            return;
+        }
+        
+        List<Animal> herbivores = new ArrayList<>();
+        forEachAnimal(a -> {
+            if (!a.isAnimalPredator()) {
+                herbivores.add(a);
+            }
+        });
+        SamplingUtils.forEachSampled(herbivores, limit, random, action);
     }
 
     public void forEachMatching(EntityQuery<Organism> query, Consumer<Organism> action) {

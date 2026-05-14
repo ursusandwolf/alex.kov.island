@@ -167,20 +167,34 @@ public class Island implements NatureWorld {
 
     @Override
     public Optional<SimulationNode<Organism>> getNode(SimulationNode<Organism> current, int dx, int dy) {
+        SimulationNode<Organism> node = getNodeOrNull(current, dx, dy);
+        return Optional.ofNullable(node);
+    }
+
+    @Override
+    public SimulationNode<Organism> getNodeOrNull(SimulationNode<Organism> current, int dx, int dy) {
         if (current instanceof Cell cell) {
-            return getCell(cell, dx, dy).map(c -> c);
+            int tx = cell.getX() + dx;
+            int ty = cell.getY() + dy;
+            if (GridUtils.isValid(tx, ty, width, height)) {
+                return grid[tx][ty];
+            }
         }
-        return Optional.empty();
+        return null;
     }
 
     @Override
     public Optional<Cell> getCell(Cell current, int dx, int dy) {
+        return Optional.ofNullable(getCellOrNull(current, dx, dy));
+    }
+
+    public Cell getCellOrNull(Cell current, int dx, int dy) {
         int tx = current.getX() + dx;
         int ty = current.getY() + dy;
         if (GridUtils.isValid(tx, ty, width, height)) {
-            return Optional.of(grid[tx][ty]);
+            return grid[tx][ty];
         }
-        return Optional.empty();
+        return null;
     }
 
     public Cell getCell(int x, int y) {

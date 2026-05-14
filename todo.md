@@ -17,7 +17,10 @@
 - [ ] Setup PITest mutation testing in CI pipeline.
 - [x] **Technical Debt**: Refactor remaining `@Value` properties into `SimulationProperties`.
 - [ ] **Technical Debt**: Refactor `SocialService` to resolve OCP/SRP violations (Effect Providers & Logic Split).
-- [ ] **Technical Debt**: Clean up dynamic interval logic in `SimulationBroadcaster`.
+- [x] **Technical Debt**: Clean up dynamic interval logic in `SimulationBroadcaster`.
+- [x] **Performance**: Optimize `ParallelDispatcher` to eliminate hot-loop allocations.
+- [x] **Performance**: Implement adaptive load balancing based on execution time in `island-nature`.
+- [x] **Performance**: Zero-GC audit: refactor core iteration and pathfinding to avoid `Optional` and temporary lists.
 - [ ] **Test Coverage**: Fix `@Disabled` test `SnapshotHistoryServiceTest.testLoadSnapshotSuccess` (serialization complexity).
 - [x] **Infrastructure**: Implement SpringDoc OpenAPI for API documentation.
 - [x] **Infrastructure**: Configure Spring Boot Actuator for metrics and health monitoring.
