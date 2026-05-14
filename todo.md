@@ -16,6 +16,8 @@
 - [ ] Add jqwik property-based tests for core logic.
 - [ ] Setup PITest mutation testing in CI pipeline.
 - [x] **Technical Debt**: Refactor remaining `@Value` properties into `SimulationProperties`.
+- [ ] **Technical Debt**: Refactor `SocialService` to resolve OCP/SRP violations (Effect Providers & Logic Split).
+- [ ] **Technical Debt**: Clean up dynamic interval logic in `SimulationBroadcaster`.
 - [ ] **Test Coverage**: Fix `@Disabled` test `SnapshotHistoryServiceTest.testLoadSnapshotSuccess` (serialization complexity).
 - [x] **Infrastructure**: Implement SpringDoc OpenAPI for API documentation.
 - [x] **Infrastructure**: Configure Spring Boot Actuator for metrics and health monitoring.
