@@ -1,7 +1,6 @@
 package com.island.simcity.service;
 
 import com.island.engine.ecs.Component;
-import com.island.engine.core.SimulationNode;
 import com.island.engine.scheduling.Phase;
 import com.island.simcity.entities.SimEntity;
 import com.island.simcity.entities.components.BuildingComponent;
@@ -9,16 +8,23 @@ import com.island.simcity.entities.components.PopulationComponent;
 import com.island.simcity.model.CityMap;
 import com.island.simcity.model.CityTile;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service managing education and health systems.
  * Provides area-of-effect bonuses from social buildings.
  */
+@Slf4j
 public class SocialService extends AbstractSimCityService {
     private final CityMap map;
+    private final Map<BuildingComponent.Type, SocialEffectProvider> effectProviders;
 
-    public SocialService(CityMap map) {
+    public SocialService(CityMap map, List<SocialEffectProvider> providers) {
         this.map = map;
+        this.effectProviders = providers.stream()
+            .collect(Collectors.toMap(SocialEffectProvider::getSupportedType, p -> p));
     }
 
     @Override
@@ -58,7 +64,11 @@ public class SocialService extends AbstractSimCityService {
         for (SimEntity entity : tile.getEntities()) {
             BuildingComponent building = entity.getComponent(BuildingComponent.class);
             if (building != null) {
-                applySocialEffects(tile, building);
+                SocialEffectProvider provider = effectProviders.get(building.getType());
+                if (provider != null) {
+                    log.debug("Applying {} at [{}, {}]", building.getType(), tile.getX(), tile.getY());
+                    provider.applyEffect(tile, this);
+                }
             }
             
             PopulationComponent pop = entity.getComponent(PopulationComponent.class);
@@ -68,28 +78,7 @@ public class SocialService extends AbstractSimCityService {
         }
     }
 
-    private void applySocialEffects(CityTile tile, BuildingComponent building) {
-        switch (building.getType()) {
-            case SCHOOL -> {
-                tile.setEducationLevel(tile.getEducationLevel() + 60);
-                spreadEffect(tile, 1, 30, true);
-            }
-            case COLLEGE -> {
-                tile.setEducationLevel(tile.getEducationLevel() + 100);
-                spreadEffect(tile, 2, 50, true);
-            }
-            case HOSPITAL -> {
-                tile.setHealthLevel(tile.getHealthLevel() + 80);
-                spreadEffect(tile, 2, 40, false);
-            }
-            case PARK -> {
-                tile.setHealthLevel(tile.getHealthLevel() + 10);
-                tile.setDesirability(tile.getDesirability() + 15);
-            }
-        }
-    }
-
-    private void spreadEffect(CityTile center, int radius, int power, boolean education) {
+    public void spreadEffect(CityTile center, int radius, int power, boolean education) {
         for (int dx = -radius; dx <= radius; dx++) {
             for (int dy = -radius; dy <= radius; dy++) {
                 if (dx == 0 && dy == 0) continue;
@@ -103,9 +92,9 @@ public class SocialService extends AbstractSimCityService {
                     int attenuatedPower = power / dist;
                     
                     if (education) {
-                        neighbor.setEducationLevel(neighbor.getEducationLevel() + attenuatedPower);
+                        neighbor.addEducationLevel(attenuatedPower);
                     } else {
-                        neighbor.setHealthLevel(neighbor.getHealthLevel() + attenuatedPower);
+                        neighbor.addHealthLevel(attenuatedPower);
                     }
                 }
             }

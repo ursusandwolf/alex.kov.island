@@ -27,13 +27,37 @@ public class CityTile implements SimulationNode<SimEntity> {
     @Getter @Setter private int airPollution = 0;
     @Getter @Setter private int waterPollution = 0;
     @Getter @Setter private int desirability = 0;
-    @Getter @Setter private int educationLevel = 0;
-    @Getter @Setter private int healthLevel = 0;
+    private final java.util.concurrent.atomic.AtomicInteger educationLevel = new java.util.concurrent.atomic.AtomicInteger(0);
+    private final java.util.concurrent.atomic.AtomicInteger healthLevel = new java.util.concurrent.atomic.AtomicInteger(0);
 
     public CityTile(int x, int y, SimulationWorld<SimEntity> world) {
         this.x = x;
         this.y = y;
         this.world = world;
+    }
+
+    public int getEducationLevel() {
+        return educationLevel.get();
+    }
+
+    public void setEducationLevel(int level) {
+        educationLevel.set(level);
+    }
+
+    public void addEducationLevel(int delta) {
+        educationLevel.addAndGet(delta);
+    }
+
+    public int getHealthLevel() {
+        return healthLevel.get();
+    }
+
+    public void setHealthLevel(int level) {
+        healthLevel.set(level);
+    }
+
+    public void addHealthLevel(int delta) {
+        healthLevel.addAndGet(delta);
     }
 
     @Override

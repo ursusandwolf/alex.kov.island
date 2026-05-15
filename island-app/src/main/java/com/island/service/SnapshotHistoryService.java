@@ -1,25 +1,24 @@
 package com.island.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.island.engine.model.WorldSnapshot;
+import com.island.persistence.SimulationSnapshotEntity;
+import com.island.persistence.SimulationSnapshotRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
- * Service for saving and loading simulation snapshots to/from the filesystem.
+ * Service for saving and loading simulation snapshots using JPA persistence.
  */
 @Service
 @RequiredArgsConstructor
@@ -28,24 +27,14 @@ public class SnapshotHistoryService {
 
     private final ObjectMapper objectMapper;
     private final SimulationService simulationService;
-
-    @Value("${sim.history.dir:data/snapshots}")
-    private String historyDir;
-
-    @PostConstruct
-    public void init() {
-        try {
-            Files.createDirectories(Paths.get(historyDir));
-        } catch (IOException e) {
-            log.error("Could not create history directory at {}", historyDir, e);
-        }
-    }
+    private final SimulationSnapshotRepository repository;
 
     /**
-     * Saves the current simulation snapshot to a JSON file.
+     * Saves the current simulation snapshot to the database.
      * 
      * @return the generated filename
      */
+    @Transactional
     public Optional<String> saveCurrentSnapshot() {
         Optional<WorldSnapshot> snapshotOpt = simulationService.getSnapshot();
         if (snapshotOpt.isEmpty()) {
@@ -54,15 +43,21 @@ public class SnapshotHistoryService {
         }
 
         WorldSnapshot snapshot = snapshotOpt.get();
-        String filename = "snapshot_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".json";
-        Path path = Paths.get(historyDir, filename);
-
+        String filename = "snapshot_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+        
         try {
-            objectMapper.writeValue(path.toFile(), snapshot);
-            log.info("Saved historical snapshot to {}", path);
+            String content = objectMapper.writeValueAsString(snapshot);
+            SimulationSnapshotEntity entity = SimulationSnapshotEntity.builder()
+                    .filename(filename)
+                    .createdAt(LocalDateTime.now())
+                    .content(content)
+                    .build();
+            
+            repository.save(entity);
+            log.info("Saved historical snapshot '{}' to database", filename);
             return Optional.of(filename);
-        } catch (IOException e) {
-            log.error("Failed to serialize and save snapshot", e);
+        } catch (JsonProcessingException e) {
+            log.error("Failed to serialize snapshot", e);
             return Optional.empty();
         }
     }
@@ -71,37 +66,24 @@ public class SnapshotHistoryService {
      * Lists all saved snapshot filenames.
      */
     public List<String> listSnapshots() {
-        try (var stream = Files.list(Paths.get(historyDir))) {
-            return stream.filter(p -> p.toString().endsWith(".json"))
-                    .map(p -> p.getFileName().toString())
-                    .sorted()
-                    .toList();
-        } catch (IOException e) {
-            log.error("Failed to list snapshots in {}", historyDir, e);
-            return List.of();
-        }
+        return repository.findAll().stream()
+                .map(SimulationSnapshotEntity::getFilename)
+                .sorted()
+                .toList();
     }
 
     /**
-     * Loads a specific snapshot by filename.
+     * Loads a specific snapshot by filename from the database.
      */
     public Optional<WorldSnapshot> loadSnapshot(String filename) {
-        Path path = Paths.get(historyDir, filename).normalize();
-        if (!path.startsWith(Paths.get(historyDir).normalize())) {
-            log.warn("Invalid snapshot filename or path traversal attempt: {}", filename);
-            return Optional.empty();
-        }
-
-        if (!Files.exists(path)) {
-            log.warn("Snapshot file not found: {}", path);
-            return Optional.empty();
-        }
-
-        try {
-            return Optional.ofNullable(objectMapper.readValue(path.toFile(), WorldSnapshot.class));
-        } catch (IOException e) {
-            log.error("Failed to deserialize snapshot from {}", path, e);
-            return Optional.empty();
-        }
+        return repository.findByFilename(filename)
+                .flatMap(entity -> {
+                    try {
+                        return Optional.of(objectMapper.readValue(entity.getContent(), WorldSnapshot.class));
+                    } catch (JsonProcessingException e) {
+                        log.error("Failed to deserialize snapshot '{}' from database", filename, e);
+                        return Optional.empty();
+                    }
+                });
     }
 }

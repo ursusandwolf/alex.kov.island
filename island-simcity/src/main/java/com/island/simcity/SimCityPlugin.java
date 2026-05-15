@@ -36,19 +36,26 @@ public class SimCityPlugin implements NamedSimulationPlugin<SimEntity> {
     private final int height;
     private final ComponentRegistry componentRegistry = new ComponentRegistry();
     private final WorldSnapshot initialSnapshot;
+    private final List<com.island.simcity.service.SocialEffectProvider> socialEffectProviders;
 
     public SimCityPlugin() {
-        this(10, 10, null);
+        this(20, 20, null, new java.util.ArrayList<>());
     }
 
     public SimCityPlugin(int width, int height) {
-        this(width, height, null);
+        this(width, height, null, new java.util.ArrayList<>());
     }
 
-    public SimCityPlugin(int width, int height, WorldSnapshot initialSnapshot) {
+    @org.springframework.beans.factory.annotation.Autowired
+    public SimCityPlugin(List<com.island.simcity.service.SocialEffectProvider> socialEffectProviders) {
+        this(20, 20, null, socialEffectProviders);
+    }
+
+    public SimCityPlugin(int width, int height, WorldSnapshot initialSnapshot, List<com.island.simcity.service.SocialEffectProvider> socialEffectProviders) {
         this.width = initialSnapshot != null ? initialSnapshot.getWidth() : width;
         this.height = initialSnapshot != null ? initialSnapshot.getHeight() : height;
         this.initialSnapshot = initialSnapshot;
+        this.socialEffectProviders = socialEffectProviders != null ? socialEffectProviders : new java.util.ArrayList<>();
         // Register components for stable indices
         componentRegistry.getBitSet(List.of(
                 PopulationComponent.class,
@@ -64,7 +71,7 @@ public class SimCityPlugin implements NamedSimulationPlugin<SimEntity> {
 
     @Override
     public SimulationPlugin<SimEntity> withConfiguration(int width, int height, WorldSnapshot snapshot) {
-        return new SimCityPlugin(width, height, snapshot);
+        return new SimCityPlugin(width, height, snapshot, socialEffectProviders);
     }
 
     @Override
@@ -104,7 +111,7 @@ public class SimCityPlugin implements NamedSimulationPlugin<SimEntity> {
 
         ConnectivityService connService = new ConnectivityService(map);
         CityAnalyticsService analyticsService = new CityAnalyticsService(map);
-        SocialService socialService = new SocialService(map);
+        SocialService socialService = new SocialService(map, socialEffectProviders);
         PopulationService popService = new PopulationService(map, componentRegistry);
         EconomyService economyService = new EconomyService(map);
         PollutionService pollutionService = new PollutionService(map);

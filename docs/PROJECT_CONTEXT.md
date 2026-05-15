@@ -30,24 +30,24 @@
     - **Persistence**: Fixed and enabled `SnapshotHistoryServiceTest` by implementing robust polymorphic serialization in all snapshot implementations.
     - **Consistency**: Unified scheduled task property resolution and translated `Main.java` Javadoc to English.
 
-## Architecture
-- **Engine (Stable v1.55.0)**: Decoupled core with SoA-based storage, phase-based scheduling, and robust thread pooling.
-- **Nature (Stable v1.55.0)**: High-performance ecosystem with predatory and metabolic logic.
-- **SimCity (Stable v1.55.0)**: Grid-based urban simulation with RCI zones and environmental mechanics.
-- **App (Stable v1.55.0)**: Spring Boot-managed backend providing REST and WebSocket APIs for simulation control and visualization.
+- **Security, Persistence & Domain Hardening (May 15, 2026) - COMPLETED**:
+    - **Thread-Safety**: Resolved race condition in `SocialService` by using `AtomicInteger` accumulators in `CityTile`. Fixed visibility issues in `SimulationProperties`.
+    - **Refactoring**: Decoupled building effects in `SocialService` using `SocialEffectProvider` strategy pattern, achieving full OCP compliance.
+    - **Security**: Integrated Spring Security with Basic Authentication to protect `/api/v1/simulation/**` and Actuator endpoints (except health/info).
+    - **Persistence**: Migrated snapshot history from filesystem to JPA/H2 database, improving reliability and queryability.
+    - **Quality**: Integrated Revapi for API compatibility checks and implemented jqwik property-based tests for `AnimalHealthSystem`.
+    - **Ops**: Created multi-stage `Dockerfile` and `docker-compose.yml` with Prometheus monitoring.
 
-- **Architecture Constraint (JPMS)**:
-    - Attempted to refactor `SimulationService` to remove direct domain module dependencies (NaturePlugin).
-    - Failed due to JPMS module isolation and classloader conflicts in integration tests, causing `ClassCastException` where `NaturePlugin` and `NamedSimulationPlugin` were loaded by different module loaders despite being in the same module path.
-    - Decided to maintain explicit dependency to ensure test and runtime stability for current release.
-    - Future refactorings must address classloader consistency in integration test contexts.
+## Architecture
+- **Engine (Stable v1.55.0)**: Decoupled core with SoA-based storage, phase-based scheduling, and robust thread pooling. Now protected by Revapi.
+- **Nature (Stable v1.55.0)**: High-performance ecosystem with predatory and metabolic logic. Verified by property-based tests.
+- **SimCity (Stable v1.55.0)**: Grid-based urban simulation with RCI zones. Refactored `SocialService` for extensibility and thread-safety.
+- **App (Stable v1.55.0)**: Spring Boot-managed backend with Basic Auth, JPA persistence, and comprehensive observability (Actuator + Prometheus).
 
 ## Next Steps
-- **Maintenance & Refactoring (May 15, 2026)**:
-    - **SimCity**: Refactor `SocialService` to resolve OCP/SRP violations identified during code review.
-    - **Quality Roadmap**: Implement Revapi integration and property-based testing (jqwik).
-    - **Ops**: Create `Dockerfile` and `docker-compose.yml` for containerized deployment.
-    - **Security**: Implement Spring Security (Basic Auth) for Actuator and control endpoints.
-- **Extension**: New domain-specific plugins using the stable and optimized Engine API.
+- **Observability**: Implement Grafana dashboards using the provided Prometheus configuration.
+- **Extension**: New domain-specific plugins (e.g., Space, Deep Sea) using the extensible `SimulationPlugin` and `SocialEffectProvider` APIs.
+- **Quality**: Expand jqwik coverage to movement and reproduction systems.
+
 
 

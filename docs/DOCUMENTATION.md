@@ -12,6 +12,7 @@ This document provides a central index for all technical and architectural docum
 - [Engine Guide](engine/ECS_GUIDE.md): Detailed guide on working with the ECS engine.
 - [UI Guide](UI_GUIDE.md): Documentation for the React-based Web Dashboard.
 - [Testing Guide](testing/TESTING_GUIDE.md): Overview of the testing strategy and quality gates.
+- [Security & Persistence](api/DATA_MODEL.md): Details on authentication and JPA storage.
 
 ## Administrative
 - [Changelog](CHANGELOG.md): Record of all notable changes to the project.

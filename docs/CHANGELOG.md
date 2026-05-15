@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.56.0] - 2026-05-15
+
+### Added
+- **Spring Security** integration with Basic Authentication for simulation control and management endpoints.
+- **JPA Persistence** with H2 database for simulation snapshot history, replacing filesystem storage.
+- **SocialEffectProvider** strategy pattern in `island-simcity` for OCP-compliant building effects.
+- **Observability** stack with multi-stage `Dockerfile` and `docker-compose.yml` including Prometheus.
+- **Property-based testing** with `jqwik` for `AnimalHealthSystem` (1000 trials/property).
+- **API Compatibility** checks via Revapi integrated into the build lifecycle.
+
+### Fixed
+- Resolved race conditions in `SocialService` by migrating `CityTile` level metrics to `AtomicInteger`.
+- Fixed visibility issues in `SimulationProperties` by adding `volatile` to dynamically tuned fields.
+
 ## [1.55.0] - 2026-05-14
 
 ### Added

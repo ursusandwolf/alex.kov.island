@@ -27,9 +27,17 @@ module com.island.app {
     requires spring.boot.actuator;
     requires spring.boot.actuator.autoconfigure;
     requires micrometer.registry.prometheus;
+    requires spring.security.config;
+    requires spring.security.web;
+    requires spring.security.core;
+    requires spring.data.jpa;
+    requires spring.data.commons;
+    requires jakarta.persistence;
+    requires spring.tx;
 
     opens com.island to spring.core, spring.beans, spring.context;
     opens com.island.config;
+    opens com.island.persistence to spring.core, spring.beans, spring.context, org.hibernate.orm.core, spring.data.jpa;
     opens com.island.service to spring.core, spring.beans, spring.context, spring.messaging, com.fasterxml.jackson.databind;
     opens com.island.controller to spring.core, spring.beans, spring.context, spring.web, spring.messaging, com.fasterxml.jackson.databind;
     

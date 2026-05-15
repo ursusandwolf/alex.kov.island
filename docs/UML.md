@@ -180,6 +180,34 @@ classDiagram
     WorldSnapshotMixin .. WorldSnapshot : registered in ObjectMapper
 ```
 
+## Social Effects Strategy (OCP)
+
+```mermaid
+classDiagram
+    class SocialService {
+        -Map~Type, SocialEffectProvider~ providers
+        +spreadEffect(center, radius, power, isEducation)
+    }
+
+    class SocialEffectProvider {
+        <<interface>>
+        +getSupportedType() Type
+        +applyEffect(tile, service)
+    }
+
+    class SchoolEffectProvider {
+        +applyEffect(tile, service)
+    }
+
+    class HospitalEffectProvider {
+        +applyEffect(tile, service)
+    }
+
+    SocialService "1" o-- "many" SocialEffectProvider
+    SocialEffectProvider <|.. SchoolEffectProvider
+    SocialEffectProvider <|.. HospitalEffectProvider
+```
+
 ## Spring Boot & React Integration (Phase 4)
 
 ```mermaid

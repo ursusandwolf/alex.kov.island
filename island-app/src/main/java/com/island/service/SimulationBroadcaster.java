@@ -27,8 +27,6 @@ public class SimulationBroadcaster {
     private final SimulationProperties properties;
     private final AtomicReference<WorldSnapshot> pending = new AtomicReference<>();
 
-    private volatile Integer dynamicInterval;
-
     /**
      * Automatically registers the broadcaster as a recurring task in the simulation game loop
      * once a new simulation context is started.
@@ -36,11 +34,7 @@ public class SimulationBroadcaster {
     @EventListener(SimulationStartedEvent.class)
     public void startBroadcasting(SimulationStartedEvent event) {
         event.getContext().gameLoop().addRecurringTask(new TickBroadcastTask());
-        log.info("Simulation broadcasting attached to new context with interval: {} ticks", getSnapshotInterval());
-    }
-
-    private int getSnapshotInterval() {
-        return dynamicInterval != null ? dynamicInterval : properties.getBroadcastInterval();
+        log.info("Simulation broadcasting attached to new context with interval: {} ticks", properties.getBroadcastInterval());
     }
 
     /**
@@ -59,7 +53,7 @@ public class SimulationBroadcaster {
 
         @Override
         public void tick(int tickCount) {
-            if (tickCount % getSnapshotInterval() != 0) return;
+            if (tickCount % properties.getBroadcastInterval() != 0) return;
 
             simulationService.getSnapshot().ifPresent(pending::set);
         }
@@ -80,7 +74,7 @@ public class SimulationBroadcaster {
      * @param interval the new interval in ticks
      */
     public void setSnapshotInterval(int interval) {
-        this.dynamicInterval = Math.max(1, interval);
-        log.info("Broadcast interval updated to {} ticks", this.dynamicInterval);
+        properties.setBroadcastInterval(Math.max(1, interval));
+        log.info("Broadcast interval updated to {} ticks", properties.getBroadcastInterval());
     }
 }
