@@ -33,6 +33,9 @@ public class SimulationProperties {
     @NotBlank
     private volatile String defaultPlugin = "nature";
 
+    @NotBlank
+    private volatile String historyDir = "data/snapshots";
+
     @Min(1)
     @Max(100)
     private volatile int broadcastInterval = 5;

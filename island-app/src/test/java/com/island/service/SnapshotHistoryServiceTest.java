@@ -11,6 +11,7 @@ import org.mockito.ArgumentCaptor;
 import com.island.nature.model.IslandSnapshot;
 import com.island.nature.model.CellSnapshot;
 import com.island.config.WorldSnapshotMixin;
+import com.island.config.SimulationProperties;
 import java.util.Optional;
 import java.util.Collections;
 import java.util.List;
@@ -24,6 +25,7 @@ class SnapshotHistoryServiceTest {
     private SimulationService simulationService;
     private SimulationSnapshotRepository repository;
     private ObjectMapper objectMapper;
+    private SimulationProperties simulationProperties;
 
     @BeforeEach
     void setUp() {
@@ -31,7 +33,8 @@ class SnapshotHistoryServiceTest {
         repository = mock(SimulationSnapshotRepository.class);
         objectMapper = new ObjectMapper();
         objectMapper.addMixIn(WorldSnapshot.class, WorldSnapshotMixin.class);
-        snapshotHistoryService = new SnapshotHistoryService(objectMapper, simulationService, repository);
+        simulationProperties = new SimulationProperties();
+        snapshotHistoryService = new SnapshotHistoryService(objectMapper, simulationService, repository, simulationProperties);
     }
 
     @Test
