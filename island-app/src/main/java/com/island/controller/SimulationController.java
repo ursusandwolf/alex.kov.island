@@ -28,7 +28,7 @@ import java.util.List;
 @RequestMapping("/api/v1/simulation")
 @RequiredArgsConstructor
 @Validated
-@Tag(name = "Simulation", description = "Endpoints for managing the simulation lifecycle and world state.")
+@Tag(name = "Simulation", description = "Endpoints for managing the simulation lifecycle and world state. NOTE: Supports single-user concurrent simulations.")
 public class SimulationController {
 
     private final SimulationService simulationService;
@@ -41,7 +41,7 @@ public class SimulationController {
     @ApiResponse(responseCode = "200", description = "Simulation started successfully")
     @PostMapping("/start")
     public ResponseEntity<StatusResponse> start(
-            @Parameter(description = "Type of simulation (nature, simcity)") @RequestParam(defaultValue = "nature") String type,
+            @Parameter(description = "Type of simulation") @RequestParam(defaultValue = "NATURE") SimulationType type,
             @Parameter(description = "Grid width") @RequestParam(defaultValue = "20") @Min(5) @Max(200) int width,
             @Parameter(description = "Grid height") @RequestParam(defaultValue = "20") @Min(5) @Max(200) int height,
             @Parameter(description = "Tick duration in ms") @RequestParam(defaultValue = "100") @Min(10) @Max(10000) int tickMs) {
@@ -58,7 +58,7 @@ public class SimulationController {
     @PostMapping("/start-from-snapshot")
     public ResponseEntity<StatusResponse> startFromSnapshot(
             @Parameter(description = "Filename of the snapshot") @RequestParam String filename,
-            @Parameter(description = "Type of simulation (nature, simcity)") @RequestParam(defaultValue = "nature") String type,
+            @Parameter(description = "Type of simulation") @RequestParam(defaultValue = "NATURE") SimulationType type,
             @Parameter(description = "Tick duration in ms") @RequestParam(defaultValue = "100") @Min(10) @Max(10000) int tickMs) {
         return historyService.loadSnapshot(filename)
                 .map(snapshot -> {
@@ -138,8 +138,9 @@ public class SimulationController {
      */
     @Operation(summary = "List history", description = "Returns a list of all saved snapshot filenames.")
     @GetMapping("/snapshot/history")
-    public ResponseEntity<List<String>> listSnapshots() {
-        return ResponseEntity.ok(historyService.listSnapshots());
+    public ResponseEntity<SnapshotListResponse> listSnapshots() {
+        List<String> snapshots = historyService.listSnapshots();
+        return ResponseEntity.ok(new SnapshotListResponse(snapshots, snapshots.size()));
     }
 
     /**

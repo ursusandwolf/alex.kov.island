@@ -1,5 +1,7 @@
 package com.island.service;
 
+import com.island.config.SimulationProperties;
+import com.island.controller.SimulationType;
 import com.island.engine.core.NamedSimulationPlugin;
 import com.island.engine.core.SimulationConfig;
 import com.island.engine.core.SimulationContext;
@@ -7,7 +9,6 @@ import com.island.engine.core.SimulationEngine;
 import com.island.engine.core.SimulationPlugin;
 import com.island.engine.model.WorldSnapshot;
 import com.island.engine.scheduling.SimulationStatus;
-import com.island.config.SimulationProperties;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 
 /**
  * Service to manage the simulation lifecycle and its dynamic context.
+ * NOTE: Current implementation supports a single simulation instance.
  */
 @Service
 @Slf4j
@@ -46,29 +48,29 @@ public class SimulationService {
      */
     @EventListener(ApplicationStartedEvent.class)
     public void startDefault() {
-        start(properties.getDefaultPlugin(), properties.getWidth(), properties.getHeight(), properties.getTickMs());
+        start(SimulationType.valueOf(properties.getDefaultPlugin().toUpperCase()), properties.getWidth(), properties.getHeight(), properties.getTickMs());
     }
 
     /**
      * Starts a new simulation with custom parameters, destroying the old one if it exists.
      *
-     * @param type    the simulation type ("nature" or "simcity")
+     * @param type    the simulation type
      * @param width   the grid width
      * @param height  the grid height
      * @param tickMs  the tick duration in milliseconds
      */
-    public synchronized void start(String type, int width, int height, int tickMs) {
+    public synchronized void start(SimulationType type, int width, int height, int tickMs) {
         doStart(type, width, height, tickMs, null);
     }
 
     /**
      * Starts a new simulation from an existing snapshot.
      */
-    public synchronized void startFromSnapshot(WorldSnapshot snapshot, String type, int tickMs) {
+    public synchronized void startFromSnapshot(WorldSnapshot snapshot, SimulationType type, int tickMs) {
         doStart(type, snapshot.getWidth(), snapshot.getHeight(), tickMs, snapshot);
     }
 
-    private void doStart(String type, int width, int height, int tickMs, WorldSnapshot initialSnapshot) {
+    private void doStart(SimulationType type, int width, int height, int tickMs, WorldSnapshot initialSnapshot) {
         if (context != null) {
             SimulationContext<?> oldContext = this.context;
             this.context = null; // Set to null before closing to prevent race conditions in snapshot/status calls
@@ -81,7 +83,7 @@ public class SimulationService {
                 .tickDurationMs(tickMs)
                 .build();
 
-        NamedSimulationPlugin<?> factory = plugins.get(type.toLowerCase());
+        NamedSimulationPlugin<?> factory = plugins.get(type.name().toLowerCase());
         if (factory == null) {
             throw new IllegalArgumentException("Unknown simulation type: " + type);
         }
